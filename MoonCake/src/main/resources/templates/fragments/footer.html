@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+  <!-- ================= 1. FULL E-COMMERCE FOOTER (HOMEPAGE, CATALOG, DETAIL) ================= -->
+  <footer th:fragment="footer" class="bg-dark-navy border-t border-gold/25 pt-16 pb-8 text-sand text-xs" id="footer">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-gold/20">
+        <!-- Col 1: Brand Info -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full border border-gold/60 flex items-center justify-center bg-deep-indigo">
+              <i class="w-4 h-4 text-gold" data-lucide="moon"></i>
+            </div>
+            <span class="font-serif text-xl font-bold tracking-widest text-ivory">MOONCAKE</span>
+          </div>
+          <p class="leading-relaxed text-sand/80">
+            Nghệ thuật bánh Trung Thu hoàng gia cao cấp. Kết tinh giữa phong vị ẩm thực ba miền và chuẩn mực quà tặng hiện đại, trao trọn nghĩa tình mùa sum vầy.
+          </p>
+          <div class="flex items-center gap-3 pt-2">
+            <span class="text-xs text-gold font-semibold border border-gold/30 px-2 py-1 rounded bg-deep-indigo">Haute Pâtisserie</span>
+            <span class="text-xs text-gold font-semibold border border-gold/30 px-2 py-1 rounded bg-deep-indigo">Di Sản 30 Năm</span>
+          </div>
+        </div>
+        <!-- Col 2: Quick Links -->
+        <div class="space-y-3">
+          <h4 class="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Danh Mục Sản Phẩm</h4>
+          <ul class="space-y-2">
+            <li><a class="hover:text-gold transition-colors" th:href="@{/products}">Hộp Quà Dạ Nguyệt</a></li>
+            <li><a class="hover:text-gold transition-colors" th:href="@{/products}">Hộp Quà Sơn Mài VIP</a></li>
+            <li><a class="hover:text-gold transition-colors" th:href="@{/products#banh-le}">Bánh Nướng Thập Cẩm Bát Bửu</a></li>
+            <li><a class="hover:text-gold transition-colors" th:href="@{/products#banh-le}">Bánh Lava Trứng Chảy Kim Sa</a></li>
+            <li><a class="hover:text-gold transition-colors" th:href="@{/#doanh-nghiep}">Chính Sách Khách Hàng B2B</a></li>
+          </ul>
+        </div>
+        <!-- Col 3: Customer Care -->
+        <div class="space-y-3">
+          <h4 class="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Hỗ Trợ Khách Hàng</h4>
+          <ul class="space-y-2">
+            <li><a class="hover:text-gold transition-colors" href="#">Hướng dẫn đặt hàng &amp; thanh toán</a></li>
+            <li><a class="hover:text-gold transition-colors" href="#">Chính sách vận chuyển hỏa tốc</a></li>
+            <li><a class="hover:text-gold transition-colors" href="#">Chính sách đổi trả 1-1</a></li>
+            <li><a class="hover:text-gold transition-colors" href="#">Hướng dẫn bảo quản bánh tươi</a></li>
+            <li><a class="hover:text-gold transition-colors" href="#">Bảo mật thông tin khách hàng</a></li>
+          </ul>
+        </div>
+        <!-- Col 4: Newsletter -->
+        <div class="space-y-3">
+          <h4 class="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Đăng Ký Nhận Tin</h4>
+          <p class="leading-relaxed text-sand/80">
+            Đăng ký để nhận sớm nhất Catalogue Mùa Trăng 2026 và ưu đãi chiết khấu đặc quyền cho doanh nghiệp.
+          </p>
+          <div class="flex items-center gap-2 pt-1">
+            <input class="w-full bg-deep-indigo text-xs text-ivory placeholder-sand/50 px-3.5 py-2.5 rounded border border-gold/30 focus:outline-none focus:border-gold" placeholder="Email của bạn..." type="email"/>
+            <button class="px-3.5 py-2.5 bg-gold hover:bg-gold-hover text-dark-navy font-bold rounded transition-colors shrink-0">
+              <i class="w-4 h-4" data-lucide="arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Copyright -->
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sand/70 text-[11px]">
+        <p>© 2026 MOONCAKE Haute Pâtisserie. Bản quyền thuộc về MoonCake. (Dữ liệu học thuật mô phỏng HSF302 FPTU).</p>
+        <div class="flex items-center gap-4">
+          <span class="hover:text-gold cursor-pointer transition-colors">Điều khoản dịch vụ</span>
+          <span>•</span>
+          <span class="hover:text-gold cursor-pointer transition-colors">Chính sách bảo mật</span>
+          <span>•</span>
+          <span class="text-gold">Tết Đoàn Viên 2026</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= 2. FOCUSED CHECKOUT FOOTER (CART, CHECKOUT, SUCCESS) ================= -->
+  <footer th:fragment="checkoutFooter" id="footer" class="w-full bg-[#0C1626] border-t border-[#D1A85A]/20 mt-16 py-8">
+    <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#C2BAAB]">
+      <div class="flex items-center gap-2">
+        <span class="font-serif font-semibold tracking-wider text-[#F8F4EB]">MOONCAKE</span>
+        <span>— Haute Pâtisserie</span>
+      </div>
+      <div>
+        <p>&copy; 2026 MOONCAKE Haute Pâtisserie. All rights reserved. (Dữ liệu học thuật HSF302 FPTU).</p>
+      </div>
+      <div class="flex items-center space-x-6">
+        <a href="#" class="hover:text-[#D1A85A] transition-colors">Chính sách bảo mật</a>
+        <a href="#" class="hover:text-[#D1A85A] transition-colors">Điều khoản dịch vụ</a>
+        <a th:href="@{/#footer}" class="hover:text-[#D1A85A] transition-colors">Hỗ trợ</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

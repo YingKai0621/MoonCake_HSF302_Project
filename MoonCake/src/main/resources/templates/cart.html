@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Giỏ Hàng</title>
+  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+  <!-- Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#D1A85A',
+            goldHover: '#E5C37E',
+            ivory: '#F8F4EB',
+            sand: '#C2BAAB',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- External Extracted Stylesheets -->
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-[#D1A85A] selection:text-[#0C1626]">
+
+  <!-- AREA A: SHARED HEADER (GUEST CHECKOUT FLOW) -->
+    <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
+    <!-- Global Shared Header V4 Fragment -->
+  <header th:replace="~{fragments/header :: header('cart')}"></header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-grow max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-8 md:py-10">
+
+    <!-- AREA B: CHECKOUT PROGRESS STEPPER (MOR'DAN PATTERN ADAPTED TO DARK LUXURY) -->
+    <div class="max-w-md mx-auto mb-10">
+      <div class="flex items-center justify-between relative">
+        <!-- Connecting Line -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-[#D1A85A]/20 -z-0"></div>
+        
+        <!-- Step 1: Giỏ hàng (Active) -->
+        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] pr-3">
+          <span class="w-6 h-6 rounded-full bg-[#D1A85A] text-[#0C1626] font-bold text-xs flex items-center justify-center">1</span>
+          <span class="text-xs md:text-sm font-semibold text-[#D1A85A] tracking-wide">Giỏ hàng</span>
+        </div>
+
+        <!-- Step 2: Thanh toán (Inactive) -->
+        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] px-3">
+          <span class="w-6 h-6 rounded-full border border-[#C2BAAB]/40 text-[#C2BAAB] text-xs flex items-center justify-center">2</span>
+          <span class="text-xs md:text-sm font-normal text-[#C2BAAB] tracking-wide">Thanh toán</span>
+        </div>
+
+        <!-- Step 3: Hoàn thành (Inactive) -->
+        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] pl-3">
+          <span class="w-6 h-6 rounded-full border border-[#C2BAAB]/40 text-[#C2BAAB] text-xs flex items-center justify-center">3</span>
+          <span class="text-xs md:text-sm font-normal text-[#C2BAAB] tracking-wide">Hoàn thành</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA C & D: ACTIVE CART VIEW (2 COLUMNS) -->
+    <div id="activeCartView" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- AREA C: SHOPPING CART ITEMS (~67%) -->
+      <section class="lg:col-span-8 space-y-4">
+        <!-- Heading: Giỏ hàng with item count (No subtitle) -->
+        <div class="flex items-baseline justify-between mb-2">
+          <h1 class="font-serif text-[28px] font-bold text-[#F8F4EB]">Giỏ hàng</h1>
+          <span id="productCountText" class="text-[15px] text-[#C2BAAB]">2 sản phẩm</span>
+        </div>
+
+        <!-- Unified Items Panel in One Dark Surface -->
+        <div id="cartItemsContainer" class="bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-5 sm:p-6 divide-y divide-[#D1A85A]/15 shadow-sm">
+          
+          <!-- PRODUCT ROW 1 -->
+          <article id="item-row-1" class="pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition-opacity duration-300">
+            <div class="flex items-center gap-4">
+              <a th:href="@{/products/demo}" href="/products/demo" class="w-[104px] h-[104px] rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842] block group">
+                <img src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw" alt="Hộp Dạ Nguyệt Đoàn Viên" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              </a>
+              <div class="space-y-1">
+                <a th:href="@{/products/demo}" href="/products/demo" class="font-serif text-[17px] font-semibold text-[#F8F4EB] hover:text-[#D1A85A] transition-colors block">
+                  Hộp Dạ Nguyệt Đoàn Viên
+                </a>
+                <p class="text-[13px] text-[#C2BAAB]">Hộp tiêu chuẩn</p>
+                <p class="text-[14px] text-[#C2BAAB] sm:hidden pt-1">880.000đ</p>
+              </div>
+            </div>
+
+            <!-- Price, Stepper, Total, Remove -->
+            <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 sm:gap-7 pt-2 sm:pt-0">
+              <span class="hidden sm:inline-block text-[14px] text-[#C2BAAB] w-24 text-right">880.000đ</span>
+              
+              <!-- Quantity Stepper -->
+              <div class="flex items-center bg-[#162842] border border-[#D1A85A]/25 rounded px-1 py-0.5">
+                <button type="button" onclick="updateItemQty(1, -1)" class="w-7 h-7 flex items-center justify-center text-[#D1A85A] hover:bg-[#D1A85A]/15 rounded text-sm transition-colors font-bold" aria-label="Giảm số lượng">-</button>
+                <span id="qty-val-1" class="w-8 text-center text-sm font-semibold text-[#F8F4EB]">1</span>
+                <button type="button" onclick="updateItemQty(1, 1)" class="w-7 h-7 flex items-center justify-center text-[#D1A85A] hover:bg-[#D1A85A]/15 rounded text-sm transition-colors font-bold" aria-label="Tăng số lượng">+</button>
+              </div>
+
+              <!-- Line Total -->
+              <span id="line-total-1" class="text-[16px] font-semibold text-[#F8F4EB] min-w-[95px] text-right">880.000đ</span>
+
+              <!-- Remove Action -->
+              <button type="button" onclick="removeItem(1)" class="text-[#C2BAAB] hover:text-[#D1A85A] transition-colors p-1 flex items-center gap-1 text-xs" title="Xóa sản phẩm">
+                <span class="material-symbols-outlined text-lg">delete_outline</span>
+                <span class="sm:hidden">Xóa</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- PRODUCT ROW 2 -->
+          <article id="item-row-2" class="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition-opacity duration-300">
+            <div class="flex items-center gap-4">
+              <a th:href="@{/products#banh-le}" href="/products#banh-le" class="w-[104px] h-[104px] rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842] block group">
+                <img src="https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw" alt="Bánh Lava Trứng Chảy Kim Sa" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              </a>
+              <div class="space-y-1">
+                <a th:href="@{/products#banh-le}" href="/products#banh-le" class="font-serif text-[17px] font-semibold text-[#F8F4EB] hover:text-[#D1A85A] transition-colors block">
+                  Bánh Lava Trứng Chảy Kim Sa
+                </a>
+                <p class="text-[13px] text-[#C2BAAB]">150g</p>
+                <p class="text-[14px] text-[#C2BAAB] sm:hidden pt-1">135.000đ</p>
+              </div>
+            </div>
+
+            <!-- Price, Stepper, Total, Remove -->
+            <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 sm:gap-7 pt-2 sm:pt-0">
+              <span class="hidden sm:inline-block text-[14px] text-[#C2BAAB] w-24 text-right">135.000đ</span>
+              
+              <!-- Quantity Stepper -->
+              <div class="flex items-center bg-[#162842] border border-[#D1A85A]/25 rounded px-1 py-0.5">
+                <button type="button" onclick="updateItemQty(2, -1)" class="w-7 h-7 flex items-center justify-center text-[#D1A85A] hover:bg-[#D1A85A]/15 rounded text-sm transition-colors font-bold" aria-label="Giảm số lượng">-</button>
+                <span id="qty-val-2" class="w-8 text-center text-sm font-semibold text-[#F8F4EB]">1</span>
+                <button type="button" onclick="updateItemQty(2, 1)" class="w-7 h-7 flex items-center justify-center text-[#D1A85A] hover:bg-[#D1A85A]/15 rounded text-sm transition-colors font-bold" aria-label="Tăng số lượng">+</button>
+              </div>
+
+              <!-- Line Total -->
+              <span id="line-total-2" class="text-[16px] font-semibold text-[#F8F4EB] min-w-[95px] text-right">135.000đ</span>
+
+              <!-- Remove Action -->
+              <button type="button" onclick="removeItem(2)" class="text-[#C2BAAB] hover:text-[#D1A85A] transition-colors p-1 flex items-center gap-1 text-xs" title="Xóa sản phẩm">
+                <span class="material-symbols-outlined text-lg">delete_outline</span>
+                <span class="sm:hidden">Xóa</span>
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- AREA D: ORDER SUMMARY (~33%) -->
+      <aside class="lg:col-span-4 sticky top-28">
+        <div class="bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-6 space-y-5 shadow-sm">
+          <!-- Title -->
+          <h2 class="font-serif text-[20px] font-semibold text-[#F8F4EB] pb-4 border-b border-[#D1A85A]/15">
+            Tóm tắt đơn hàng
+          </h2>
+
+          <!-- Subtotal -->
+          <div class="flex items-center justify-between text-[14px]">
+            <span id="summaryItemCount" class="text-[#C2BAAB]">Tạm tính (2 sản phẩm)</span>
+            <span id="summarySubtotal" class="text-[#F8F4EB] font-medium">1.015.000đ</span>
+          </div>
+
+          <!-- Shipping info: Clearly state "Tính ở bước thanh toán" -->
+          <div class="flex items-center justify-between text-[14px]">
+            <span class="text-[#C2BAAB]">Phí giao hàng</span>
+            <span class="italic text-[13px] text-[#C2BAAB]">Tính ở bước thanh toán</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15 pt-2"></div>
+
+          <!-- Final Total (Excludes shipping fee) -->
+          <div class="flex items-baseline justify-between">
+            <span class="text-[15px] font-medium text-[#F8F4EB]">Tổng tạm tính</span>
+            <span id="summaryGrandTotal" class="font-sans text-[24px] font-bold text-[#D1A85A]">1.015.000đ</span>
+          </div>
+
+          <!-- Primary Checkout CTA -->
+          <div class="pt-2">
+            <a th:href="@{/checkout}" href="/checkout" class="w-full block text-center bg-[#D1A85A] hover:bg-[#E5C37E] text-[#0C1626] font-bold py-3.5 px-4 rounded tracking-wide transition-colors duration-200">
+              Tiến hành thanh toán
+            </a>
+            <a th:href="@{/products}" href="/products" class="block text-center text-xs text-[#C2BAAB] hover:text-[#D1A85A] transition-colors mt-3">
+              Tiếp tục mua sắm
+            </a>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- AREA E: EMPTY CART STATE (HIDDEN BY DEFAULT) -->
+    <div id="emptyCartView" class="hidden text-center py-16 px-4 max-w-lg mx-auto bg-[#0C1626] border border-[#D1A85A]/20 rounded-xl my-6">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[#162842] border border-[#D1A85A]/30 flex items-center justify-center">
+        <span class="material-symbols-outlined text-3xl text-[#D1A85A]">shopping_bag</span>
+      </div>
+      <h2 class="font-serif text-2xl font-bold text-[#F8F4EB] mb-2">Giỏ hàng của bạn đang trống</h2>
+      <p class="text-xs text-[#C2BAAB] mb-6">Hãy chọn những tuyệt phẩm bánh nướng mùa trăng yêu thích để gửi trao yêu thương.</p>
+      <a th:href="@{/products}" href="/products" class="inline-block bg-[#D1A85A] hover:bg-[#E5C37E] text-[#0C1626] font-semibold px-6 py-3 rounded text-sm transition-colors duration-200">
+        Khám phá sản phẩm
+      </a>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+    <!-- Global Shared Footer Fragment -->
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+
+  <!-- INTERACTIVE VANILLA JAVASCRIPT LOGIC -->
+  
+  <!-- External Extracted Scripts -->
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/pages/cart.js}" src="/js/pages/cart.js"></script>
+</body>
+</html>

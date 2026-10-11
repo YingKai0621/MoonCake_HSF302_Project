@@ -1,0 +1,56 @@
+/* ==========================================================================
+   MOONCAKE LUXURY DESIGN SYSTEM — HEADER STYLES
+   HSF302 Project - Spring Boot Migration
+   ========================================================================== */
+
+/* Header Container */
+.mooncake-header {
+  background-color: #10233D;
+  position: relative;
+  border-bottom: 1px solid rgba(250, 244, 169, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+
+/* Nav Active Gold Glow Indicator */
+.nav-gold-indicator {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, #FAF4A9, #FAF4A9, #E7D97F);
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(250, 244, 169, 0.55);
+}
+
+/* Overlapping Emblem Container */
+.emblem-anchor {
+  position: absolute;
+  left: 50%;
+  top: 82px;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.emblem-anchor img {
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.65));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.emblem-anchor a:hover img {
+  transform: scale(1.05);
+}
+
+/* Header Search Field (Ivory Pill) */
+.header-search-input {
+  background-color: #FAF6EE !important;
+  color: #0C1626 !important;
+  border: 1px solid rgba(250, 244, 169, 0.7) !important;
+}
+
+.header-search-input:focus {
+  border-color: #FAF4A9 !important;
+  box-shadow: 0 0 0 1px #FAF4A9 !important;
+}

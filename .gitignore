@@ -1,0 +1,8 @@
+# Ignore everything in the root repository
+/*
+
+# Keep .gitignore itself tracked
+!.gitignore
+
+# Whitelist only the MoonCake Spring Boot project
+!/MoonCake/

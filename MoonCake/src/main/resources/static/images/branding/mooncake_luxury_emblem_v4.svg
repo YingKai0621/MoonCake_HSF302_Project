@@ -1,0 +1,362 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800&amp;family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&amp;display=swap');
+      .emblem-brand {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-weight: 900;
+        letter-spacing: 0.24em;
+        font-size: 29px;
+        fill: #0C1626;
+        text-anchor: middle;
+      }
+      .emblem-sub {
+        font-family: 'Be Vietnam Pro', sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        font-size: 11.5px;
+        fill: #0C1626;
+        text-anchor: middle;
+      }
+    </style>
+    
+    <!-- Top Text Arc (Radius 166) -->
+    <path id="topTextArc" d="M 106.24 167.00 A 166 166 0 0 1 393.76 167.00" fill="none" />
+    
+    <!-- Bottom Text Arc (Radius 166) -->
+    <path id="bottomTextArc" d="M 106.24 333.00 A 166 166 0 0 0 393.76 333.00" fill="none" />
+
+    <!-- Premium Seal Shadow Filter -->
+    <filter id="emblemShadow" x="-15%" y="-15%" width="130%" height="135%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#E7D97F" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- ================= 1. SCALLOPED EMBLEM BASE (PALE LUXURY GOLD) ================= -->
+  <!-- 16-lobed traditional wooden mooncake mold silhouette -->
+  <path d="M 470.00 250.00 C 466.51 273.10, 487.30 276.95, 483.43 296.43 C 479.55 315.91, 458.87 311.51, 453.25 334.19 C 441.19 354.20, 458.92 365.71, 447.89 382.23 C 436.86 398.74, 419.43 386.76, 405.56 405.56 C 386.76 419.43, 398.74 436.86, 382.23 447.89 C 365.71 458.92, 354.20 441.19, 334.19 453.25 C 311.51 458.87, 315.91 479.55, 296.43 483.43 C 276.95 487.30, 273.10 466.51, 250.00 470.00 C 226.90 466.51, 223.05 487.30, 203.57 483.43 C 184.09 479.55, 188.49 458.87, 165.81 453.25 C 145.80 441.19, 134.29 458.92, 117.77 447.89 C 101.26 436.86, 113.24 419.43, 94.44 405.56 C 80.57 386.76, 63.14 398.74, 52.11 382.23 C 41.08 365.71, 58.81 354.20, 46.75 334.19 C 41.13 311.51, 20.45 315.91, 16.57 296.43 C 12.70 276.95, 33.49 273.10, 30.00 250.00 C 33.49 226.90, 12.70 223.05, 16.57 203.57 C 20.45 184.09, 41.13 188.49, 46.75 165.81 C 58.81 145.80, 41.08 134.29, 52.11 117.77 C 63.14 101.26, 80.57 113.24, 94.44 94.44 C 113.24 80.57, 101.26 63.14, 117.77 52.11 C 134.29 41.08, 145.80 58.81, 165.81 46.75 C 188.49 41.13, 184.09 20.45, 203.57 16.57 C 223.05 12.70, 226.90 33.49, 250.00 30.00 C 273.10 33.49, 276.95 12.70, 296.43 16.57 C 315.91 20.45, 311.51 41.13, 334.19 46.75 C 354.20 58.81, 365.71 41.08, 382.23 52.11 C 398.74 63.14, 386.76 80.57, 405.56 94.44 C 419.43 113.24, 436.86 101.26, 447.89 117.77 C 458.92 134.29, 441.19 145.80, 453.25 165.81 C 458.87 188.49, 479.55 184.09, 483.43 203.57 C 487.30 223.05, 466.51 226.90, 470.00 250.00 Z" 
+        fill="#FAF4A9" 
+        stroke="#E7D97F" 
+        stroke-width="3.5" 
+        filter="url(#emblemShadow)" />
+
+  <!-- Inner Scallop Framing Hairline -->
+  <path d="M 464.00 250.00 C 460.63 272.33, 479.33 276.05, 475.58 294.87 C 471.84 313.70, 453.14 309.98, 447.71 331.89 C 436.05 351.23, 451.90 361.82, 441.24 377.78 C 430.57 393.74, 414.72 383.15, 401.32 401.32 C 383.15 414.72, 393.74 430.57, 377.78 441.24 C 361.82 451.90, 351.23 436.05, 331.89 447.71 C 309.98 453.14, 313.70 471.84, 294.87 475.58 C 276.05 479.33, 272.33 460.63, 250.00 464.00 C 227.67 460.63, 223.95 479.33, 205.13 475.58 C 186.30 471.84, 190.02 453.14, 168.11 447.71 C 148.77 436.05, 138.18 451.90, 122.22 441.24 C 106.26 430.57, 116.85 414.72, 98.68 401.32 C 85.28 383.15, 69.43 393.74, 58.76 377.78 C 48.10 361.82, 63.95 351.23, 52.29 331.89 C 46.86 309.98, 28.16 313.70, 24.42 294.87 C 20.67 276.05, 39.37 272.33, 36.00 250.00 C 39.37 227.67, 20.67 223.95, 24.42 205.13 C 28.16 186.30, 46.86 190.02, 52.29 168.11 C 63.95 148.77, 48.10 138.18, 58.76 122.22 C 69.43 106.26, 85.28 116.85, 98.68 98.68 C 116.85 85.28, 106.26 69.43, 122.22 58.76 C 138.18 48.10, 148.77 63.95, 168.11 52.29 C 190.02 46.86, 186.30 28.16, 205.13 24.42 C 223.95 20.67, 227.67 39.37, 250.00 36.00 C 272.33 39.37, 276.05 20.67, 294.87 24.42 C 313.70 28.16, 309.98 46.86, 331.89 52.29 C 351.23 63.95, 361.82 48.10, 377.78 58.76 C 393.74 69.43, 383.15 85.28, 401.32 98.68 C 414.72 116.85, 430.57 106.26, 441.24 122.22 C 451.90 138.18, 436.05 148.77, 447.71 168.11 C 453.14 190.02, 471.84 186.30, 475.58 205.13 C 479.33 223.95, 460.63 227.67, 464.00 250.00 Z" 
+        fill="none" 
+        stroke="#E7D97F" 
+        stroke-width="1.4" 
+        opacity="0.9" />
+
+  <!-- Outer Concentric Ring -->
+  <circle cx="250" cy="250" r="208" fill="none" stroke="#0C1626" stroke-width="1.8" />
+  
+  <!-- Ring of 48 Delicate Pearl Beads -->
+  <g id="pearlRing">
+    <circle cx="455.00" cy="250.00" r="1.8" fill="#E7D97F" />
+    <circle cx="453.25" cy="276.76" r="1.8" fill="#E7D97F" />
+    <circle cx="448.01" cy="303.06" r="1.8" fill="#E7D97F" />
+    <circle cx="439.40" cy="328.45" r="1.8" fill="#E7D97F" />
+    <circle cx="427.54" cy="352.50" r="1.8" fill="#E7D97F" />
+    <circle cx="412.64" cy="374.80" r="1.8" fill="#E7D97F" />
+    <circle cx="394.96" cy="394.96" r="1.8" fill="#E7D97F" />
+    <circle cx="374.80" cy="412.64" r="1.8" fill="#E7D97F" />
+    <circle cx="352.50" cy="427.54" r="1.8" fill="#E7D97F" />
+    <circle cx="328.45" cy="439.40" r="1.8" fill="#E7D97F" />
+    <circle cx="303.06" cy="448.01" r="1.8" fill="#E7D97F" />
+    <circle cx="276.76" cy="453.25" r="1.8" fill="#E7D97F" />
+    <circle cx="250.00" cy="455.00" r="1.8" fill="#E7D97F" />
+    <circle cx="223.24" cy="453.25" r="1.8" fill="#E7D97F" />
+    <circle cx="196.94" cy="448.01" r="1.8" fill="#E7D97F" />
+    <circle cx="171.55" cy="439.40" r="1.8" fill="#E7D97F" />
+    <circle cx="147.50" cy="427.54" r="1.8" fill="#E7D97F" />
+    <circle cx="125.20" cy="412.64" r="1.8" fill="#E7D97F" />
+    <circle cx="105.04" cy="394.96" r="1.8" fill="#E7D97F" />
+    <circle cx="87.36" cy="374.80" r="1.8" fill="#E7D97F" />
+    <circle cx="72.46" cy="352.50" r="1.8" fill="#E7D97F" />
+    <circle cx="60.60" cy="328.45" r="1.8" fill="#E7D97F" />
+    <circle cx="51.99" cy="303.06" r="1.8" fill="#E7D97F" />
+    <circle cx="46.75" cy="276.76" r="1.8" fill="#E7D97F" />
+    <circle cx="45.00" cy="250.00" r="1.8" fill="#E7D97F" />
+    <circle cx="46.75" cy="223.24" r="1.8" fill="#E7D97F" />
+    <circle cx="51.99" cy="196.94" r="1.8" fill="#E7D97F" />
+    <circle cx="60.60" cy="171.55" r="1.8" fill="#E7D97F" />
+    <circle cx="72.46" cy="147.50" r="1.8" fill="#E7D97F" />
+    <circle cx="87.36" cy="125.20" r="1.8" fill="#E7D97F" />
+    <circle cx="105.04" cy="105.04" r="1.8" fill="#E7D97F" />
+    <circle cx="125.20" cy="87.36" r="1.8" fill="#E7D97F" />
+    <circle cx="147.50" cy="72.46" r="1.8" fill="#E7D97F" />
+    <circle cx="171.55" cy="60.60" r="1.8" fill="#E7D97F" />
+    <circle cx="196.94" cy="51.99" r="1.8" fill="#E7D97F" />
+    <circle cx="223.24" cy="46.75" r="1.8" fill="#E7D97F" />
+    <circle cx="250.00" cy="45.00" r="1.8" fill="#E7D97F" />
+    <circle cx="276.76" cy="46.75" r="1.8" fill="#E7D97F" />
+    <circle cx="303.06" cy="51.99" r="1.8" fill="#E7D97F" />
+    <circle cx="328.45" cy="60.60" r="1.8" fill="#E7D97F" />
+    <circle cx="352.50" cy="72.46" r="1.8" fill="#E7D97F" />
+    <circle cx="374.80" cy="87.36" r="1.8" fill="#E7D97F" />
+    <circle cx="394.96" cy="105.04" r="1.8" fill="#E7D97F" />
+    <circle cx="412.64" cy="125.20" r="1.8" fill="#E7D97F" />
+    <circle cx="427.54" cy="147.50" r="1.8" fill="#E7D97F" />
+    <circle cx="439.40" cy="171.55" r="1.8" fill="#E7D97F" />
+    <circle cx="448.01" cy="196.94" r="1.8" fill="#E7D97F" />
+    <circle cx="453.25" cy="223.24" r="1.8" fill="#E7D97F" />
+  </g>
+
+  <!-- Framing Ring for Typography Band -->
+  <circle cx="250" cy="250" r="199" fill="none" stroke="#E7D97F" stroke-width="1.5" />
+  
+  <!-- Inner Ring separating Typography from Central Medallion -->
+  <circle cx="250" cy="250" r="126" fill="none" stroke="#E7D97F" stroke-width="2.2" />
+  <circle cx="250" cy="250" r="122" fill="none" stroke="#0C1626" stroke-width="1.5" />
+
+  <!-- ================= 2. TYPOGRAPHY BAND ================= -->
+  <!-- Top Brand Name: MOONCAKE -->
+  <text class="emblem-brand">
+    <textPath href="#topTextArc" startOffset="50%">
+      MOONCAKE
+    </textPath>
+  </text>
+
+  <!-- Flanking Diamond Ornaments on text band -->
+  <g fill="#0C1626" transform="translate(82, 250)">
+    <polygon points="0,-6 7,0 0,6 -7,0" />
+    <circle cx="0" cy="0" r="2" fill="#FAF4A9" />
+  </g>
+  <g fill="#0C1626" transform="translate(418, 250)">
+    <polygon points="0,-6 7,0 0,6 -7,0" />
+    <circle cx="0" cy="0" r="2" fill="#FAF4A9" />
+  </g>
+
+  <!-- Bottom Tagline: TINH HOA TRĂNG VÀNG -->
+  <text class="emblem-sub">
+    <textPath href="#bottomTextArc" startOffset="50%">
+      ✦ TINH HOA TRĂNG VÀNG ✦
+    </textPath>
+  </text>
+
+
+  <!-- ================= 3. CENTRAL MOONCAKE & MOON MEDALLION ================= -->
+  <!-- Medallion Background: Crisp Pale Gold Field (Radius 120) -->
+  <circle cx="250" cy="250" r="120" fill="#FAF4A9" />
+
+  <!-- Subtle Crescent Moon Motif in Negative Space on Left Flank -->
+  <path d="M 250 138 A 108 108 0 0 0 166 298 A 110 110 0 0 1 236 142 Z" 
+        fill="#0C1626" opacity="0.14" />
+
+  <!-- Outer Mold Notches (16 subtle radial tick marks) -->
+  <circle cx="250" cy="250" r="100" fill="none" stroke="#0C1626" stroke-width="2" />
+  <circle cx="250" cy="250" r="96" fill="none" stroke="#E7D97F" stroke-width="1.2" />
+
+  <!-- 8 Primary Mold Petals (Deep Navy with Pale Gold Insets) -->
+  <g id="eightPrimaryPetals">
+    
+    <g transform="rotate(0 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(45 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(90 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(135 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(180 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(225 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(270 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+    <g transform="rotate(315 250 250)">
+      <!-- Outer Petal Mold Rib (Deep Navy) -->
+      <path d="M 230 240 C 218 190, 216 150, 250 140 C 284 150, 282 190, 270 240 Z" 
+            fill="#0C1626" />
+      <!-- Inner Carved Relief (Pale Gold) -->
+      <path d="M 237 236 C 228 195, 230 162, 250 152 C 270 162, 272 195, 263 236 Z" 
+            fill="#FAF4A9" />
+      <!-- Inner Chiseled Flute (Deep Navy) -->
+      <path d="M 244 232 C 238 200, 240 178, 250 170 C 260 178, 262 200, 256 232 Z" 
+            fill="#0C1626" />
+      <!-- Central Wooden Vein (Pale Gold) -->
+      <line x1="250" y1="172" x2="250" y2="230" stroke="#FAF4A9" stroke-width="1.6" />
+      <!-- Petal Crown Accent Dot -->
+      <circle cx="250" cy="134" r="2.5" fill="#0C1626" />
+    </g>
+  </g>
+
+  <!-- 8 Interlocking Florets (Secondary Layer) -->
+  <g id="eightSecondaryFlorets">
+    
+    <g transform="rotate(22.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(67.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(112.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(157.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(202.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(247.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(292.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+    <g transform="rotate(337.5 250 250)">
+      <!-- Pointed Interlocking Mold Flute -->
+      <path d="M 241 242 C 232 205, 235 178, 250 168 C 265 178, 268 205, 259 242 Z" 
+            fill="#0C1626" />
+      <!-- Golden Diamond Pip in Center -->
+      <polygon points="250,172 253,178 250,184 247,178" fill="#FAF4A9" />
+    </g>
+  </g>
+
+  <!-- Core Center: The Golden Lotus Heart / Radiant Full Moon (Radius 36) -->
+  <circle cx="250" cy="250" r="36" fill="#FAF4A9" stroke="#0C1626" stroke-width="2.5" />
+  <circle cx="250" cy="250" r="32" fill="#0C1626" />
+  <circle cx="250" cy="250" r="29" fill="#FAF4A9" />
+
+  <!-- Lotus Stamen / Moon Seeds Core -->
+  <g fill="#0C1626">
+    <circle cx="250" cy="250" r="8" fill="#0C1626" />
+    <circle cx="250" cy="250" r="5" fill="#FAF4A9" />
+    <circle cx="250" cy="250" r="2.5" fill="#0C1626" />
+    <circle cx="269.00" cy="250.00" r="2.2" fill="#0C1626" />
+    <circle cx="263.44" cy="263.44" r="2.2" fill="#0C1626" />
+    <circle cx="250.00" cy="269.00" r="2.2" fill="#0C1626" />
+    <circle cx="236.56" cy="263.44" r="2.2" fill="#0C1626" />
+    <circle cx="231.00" cy="250.00" r="2.2" fill="#0C1626" />
+    <circle cx="236.56" cy="236.56" r="2.2" fill="#0C1626" />
+    <circle cx="250.00" cy="231.00" r="2.2" fill="#0C1626" />
+    <circle cx="263.44" cy="236.56" r="2.2" fill="#0C1626" />
+
+  </g>
+
+  <!-- Inner Crescent Moon Accent in Soft Gold -->
+  <path d="M 250 223 A 27 27 0 0 0 231 265 A 25 25 0 0 1 247 225 Z" 
+        fill="#E7D97F" opacity="0.75" />
+
+</svg>

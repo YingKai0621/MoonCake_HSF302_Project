@@ -1,0 +1,38 @@
+/* ==========================================================================
+   MOONCAKE LUXURY DESIGN SYSTEM — COMPONENTS & FORMS STYLES
+   HSF302 Project - Spring Boot Migration
+   ========================================================================== */
+
+/* Form Input Controls - Scoped to Checkout & Contact Forms */
+form input[type="text"],
+form input[type="email"],
+form input[type="tel"],
+form select,
+form textarea {
+  background-color: #162842;
+  border: 1px solid rgba(209, 168, 90, 0.25);
+  color: #F8F4EB;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="tel"]:focus,
+form select:focus,
+form textarea:focus {
+  outline: none;
+  border-color: #D1A85A;
+  box-shadow: 0 0 0 1px rgba(209, 168, 90, 0.4);
+}
+
+/* Custom Select Dropdown Options */
+select option {
+  background-color: #0C1626;
+  color: #F8F4EB;
+}
+
+/* Validation Error State */
+.input-error {
+  border-color: #EF4444 !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4) !important;
+}

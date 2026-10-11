@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Cửa Hàng &amp; Bộ Lọc Bánh Trung Thu Hoàng Gia | MOONCAKE</title>
+  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap" rel="stylesheet"/>
+  <!-- Material Symbols & Lucide -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            'dark-navy': '#0C1626',
+            'deep-indigo': '#162842',
+            gold: '#D1A85A',
+            'gold-hover': '#E5C37E',
+            ivory: '#F8F4EB',
+            sand: '#C2BAAB',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'gold-sm': '0 4px 20px -2px rgba(209, 168, 90, 0.15)',
+            'gold-glow': '0 0 35px rgba(209, 168, 90, 0.22)',
+            'navy-card': '0 10px 30px -5px rgba(5, 10, 18, 0.7)',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- External Extracted Stylesheets -->
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="bg-midnight text-ivory font-sans antialiased selection:bg-gold/30 selection:text-gold min-h-screen">
+
+    <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
+    <!-- Global Shared Header V4 Fragment -->
+  <header th:replace="~{fragments/header :: header('products')}"></header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
+    <!-- BREADCRUMB -->
+    <nav class="flex items-center space-x-2 text-xs text-sand mb-6 tracking-wide">
+      <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang Chủ</a>
+      <span class="text-gold/50">/</span>
+      <span class="text-gold font-medium">Cửa Hàng Bánh Trung Thu Hoàng Gia</span>
+    </nav>
+
+    <!-- CATALOG BANNER -->
+    <section class="relative bg-dark-navy border border-gold/25 p-8 md:p-12 mb-10 overflow-hidden rounded-xl lunar-halo">
+      <div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-gold/5 blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 max-w-3xl">
+        <div class="flex items-center space-x-3 mb-3">
+          <span class="h-[1px] w-8 bg-gold"></span>
+          <span class="text-gold text-xs uppercase tracking-[0.25em] font-semibold">Bí Truyền Ẩm Thực Cung Đình</span>
+        </div>
+        <h1 class="font-serif text-3xl md:text-5xl text-ivory tracking-tight mb-4 font-normal leading-tight">
+          Bộ Sưu Tập Bánh Trung Thu Hoàng Gia 2026
+        </h1>
+        <p class="text-sand text-sm md:text-base leading-relaxed font-light">
+          Tuyệt tác hội tụ từ những nguyên liệu tiến vua thượng hạng cùng kỹ nghệ sơn mài dát vàng thủ công tinh xảo. Mỗi vị bánh là một chương huyền thoại dưới ánh trăng rằm, giao hòa trọn vẹn phong vị cổ truyền và mỹ cảm hoàng gia thời thượng.
+        </p>
+      </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- LEFT SIDEBAR: FILTER PANEL (3 cols on desktop) -->
+      <aside class="lg:col-span-3 bg-dark-navy border border-gold/25 rounded-xl p-6 space-y-8 sticky top-28 shadow-navy-card">
+        <!-- Header Filter -->
+        <div class="flex items-center justify-between border-b border-gold/20 pb-4">
+          <div class="flex items-center space-x-2">
+            <span class="material-symbols-outlined text-gold text-xl">tune</span>
+            <span class="font-serif text-ivory text-sm uppercase tracking-wider font-semibold">BỘ LỌC TÌM KIẾM</span>
+          </div>
+          <span class="text-[11px] text-sand tracking-widest uppercase">4 Tiêu Chí</span>
+        </div>
+
+        <!-- Nhóm Danh Mục -->
+        <div class="space-y-3">
+          <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold flex items-center justify-between">
+            <span>Danh Mục Bánh</span>
+            <span class="material-symbols-outlined text-sm">expand_less</span>
+          </h3>
+          <div class="space-y-2 text-xs text-sand">
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input checked="" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Hộp Quà Thượng Hạng (8)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Bánh Lẻ Cao Cấp (10)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Bánh Chay Thanh Nhã (4)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Trà Thượng Phẩm Kèm Quà (3)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nhóm Nhân Bánh -->
+        <div class="space-y-3 border-t border-gold/15 pt-5">
+          <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold flex items-center justify-between">
+            <span>Nhân Bánh Tuyển Chọn</span>
+            <span class="material-symbols-outlined text-sm">expand_less</span>
+          </h3>
+          <div class="space-y-2 text-xs text-sand">
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Thập Cẩm Hải Sản XO</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input checked="" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Lava Hoàng Kim Trứng Chảy</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Sen Nhuyễn Trứng Muối</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Trà Xanh Hạt Dinh Dưỡng</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+              <span class="group-hover:text-gold transition-colors">Than Tre Mè Đen</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nhóm Khoảng Giá -->
+        <div class="space-y-3 border-t border-gold/15 pt-5">
+          <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold flex items-center justify-between">
+            <span>Khoảng Giá Biếu Tặng</span>
+            <span class="material-symbols-outlined text-sm">expand_less</span>
+          </h3>
+          <div class="space-y-2 text-xs text-sand">
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 bg-midnight border-gold/45 text-gold focus:ring-0" name="price_range" type="radio"/>
+              <span class="group-hover:text-gold transition-colors">&lt; 500.000đ</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input checked="" class="w-4 h-4 bg-midnight border-gold/45 text-gold focus:ring-0" name="price_range" type="radio"/>
+              <span class="group-hover:text-gold transition-colors">500.000đ - 1.000.000đ</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 bg-midnight border-gold/45 text-gold focus:ring-0" name="price_range" type="radio"/>
+              <span class="group-hover:text-gold transition-colors">1.000.000đ - 2.000.000đ</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer group">
+              <input class="w-4 h-4 bg-midnight border-gold/45 text-gold focus:ring-0" name="price_range" type="radio"/>
+              <span class="group-hover:text-gold transition-colors">&gt; 2.000.000đ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nhóm Trọng Lượng -->
+        <div class="space-y-3 border-t border-gold/15 pt-5">
+          <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">Trọng Lượng Bánh</h3>
+          <div class="flex items-center gap-2">
+            <button class="px-3.5 py-1.5 text-xs bg-gold text-dark-navy font-semibold rounded" type="button">150g</button>
+            <button class="px-3.5 py-1.5 text-xs bg-deep-indigo text-sand border border-gold/25 hover:border-gold transition-colors rounded" type="button">200g</button>
+            <button class="px-3.5 py-1.5 text-xs bg-deep-indigo text-sand border border-gold/25 hover:border-gold transition-colors rounded" type="button">250g</button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 space-y-3">
+          <button class="w-full bg-gold hover:bg-gold-hover text-dark-navy font-semibold text-xs tracking-wider uppercase py-3 transition-colors duration-200 rounded shadow-gold-sm">
+            Áp Dụng Bộ Lọc
+          </button>
+          <a class="block text-center text-xs text-sand hover:text-gold transition-colors underline decoration-gold/40 underline-offset-4" href="#">
+            Xóa Tất Cả Bộ Lọc
+          </a>
+        </div>
+      </aside>
+
+      <!-- RIGHT CONTENT: TOOLBAR & 9 PRODUCT GRID (9 cols on desktop) -->
+      <section class="lg:col-span-9 space-y-6">
+        <!-- Toolbar Bar -->
+        <div class="bg-dark-navy border border-gold/25 px-6 py-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-navy-card">
+          <p class="text-xs text-sand tracking-wide">
+            Hiển thị <span class="text-gold font-semibold">9</span> trên <span class="text-gold font-semibold">24</span> sản phẩm
+          </p>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="text-sand hidden sm:inline">Sắp xếp theo:</span>
+            <div class="relative inline-block">
+              <select class="bg-deep-indigo text-ivory border border-gold/35 py-1.5 px-3 pr-8 rounded text-xs focus:ring-0 focus:border-gold">
+                <option selected="">Bán Chạy Nhất</option>
+                <option>Mới Nhất</option>
+                <option>Giá Tăng Dần</option>
+                <option>Giá Giảm Dần</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Column Grid for 9 Products in Dark Luxury -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 1. Hộp Quà Dạ Nguyệt Đoàn Viên -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiWY0PGaXljv0sA8bjZABpoKdiQ8lmNtKi-H_vdypw-nr0Dltqjg9TbKRE5o_TgzXICSQV4a7GesDAuZHgMwdsBdRHoEzyZWnyjATjfo2YqnPkJsnpzusWovwl0QcyAwhg-C3XKH0rE8VcxvOCZQ6radtqJcTw8-9t11JIVEnWMl_5AlxFDQ4osfGufD2srq7oTDrhbQABI4X1l73kscdPZXwCTpDmrZ2_d20cwpqZb_wqN_jGxsdxnyq1N8Ril4u1lSYeWNDF7Q" alt="Hộp Quà Dạ Nguyệt Đoàn Viên"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Bán Chạy</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(48)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Hộp Quà Dạ Nguyệt Đoàn Viên
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">4 bánh cao cấp kèm Trà Sen Tây Hồ trong hộp sơn mài mạ vàng.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">880.000đ</span>
+                </div>
+                <a th:href="@{/products/demo}" href="/products/demo" class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Xem Chi Tiết
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2. Hộp Quà Tứ Quý Hoàng Kim -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJ-Jp6tvfdbppSqd6QYCySbQS0l8lcysmPWbUCIzVN1vS-IRhfn1oB1HNPqWJ5L3Xq0nPGskEkG2OUKUM2zn01TRQVVzczevnzduFJYLR7g4ZSx6kKZKNknkTA_dTnFGkooy5r4MAvykihLJicKFe64_pOxrzx5HvSckPWUuDRxk-3zuHjGXCXEwQhStdaM1ao_QMpxfW6k6zdYTLbWWkJ378CZ4h2TegCFlcque5YT6JYPaBhka5nd4k2FAbHctsvOQOyDlKRuA" alt="Hộp Quà Tứ Quý Hoàng Kim"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Hộp Quà VIP</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(92)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Hộp Quà Tứ Quý Hoàng Kim
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Hộp gỗ sơn mài đen dát vàng, tượng trưng cho 4 mùa phú quý thái bình.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">1.250.000đ</span>
+                </div>
+                <a th:href="@{/products/demo}" href="/products/demo" class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Xem Chi Tiết
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3. Hộp Quà Trăng Vàng Vọng Nguyệt -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTF7I6iJlE8t2kPjkXxEdwKf-mej5mroCA8GpxXDW1BX4Bd_Ax6pMuhjf8LmCD35NCI5UJIhGNkFY9cG3o6daddrtYEzksmCklkdQwt-u15plyUGUQmHnmIIjc__nk4sZ6sGaJ9vGTQzkb1BFve_-nLTUMTN4bbAr7hYzbAwliF3fYkzWMh3BUYJYu4ZF-mLVj7ksaUp4IAVZeUvwAMf3LXK5Ft3nNwEK2RHBHtWoFnw7s7-tEW8bUo2jq_uGqRiMWC0ifg_pxSQ" alt="Hộp Quà Trăng Vàng Vọng Nguyệt"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Thượng Hạng</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(64)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Hộp Quà Trăng Vàng Vọng Nguyệt
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">6 bánh thượng phẩm kết hợp cùng Trà Ô Long Kim Tuyên trứ danh.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">1.850.000đ</span>
+                </div>
+                <a th:href="@{/products/demo}" href="/products/demo" class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Xem Chi Tiết
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 4. Bánh Thập Cẩm Sò Điệp XO 200g -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card" id="banh-le">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD6tcZ3jmQuwW9l6RaSfeHcE0eT8DLZMBJmLhi414eOpi6EBtuFBWGEqhjtidiSzAj58CPpbG0lMd9-GukQeTWt6et_CSfOzcDzIyfT1D0jGj9fCUWWeDZ1Mo8NscGGhhHiHH7Y7kcmUZwEthCXFMOTa2p1ocrSIB7k1o3nnzpCCqVzNqpGw3IQCvu9nHxk95rc6gFairj4EQI0GX7VmrqMlbdiwQiIMTdlmNC7euoQH3LxdeTx_sB4rZ62FND74pcwpRsujUGQQ" alt="Bánh Thập Cẩm Sò Điệp XO 200g"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Đặc Sản</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(115)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Bánh Thập Cẩm Sò Điệp XO 200g
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Nhân sò điệp Nhật Bản hòa cùng sốt XO nồng nàn và 2 trứng muối hoàng kim.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">165.000đ</span>
+                </div>
+                <button class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Thêm Vào Giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- 5. Bánh Lava Kim Sa Trứng Muối 150g -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdJla6ISC_cGwyXF2RlKbQed2jXBgugeYP3fzi5YpBMtdvo84ugb8oAR-05nAjjzCDve75o-noJ4WBXMBybOzbTkNSqucJHfrpiQ-8nzk0-Hro8G4ewZ1DJ7ncf2p2199-s9BTLkwungg7CJPXU8ZYYZ2Tt0YzB1IeHDKp9AxhzYA4seZwG6WSIrrivxuyYY0GUxTgszesXuVafeikf9jSCd02wTivczYf6wKpbGG73BgVwW-A6orLQkBRqdhc5V_wprKecCno9Q" alt="Bánh Lava Kim Sa Trứng Muối 150g"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Lava Tan Chảy</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(152)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Bánh Lava Kim Sa Trứng Muối 150g
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Lớp kem trứng muối tan chảy mềm mịn, ngọt thanh béo ngậy khó cưỡng.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">135.000đ</span>
+                </div>
+                <button class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Thêm Vào Giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- 6. Bánh Hạt Sen Táo Đỏ 2 Trứng 200g -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtAg4Z467vsyf72vjZ6-2Kvg7QBEPGQHSRiaGQI_K38ViufuzlE0SfiweeJ1o94uGcAVRSSrnQ8XcOjUHsPiNhk3q2MEFx6vLJL45N1GNRNdPMZmGW9EC7sxqdP7KKyM2uzPhIwFM6RqeZ40L3oo6ddlQgpGolV-2hBo6QNAu5meeuY5n2uM-B-MQZR_DUboMqVE8gW-C1p4UWMbbPrJmgPCajes66WunULNir--BLLfOnw07j-P5Uq2On0EG---wsINiIxL5WMw" alt="Bánh Hạt Sen Táo Đỏ 2 Trứng 200g"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Thanh Ngọt</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(87)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Bánh Hạt Sen Táo Đỏ 2 Trứng 200g
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Hạt sen Tịnh Tâm xứ Huế xay mịn quyện vị táo đỏ bổ dưỡng.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">140.000đ</span>
+                </div>
+                <button class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Thêm Vào Giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- 7. Bánh Than Tre Trà Xanh Macca 200g -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-jS6NdWtMdOxaiTvZtHDkvscmFbvdVDswgrk1v5FoJ4WQC0Ja7gTfQrVhCCQX1cUFI59MZkdJ3PRRD1ilwjXCLPfDyEn4sM1ybJFPODCnOWtWnHFHWGJj1IUMAiil7G8GK42-6BR2x5BoeIiNeQMGGuTE1c588SUcINyJ3kBPoBcRMNq20_KzmMJ_mImhKBxDclwnxX5FmYVEl8MKXgwYULT93_u0lxVp8dqFSoTR-MFxwPdLmgaGX0qCRGoijqZkYBKdRAuFzQ" alt="Bánh Than Tre Trà Xanh Macca 200g"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Mới 2026</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(39)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Bánh Than Tre Trà Xanh Macca 200g
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Vỏ than tre tinh khiết bao bọc trà xanh Uji và hạt macca giòn ngậy.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">145.000đ</span>
+                </div>
+                <button class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Thêm Vào Giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- 8. Bánh Đậu Xanh Hoàng Kim 150g -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1hC2qxet9QS5RpbMVnFSpYHsOMK6QZl-7RovjIc0BF6bl2ShIC0yqmox0yqrMXhTETdrH9dTN4_VTmyO6jHVu1Y_jFPPC3He0Z3u3PHY7KaPnbuTsb4R9jxj5X9tjcyM8mGbMal5u1SOUJjsVTyj6TUp93YWNLEKtghy5O-LhIl4SS3Q3dKMQyOK22N6mfYL72JDGDwJoy8K4YMZ_uBP-jIEICZyWaHEpBRZH6Ez91OqzxFa7UTNX-Ip0dEfb1Wsc1sCst_nF5Q" alt="Bánh Đậu Xanh Hoàng Kim 150g"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Cổ Truyền</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(74)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Bánh Đậu Xanh Hoàng Kim 150g
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Vị đậu xanh bùi béo truyền thống hòa quyện trứng muối thơm nức.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">115.000đ</span>
+                </div>
+                <button class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Thêm Vào Giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- 9. Hộp Quà Phú Quý Cát Tường -->
+          <article class="group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-xl shadow-navy-card">
+            <div class="relative overflow-hidden bg-deep-indigo aspect-square">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4J4gci56o3UJwZ9hIUoa81Xr_h1aR45MacwbeC0NmizPqcp2koUgyQulFpl8p_z_KVC_VQKYDM9rj9-OUyV6Jz0ybTNCHlSYvPU5FPH5laq478uWTW8_9L7KyB0g7TTjd3hswZSwIrGx-Q-JpADu3OOJaPj4CDFLGmPQauAzR-N0f2QweQ83qVrnsNsoe9QB9jO4cs8awGSn-a65htbAwg1Ri0A8lMbD7jiclKuXz_ssgtfEaqt0gitNMb5y_vkywYCO3lwDtTQ" alt="Hộp Quà Phú Quý Cát Tường"/>
+              <span class="absolute top-3 left-3 bg-gold text-dark-navy text-[10px] font-bold px-2 py-1 tracking-wider uppercase rounded shadow">Bespoke VIP</span>
+            </div>
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+              <div>
+                <div class="flex items-center space-x-1 text-gold text-xs mb-1">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <span class="text-sand text-[11px] ml-1.5">(51)</span>
+                </div>
+                <h3 class="font-serif text-base text-ivory group-hover:text-gold transition-colors leading-snug">
+                  Hộp Quà Phú Quý Cát Tường
+                </h3>
+                <p class="text-[12px] text-sand mt-1 line-clamp-2">Tuyệt phẩm sơn mài giới hạn, tặng kèm dao mạ vàng và Trà Long Tỉnh Ngự Tuyển.</p>
+              </div>
+              <div class="pt-3 border-t border-gold/15 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-sand block uppercase tracking-wider">Giá niêm yết</span>
+                  <span class="text-base font-bold text-gold font-sans">2.400.000đ</span>
+                </div>
+                <a th:href="@{/products/demo}" href="/products/demo" class="bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 text-xs px-3 py-1.5 transition-colors duration-200 uppercase font-semibold rounded">
+                  Xem Chi Tiết
+                </a>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- PAGINATION SECTION -->
+        <div class="pt-8 flex items-center justify-center space-x-2">
+          <span class="w-9 h-9 flex items-center justify-center bg-gold text-dark-navy font-bold text-xs rounded">
+            1
+          </span>
+          <a class="w-9 h-9 flex items-center justify-center bg-dark-navy text-sand hover:text-gold border border-gold/25 hover:border-gold text-xs transition-colors rounded" href="#">
+            2
+          </a>
+          <a class="w-9 h-9 flex items-center justify-center bg-dark-navy text-sand hover:text-gold border border-gold/25 hover:border-gold text-xs transition-colors rounded" href="#">
+            3
+          </a>
+          <a class="h-9 px-4 flex items-center justify-center bg-dark-navy text-sand hover:text-gold border border-gold/25 hover:border-gold text-xs transition-colors space-x-1 rounded" href="#">
+            <span>Tiếp Theo</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER (SHARED MOONCAKE COMPONENT) -->
+    <!-- Global Shared Footer Fragment -->
+  <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+  <!-- External Extracted Scripts -->
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+</body>
+</html>

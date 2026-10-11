@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Thông Tin Thanh Toán</title>
+  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+  <!-- Material Symbols Outlined -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#D1A85A',
+            goldHover: '#E5C37E',
+            ivory: '#F8F4EB',
+            sand: '#C2BAAB',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- External Extracted Stylesheets -->
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-[#D1A85A] selection:text-[#0C1626]">
+
+  <!-- ==================== AREA A: SHARED HEADER (MATCHES CODE(9).HTML EXACTLY) ==================== -->
+    <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
+    <!-- Global Shared Header V4 Fragment -->
+  <header th:replace="~{fragments/header :: header('checkout')}"></header>
+
+  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+  <main class="flex-grow max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-8 md:py-10">
+
+    <!-- AREA B: CHECKOUT PROGRESS STEPPER (STEP 2 ACTIVE) -->
+    <div class="max-w-md mx-auto mb-10">
+      <div class="flex items-center justify-between relative">
+        <!-- Connecting Line -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-[#D1A85A]/20 -z-0"></div>
+        
+        <!-- Step 1: Giỏ hàng (Completed) -->
+        <a th:href="@{/cart}" href="/cart" class="relative z-10 flex items-center gap-2 bg-[#10233D] pr-3 group cursor-pointer" title="Xem lại giỏ hàng">
+          <span class="w-6 h-6 rounded-full bg-[#D1A85A]/20 border border-[#D1A85A] text-[#D1A85A] flex items-center justify-center transition-colors group-hover:bg-[#D1A85A] group-hover:text-[#0C1626]">
+            <span class="material-symbols-outlined text-sm font-bold">check</span>
+          </span>
+          <span class="text-xs md:text-sm font-medium text-[#C2BAAB] group-hover:text-[#D1A85A] tracking-wide transition-colors">Giỏ hàng</span>
+        </a>
+
+        <!-- Step 2: Thanh toán (ACTIVE) -->
+        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] px-3">
+          <span class="w-6 h-6 rounded-full bg-[#D1A85A] text-[#0C1626] font-bold text-xs flex items-center justify-center shadow-[0_0_10px_rgba(209,168,90,0.35)]">2</span>
+          <span class="text-xs md:text-sm font-semibold text-[#D1A85A] tracking-wide">Thanh toán</span>
+        </div>
+
+        <!-- Step 3: Hoàn thành (Upcoming) -->
+        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] pl-3">
+          <span class="w-6 h-6 rounded-full border border-[#C2BAAB]/40 text-[#C2BAAB] text-xs flex items-center justify-center">3</span>
+          <span class="text-xs md:text-sm font-normal text-[#C2BAAB] tracking-wide">Hoàn thành</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CHECKOUT 2-COLUMN GRID (~66% LEFT, ~34% RIGHT) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- ================= LEFT COLUMN (~66%): CHECKOUT FORM ================= -->
+      <section class="lg:col-span-8 space-y-4">
+        
+        <!-- Heading: Simple & Professional -->
+        <div class="mb-2">
+          <h1 class="font-serif text-[28px] font-bold text-[#F8F4EB]">Thông tin thanh toán</h1>
+        </div>
+
+        <!-- Unified Dark Panel for Checkout Form -->
+        <form id="checkoutForm" onsubmit="handlePlaceOrder(event)" class="bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-5 sm:p-7 space-y-7 shadow-sm">
+
+          <!-- SECTION A: THÔNG TIN NGƯỜI NHẬN -->
+          <div class="space-y-4">
+            <h2 class="text-xs font-semibold tracking-wider text-[#D1A85A] uppercase flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#D1A85A]"></span>
+              <span>Thông tin người nhận</span>
+            </h2>
+
+            <div class="space-y-4 pt-1">
+              <!-- Full Name (Full width) -->
+              <div>
+                <label for="fullName" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                  Họ và tên <span class="text-[#D1A85A]">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="fullName" 
+                  name="fullName"
+                  placeholder="Ví dụ: Nguyễn Văn An"
+                  class="w-full px-3.5 py-2.5 text-sm rounded placeholder-[#C2BAAB]/40"
+                  required
+                >
+                <p id="errorFullName" class="hidden text-xs text-red-400 mt-1">Vui lòng nhập họ và tên người nhận</p>
+              </div>
+
+              <!-- Phone & Email (2 columns on desktop) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="phone" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                    Số điện thoại <span class="text-[#D1A85A]">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone"
+                    placeholder="Ví dụ: 0912 345 678"
+                    class="w-full px-3.5 py-2.5 text-sm rounded placeholder-[#C2BAAB]/40"
+                    required
+                  >
+                  <p id="errorPhone" class="hidden text-xs text-red-400 mt-1">Vui lòng nhập số điện thoại hợp lệ</p>
+                </div>
+
+                <div>
+                  <label for="email" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                    Email <span class="text-[#C2BAAB]/60 text-[11px] font-normal">(nhận biên nhận điện tử)</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    placeholder="name@example.com"
+                    class="w-full px-3.5 py-2.5 text-sm rounded placeholder-[#C2BAAB]/40"
+                  >
+                  <p id="errorEmail" class="hidden text-xs text-red-400 mt-1">Email không đúng định dạng (ví dụ: name@example.com)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15"></div>
+
+          <!-- SECTION B: ĐỊA CHỈ GIAO HÀNG (2-LEVEL STRUCTURE) -->
+          <div class="space-y-4">
+            <h2 class="text-xs font-semibold tracking-wider text-[#D1A85A] uppercase flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#D1A85A]"></span>
+              <span>Địa chỉ nhận hàng</span>
+            </h2>
+
+            <div class="space-y-4 pt-1">
+              <!-- City & Ward dropdowns -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="citySelect" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                    Tỉnh / Thành phố <span class="text-[#D1A85A]">*</span>
+                  </label>
+                  <select 
+                    id="citySelect" 
+                    name="city"
+                    onchange="handleLocationChange()"
+                    class="w-full px-3.5 py-2.5 text-sm rounded cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled selected>-- Chọn Tỉnh / Thành phố --</option>
+                    <option value="hcm">TP. Hồ Chí Minh</option>
+                    <option value="hn">Hà Nội</option>
+                    <option value="dn">Đà Nẵng</option>
+                    <option value="bd">Bình Dương</option>
+                    <option value="other">Tỉnh / Thành khác</option>
+                  </select>
+                  <p id="errorCitySelect" class="hidden text-xs text-red-400 mt-1">Vui lòng chọn Tỉnh / Thành phố</p>
+                </div>
+
+                <div>
+                  <label for="wardSelect" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                    Phường / Xã <span class="text-[#D1A85A]">*</span>
+                  </label>
+                  <select 
+                    id="wardSelect" 
+                    name="ward"
+                    class="w-full px-3.5 py-2.5 text-sm rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled
+                    required
+                  >
+                    <option value="" disabled selected>-- Vui lòng chọn Tỉnh / Thành trước --</option>
+                  </select>
+                  <p id="errorWardSelect" class="hidden text-xs text-red-400 mt-1">Vui lòng chọn Phường / Xã</p>
+                </div>
+              </div>
+
+              <!-- Street address (Full width) -->
+              <div>
+                <label for="streetAddress" class="block text-xs font-medium text-[#F8F4EB] mb-1.5">
+                  Địa chỉ cụ thể <span class="text-[#D1A85A]">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="streetAddress" 
+                  name="streetAddress"
+                  placeholder="Số nhà, tên đường, tòa nhà hoặc căn hộ"
+                  class="w-full px-3.5 py-2.5 text-sm rounded placeholder-[#C2BAAB]/40"
+                  required
+                >
+                <p id="errorStreetAddress" class="hidden text-xs text-red-400 mt-1">Vui lòng nhập địa chỉ cụ thể nhận hàng</p>
+              </div>
+
+              <!-- Delivery notes (Short optional) -->
+              <div>
+                <label for="orderNote" class="block text-xs font-medium text-[#C2BAAB] mb-1.5">
+                  Ghi chú giao hàng <span class="text-[#C2BAAB]/60 text-[11px] font-normal">(không bắt buộc)</span>
+                </label>
+                <textarea 
+                  id="orderNote" 
+                  name="orderNote"
+                  rows="2" 
+                  placeholder="Ví dụ: Giao trong giờ hành chính, gọi trước khi giao..."
+                  class="w-full px-3.5 py-2 text-sm rounded placeholder-[#C2BAAB]/40 resize-y"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15"></div>
+
+          <!-- SECTION C: PHƯƠNG THỨC THANH TOÁN (EXACTLY 2 OPTIONS) -->
+          <div class="space-y-4">
+            <h2 class="text-xs font-semibold tracking-wider text-[#D1A85A] uppercase flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#D1A85A]"></span>
+              <span>Phương thức thanh toán</span>
+            </h2>
+
+            <div class="space-y-3 pt-1">
+              <!-- Option 1: COD (Default Selected) -->
+              <label id="paymentLabelCod" onclick="selectPayment('cod')" class="flex items-start gap-3.5 p-4 rounded border border-[#D1A85A] bg-[#162842] cursor-pointer transition-all">
+                <input 
+                  type="radio" 
+                  id="payCod" 
+                  name="paymentMethod" 
+                  value="cod" 
+                  checked 
+                  class="mt-1 w-4 h-4 text-[#D1A85A] border-[#D1A85A]/40 focus:ring-0 bg-[#0C1626] accent-[#D1A85A]"
+                >
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-[#F8F4EB]">Thanh toán khi nhận hàng (COD)</span>
+                    <span class="text-[11px] text-[#D1A85A] font-medium bg-[#D1A85A]/10 px-2 py-0.5 rounded border border-[#D1A85A]/20">Tiền mặt</span>
+                  </div>
+                  <p class="text-xs text-[#C2BAAB] mt-1 leading-relaxed">
+                    Thanh toán bằng tiền mặt trực tiếp cho nhân viên giao hàng khi nhận và kiểm tra kiện bánh.
+                  </p>
+                </div>
+              </label>
+
+              <!-- Option 2: Chuyển khoản ngân hàng (VietQR) -->
+              <label id="paymentLabelBank" onclick="selectPayment('bank')" class="flex items-start gap-3.5 p-4 rounded border border-[#D1A85A]/20 bg-[#0C1626] hover:border-[#D1A85A]/40 cursor-pointer transition-all">
+                <input 
+                  type="radio" 
+                  id="payBank" 
+                  name="paymentMethod" 
+                  value="bank" 
+                  class="mt-1 w-4 h-4 text-[#D1A85A] border-[#D1A85A]/40 focus:ring-0 bg-[#0C1626] accent-[#D1A85A]"
+                >
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-[#F8F4EB]">Chuyển khoản ngân hàng</span>
+                    <span class="text-[11px] text-[#C2BAAB] font-medium">VietQR 24/7</span>
+                  </div>
+                  <p class="text-xs text-[#C2BAAB] mt-1 leading-relaxed">
+                    Quý khách chuyển khoản thanh toán theo hướng dẫn sau khi đơn hàng được ghi nhận thành công.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15"></div>
+
+          <!-- SECTION D: LỜI NHẮN CHO NGƯỜI NHẬN (OPTIONAL GIFT CARD) -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xs font-semibold tracking-wider text-[#D1A85A] uppercase flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#D1A85A]"></span>
+                <span>Lời nhắn cho người nhận</span>
+              </h2>
+              <span class="text-[11px] text-[#C2BAAB]/70">Không bắt buộc</span>
+            </div>
+
+            <div class="pt-1">
+              <textarea 
+                id="giftMessage" 
+                name="giftMessage"
+                rows="2" 
+                placeholder="Nội dung thiệp chúc mừng gửi kèm gói quà mùa Trăng (ví dụ: Kính chúc Gia Đình một mùa Tết Đoàn Viên an khang)..."
+                class="w-full px-3.5 py-2 text-sm rounded placeholder-[#C2BAAB]/40 resize-y"
+              ></textarea>
+            </div>
+          </div>
+
+        </form>
+
+      </section>
+
+      <!-- ================= RIGHT COLUMN (~34%): ORDER SUMMARY ================= -->
+      <aside class="lg:col-span-4 sticky top-28">
+        <div class="bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-6 space-y-5 shadow-sm">
+          
+          <!-- Summary Title -->
+          <div class="flex items-center justify-between pb-4 border-b border-[#D1A85A]/15">
+            <h2 class="font-serif text-[20px] font-semibold text-[#F8F4EB]">
+              Đơn hàng của bạn
+            </h2>
+            <span class="text-xs text-[#C2BAAB] bg-[#162842] px-2.5 py-0.5 rounded border border-[#D1A85A]/20">2 sản phẩm</span>
+          </div>
+
+          <!-- Product Rows (Compact Items) -->
+          <div class="space-y-4">
+            
+            <!-- Product 1 -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842]">
+                <img 
+                  src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw" 
+                  alt="Hộp Dạ Nguyệt Đoàn Viên" 
+                  class="w-full h-full object-cover"
+                >
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-xs font-semibold text-[#F8F4EB] truncate leading-tight">Hộp Dạ Nguyệt Đoàn Viên</h3>
+                <p class="text-[11px] text-[#C2BAAB] mt-0.5">Hộp tiêu chuẩn · SL: 1</p>
+                <p class="text-xs font-semibold text-[#F8F4EB] mt-1">880.000đ</p>
+              </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842]">
+                <img 
+                  src="https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw" 
+                  alt="Bánh Lava Trứng Chảy Kim Sa" 
+                  class="w-full h-full object-cover"
+                >
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-xs font-semibold text-[#F8F4EB] truncate leading-tight">Bánh Lava Trứng Chảy Kim Sa</h3>
+                <p class="text-[11px] text-[#C2BAAB] mt-0.5">150g · SL: 1</p>
+                <p class="text-xs font-semibold text-[#F8F4EB] mt-1">135.000đ</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15"></div>
+
+          <!-- Price Breakdown -->
+          <div class="space-y-2.5 text-[14px]">
+            <div class="flex items-center justify-between">
+              <span class="text-[#C2BAAB]">Tạm tính</span>
+              <span class="text-[#F8F4EB] font-medium">1.015.000đ</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-[#C2BAAB]">Phí giao hàng</span>
+              <span id="shippingFeeText" class="text-[13px] italic text-[#C2BAAB]">Tính sau khi chọn địa chỉ</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-[#D1A85A]/15 pt-1"></div>
+
+          <!-- Total Calculation -->
+          <div class="flex items-baseline justify-between">
+            <span class="text-[15px] font-medium text-[#F8F4EB]">Tổng thanh toán</span>
+            <div class="text-right">
+              <span id="grandTotalText" class="font-sans text-[22px] font-bold text-[#D1A85A]">1.015.000đ</span>
+              <p id="shippingNoteSubtext" class="text-[10px] text-[#C2BAAB]/70 mt-0.5">(chưa gồm phí vận chuyển)</p>
+            </div>
+          </div>
+
+          <!-- Primary Order CTA -->
+          <div class="pt-2">
+            <button 
+              type="submit" 
+              form="checkoutForm"
+              class="w-full block text-center bg-[#D1A85A] hover:bg-[#E5C37E] text-[#0C1626] font-bold py-3.5 px-4 rounded tracking-wide transition-colors duration-200 cursor-pointer shadow-sm uppercase text-sm"
+            >
+              Đặt hàng
+            </button>
+            <a th:href="@{/cart}" href="/cart" class="block text-center text-xs text-[#C2BAAB] hover:text-[#D1A85A] transition-colors mt-3">
+              Quay lại giỏ hàng
+            </a>
+          </div>
+
+          <!-- Quick Notice: Client-side Prototype -->
+          <div class="pt-2 border-t border-[#D1A85A]/10 text-center">
+            <p class="text-[11px] text-[#C2BAAB]/60">
+              Kiểm tra thông tin trước khi đặt hàng. Không yêu cầu đăng nhập tài khoản.
+            </p>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+    <!-- Global Shared Footer Fragment -->
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+
+  <!-- ==================== VANILLA JAVASCRIPT: LOGIC & VALIDATION ==================== -->
+  
+
+  <!-- External Extracted Scripts -->
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/pages/checkout.js}" src="/js/pages/checkout.js"></script>
+</body>
+</html>

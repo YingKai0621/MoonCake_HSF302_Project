@@ -15,6 +15,12 @@ public class Product {
     private Integer weight;   // e.g. 150, 200 for individual mooncakes
     private String filling;   // e.g. "thap-cam", "lava", "hat-sen", "tra-xanh", "dau-xanh"
     private String detailUrl;
+    private String productType;             // e.g. "Bánh nướng" or "Hộp quà Trung Thu"
+    private String packageSpecification;    // e.g. "Hộp 4 bánh cao cấp kèm Trà Sen Tây Hồ"
+    private String detailedDescription;     // Extended factual description for the Full Description section
+    private String mainIngredients;         // Verified main ingredients, null if unverified
+    private String shelfLifeInformation;    // Verified shelf life, null if unverified
+    private String storageInstructions;     // Verified storage guidance, null if unverified
 
     public Product() {
     }
@@ -33,6 +39,20 @@ public class Product {
         this.weight = weight;
         this.filling = filling;
         this.detailUrl = detailUrl;
+    }
+
+    public Product(String id, String name, long price, String formattedPrice, String imageUrl,
+                   String description, String category, Integer boxCount, Integer weight,
+                   String filling, String detailUrl, String productType, String packageSpecification,
+                   String detailedDescription, String mainIngredients, String shelfLifeInformation,
+                   String storageInstructions) {
+        this(id, name, price, formattedPrice, imageUrl, description, category, boxCount, weight, filling, detailUrl);
+        this.productType = productType;
+        this.packageSpecification = packageSpecification;
+        this.detailedDescription = detailedDescription;
+        this.mainIngredients = mainIngredients;
+        this.shelfLifeInformation = shelfLifeInformation;
+        this.storageInstructions = storageInstructions;
     }
 
     public String getId() {
@@ -121,5 +141,74 @@ public class Product {
 
     public void setDetailUrl(String detailUrl) {
         this.detailUrl = detailUrl;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
+
+    public String getPackageSpecification() {
+        return packageSpecification;
+    }
+
+    public void setPackageSpecification(String packageSpecification) {
+        this.packageSpecification = packageSpecification;
+    }
+
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public String getMainIngredients() {
+        return mainIngredients;
+    }
+
+    public void setMainIngredients(String mainIngredients) {
+        this.mainIngredients = mainIngredients;
+    }
+
+    public String getShelfLifeInformation() {
+        return shelfLifeInformation;
+    }
+
+    public void setShelfLifeInformation(String shelfLifeInformation) {
+        this.shelfLifeInformation = shelfLifeInformation;
+    }
+
+    public String getStorageInstructions() {
+        return storageInstructions;
+    }
+
+    public void setStorageInstructions(String storageInstructions) {
+        this.storageInstructions = storageInstructions;
+    }
+
+    /**
+     * Maps internal filling code to friendly Vietnamese display name.
+     */
+    public String getFillingDisplayName() {
+        if (filling == null) return null;
+        switch (filling) {
+            case "thap-cam":
+                return "Thập cẩm sò điệp XO";
+            case "lava":
+                return "Lava kim sa trứng muối";
+            case "hat-sen":
+                return "Hạt sen táo đỏ";
+            case "tra-xanh":
+                return "Trà xanh macca";
+            case "dau-xanh":
+                return "Đậu xanh hoàng kim";
+            default:
+                return filling;
+        }
     }
 }

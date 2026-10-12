@@ -1,55 +1,90 @@
 /**
  * MoonCake Luxury Product Detail Page Scripts
+ * Minimal, accessible interactions for Quantity, Image Lightbox, and Add-to-Cart.
  */
 
-// Tab Switching Logic
-function switchTab(tabKey, btnElement) {
-  document.querySelectorAll('.tab-panel').forEach(panel => {
-    panel.classList.add('hidden');
-  });
-  document.querySelectorAll('.tab-link').forEach(link => {
-    link.classList.remove('text-gold', 'border-gold');
-    link.classList.add('text-sand', 'border-transparent');
-  });
-
-  const activePanel = document.getElementById('tab-' + tabKey);
-  if (activePanel) {
-    activePanel.classList.remove('hidden');
-  }
-  if (btnElement) {
-    btnElement.classList.add('text-gold', 'border-gold');
-    btnElement.classList.remove('text-sand', 'border-transparent');
-  }
-}
-
-// Gallery Thumbnail Switcher
-function changeGalleryImage(srcUrl, btnElement) {
-  const mainImg = document.getElementById('mainImageDisplay');
-  if (mainImg) {
-    mainImg.style.opacity = '0.4';
-    setTimeout(() => {
-      mainImg.src = srcUrl;
-      mainImg.style.opacity = '1';
-    }, 150);
-  }
-
-  document.querySelectorAll('.thumb-btn').forEach(btn => {
-    btn.classList.remove('border-2', 'border-gold', 'shadow-[0_0_12px_rgba(209,168,90,0.3)]');
-    btn.classList.add('border', 'border-gold/25', 'opacity-75');
-  });
-
-  if (btnElement) {
-    btnElement.classList.remove('opacity-75', 'border-gold/25');
-    btnElement.classList.add('border-2', 'border-gold', 'shadow-[0_0_12px_rgba(209,168,90,0.3)]');
-  }
-}
-
-// Quantity Counter
+// 1. Quantity Selector Logic
 let currentQty = 1;
+
 function adjustQty(amount) {
   currentQty = Math.max(1, currentQty + amount);
   const qtyElem = document.getElementById('qtyDisplay');
   if (qtyElem) {
-    qtyElem.innerText = currentQty;
+    qtyElem.textContent = currentQty;
   }
 }
+
+// 2. Lightweight Accessible Image Lightbox
+function initLightbox() {
+  const modal = document.getElementById('lightboxModal');
+  const openBtn = document.getElementById('openLightboxBtn');
+  const mainImg = document.getElementById('mainImageDisplay');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const closeBtn = document.getElementById('closeLightboxBtn');
+
+  if (!modal || !lightboxImg) return;
+
+  function openLightbox() {
+    if (mainImg) {
+      lightboxImg.src = mainImg.src;
+      lightboxImg.alt = mainImg.alt;
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeLightbox() {
+    modal.classList.add('hidden');
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (openBtn) openBtn.focus();
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openLightbox);
+  if (mainImg) mainImg.addEventListener('click', openLightbox);
+  if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeLightbox();
+    }
+  });
+}
+
+// 3. Add to Cart Hook (Prepared for Real Cart Integration Phase)
+function initAddToCart() {
+  const addBtn = document.getElementById('addToCartBtn');
+  if (!addBtn) return;
+
+  addBtn.addEventListener('click', function () {
+    const productId = this.getAttribute('data-product-id');
+    const productName = this.getAttribute('data-product-name');
+    const productPrice = this.getAttribute('data-product-price');
+
+    // Structural dispatch ready for future cart store integration
+    const payload = {
+      id: productId,
+      name: productName,
+      price: productPrice ? parseInt(productPrice, 10) : 0,
+      quantity: currentQty
+    };
+
+    // Dispatch event without fake alert/mock success notification
+    window.dispatchEvent(new CustomEvent('mooncake:addToCart', { detail: payload }));
+    console.info('[MoonCake Cart Hook] Add to cart action triggered:', payload);
+  });
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function () {
+  initLightbox();
+  initAddToCart();
+});

@@ -1,0 +1,206 @@
+/* ==========================================================================
+   MOONCAKE LUXURY DESIGN SYSTEM — PRODUCT DETAIL STYLES
+   HSF302 Project - Minimal Premium Product Detail Refinement
+   ========================================================================== */
+
+/* 1. Square-Corner Consistency (0px Border-Radius Enforcement) */
+#product-detail-main,
+#product-detail-main .detail-card,
+#product-detail-main .image-frame,
+#product-detail-main .image-frame img,
+#product-detail-main .quick-specs-block,
+#product-detail-main .qty-counter,
+#product-detail-main .qty-btn,
+#product-detail-main .btn-primary-cta,
+#full-description-section,
+#full-description-section .description-card,
+#full-description-section .spec-row,
+#related-products-section .product-card,
+#related-products-section .product-card img,
+#related-products-section .related-cta-btn,
+#lightboxModal,
+#lightboxModal img,
+#lightboxModal button {
+  border-radius: 0 !important;
+}
+
+/* 2. Product Title (Playfair Display, Ivory, Elegant Scaling) */
+.product-detail-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #F8F4EB;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+/* 3. Product Selling Price (Be Vietnam Pro, Bold Gold Accent) */
+.product-detail-price {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #D1A85A;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* 4. Concise Factual Product Introduction */
+.product-detail-intro {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #C2BAAB;
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 400;
+  max-width: 620px;
+}
+
+/* 5. Quantity Counter Control */
+.qty-counter {
+  background-color: #162842;
+  border: 1px solid rgba(209, 168, 90, 0.4);
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qty-btn {
+  background: transparent;
+  border: none;
+  color: #D1A85A;
+  font-size: 18px;
+  font-weight: 700;
+  width: 36px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  user-select: none;
+}
+
+.qty-btn:hover {
+  color: #E5C37E;
+  background-color: rgba(209, 168, 90, 0.1);
+}
+
+.qty-btn:focus-visible {
+  outline: 2px solid #D1A85A;
+  outline-offset: -2px;
+}
+
+.qty-value {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #F8F4EB;
+  user-select: none;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* 6. Primary Add-to-Cart Action */
+.btn-primary-cta {
+  background-color: #D1A85A;
+  color: #0C1626;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  min-height: 48px;
+  padding: 0 28px;
+  border: 1px solid #D1A85A;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 20px -2px rgba(209, 168, 90, 0.2);
+}
+
+.btn-primary-cta:hover {
+  background-color: #E5C37E;
+  border-color: #E5C37E;
+}
+
+.btn-primary-cta:focus-visible {
+  outline: 2px solid #D1A85A;
+  outline-offset: 2px;
+}
+
+.btn-primary-cta:active {
+  transform: scale(0.99);
+}
+
+/* 7. Image Lightbox Modal */
+#lightboxModal {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#lightboxModal.is-open {
+  display: flex !important;
+}
+
+/* 8. Quick Product Specifications (Part A) */
+.quick-specs-block {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+}
+
+.quick-specs-block .quick-spec-label {
+  color: #C2BAAB;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.quick-specs-block .quick-spec-value {
+  color: #F8F4EB;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* 9. Full Product Description Section (Part B) */
+#full-description-section {
+  width: 100%;
+}
+
+.description-main-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #F8F4EB;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.description-sub-heading {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #D1A85A;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.description-body-text {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #C2BAAB;
+  font-size: 16px;
+  line-height: 1.8;
+  font-weight: 400;
+}
+
+.spec-table-grid .spec-row {
+  transition: background-color 0.15s ease;
+}
+
+.spec-table-grid .spec-label {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #C2BAAB;
+  font-size: 15px;
+}
+
+.spec-table-grid .spec-value {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  color: #F8F4EB;
+  font-size: 15px;
+  font-weight: 500;
+}

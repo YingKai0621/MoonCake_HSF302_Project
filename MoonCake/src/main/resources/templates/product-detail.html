@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Hộp Quà Dạ Nguyệt Đoàn Viên | MOONCAKE Haute Pâtisserie</title>
+  <title th:text="${product.name + ' | MOONCAKE'}">Hộp Quà Dạ Nguyệt Đoàn Viên | MOONCAKE</title>
   <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
@@ -41,319 +41,279 @@
     }
   </script>
   
-  <!-- External Extracted Stylesheets -->
+  <!-- External Stylesheets -->
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/pages/product-detail.css}" href="/css/pages/product-detail.css">
 </head>
-<body class="bg-midnight text-ivory antialiased selection:bg-gold selection:text-dark-navy min-h-screen">
+<body class="bg-midnight text-ivory font-sans antialiased selection:bg-gold/30 selection:text-gold min-h-screen">
 
-    <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
-    <!-- Global Shared Header V4 Fragment -->
+  <!-- 1. APPROVED GLOBAL HEADER V4 -->
   <header th:replace="~{fragments/header :: header('products')}"></header>
 
-  <!-- 2. BREADCRUMB -->
+  <!-- 2. CATEGORY-AWARE BREADCRUMB -->
   <div class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-4">
-    <nav class="flex items-center space-x-2 text-xs text-sand tracking-wider uppercase">
+    <nav aria-label="Breadcrumb" class="flex items-center space-x-2 text-xs text-sand tracking-wide uppercase">
       <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang Chủ</a>
       <span class="text-gold/40">/</span>
-      <a class="hover:text-gold transition-colors" th:href="@{/products/gift-boxes}" href="/products/gift-boxes">Hộp quà Trung Thu</a>
+      <a class="hover:text-gold transition-colors" th:href="@{${breadcrumbCategoryUrl}}" th:text="${breadcrumbCategoryName}">Hộp quà Trung Thu</a>
       <span class="text-gold/40">/</span>
-      <span class="text-gold font-semibold">Hộp Quà Dạ Nguyệt Đoàn Viên</span>
+      <span class="text-gold font-medium truncate max-w-xs sm:max-w-md" th:text="${product.name}">Tên sản phẩm</span>
     </nav>
   </div>
 
-  <!-- 3. MAIN PRODUCT SHOWCASE CONTAINER (DARK LUXURY) -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-6">
-    <div class="bg-dark-navy border border-gold/25 rounded-2xl p-6 lg:p-12 shadow-navy-card grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+  <!-- 3. MAIN PRODUCT PRESENTATION (BALANCED TWO-COLUMN DESKTOP LAYOUT) -->
+  <main id="product-detail-main" class="max-w-7xl mx-auto px-4 sm:px-8 py-6">
+    <div class="detail-card bg-dark-navy border border-gold/25 rounded-none p-6 lg:p-12 shadow-navy-card grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
       
-      <!-- CỘT TRÁI: Product Gallery (col-span-6) -->
-      <div class="lg:col-span-6 flex flex-col space-y-6">
-        <!-- Main Large Image Container -->
-        <div class="relative w-full aspect-square rounded-xl overflow-hidden border border-gold/30 bg-midnight/60 group shadow-navy-card">
-          <div class="absolute top-4 left-4 z-20 bg-dark-navy/90 backdrop-blur-md border border-gold px-3.5 py-1.5 rounded-sm shadow-md">
-            <span class="text-xs text-gold tracking-widest font-semibold flex items-center gap-1.5">
-              <span>✦</span> HỘP QUÀ THƯỢNG HẠNG 2026
-            </span>
-          </div>
-          <!-- Main Zoomable Image -->
-          <img alt="Hộp Quà Dạ Nguyệt Đoàn Viên sơn mài hoàng gia dát vàng" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" id="mainImageDisplay" src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-dark-navy/60 via-transparent to-transparent pointer-events-none"></div>
-          <button class="absolute bottom-4 right-4 z-20 w-9 h-9 rounded-full bg-dark-navy/80 border border-gold/30 text-ivory hover:text-gold flex items-center justify-center transition-colors">
+      <!-- CỘT TRÁI: Main Product Image Area (col-span-6 / 50%) -->
+      <div class="lg:col-span-6 flex flex-col space-y-4">
+        <div class="image-frame relative w-full aspect-square rounded-none overflow-hidden border border-gold/30 bg-midnight/60 group shadow-navy-card">
+          <!-- Main Product Photograph -->
+          <img th:src="${product.imageUrl}"
+               th:alt="${product.name}"
+               id="mainImageDisplay"
+               referrerpolicy="no-referrer"
+               class="w-full h-full object-cover rounded-none transition-transform duration-700 ease-out group-hover:scale-105 cursor-pointer"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-dark-navy/40 via-transparent to-transparent pointer-events-none"></div>
+          
+          <!-- Accessible Fullscreen Image Enlargement Trigger -->
+          <button id="openLightboxBtn"
+                  type="button"
+                  aria-label="Xem ảnh phóng to"
+                  class="absolute bottom-4 right-4 z-20 w-10 h-10 rounded-none bg-dark-navy/90 border border-gold/40 text-ivory hover:text-gold hover:border-gold flex items-center justify-center transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-lg">fullscreen</span>
           </button>
         </div>
-
-        <!-- Thumbnail Gallery Strip -->
-        <div class="grid grid-cols-4 gap-3 lg:gap-4">
-          <!-- Thumbnail 1 (Active) -->
-          <button class="thumb-btn aspect-square rounded-lg overflow-hidden border-2 border-gold bg-deep-indigo relative transition-all duration-300 shadow-[0_0_12px_rgba(209,168,90,0.3)]" onclick="changeGalleryImage('https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw', this)">
-            <img alt="Hộp Quà Tứ Quý Đoàn Viên" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw"/>
-            <span class="absolute bottom-0 inset-x-0 bg-dark-navy/85 py-0.5 text-[9px] text-gold text-center tracking-tighter truncate px-1 font-medium">Tổng quan</span>
-          </button>
-          <!-- Thumbnail 2 -->
-          <button class="thumb-btn aspect-square rounded-lg overflow-hidden border border-gold/25 hover:border-gold bg-deep-indigo relative transition-all duration-300 opacity-75 hover:opacity-100" onclick="changeGalleryImage('https://lh3.googleusercontent.com/aida/AEtjO1XXCJnXLOa7ijL_McL2-qbrGVDXvQmAXlBE9P7CaJF_WblcjevMgZo75QRo4GvAod_xCnmuuvcCm7HwQWjI_ypXFJCV5B85p2chYudAsU7Kvsmhk-fwf3PWhaMrnodceSXAhbw3UwYrRySP7XKO1u2kxs8M816SL53OOsYqRLqs2ewbAgHszTQ33AWjdUkPUDNgBkS0cb_RTarAWOBia7PwSBa5TXDl4riK-5wtlCV9jkPNbqvrgwnJIg', this)">
-            <img alt="Bánh cắt lộ nhân 2 trứng muối sò điệp XO" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XXCJnXLOa7ijL_McL2-qbrGVDXvQmAXlBE9P7CaJF_WblcjevMgZo75QRo4GvAod_xCnmuuvcCm7HwQWjI_ypXFJCV5B85p2chYudAsU7Kvsmhk-fwf3PWhaMrnodceSXAhbw3UwYrRySP7XKO1u2kxs8M816SL53OOsYqRLqs2ewbAgHszTQ33AWjdUkPUDNgBkS0cb_RTarAWOBia7PwSBa5TXDl4riK-5wtlCV9jkPNbqvrgwnJIg"/>
-            <span class="absolute bottom-0 inset-x-0 bg-dark-navy/85 py-0.5 text-[9px] text-ivory text-center tracking-tighter truncate px-1">Sò Điệp XO</span>
-          </button>
-          <!-- Thumbnail 3 -->
-          <button class="thumb-btn aspect-square rounded-lg overflow-hidden border border-gold/25 hover:border-gold bg-deep-indigo relative transition-all duration-300 opacity-75 hover:opacity-100" onclick="changeGalleryImage('https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw', this)">
-            <img alt="Bánh Lava Hoàng Kim trứng chảy" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw"/>
-            <span class="absolute bottom-0 inset-x-0 bg-dark-navy/85 py-0.5 text-[9px] text-ivory text-center tracking-tighter truncate px-1">Lava Kim Sa</span>
-          </button>
-          <!-- Thumbnail 4 -->
-          <button class="thumb-btn aspect-square rounded-lg overflow-hidden border border-gold/25 hover:border-gold bg-deep-indigo relative transition-all duration-300 opacity-75 hover:opacity-100" onclick="changeGalleryImage('https://lh3.googleusercontent.com/aida/AEtjO1XUA5AT5QLcYPvUcrD62g27yjA-0r8cNvl91RihgyV7uiZsySB7QoNwr9Ygy_tPHcFVeJ-t8opiz_S6RVP_t_U25JMsfg4atKJvbobxgWg8VDD1eZqH5mMUfFwiUk13cGWPkq9ra-Lxf3VrMXicD4imaiMH4vn5j3qT4Zp2inCKvkr2IxUbAD31pXbifujzW4kHIgeJH8f_nbi2dUS0ty6WanvckPhtweCqm2OG0gWDqX7LRjoOPI3m', this)">
-            <img alt="Bánh Thập Cẩm &amp; Hạt Sen Trà Ô Long" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XUA5AT5QLcYPvUcrD62g27yjA-0r8cNvl91RihgyV7uiZsySB7QoNwr9Ygy_tPHcFVeJ-t8opiz_S6RVP_t_U25JMsfg4atKJvbobxgWg8VDD1eZqH5mMUfFwiUk13cGWPkq9ra-Lxf3VrMXicD4imaiMH4vn5j3qT4Zp2inCKvkr2IxUbAD31pXbifujzW4kHIgeJH8f_nbi2dUS0ty6WanvckPhtweCqm2OG0gWDqX7LRjoOPI3m"/>
-            <span class="absolute bottom-0 inset-x-0 bg-dark-navy/85 py-0.5 text-[9px] text-ivory text-center tracking-tighter truncate px-1">Hạt Sen Ô Long</span>
-          </button>
-        </div>
-
-        <!-- Traditional Artisan Seal Detail -->
-        <div class="p-4 rounded-xl border border-gold/15 bg-midnight/40 flex items-center gap-4">
-          <div class="w-10 h-10 rounded-full border border-gold/60 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-gold text-xl">auto_awesome</span>
-          </div>
-          <div>
-            <p class="font-serif text-[16px] text-ivory tracking-wide font-bold">Chế tác thủ công sơn mài hoàng gia</p>
-            <p class="text-xs text-sand mt-0.5">Khắc họa hoa văn Tứ Quý &amp; chim hạc dát kim sa thanh nhã tinh mỹ.</p>
-          </div>
-        </div>
       </div>
 
-      <!-- CỘT PHẢI: Product Information & Purchase (col-span-6) -->
-      <div class="lg:col-span-6 flex flex-col justify-between">
-        <div>
-          <!-- Tag Bộ Sưu Tập -->
-          <div class="inline-flex items-center gap-1.5 text-gold text-xs tracking-[0.2em] uppercase font-bold mb-3">
-            <span>★</span> BỘ SƯU TẬP HOÀNG GIA ĐOÀN VIÊN
-          </div>
-          <!-- Title -->
-          <h1 class="font-serif text-3xl lg:text-4xl text-ivory font-bold tracking-tight mb-4 leading-tight">
-            Hộp Quà Dạ Nguyệt Đoàn Viên (4 Bánh + Trà Cổ Thụ)
-          </h1>
-          <!-- Social Proof & Meta -->
-          <div class="flex flex-wrap items-center gap-y-2 gap-x-4 pb-4 border-b border-gold/20 text-xs text-sand">
-            <div class="flex items-center gap-1 text-gold">
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star_half</span>
-              <span class="font-semibold text-ivory ml-1">4.9 / 5</span>
-              <span class="text-sand">(128 đánh giá)</span>
+      <!-- CỘT PHẢI: Product Information & Purchase Area (col-span-6 / 50%) -->
+      <div class="lg:col-span-6 flex flex-col justify-center space-y-6">
+        
+        <!-- Product Name (Playfair Display, 38-46px desktop, 600 weight, ivory color) -->
+        <h1 class="product-detail-title text-3xl sm:text-4xl lg:text-[40px] text-ivory font-semibold tracking-tight leading-[1.25]"
+            th:text="${product.name}">
+          Hộp Quà Dạ Nguyệt Đoàn Viên
+        </h1>
+
+        <!-- Selling Price Block (Be Vietnam Pro, 30-34px, 700 weight, gold accent #D1A85A) -->
+        <div class="border-y border-gold/20 py-4">
+          <span class="text-xs uppercase tracking-wider text-sand block mb-1">Giá niêm yết</span>
+          <span class="product-detail-price text-3xl sm:text-[32px] font-bold text-gold tracking-tight leading-none block"
+                th:text="${product.formattedPrice}">
+            880.000₫
+          </span>
+        </div>
+
+        <!-- ONE Concise Factual Introduction (1-3 factual sentences, no marketing filler) -->
+        <p class="product-detail-intro text-sand/90 text-[16px] leading-[1.7] font-normal"
+           th:text="${product.description}">
+          Hộp quà Trung Thu gồm 4 bánh cao cấp kèm Trà Sen Tây Hồ trong hộp sơn mài.
+        </p>
+
+        <!-- QUICK PRODUCT SPECIFICATIONS (PART A) -->
+        <div class="quick-specs-block border-y border-gold/20 py-3.5 my-1 space-y-2.5 text-[15px] font-sans">
+          <!-- Mooncake Quick Specifications -->
+          <th:block th:if="${product.category == 'mooncakes'}">
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.productType != null and !#strings.isEmpty(product.productType)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Loại bánh:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.productType}">Bánh nướng</span>
             </div>
-            <span class="text-gold/30">|</span>
-            <div>Mã SP: <span class="text-ivory font-medium">MC-DNDV-2026</span></div>
-            <span class="text-gold/30">|</span>
-            <div class="flex items-center gap-1.5 text-emerald-400">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Còn hàng (Sẵn sàng giao)</span>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.fillingDisplayName != null and !#strings.isEmpty(product.fillingDisplayName)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Nhân bánh:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
             </div>
-          </div>
-
-          <!-- Khối Giá & Khuyến Mãi -->
-          <div class="py-5 flex items-baseline gap-4">
-            <span class="font-serif text-4xl font-bold text-gold tracking-tight">
-              880.000₫
-            </span>
-            <span class="text-lg text-sand/60 line-through">
-              1.100.000₫
-            </span>
-            <span class="bg-gold text-dark-navy text-xs font-bold uppercase px-2.5 py-1 rounded shadow">
-              -20% Ưu Đãi Mùa Sớm
-            </span>
-          </div>
-
-          <p class="text-sand text-sm leading-relaxed mb-6 font-light">
-            Tuyệt phẩm quà biếu kết tinh giữa nghệ thuật sơn mài dát vàng truyền thống và mỹ vị hoàng gia cung đình. Hội tụ 4 phong vị bánh nướng trứ danh cùng Trà Shan Tuyết Cổ Thụ trăm năm từ đỉnh Tây Côn Lĩnh.
-          </p>
-
-          <!-- Danh sách thành phần trong hộp -->
-          <div class="bg-midnight/60 rounded-xl border border-gold/20 p-4 mb-6">
-            <h2 class="text-xs uppercase tracking-wider text-gold font-semibold mb-3 flex items-center gap-2">
-              <span class="material-symbols-outlined text-base">inventory_2</span>
-              Bộ Sản Phẩm Gồm 4 Bánh Nghệ Nhân &amp; 1 Hộp Trà:
-            </h2>
-            <ul class="space-y-2 text-xs text-ivory/90">
-              <li class="flex items-start gap-2">
-                <span class="text-gold text-xs mt-0.5">✦</span>
-                <span><strong>1x Bánh Thập Cẩm Sò Điệp XO</strong> (200g - 2 trứng muối hoàng kim)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-gold text-xs mt-0.5">✦</span>
-                <span><strong>1x Bánh Lava Hoàng Kim Trứng Chảy</strong> (150g - béo ngậy tan chảy ngọt dịu)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-gold text-xs mt-0.5">✦</span>
-                <span><strong>1x Bánh Hạt Sen Táo Đỏ 2 Trứng</strong> (200g - thanh ngọt tao nhã cung đình)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-gold text-xs mt-0.5">✦</span>
-                <span><strong>1x Bánh Than Tre Trà Xanh Macca</strong> (200g - dưỡng nhan thanh mát)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-gold text-xs mt-0.5">✦</span>
-                <span><strong>1x Hộp Trà Shan Tuyết Cổ Thụ Hà Giang</strong> (50g - 1 búp 1 lá thượng hạng)</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Bộ Chọn Trọng Lượng / Phiên Bản -->
-          <div class="mb-6">
-            <label class="block text-xs uppercase tracking-wider text-sand mb-2.5 font-medium">
-              Quy Cách Hộp Quà:
-            </label>
-            <div class="flex items-center gap-3">
-              <button class="px-4 py-2.5 rounded border-2 border-gold bg-deep-indigo text-gold text-xs uppercase font-semibold flex items-center gap-2 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-gold"></span>
-                Hộp Tiêu Chuẩn (750g)
-              </button>
-              <button class="px-4 py-2.5 rounded border border-gold/30 bg-transparent hover:border-gold text-ivory/80 hover:text-gold text-xs uppercase font-medium transition-colors">
-                Hộp Thượng Phẩm (900g)
-              </button>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.weight != null}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Trọng lượng:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.weight + 'g'}">200g</span>
             </div>
-          </div>
-
-          <!-- Bộ Chọn Số Lượng & Nút CTA Kép -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6">
-            <!-- Counter -->
-            <div class="inline-flex items-center justify-between border border-gold/50 bg-deep-indigo rounded px-3 py-2 w-36 shrink-0">
-              <button aria-label="Giảm" class="text-gold hover:text-gold-hover font-bold text-lg p-1 transition-colors" onclick="adjustQty(-1)">-</button>
-              <span class="font-serif text-base text-ivory font-bold" id="qtyDisplay">1</span>
-              <button aria-label="Tăng" class="text-gold hover:text-gold-hover font-bold text-lg p-1 transition-colors" onclick="adjustQty(1)">+</button>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.mainIngredients != null and !#strings.isEmpty(product.mainIngredients)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Thành phần chính:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.mainIngredients}">Thành phần</span>
             </div>
-            <!-- Primary CTA -->
-            <button class="flex-1 px-6 py-3.5 bg-gold hover:bg-gold-hover text-dark-navy text-xs uppercase font-bold tracking-widest rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-gold-sm active:scale-[0.98]">
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.shelfLifeInformation != null and !#strings.isEmpty(product.shelfLifeInformation)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Hạn sử dụng:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.shelfLifeInformation}">Hạn sử dụng</span>
+            </div>
+          </th:block>
+
+          <!-- Gift Box Quick Specifications -->
+          <th:block th:if="${product.category == 'gift-boxes'}">
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.productType != null and !#strings.isEmpty(product.productType)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Loại sản phẩm:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.productType}">Hộp quà Trung Thu</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.boxCount != null}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Số lượng bánh:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Quy cách:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.packageSpecification}">Hộp 4 bánh cao cấp kèm Trà Sen</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.weight != null}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Trọng lượng:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.weight + 'g'}">Trọng lượng</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4" th:if="${product.shelfLifeInformation != null and !#strings.isEmpty(product.shelfLifeInformation)}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Hạn sử dụng:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.shelfLifeInformation}">Hạn sử dụng</span>
+            </div>
+          </th:block>
+        </div>
+
+        <!-- Purchase Action: Quantity Selector + Single Primary Add to Cart Button -->
+        <div class="pt-2">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <!-- Accessible Square-Corner Quantity Selector -->
+            <div class="qty-counter w-36 shrink-0 rounded-none" role="group" aria-label="Bộ chọn số lượng">
+              <button type="button"
+                      id="qtyDecreaseBtn"
+                      aria-label="Giảm số lượng"
+                      class="qty-btn"
+                      onclick="adjustQty(-1)">-</button>
+              <span id="qtyDisplay" class="qty-value">1</span>
+              <button type="button"
+                      id="qtyIncreaseBtn"
+                      aria-label="Tăng số lượng"
+                      class="qty-btn"
+                      onclick="adjustQty(1)">+</button>
+            </div>
+
+            <!-- Single Primary Action: Add to Cart -->
+            <button id="addToCartBtn"
+                    type="button"
+                    th:data-product-id="${product.id}"
+                    th:data-product-name="${product.name}"
+                    th:data-product-price="${product.price}"
+                    class="btn-primary-cta flex-1 rounded-none">
               <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-              THÊM VÀO GIỎ HÀNG
+              <span>Thêm vào giỏ hàng</span>
             </button>
           </div>
-
-          <!-- Secondary CTA -->
-          <button class="w-full py-3.5 border border-gold/70 hover:border-gold hover:bg-gold/10 text-ivory text-xs uppercase font-semibold tracking-widest rounded transition-all duration-300 text-center mb-6">
-            MUA NGAY - GIAO HỎA TỐC 2 GIỜ
-          </button>
         </div>
 
-        <!-- Hộp Cam Kết Dịch Vụ -->
-        <div class="rounded-xl border border-gold/25 bg-deep-indigo p-4 space-y-2.5">
-          <div class="flex items-center gap-2.5 text-ivory text-xs">
-            <span class="material-symbols-outlined text-gold text-lg">check_circle</span>
-            <span>Miễn phí in khắc logo doanh nghiệp và thiệp chúc từ 10 hộp</span>
-          </div>
-          <div class="flex items-center gap-2.5 text-ivory text-xs">
-            <span class="material-symbols-outlined text-gold text-lg">bolt</span>
-            <span>Giao hỏa tốc 2h nội thành TP.HCM &amp; Hà Nội với bao bì chuyên dụng</span>
-          </div>
-          <div class="flex items-center gap-2.5 text-ivory text-xs">
-            <span class="material-symbols-outlined text-gold text-lg">verified_user</span>
-            <span>Cam kết đổi mới 1-1 ngay lập tức nếu cấn móp trong quá trình vận chuyển</span>
-          </div>
-        </div>
       </div>
     </div>
   </main>
 
-  <!-- 4. TABS NỘI DUNG CHI TIẾT SẢN PHẨM (VANILLA JS WORKING) -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-8 py-12">
-    <div class="bg-dark-navy border border-gold/25 rounded-2xl p-6 lg:p-12 shadow-navy-card">
-      <div class="flex border-b border-gold/20 overflow-x-auto space-x-8 custom-scroll pb-px">
-        <button class="tab-link pb-4 font-serif text-[18px] text-gold border-b-2 border-gold tracking-wide whitespace-nowrap transition-colors" onclick="switchTab('story', this)">
-          Câu Chuyện &amp; Ý Nghĩa Hộp Quà
-        </button>
-        <button class="tab-link pb-4 font-serif text-[18px] text-sand hover:text-gold border-b-2 border-transparent tracking-wide whitespace-nowrap transition-colors" onclick="switchTab('nutrition', this)">
-          Chi Tiết Thành Phần &amp; Dinh Dưỡng
-        </button>
-        <button class="tab-link pb-4 font-serif text-[18px] text-sand hover:text-gold border-b-2 border-transparent tracking-wide whitespace-nowrap transition-colors" onclick="switchTab('b2b', this)">
-          Chính Sách Doanh Nghiệp &amp; Bảo Quản
-        </button>
+  <!-- 4. FULL PRODUCT DESCRIPTION SECTION (PART B) -->
+  <section id="full-description-section" class="max-w-7xl mx-auto px-4 sm:px-8 py-6">
+    <div class="description-card bg-dark-navy border border-gold/25 rounded-none p-6 sm:p-8 lg:p-12 shadow-navy-card space-y-8">
+      
+      <!-- Section Header -->
+      <div class="border-b border-gold/20 pb-5">
+        <h2 class="description-main-heading font-serif text-2xl sm:text-3xl lg:text-[36px] font-semibold text-ivory tracking-tight">
+          Mô tả chi tiết sản phẩm
+        </h2>
       </div>
 
-      <!-- Tab Content 1: Story -->
-      <div class="tab-panel py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center" id="tab-story">
-        <div class="lg:col-span-7 space-y-4 text-sand text-sm leading-relaxed">
-          <h3 class="font-serif text-2xl text-ivory font-bold">
-            Hương Sắc Mùa Trăng – Đẳng Cấp Hoàng Gia Truyền Thống
+      <!-- Content Groups -->
+      <div class="space-y-8">
+        
+        <!-- GROUP 1: GIỚI THIỆU SẢN PHẨM (Present if detailedDescription exists) -->
+        <div class="description-group" th:if="${product.detailedDescription != null and !#strings.isEmpty(product.detailedDescription)}">
+          <h3 class="description-sub-heading font-sans text-lg sm:text-xl font-semibold text-gold mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-gold inline-block"></span>
+            <span>Giới thiệu sản phẩm</span>
           </h3>
-          <p>
-            Lấy cảm hứng từ ánh trăng rằm tháng Tám huyền ảo chiếu rọi cung điện xưa, "Hộp Quà Dạ Nguyệt Đoàn Viên" là sự hòa quyện giữa kỹ nghệ thủ công kim hoàn và tinh hoa ẩm thực bánh ngọt hiện đại. Mỗi chiếc bánh được nhào nặn công phu suốt 36 giờ bởi các nghệ nhân trưởng pátisserie, đạt đến độ cân bằng hoàn hảo giữa vỏ bánh mỏng mịn vàng óng và nhân bánh ngọt thanh tự nhiên.
+          <p class="description-body-text text-sand/90 text-[16px] leading-[1.8] font-normal max-w-4xl"
+             th:text="${product.detailedDescription}">
+            Nội dung giới thiệu chi tiết về sản phẩm...
           </p>
-          <p>
-            Vỏ hộp sơn mài màu Midnight Navy hoàng gia kết hợp hoa văn "Tứ Quý Đoàn Viên" mạ nhũ vàng không chỉ thể hiện vị thế sang trọng của người trao tặng, mà còn gửi gắm lời chúc bình an, sung túc và phú quý trọn vẹn đến đối tác và người thân.
+        </div>
+
+        <!-- GROUP 2: THÔNG TIN SẢN PHẨM (Structured details) -->
+        <div class="description-group pt-4 border-t border-gold/15">
+          <h3 class="description-sub-heading font-sans text-lg sm:text-xl font-semibold text-gold mb-4 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-gold inline-block"></span>
+            <span>Thông tin sản phẩm</span>
+          </h3>
+          
+          <!-- Detailed Attributes Grid / Rows for Mooncakes -->
+          <div th:if="${product.category == 'mooncakes'}" class="spec-table-grid grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 max-w-4xl">
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.productType != null and !#strings.isEmpty(product.productType)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Loại bánh:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.productType}">Bánh nướng</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.fillingDisplayName != null and !#strings.isEmpty(product.fillingDisplayName)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Nhân bánh:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.weight != null}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Trọng lượng:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.weight + 'g'}">200g</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Quy cách:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.packageSpecification}">Đóng gói túi hút chân không từng chiếc</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.mainIngredients != null and !#strings.isEmpty(product.mainIngredients)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Thành phần chính:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.mainIngredients}">-</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.shelfLifeInformation != null and !#strings.isEmpty(product.shelfLifeInformation)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Hạn sử dụng:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.shelfLifeInformation}">-</span>
+            </div>
+          </div>
+
+          <!-- Detailed Attributes Grid / Rows for Gift Boxes -->
+          <div th:if="${product.category == 'gift-boxes'}" class="spec-table-grid grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 max-w-4xl">
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.productType != null and !#strings.isEmpty(product.productType)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Loại sản phẩm:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.productType}">Hộp quà Trung Thu</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.boxCount != null}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Số lượng bánh:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Quy cách:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.packageSpecification}">Hộp 4 bánh cao cấp kèm Trà Sen Tây Hồ trong hộp sơn mài</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.weight != null}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Trọng lượng:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.weight + 'g'}">-</span>
+            </div>
+            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.shelfLifeInformation != null and !#strings.isEmpty(product.shelfLifeInformation)}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Hạn sử dụng:</span>
+              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.shelfLifeInformation}">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUP 3: HƯỚNG DẪN BẢO QUẢN (Rendered only if verified data exists) -->
+        <div class="description-group pt-4 border-t border-gold/15"
+             th:if="${product.storageInstructions != null and !#strings.isEmpty(product.storageInstructions)}">
+          <h3 class="description-sub-heading font-sans text-lg sm:text-xl font-semibold text-gold mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-gold inline-block"></span>
+            <span>Hướng dẫn bảo quản</span>
+          </h3>
+          <p class="description-body-text text-sand/90 text-[16px] leading-[1.8] font-normal max-w-4xl"
+             th:text="${product.storageInstructions}">
+            Nội dung hướng dẫn bảo quản...
           </p>
-          <div class="pt-2 flex items-center gap-6 text-gold text-xs uppercase tracking-wider font-semibold">
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">eco</span> 100% Thuần Tự Nhiên</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">timer</span> Lên Men 36 Giờ</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">award_star</span> Công Thức Độc Bản</span>
-          </div>
         </div>
-        <div class="lg:col-span-5 rounded-xl border border-gold/30 overflow-hidden shadow-navy-card">
-          <img alt="Bánh trung thu nghệ nhân cùng trà Shan Tuyết" class="w-full h-72 object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XUA5AT5QLcYPvUcrD62g27yjA-0r8cNvl91RihgyV7uiZsySB7QoNwr9Ygy_tPHcFVeJ-t8opiz_S6RVP_t_U25JMsfg4atKJvbobxgWg8VDD1eZqH5mMUfFwiUk13cGWPkq9ra-Lxf3VrMXicD4imaiMH4vn5j3qT4Zp2inCKvkr2IxUbAD31pXbifujzW4kHIgeJH8f_nbi2dUS0ty6WanvckPhtweCqm2OG0gWDqX7LRjoOPI3m"/>
-        </div>
-      </div>
 
-      <!-- Tab Content 2: Nutrition -->
-      <div class="tab-panel py-8 hidden space-y-6" id="tab-nutrition">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="p-4 rounded-xl border border-gold/20 bg-deep-indigo/50">
-            <p class="font-serif text-base text-gold font-bold mb-1">Sò Điệp XO Thượng Hạng</p>
-            <p class="text-xs text-sand">Sò điệp Nhật Bản, dăm bông hảo hạng, xốt Mai Quế Lộ, 2 lòng đỏ trứng muối bùi béo.</p>
-          </div>
-          <div class="p-4 rounded-xl border border-gold/20 bg-deep-indigo/50">
-            <p class="font-serif text-base text-gold font-bold mb-1">Lava Hoàng Kim Trứng Chảy</p>
-            <p class="text-xs text-sand">Trứng muối tươi sấy lạnh, sữa tươi thanh trùng, bơ thượng hạng tan chảy ở nhiệt độ phòng.</p>
-          </div>
-          <div class="p-4 rounded-xl border border-gold/20 bg-deep-indigo/50">
-            <p class="font-serif text-base text-gold font-bold mb-1">Hạt Sen Táo Đỏ</p>
-            <p class="text-xs text-sand">Hạt sen tươi Tịnh Tâm (Huế), táo đỏ Tân Cương ninh chậm, đường phèn thanh tao nhẹ nhàng.</p>
-          </div>
-          <div class="p-4 rounded-xl border border-gold/20 bg-deep-indigo/50">
-            <p class="font-serif text-base text-gold font-bold mb-1">Trà Shan Tuyết Cổ Thụ</p>
-            <p class="text-xs text-sand">Búp trà cổ thụ trăm năm tại đỉnh Tây Côn Lĩnh (Hà Giang), hương thơm khói tuyết dịu mát hậu ngọt sâu.</p>
-          </div>
-        </div>
-        <p class="text-xs text-sand italic">
-          * Sản phẩm cam kết 100% nguyên liệu tự nhiên tươi mới, tuyển chọn nghiêm ngặt theo tiêu chuẩn vệ sinh an toàn thực phẩm.
-        </p>
-      </div>
-
-      <!-- Tab Content 3: B2B & Storage -->
-      <div class="tab-panel py-8 hidden space-y-6" id="tab-b2b">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="p-5 rounded-xl border border-gold/20 bg-deep-indigo">
-            <h4 class="font-serif text-base text-gold font-bold mb-2 flex items-center gap-2">
-              <span class="material-symbols-outlined text-lg">corporate_fare</span>
-              Chính Sách Doanh Nghiệp
-            </h4>
-            <p class="text-xs text-sand leading-relaxed">
-              Chiết khấu đặc quyền từ 15% – 30% cho đơn hàng số lượng từ 20 hộp trở lên. Hỗ trợ in dập nhũ vàng logo công ty và thiệp chúc mừng mang dấu ấn nhận diện thương hiệu.
-            </p>
-          </div>
-          <div class="p-5 rounded-xl border border-gold/20 bg-deep-indigo">
-            <h4 class="font-serif text-base text-gold font-bold mb-2 flex items-center gap-2">
-              <span class="material-symbols-outlined text-lg">ac_unit</span>
-              Hướng Dẫn Bảo Quản
-            </h4>
-            <p class="text-xs text-sand leading-relaxed">
-              Bảo quản nơi khô ráo, thoáng mát (dưới 25°C). Thời hạn sử dụng 45 ngày nguyên bao bì chân không. Sau khi cắt nên dùng ngay hoặc bảo quản ngăn mát tủ lạnh trong 3 ngày.
-            </p>
-          </div>
-          <div class="p-5 rounded-xl border border-gold/20 bg-deep-indigo">
-            <h4 class="font-serif text-base text-gold font-bold mb-2 flex items-center gap-2">
-              <span class="material-symbols-outlined text-lg">local_shipping</span>
-              Vận Chuyển Chuyên Dụng
-            </h4>
-            <p class="text-xs text-sand leading-relaxed">
-              Đóng thùng chống sốc 3 lớp có niêm phong an ninh. Giao hàng bằng xe chuyên dụng điều hòa nhiệt độ đảm bảo bánh và hộp luôn hoàn mỹ không tì vết khi đến tay người nhận.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- 5. SẢN PHẨM CÙNG BỘ SƯU TẬP (4 DARK CARDS) -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-8 pb-20">
+  <!-- 5. SẢN PHẨM LIÊN QUAN (SAME-CATEGORY, CLEAN FACTUAL CARDS) -->
+  <section id="related-products-section" class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-20">
     <div class="text-center mb-10">
       <div class="inline-flex items-center justify-center gap-4 text-gold">
         <span class="h-px w-12 bg-gradient-to-r from-transparent to-gold"></span>
@@ -361,131 +321,85 @@
         <span class="h-px w-12 bg-gradient-to-l from-transparent to-gold"></span>
       </div>
       <h2 class="font-serif text-2xl lg:text-3xl text-ivory tracking-wide mt-2 font-bold">
-        SẢN PHẨM CÙNG BỘ SƯU TẬP
+        Sản phẩm liên quan
       </h2>
-      <p class="text-xs text-sand max-w-xl mx-auto mt-2">
-        Những tuyệt tác quà biếu mùa trăng được sáng tạo độc bản với tinh thần mỹ nghệ Việt Nam
-      </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- Card 1: Hộp Tứ Quý Hoàng Kim -->
-      <div class="bg-dark-navy border border-gold/25 rounded-xl overflow-hidden group hover:border-gold hover:shadow-gold-sm transition-all duration-300 flex flex-col justify-between shadow-navy-card">
-        <div>
-          <div class="relative aspect-square overflow-hidden bg-deep-indigo">
-            <img alt="Hộp Quà Tứ Quý Hoàng Kim" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw"/>
-            <div class="absolute top-3 right-3 bg-dark-navy/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-gold border border-gold/30 uppercase tracking-widest font-semibold">
-              Gỗ Sơn Mài
-            </div>
+    <!-- Related Products Grid (3 or 4 columns based on catalog records) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6"
+         th:classappend="${#lists.size(relatedProducts) == 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}">
+      
+      <!-- Related Product Card (Square corners, clean typography, real link) -->
+      <article th:each="rp : ${relatedProducts}"
+               class="product-card group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between overflow-hidden rounded-none shadow-navy-card">
+        
+        <!-- Card Top: Image + Title -->
+        <div class="flex flex-col flex-grow">
+          <!-- Square Product Image -->
+          <div class="relative overflow-hidden bg-deep-indigo aspect-square rounded-none">
+            <img th:src="${rp.imageUrl}"
+                 th:alt="${rp.name}"
+                 referrerpolicy="no-referrer"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-none"
+                 loading="lazy"/>
           </div>
-          <div class="p-5">
-            <p class="text-[10px] text-gold tracking-wider uppercase mb-1 font-semibold">Set 4 Bánh + Trà Cổ Thụ</p>
-            <h3 class="font-serif text-[17px] text-ivory font-bold group-hover:text-gold transition-colors line-clamp-1">
-              Hộp Quà Tứ Quý Hoàng Kim
-            </h3>
-            <p class="text-xs text-sand mt-1 line-clamp-2">
-              Khắc nổi hoa văn chim hạc và liên hoa thanh khiết, mạ nhũ vàng 24K hoàng tộc.
-            </p>
-          </div>
-        </div>
-        <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gold/15">
-          <span class="font-serif text-base text-gold font-bold">1.250.000₫</span>
-          <button class="w-8 h-8 rounded-full border border-gold/40 hover:bg-gold hover:text-dark-navy text-ivory flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-base">add</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- Card 2: Hộp Trăng Vàng Vọng Nguyệt -->
-      <div class="bg-dark-navy border border-gold/25 rounded-xl overflow-hidden group hover:border-gold hover:shadow-gold-sm transition-all duration-300 flex flex-col justify-between shadow-navy-card">
-        <div>
-          <div class="relative aspect-square overflow-hidden bg-deep-indigo">
-            <img alt="Hộp Quà Trăng Vàng Vọng Nguyệt" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw"/>
-            <div class="absolute top-3 right-3 bg-dark-navy/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-gold border border-gold/30 uppercase tracking-widest font-semibold">
-              Bản Giới Hạn
-            </div>
-          </div>
-          <div class="p-5">
-            <p class="text-[10px] text-gold tracking-wider uppercase mb-1 font-semibold">Set 6 Bánh + Trà Cổ Thụ</p>
-            <h3 class="font-serif text-[17px] text-ivory font-bold group-hover:text-gold transition-colors line-clamp-1">
-              Hộp Trăng Vàng Vọng Nguyệt
+          <!-- Product Name -->
+          <div class="p-5 flex flex-col flex-grow justify-start space-y-2">
+            <h3 class="font-sans text-[17px] sm:text-[18px] font-semibold text-ivory group-hover:text-gold transition-colors leading-[1.4] line-clamp-2"
+                th:text="${rp.name}">
+              Tên sản phẩm liên quan
             </h3>
-            <p class="text-xs text-sand mt-1 line-clamp-2">
-              Tuyệt tác sơn mài hội tụ Bào Ngư XO và Sò Điệp Nhật Bản tiến vua.
-            </p>
           </div>
         </div>
-        <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gold/15">
-          <span class="font-serif text-base text-gold font-bold">1.850.000₫</span>
-          <button class="w-8 h-8 rounded-full border border-gold/40 hover:bg-gold hover:text-dark-navy text-ivory flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-base">add</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- Card 3: Bánh Nướng Thập Cẩm Sò Điệp XO -->
-      <div class="bg-dark-navy border border-gold/25 rounded-xl overflow-hidden group hover:border-gold hover:shadow-gold-sm transition-all duration-300 flex flex-col justify-between shadow-navy-card">
-        <div>
-          <div class="relative aspect-square overflow-hidden bg-deep-indigo">
-            <img alt="Bánh Nướng Thập Cẩm Sò Điệp XO" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1XXCJnXLOa7ijL_McL2-qbrGVDXvQmAXlBE9P7CaJF_WblcjevMgZo75QRo4GvAod_xCnmuuvcCm7HwQWjI_ypXFJCV5B85p2chYudAsU7Kvsmhk-fwf3PWhaMrnodceSXAhbw3UwYrRySP7XKO1u2kxs8M816SL53OOsYqRLqs2ewbAgHszTQ33AWjdUkPUDNgBkS0cb_RTarAWOBia7PwSBa5TXDl4riK-5wtlCV9jkPNbqvrgwnJIg"/>
-            <div class="absolute top-3 right-3 bg-dark-navy/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-gold border border-gold/30 uppercase tracking-widest font-semibold">
-              Bán Chạy Nhất
-            </div>
+        <!-- Card Bottom: Price + Full-width CTA -->
+        <div class="px-5 pb-5 pt-0 mt-auto">
+          <!-- Price Block -->
+          <div class="pt-3 border-t border-gold/15 mb-3">
+            <span class="text-[11px] text-sand block uppercase tracking-wider font-sans mb-0.5">Giá niêm yết</span>
+            <span class="text-[20px] sm:text-[22px] font-bold text-gold font-sans leading-none block"
+                  th:text="${rp.formattedPrice}">
+              880.000đ
+            </span>
           </div>
-          <div class="p-5">
-            <p class="text-[10px] text-gold tracking-wider uppercase mb-1 font-semibold">Bánh Lẻ 200g (2 Trứng)</p>
-            <h3 class="font-serif text-[17px] text-ivory font-bold group-hover:text-gold transition-colors line-clamp-1">
-              Thập Cẩm Sò Điệp XO
-            </h3>
-            <p class="text-xs text-sand mt-1 line-clamp-2">
-              Sốt cay nhẹ XO cùng thịt sò điệp xé sợi quyện vỏ bánh nướng thơm lừng thảo mộc.
-            </p>
-          </div>
-        </div>
-        <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gold/15">
-          <span class="font-serif text-base text-gold font-bold">165.000₫</span>
-          <button class="w-8 h-8 rounded-full border border-gold/40 hover:bg-gold hover:text-dark-navy text-ivory flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-base">add</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- Card 4: Bánh Lava Trứng Muối Hoàng Kim -->
-      <div class="bg-dark-navy border border-gold/25 rounded-xl overflow-hidden group hover:border-gold hover:shadow-gold-sm transition-all duration-300 flex flex-col justify-between shadow-navy-card">
-        <div>
-          <div class="relative aspect-square overflow-hidden bg-deep-indigo">
-            <img alt="Bánh Lava Trứng Muối Hoàng Kim" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw"/>
-            <div class="absolute top-3 right-3 bg-dark-navy/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-gold border border-gold/30 uppercase tracking-widest font-semibold">
-              Lava Tan Chảy
-            </div>
-          </div>
-          <div class="p-5">
-            <p class="text-[10px] text-gold tracking-wider uppercase mb-1 font-semibold">Bánh Lẻ 150g</p>
-            <h3 class="font-serif text-[17px] text-ivory font-bold group-hover:text-gold transition-colors line-clamp-1">
-              Lava Kim Sa Trứng Chảy
-            </h3>
-            <p class="text-xs text-sand mt-1 line-clamp-2">
-              Lòng đỏ trứng béo mịn dòng chảy tuôn trào đậm đà lôi cuốn vị giác người sành ăn.
-            </p>
-          </div>
+          <!-- Canonical Product Detail Link -->
+          <a th:href="@{${rp.detailUrl}}"
+             class="related-cta-btn w-full min-h-[44px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[14px] font-semibold px-4 py-2 transition-colors duration-200 uppercase tracking-wider rounded-none cursor-pointer text-center">
+            Xem chi tiết
+          </a>
         </div>
-        <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gold/15">
-          <span class="font-serif text-base text-gold font-bold">135.000₫</span>
-          <button class="w-8 h-8 rounded-full border border-gold/40 hover:bg-gold hover:text-dark-navy text-ivory flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-base">add</span>
-          </button>
-        </div>
-      </div>
+      </article>
+
     </div>
   </section>
 
-  <!-- FOOTER (SHARED MOONCAKE COMPONENT) -->
-    <!-- Global Shared Footer Fragment -->
+  <!-- 5. ACCESSIBLE IMAGE LIGHTBOX MODAL -->
+  <div id="lightboxModal"
+       class="fixed inset-0 z-50 hidden bg-dark-navy/95 flex items-center justify-center p-4 transition-opacity duration-300"
+       role="dialog"
+       aria-modal="true"
+       aria-label="Xem ảnh sản phẩm phóng to">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+      <button id="closeLightboxBtn"
+              type="button"
+              aria-label="Đóng xem ảnh"
+              class="absolute -top-12 right-0 text-ivory hover:text-gold transition-colors p-2 text-2xl font-bold flex items-center gap-1 cursor-pointer">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+      <img id="lightboxImg"
+           src=""
+           alt=""
+           referrerpolicy="no-referrer"
+           class="max-w-full max-h-[80vh] object-contain border border-gold/40 rounded-none shadow-2xl"/>
+    </div>
+  </div>
+
+  <!-- 6. SHARED FOOTER -->
   <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-  <!-- Micro-interactions Script -->
-  
-  <!-- External Extracted Scripts -->
+  <!-- Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/product-detail.js}" src="/js/pages/product-detail.js"></script>
 </body>

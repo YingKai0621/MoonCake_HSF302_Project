@@ -38,4 +38,25 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+
+  // Lightweight Scroll-Triggered Reveal for "Khám phá hương vị"
+  const flavorSection = document.getElementById('kham-pha-huong-vi');
+  if (flavorSection) {
+    if ('IntersectionObserver' in window) {
+      const flavorObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+      });
+      flavorObserver.observe(flavorSection);
+    } else {
+      flavorSection.classList.add('is-revealed');
+    }
+  }
 });

@@ -140,6 +140,99 @@
     </div>
   </section>
 
+  <!-- ================= 2.5 KHÁM PHÁ HỘP QUÀ (INTERACTIVE 3D UNBOXING EXPERIENCE) ================= -->
+  <!-- ================= 2.5 KHÁM PHÁ HỘP QUÀ (INTERACTIVE 3D UNBOXING EXPERIENCE) ================= -->
+  <section id="kham-pha-hop-qua" class="gift-3d-section relative py-16 lg:py-20 border-b border-[#D1A85A]/20 overflow-hidden">
+    <!-- Atmospheric Decorative Background Art Layer (Approved Background) -->
+    <div class="gift-3d-bg-art" aria-hidden="true"></div>
+    <div class="gift-3d-bg-overlay" aria-hidden="true"></div>
+
+    <!-- Subtle Layered Moonlit Product Stage Atmosphere -->
+    <div class="gift-3d-moon-halo" aria-hidden="true"></div>
+    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-[620px] h-[620px] bg-[#D1A85A]/[0.035] rounded-full blur-[140px] pointer-events-none" aria-hidden="true"></div>
+
+    <!-- Minimal Traditional Corner Linework Ornaments -->
+    <svg class="gift-3d-corner-ornament top-left w-12 h-12" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M4 24V4H24" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      <path d="M4 4L14 14" stroke="currentColor" stroke-width="0.75" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
+      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
+    </svg>
+    <svg class="gift-3d-corner-ornament bottom-right w-12 h-12" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M4 24V4H24" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      <path d="M4 4L14 14" stroke="currentColor" stroke-width="0.75" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
+      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
+    </svg>
+
+    <div class="max-w-[1340px] mx-auto px-4 sm:px-8 relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[580px] lg:min-h-[660px]">
+        
+        <!-- LEFT SIDE: Editorial & Shopping Navigation (~38% on desktop) -->
+        <div class="lg:col-span-5 flex flex-col justify-center space-y-6 text-left">
+          <h2 class="font-serif text-3xl sm:text-4xl lg:text-[48px] font-semibold text-[#F8F4EB] leading-[1.2] tracking-tight">
+            Khám phá hộp quà
+          </h2>
+
+          <p class="font-sans text-[#C2BAAB] text-base sm:text-[16.5px] leading-[1.68] max-w-[420px] font-normal">
+            Một góc nhìn gần hơn về hộp quà MoonCake.
+          </p>
+
+          <!-- Interactive Controls & Shopping CTA -->
+          <div class="pt-2 flex flex-wrap items-center gap-4">
+            <!-- Primary Shopping Action -->
+            <a th:href="@{/#hop-qua}" href="#hop-qua" class="gift-3d-cta-primary inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#D1A85A] text-[#0C1626] font-semibold text-[15.5px] hover:bg-[#E5C37E] transition-all shadow-md min-h-[46px]">
+              <span>Xem hộp quà</span>
+              <i class="w-4 h-4 shrink-0" data-lucide="arrow-down"></i>
+            </a>
+
+            <!-- Replay Animation Button -->
+            <button id="box-replay-btn" type="button" aria-label="Mở lại hộp quà" class="gift-3d-replay-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-[#D1A85A]/40 bg-[#162842]/60 text-[#F8F4EB] font-medium text-[15px] hover:border-[#D1A85A] hover:bg-[#162842] hover:text-[#FAF4A9] transition-all min-h-[46px] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="w-4 h-4 shrink-0 text-[#D1A85A]" data-lucide="rotate-ccw"></i>
+              <span>Mở lại</span>
+            </button>
+          </div>
+
+          <!-- Unobtrusive Note -->
+          <p class="text-xs text-[#C2BAAB]/60 italic tracking-wide pt-1">
+            * Hình ảnh 3D minh họa
+          </p>
+        </div>
+
+        <!-- RIGHT SIDE: 3D Interactive WebGL Canvas (~62% on desktop) -->
+        <div class="lg:col-span-7 relative w-full h-[480px] sm:h-[540px] lg:h-[620px] rounded-2xl overflow-hidden">
+          <!-- WebGL Container -->
+          <div id="gift-box-canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing">
+            <!-- Loading Indicator -->
+            <div id="box-3d-loader" class="absolute inset-0 flex items-center justify-center bg-[#0C1626]/80 z-10 transition-opacity duration-500">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-2 border-[#D1A85A]/30 border-t-[#D1A85A] rounded-full animate-spin"></div>
+                <span class="text-xs text-[#C2BAAB] tracking-widest uppercase">Đang chuẩn bị mô hình...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Graceful Fallback (Visible if WebGL fails or reduced motion) -->
+          <div id="box-3d-fallback" class="hidden absolute inset-0 flex items-center justify-center p-6 bg-[#0C1626]">
+            <div class="relative w-full h-full max-w-lg max-h-[420px] rounded-xl overflow-hidden border border-[#D1A85A]/25 shadow-navy-card">
+              <img th:src="@{/images/homepage/lunar_mooncake_gift_set_under_moonlight.png}"
+                   src="/images/homepage/lunar_mooncake_gift_set_under_moonlight.png"
+                   alt="Hộp quà MoonCake cao cấp"
+                   class="w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <!-- Subtle Interaction Hint Overlay (fades out after first interaction) -->
+          <div id="box-interaction-hint" class="pointer-events-none absolute bottom-4 right-5 flex items-center gap-2 text-xs text-[#C2BAAB]/60 bg-[#0C1626]/70 px-3 py-1.5 rounded-full backdrop-blur-sm border border-[#D1A85A]/15 opacity-0 transition-opacity duration-700">
+            <i class="w-3.5 h-3.5 text-[#D1A85A]" data-lucide="move"></i>
+            <span>Di chuột để khám phá góc nhìn</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- 3. HỘP QUÀ TRUNG THU (GIFT BOX COLLECTION) -->
   <section class="py-16 lg:py-20 bg-midnight relative border-b border-gold/20" id="hop-qua">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-8">
@@ -258,7 +351,120 @@
     </div>
   </section>
 
-  <!-- 4. BÁNH TRUNG THU (INDIVIDUAL MOONCAKES) -->
+  <!-- ================= 4. KHÁM PHÁ HƯƠNG VỊ (EDITORIAL FLAVOR & ARTISANAL CRAFT SHOWCASE) ================= -->
+  <section id="kham-pha-huong-vi" class="flavor-section relative py-20 lg:py-24 border-b border-[#D1A85A]/20 bg-[#0A1322] overflow-hidden">
+    <!-- Subtle Layered Atmospheric Gradient and Golden Dust Rings -->
+    <div class="flavor-bg-glow" aria-hidden="true"></div>
+    <div class="flavor-bg-orb" aria-hidden="true"></div>
+
+    <div class="max-w-[1340px] mx-auto px-4 sm:px-8 relative z-10">
+      
+      <!-- Top Editorial Header Block -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 lg:mb-16">
+        <div class="max-w-2xl space-y-4">
+          <span class="flavor-anim flavor-anim-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-[#D1A85A] block">
+            HƯƠNG VỊ ĐẶC SẮC
+          </span>
+          <h2 class="flavor-anim flavor-anim-heading font-serif text-3xl sm:text-4xl lg:text-[46px] font-semibold text-[#F8F4EB] leading-[1.2] tracking-tight">
+            Khám phá hương vị
+          </h2>
+          <p class="flavor-anim flavor-anim-desc font-sans text-[#C2BAAB] text-base sm:text-[17px] leading-[1.75] font-normal pt-1">
+            Những chiếc bánh được chăm chút từ lớp vỏ nướng thơm nhẹ đến phần nhân đậm đà, tạo nên trải nghiệm trọn vẹn cho mùa đoàn viên.
+          </p>
+        </div>
+
+        <!-- Action CTAs -->
+        <div class="flavor-anim flavor-anim-cta flex flex-wrap items-center gap-4 shrink-0">
+          <!-- Primary CTA (Links to individual mooncake section below) -->
+          <a th:href="@{/#banh-le}" href="#banh-le" class="flavor-cta-primary inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#D1A85A] text-[#0C1626] font-semibold text-[15.5px] hover:bg-[#E5C37E] transition-all shadow-md min-h-[46px]">
+            <span>Xem bánh lẻ</span>
+            <i class="w-4 h-4 shrink-0" data-lucide="arrow-down"></i>
+          </a>
+          <!-- Optional Secondary Link (Smoothly scrolls back to gift box unboxing) -->
+          <a th:href="@{/#kham-pha-hop-qua}" href="#kham-pha-hop-qua" class="flavor-cta-secondary inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg border border-[#D1A85A]/40 bg-[#162842]/50 text-[#F8F4EB] font-medium text-[15px] hover:border-[#D1A85A] hover:bg-[#162842] hover:text-[#FAF4A9] transition-all min-h-[46px]">
+            <span>Khám phá hộp quà</span>
+            <i class="w-4 h-4 shrink-0 text-[#D1A85A]" data-lucide="arrow-up"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Visual Showcase Area (Generous, High-Res Editorial Presentation) -->
+      <div class="flavor-anim flavor-anim-visual relative rounded-2xl overflow-hidden border border-[#D1A85A]/25 bg-[#0C1626] shadow-navy-card group">
+        <!-- Visual Container -->
+        <div class="relative w-full overflow-hidden">
+          <img th:src="@{/images/homepage/mooncake_flavor_editorial.jpg}"
+               src="/images/homepage/mooncake_flavor_editorial.jpg"
+               alt="Bánh Trung Thu thủ công với lớp vỏ nướng vàng ươm và nhân trứng muối tan chảy"
+               class="w-full h-[400px] sm:h-[480px] lg:h-[560px] object-cover object-center group-hover:scale-[1.025] transition-transform duration-700 ease-out" />
+          
+          <!-- Subtle Dark Luxury Vignette & Contrast Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0A1322]/95 via-[#0A1322]/35 to-transparent pointer-events-none"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-[#0A1322]/50 via-transparent to-transparent pointer-events-none hidden sm:block"></div>
+        </div>
+
+        <!-- Floating Taste Profile Inset Card -->
+        <div class="absolute bottom-6 left-6 right-6 sm:right-auto sm:max-w-md p-5 sm:p-6 rounded-xl bg-[#0C1626]/85 backdrop-blur-md border border-[#D1A85A]/30 shadow-2xl transition-all duration-300 group-hover:border-[#D1A85A]/60">
+          <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-[#D1A85A] font-semibold mb-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#D1A85A] animate-pulse"></span>
+            <span>Hương vị đặc trưng</span>
+          </div>
+          <h3 class="font-serif text-lg sm:text-xl font-semibold text-[#F8F4EB] leading-snug">
+            Bánh Nướng Lava Kim Sa &amp; Hạt Sen Nhuyễn
+          </h3>
+          <p class="font-sans text-xs sm:text-[14px] text-[#C2BAAB] mt-1.5 leading-relaxed font-normal">
+            Sự kết hợp hài hòa giữa vỏ nướng thơm dịu, nhân hạt sen thanh ngọt và lớp trứng muối béo ngậy tan chảy mịn màng.
+          </p>
+        </div>
+      </div>
+
+      <!-- Supporting Flavor Highlights (3 Concise Editorial Taste Cues) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-10 lg:mt-12">
+        
+        <!-- Highlight 1: Lớp vỏ nướng thủ công -->
+        <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#D1A85A]/20 hover:border-[#D1A85A]/60 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
+          <div class="w-12 h-12 rounded-lg bg-[#0C1626] border border-[#D1A85A]/30 flex items-center justify-center text-[#D1A85A] group-hover:border-[#D1A85A] group-hover:scale-105 transition-all mb-5">
+            <i class="w-6 h-6" data-lucide="sparkles"></i>
+          </div>
+          <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
+            Lớp vỏ nướng thủ công
+          </h4>
+          <p class="font-sans text-sm sm:text-[15px] text-[#C2BAAB] leading-relaxed font-normal">
+            Vỏ bánh mỏng vàng ươm, thơm nhẹ hương hoa cúc và mạch nha truyền thống.
+          </p>
+        </div>
+
+        <!-- Highlight 2: Nhân đậm đà cân bằng vị -->
+        <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#D1A85A]/20 hover:border-[#D1A85A]/60 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
+          <div class="w-12 h-12 rounded-lg bg-[#0C1626] border border-[#D1A85A]/30 flex items-center justify-center text-[#D1A85A] group-hover:border-[#D1A85A] group-hover:scale-105 transition-all mb-5">
+            <i class="w-6 h-6" data-lucide="circle-dot"></i>
+          </div>
+          <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
+            Nhân đậm đà cân bằng vị
+          </h4>
+          <p class="font-sans text-sm sm:text-[15px] text-[#C2BAAB] leading-relaxed font-normal">
+            Hòa quyện trứng muối béo bùi cùng nguyên liệu thượng hạng tuyển chọn kỹ lưỡng.
+          </p>
+        </div>
+
+        <!-- Highlight 3: Thưởng thức cùng trà -->
+        <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#D1A85A]/20 hover:border-[#D1A85A]/60 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
+          <div class="w-12 h-12 rounded-lg bg-[#0C1626] border border-[#D1A85A]/30 flex items-center justify-center text-[#D1A85A] group-hover:border-[#D1A85A] group-hover:scale-105 transition-all mb-5">
+            <i class="w-6 h-6" data-lucide="coffee"></i>
+          </div>
+          <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
+            Thưởng thức cùng trà
+          </h4>
+          <p class="font-sans text-sm sm:text-[15px] text-[#C2BAAB] leading-relaxed font-normal">
+            Kết hợp hoàn mỹ cùng trà Shan Tuyết cổ thụ để khai mở trọn vẹn hậu vị thanh tao.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. BÁNH TRUNG THU (INDIVIDUAL MOONCAKES) -->
   <section class="py-16 lg:py-20 bg-midnight relative border-b border-gold/20" id="banh-le">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-8">
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 lg:mb-12 gap-5">
@@ -404,7 +610,7 @@
     </div>
   </section>
 
-  <!-- 5. BANNER LỜI CẢM ƠN (APPROVED THANK-YOU BANNER) -->
+  <!-- 6. BANNER LỜI CẢM ƠN (APPROVED THANK-YOU BANNER) -->
   <section class="py-12 bg-midnight relative border-b border-gold/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="overflow-hidden rounded-2xl gold-border shadow-navy-card">
@@ -416,7 +622,7 @@
     </div>
   </section>
 
-  <!-- 6. FOOTER (SHARED COMPONENT) -->
+  <!-- 7. FOOTER (SHARED COMPONENT) -->
   <!-- Global Shared Footer Fragment -->
   <footer th:replace="~{fragments/footer :: footer}"></footer>
 
@@ -426,6 +632,8 @@
   </script>
   <!-- External Extracted Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <!-- Three.js Interactive 3D Gift Box Unboxing Scene -->
+  <script type="module" th:src="@{/js/three/gift-box-scene.js}" src="/js/three/gift-box-scene.js"></script>
 </body>
 
 </html>

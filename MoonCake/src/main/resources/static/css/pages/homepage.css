@@ -1,0 +1,510 @@
+/* ==========================================================================
+   MoonCake - Homepage Hero Styles
+   Cinematic Dark Luxury Hero with Real HTML Text Overlay
+   ========================================================================== */
+
+/* Hero Section Container */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 640px;
+  min-height: 580px;
+  max-height: 680px;
+  overflow: hidden;
+  background-color: #0C1626;
+  border-bottom: 1px solid rgba(209, 168, 90, 0.2);
+}
+
+/* Background Image Layer */
+.hero-bg-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.hero-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center; /* Preserves mooncake boxes, moon, and teapot on the right */
+  display: block;
+}
+
+/* Subtle Left-Side Gradient Overlay: Improves text readability without obscuring right-side product set */
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(12, 22, 38, 0.95) 0%,
+    rgba(12, 22, 38, 0.82) 26%,
+    rgba(12, 22, 38, 0.45) 42%,
+    rgba(12, 22, 38, 0.12) 58%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+/* Foreground Content */
+.hero-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1280px;
+  height: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.hero-content {
+  max-width: 520px; /* Occupies left 40-42% of 1280px container */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Editorial Serif Typography */
+.hero-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 70px;
+  line-height: 1.12;
+  font-weight: 600;
+  color: #F8F4EB;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.hero-title-line {
+  display: block;
+}
+
+/* Artistic Calligraphic Ampersand */
+.hero-ampersand {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #E7D97F;
+  margin-right: 0.15em;
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+/* Refined Golden Divider */
+.hero-divider {
+  width: 56px;
+  height: 1px;
+  background-color: #D1A85A;
+  margin-top: 1.5rem;
+  margin-bottom: 1.35rem;
+}
+
+/* Description Typography */
+.hero-description {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.65;
+  color: #C2BAAB;
+  max-width: 470px;
+  margin: 0 0 2rem 0;
+  font-weight: 400;
+}
+
+/* Functional CTA Button Group */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* CTA 1: Warm Gold Filled Button */
+.hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2.25rem;
+  background-color: #D1A85A;
+  color: #0C1626;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(209, 168, 90, 0.22);
+  border: 1px solid #D1A85A;
+}
+
+.hero-btn-primary:hover {
+  background-color: #E5C37E;
+  border-color: #E5C37E;
+  color: #0C1626;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(209, 168, 90, 0.35);
+}
+
+.hero-btn-primary:focus-visible {
+  outline: 2px solid #E7D97F;
+  outline-offset: 2px;
+}
+
+/* CTA 2: Transparent/Dark Button With Cream-Gold Border */
+.hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2.25rem;
+  background-color: rgba(12, 22, 38, 0.65);
+  border: 1px solid rgba(209, 168, 90, 0.7);
+  color: #FAF4A9;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: 4px;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.25s ease;
+}
+
+.hero-btn-secondary:hover {
+  border-color: #D1A85A;
+  background-color: rgba(22, 40, 66, 0.85);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(12, 22, 38, 0.4);
+}
+
+.hero-btn-secondary:focus-visible {
+  outline: 2px solid #E7D97F;
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Homepage Product Sections - Enlarged Cards & Typography Refinement
+   ========================================================================== */
+
+/* Gift Boxes Section Grid (#hop-qua) - 2 Columns Desktop */
+.gift-grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .gift-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.25rem; /* 36px column gap */
+  }
+}
+
+/* Gift Box Card Container */
+.gift-product-card {
+  background-color: #0C1626;
+  border-radius: 1.125rem; /* 18px */
+  padding: 1.75rem; /* 28px */
+  border: 1px solid rgba(209, 168, 90, 0.25);
+  box-shadow: 0 10px 30px -5px rgba(5, 10, 18, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.gift-product-card:hover {
+  border-color: rgba(209, 168, 90, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px -4px rgba(5, 10, 18, 0.85);
+}
+
+/* Gift Box Image Area: 340-400px height */
+.gift-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.875rem; /* 14px */
+  border: 1px solid rgba(209, 168, 90, 0.2);
+  height: 360px;
+  width: 100%;
+  margin-bottom: 1.5rem; /* 24px: Image to info spacing */
+  background-color: #10233D;
+}
+
+@media (max-width: 640px) {
+  .gift-img-wrapper {
+    height: 260px;
+  }
+}
+
+.gift-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gift-product-card:hover .gift-img-wrapper img {
+  transform: scale(1.04);
+}
+
+/* Gift Box Typography */
+.gift-product-title {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 1.4375rem; /* 23px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: #F8F4EB;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.gift-product-card:hover .gift-product-title {
+  color: #E5C37E;
+}
+
+.gift-product-desc {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.96875rem; /* 15.5px */
+  font-weight: 400;
+  line-height: 1.62;
+  color: #C2BAAB;
+  margin-top: 0.75rem; /* 12px: Title to desc spacing */
+  margin-bottom: 0;
+}
+
+/* Gift Box Price & Action Row */
+.gift-bottom-row {
+  margin-top: 1.5rem; /* 24px: Desc to bottom spacing */
+  padding-top: 1.25rem; /* 20px */
+  border-top: 1px solid rgba(209, 168, 90, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.gift-price-label {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(194, 186, 171, 0.8);
+  display: block;
+  margin-bottom: 0.125rem;
+}
+
+.gift-price-value {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 1.6875rem; /* 27px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: #D1A85A;
+}
+
+.gift-cta-btn {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  color: #D1A85A;
+  background-color: #162842;
+  border: 1px solid rgba(209, 168, 90, 0.45);
+  border-radius: 0.5rem; /* 8px */
+  min-height: 44px;
+  height: 44px;
+  padding: 0 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gift-cta-btn:hover {
+  background-color: #D1A85A;
+  color: #0C1626;
+  border-color: #D1A85A;
+  box-shadow: 0 4px 14px rgba(209, 168, 90, 0.25);
+  transform: translateY(-1px);
+}
+
+.gift-cta-btn:focus-visible {
+  outline: 2px solid #E7D97F;
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Individual Mooncakes Grid (#banh-le) - 3 Columns Desktop
+   ========================================================================== */
+
+.single-grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem; /* 28px */
+}
+
+@media (min-width: 640px) {
+  .single-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .single-grid-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.875rem; /* 30px column gap */
+  }
+}
+
+/* Individual Mooncake Card */
+.single-product-card {
+  background-color: #0C1626;
+  border-radius: 1rem; /* 16px */
+  padding: 1.5rem; /* 24px */
+  border: 1px solid rgba(209, 168, 90, 0.25);
+  box-shadow: 0 10px 30px -5px rgba(5, 10, 18, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.single-product-card:hover {
+  border-color: rgba(209, 168, 90, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -4px rgba(5, 10, 18, 0.85);
+}
+
+/* Individual Mooncake Image Area: 280-330px height */
+.single-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem; /* 12px */
+  border: 1px solid rgba(209, 168, 90, 0.2);
+  height: 295px;
+  width: 100%;
+  margin-bottom: 1.375rem; /* 22px: Image to info spacing */
+  background-color: #10233D;
+}
+
+@media (max-width: 640px) {
+  .single-img-wrapper {
+    height: 240px;
+  }
+}
+
+.single-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.single-product-card:hover .single-img-wrapper img {
+  transform: scale(1.05);
+}
+
+/* Individual Mooncake Metadata */
+.single-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.84375rem; /* 13.5px */
+  line-height: 1.4;
+  margin-bottom: 0.75rem; /* 12px: Meta to title spacing */
+}
+
+.single-meta-cat {
+  color: #D1A85A;
+  font-weight: 500;
+}
+
+.single-meta-spec {
+  color: rgba(194, 186, 171, 0.85);
+  font-weight: 400;
+}
+
+/* Individual Mooncake Title */
+.single-product-title {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  line-height: 1.42;
+  color: #F8F4EB;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.single-product-card:hover .single-product-title {
+  color: #E5C37E;
+}
+
+/* Individual Mooncake Description */
+.single-product-desc {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 400;
+  line-height: 1.62;
+  color: #C2BAAB;
+  margin-top: 0.6875rem; /* 11px: Title to desc spacing */
+  margin-bottom: 0;
+}
+
+/* Individual Mooncake Price & Action Row */
+.single-bottom-row {
+  margin-top: 1.5rem; /* 24px: Desc to bottom spacing */
+  padding-top: 1.125rem; /* 18px */
+  border-top: 1px solid rgba(209, 168, 90, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.875rem;
+}
+
+.single-price-value {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 1.5625rem; /* 25px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: #D1A85A;
+}
+
+.single-cta-btn {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  color: #D1A85A;
+  background-color: #162842;
+  border: 1px solid rgba(209, 168, 90, 0.45);
+  border-radius: 0.5rem; /* 8px */
+  min-height: 44px;
+  height: 44px;
+  padding: 0 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.single-cta-btn:hover {
+  background-color: #D1A85A;
+  color: #0C1626;
+  border-color: #D1A85A;
+  box-shadow: 0 4px 14px rgba(209, 168, 90, 0.25);
+  transform: translateY(-1px);
+}
+
+.single-cta-btn:focus-visible {
+  outline: 2px solid #E7D97F;
+  outline-offset: 2px;
+}

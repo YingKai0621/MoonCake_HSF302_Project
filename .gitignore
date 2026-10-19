@@ -4,5 +4,7 @@
 # Keep .gitignore itself tracked
 !.gitignore
 
-# Whitelist only the MoonCake Spring Boot project
+# Whitelist MoonCake project and docs folders
 !/MoonCake/
+!/mooncake/
+!/docs/

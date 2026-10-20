@@ -1,9 +1,10 @@
-package com.se201411.project.mooncake.model;
+package com.se201411.project.mooncake.product.dto;
 
 /**
- * Model class representing a MoonCake product for catalog presentation.
+ * Temporary view model used by the existing hard-coded catalog pages.
+ * It is deliberately separate from the database-backed Product entity.
  */
-public class Product {
+public class CatalogProductView {
     private String id;
     private String name;
     private long price;
@@ -22,10 +23,10 @@ public class Product {
     private String shelfLifeInformation;    // Verified shelf life, null if unverified
     private String storageInstructions;     // Verified storage guidance, null if unverified
 
-    public Product() {
+    public CatalogProductView() {
     }
 
-    public Product(String id, String name, long price, String formattedPrice, String imageUrl,
+    public CatalogProductView(String id, String name, long price, String formattedPrice, String imageUrl,
                    String description, String category, Integer boxCount, Integer weight,
                    String filling, String detailUrl) {
         this.id = id;
@@ -41,7 +42,7 @@ public class Product {
         this.detailUrl = detailUrl;
     }
 
-    public Product(String id, String name, long price, String formattedPrice, String imageUrl,
+    public CatalogProductView(String id, String name, long price, String formattedPrice, String imageUrl,
                    String description, String category, Integer boxCount, Integer weight,
                    String filling, String detailUrl, String productType, String packageSpecification,
                    String detailedDescription, String mainIngredients, String shelfLifeInformation,

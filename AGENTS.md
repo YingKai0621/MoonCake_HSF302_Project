@@ -25,11 +25,11 @@ If the sources conflict, stop and report the conflict. Do not invent a business 
 
 ## Architecture
 
-- Use feature-first packages with shared entities/enums under `domain`.
+- Use feature-first packages with shared database mappings in top-level `entity` and `enums` packages.
 - Dependency direction is Controller -> Service -> Repository.
 - A module may call another module's public service contract, not its repository.
 - Use DTOs/forms/view models at web and module boundaries; do not bind Thymeleaf forms directly to complex entities.
-- Rename the legacy UI `model.Product` to `CatalogProductView` before creating `domain.entity.Product`; never treat the legacy class as an entity.
+- Keep the legacy catalog data as `product.dto.CatalogProductView`; never treat it as the database-backed `entity.Product`.
 - Put transaction boundaries in service implementations, never controllers.
 - Do not let Hibernate create or modify schema; Flyway remains the schema owner.
 - Foundation defines only the shared shopper-identity contract and common authentication errors. Member 4 exclusively owns the concrete Spring Security configuration, authentication implementation, guest-cookie handling, and initial-Admin bootstrap.

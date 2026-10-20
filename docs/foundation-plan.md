@@ -1,9 +1,9 @@
 # MoonCake MVP — Foundation Implementation Plan
 
-**Version:** 1.2
+**Version:** 1.3
 
 **Date:** 20/10/2026
-**Status:** Updated plan; execute only after the team approves the documentation baseline
+**Status:** Implemented on `feature/backend-foundation`; pending team review
 
 ## 1. Foundation objective
 
@@ -45,8 +45,8 @@ Create/confirm these top-level packages:
 
 - `common`
 - `config`
-- `domain.entity`
-- `domain.enums`
+- `entity`
+- `enums`
 - `product`
 - `cart`
 - `order`
@@ -55,7 +55,7 @@ Create/confirm these top-level packages:
 
 Record any requested deviation in `architecture-conventions.md` before creating competing structures.
 
-Before creating `domain.entity.Product`, rename the existing demo `model.Product` to `CatalogProductView` and update only its imports/usages. This is a behavior-preserving collision cleanup, not the database-backed catalog implementation.
+Before creating `entity.Product`, rename the existing demo `model.Product` to `product.dto.CatalogProductView` and update only its imports/usages. This is a behavior-preserving collision cleanup, not the database-backed catalog implementation.
 
 ## 5. Step 2 — Create exact database enums
 

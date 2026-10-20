@@ -1,10 +1,10 @@
 # MoonCake MVP — Architecture and Coding Conventions
 
-**Version:** 1.2
+**Version:** 1.3
 
 **Date:** 20/10/2026
 
-**Status:** Updated baseline; ready for team review before Foundation implementation
+**Status:** Approved baseline; package decision updated for Foundation implementation
 **Applies to:** Java, Spring Boot MVC, Thymeleaf, JPA, SQL Server, and Flyway code in `MoonCake/`
 
 ## 1. Architecture style
@@ -18,9 +18,8 @@ com.se201411.project.mooncake
 │   ├── validation
 │   └── util
 ├── config
-├── domain
-│   ├── entity
-│   └── enums
+├── entity
+├── enums
 ├── product
 │   ├── controller
 │   ├── dto
@@ -71,7 +70,7 @@ Rules:
 - Repositories do not call services and do not implement business workflows.
 - A feature may call another feature through its public service contract only.
 - A feature must not inject another feature's repository.
-- Shared `domain` types never depend on controller, DTO, service, or repository packages.
+- Shared `entity` and `enums` types never depend on controller, DTO, service, or repository packages.
 - Avoid circular service dependencies; choose one orchestration owner instead.
 
 ## 3. Java and naming baseline
@@ -83,12 +82,12 @@ Rules:
 - Do not introduce Lombok or another code-generation dependency without team approval.
 - Prefer constructor injection; do not use field injection.
 - Keep methods focused and extract domain calculations that require independent tests.
-- The current `com.se201411.project.mooncake.model.Product` is a legacy UI model, not a JPA entity. Rename it to `CatalogProductView` before adding `domain.entity.Product`, preserving existing rendered pages during the transition.
+- The former `com.se201411.project.mooncake.model.Product` is a legacy UI model, not a JPA entity. Keep its renamed form as `product.dto.CatalogProductView` while adding `entity.Product`, preserving existing rendered pages during the transition.
 
 ## 4. Entity and enum conventions
 
-- The 19 approved table mappings live under `domain.entity` and are created in the Foundation PR.
-- Database enums live under `domain.enums` and use exact SQL values with `EnumType.STRING`.
+- The 19 approved table mappings live under `entity` and are created in the Foundation PR.
+- Database enums live under `enums` and use exact SQL values with `EnumType.STRING`.
 - Use these exact enum class names: `ProductType`, `AccountRole`, `AccountStatus`, `CartStatus`, `ConfigurationType`, `ConfigurationStatus`, `OrderType`, `OrderStatus`, `DiscountGroup`, `OrderItemKind`, `InventorySource`, `ComponentRole`, `PaymentMethod`, `PaymentStatus`, and `StockMovementType`.
 - IDs use `Long`; SQL `IDENTITY` keys use identity generation.
 - VND monetary values use `BigDecimal` with zero fractional digits. Never use `float` or `double` for money.

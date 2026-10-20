@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.controller;
 
-import com.se201411.project.mooncake.model.Product;
+import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 @Controller
 public class PageController {
 
-    private static final List<Product> GIFT_BOXES = Arrays.asList(
-        new Product(
+    private static final List<CatalogProductView> GIFT_BOXES = Arrays.asList(
+        new CatalogProductView(
             "gift-1",
             "Hộp Quà Dạ Nguyệt Đoàn Viên",
             880000L,
@@ -39,7 +39,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "gift-2",
             "Hộp Quà Tứ Quý Hoàng Kim",
             1250000L,
@@ -58,7 +58,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "gift-3",
             "Hộp Quà Trăng Vàng Vọng Nguyệt",
             1850000L,
@@ -77,7 +77,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "gift-4",
             "Hộp Quà Phú Quý Cát Tường",
             2400000L,
@@ -98,8 +98,8 @@ public class PageController {
         )
     );
 
-    private static final List<Product> MOONCAKES = Arrays.asList(
-        new Product(
+    private static final List<CatalogProductView> MOONCAKES = Arrays.asList(
+        new CatalogProductView(
             "cake-1",
             "Bánh Thập Cẩm Sò Điệp XO 200g",
             165000L,
@@ -118,7 +118,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "cake-2",
             "Bánh Lava Kim Sa Trứng Muối 150g",
             135000L,
@@ -137,7 +137,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "cake-3",
             "Bánh Hạt Sen Táo Đỏ 2 Trứng 200g",
             140000L,
@@ -156,7 +156,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "cake-4",
             "Bánh Than Tre Trà Xanh Macca 200g",
             145000L,
@@ -175,7 +175,7 @@ public class PageController {
             null,
             null
         ),
-        new Product(
+        new CatalogProductView(
             "cake-5",
             "Bánh Đậu Xanh Hoàng Kim 150g",
             115000L,
@@ -196,12 +196,12 @@ public class PageController {
         )
     );
 
-    private Product findProductById(String id) {
+    private CatalogProductView findProductById(String id) {
         if (id == null) return null;
-        for (Product p : GIFT_BOXES) {
+        for (CatalogProductView p : GIFT_BOXES) {
             if (p.getId().equalsIgnoreCase(id)) return p;
         }
-        for (Product p : MOONCAKES) {
+        for (CatalogProductView p : MOONCAKES) {
             if (p.getId().equalsIgnoreCase(id)) return p;
         }
         return null;
@@ -255,7 +255,7 @@ public class PageController {
      */
     @GetMapping("/products/{id}")
     public String productDetail(@PathVariable("id") String id, Model model) {
-        Product product = findProductById(id);
+        CatalogProductView product = findProductById(id);
         if (product == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm");
         }
@@ -264,8 +264,8 @@ public class PageController {
         String breadcrumbCategoryUrl = isGiftBox ? "/products/gift-boxes" : "/products/mooncakes";
         String breadcrumbCategoryName = isGiftBox ? "Hộp quà Trung Thu" : "Bánh Trung Thu";
 
-        List<Product> sameCategoryList = isGiftBox ? GIFT_BOXES : MOONCAKES;
-        List<Product> relatedProducts = sameCategoryList.stream()
+        List<CatalogProductView> sameCategoryList = isGiftBox ? GIFT_BOXES : MOONCAKES;
+        List<CatalogProductView> relatedProducts = sameCategoryList.stream()
             .filter(p -> !p.getId().equalsIgnoreCase(product.getId()))
             .limit(4)
             .collect(Collectors.toList());

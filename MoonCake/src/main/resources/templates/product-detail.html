@@ -72,7 +72,7 @@
         <div class="image-frame relative w-full aspect-square rounded-none overflow-hidden border border-gold/30 bg-midnight/60 group shadow-navy-card">
           <!-- Main Product Photograph -->
           <img th:src="${product.imageUrl}"
-               th:alt="${product.name}"
+               th:alt="${product.imageAlt}"
                id="mainImageDisplay"
                referrerpolicy="no-referrer"
                class="w-full h-full object-cover rounded-none transition-transform duration-700 ease-out group-hover:scale-105 cursor-pointer"/>
@@ -99,7 +99,8 @@
 
         <!-- Selling Price Block (Be Vietnam Pro, 30-34px, 700 weight, gold accent #D1A85A) -->
         <div class="border-y border-gold/20 py-4">
-          <span class="text-xs uppercase tracking-wider text-sand block mb-1">Giá niêm yết</span>
+          <span class="text-xs uppercase tracking-wider text-sand block mb-1"
+                th:text="${product.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
           <span class="product-detail-price text-3xl sm:text-[32px] font-bold text-gold tracking-tight leading-none block"
                 th:text="${product.formattedPrice}">
             880.000₫
@@ -112,6 +113,31 @@
           Hộp quà Trung Thu gồm 4 bánh cao cấp kèm Trà Sen Tây Hồ trong hộp sơn mài.
         </p>
 
+        <div class="space-y-2" th:if="${product.multipleVariants}">
+          <label for="variantSelect" class="text-xs uppercase tracking-wider text-gold font-semibold">Chọn phiên bản</label>
+          <select id="variantSelect"
+                  class="w-full bg-deep-indigo text-ivory border border-gold/35 py-3 px-4 rounded-none focus:ring-0 focus:border-gold cursor-pointer">
+            <option th:each="variant : ${product.variants}"
+                    th:value="${variant.id}"
+                    th:text="${variant.name + ' (' + variant.sku + ') — ' + variant.formattedPrice}"
+                    th:data-price="${variant.unitPrice}"
+                    th:data-formatted-price="${variant.formattedPrice}"
+                    th:data-image-url="${variant.imageUrl}"
+                    th:data-image-alt="${variant.imageAlt}"
+                    th:data-sku="${variant.sku}"
+                    th:data-weight="${variant.weightGrams}"
+                    th:data-filling="${variant.fillingLabel}"
+                    th:data-box-count="${variant.presetRecipe == null ? null : variant.presetRecipe.capacityCakes}">
+              Phiên bản sản phẩm
+            </option>
+          </select>
+        </div>
+
+        <div class="flex items-baseline justify-between gap-4 text-[15px]">
+          <span class="text-sand/80">Mã SKU:</span>
+          <span class="selected-sku text-ivory font-medium" th:text="${product.primaryVariant.sku}">SKU</span>
+        </div>
+
         <!-- QUICK PRODUCT SPECIFICATIONS (PART A) -->
         <div class="quick-specs-block border-y border-gold/20 py-3.5 my-1 space-y-2.5 text-[15px] font-sans">
           <!-- Mooncake Quick Specifications -->
@@ -120,13 +146,13 @@
               <span class="quick-spec-label text-sand/80 shrink-0">Loại bánh:</span>
               <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.productType}">Bánh nướng</span>
             </div>
-            <div class="flex items-baseline justify-between gap-4" th:if="${product.fillingDisplayName != null and !#strings.isEmpty(product.fillingDisplayName)}">
+            <div class="variant-filling-row flex items-baseline justify-between gap-4" th:if="${product.fillingAvailable}">
               <span class="quick-spec-label text-sand/80 shrink-0">Nhân bánh:</span>
-              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
+              <span class="selected-filling quick-spec-value text-ivory font-medium text-right" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
             </div>
-            <div class="flex items-baseline justify-between gap-4" th:if="${product.weight != null}">
+            <div class="variant-weight-row flex items-baseline justify-between gap-4" th:if="${product.weightAvailable}">
               <span class="quick-spec-label text-sand/80 shrink-0">Trọng lượng:</span>
-              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.weight + 'g'}">200g</span>
+              <span class="selected-weight quick-spec-value text-ivory font-medium text-right" th:text="${product.weight + 'g'}">200g</span>
             </div>
             <div class="flex items-baseline justify-between gap-4" th:if="${product.mainIngredients != null and !#strings.isEmpty(product.mainIngredients)}">
               <span class="quick-spec-label text-sand/80 shrink-0">Thành phần chính:</span>
@@ -144,13 +170,13 @@
               <span class="quick-spec-label text-sand/80 shrink-0">Loại sản phẩm:</span>
               <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.productType}">Hộp quà Trung Thu</span>
             </div>
-            <div class="flex items-baseline justify-between gap-4" th:if="${product.boxCount != null}">
+            <div class="variant-box-count-row flex items-baseline justify-between gap-4" th:if="${product.boxCountAvailable}">
               <span class="quick-spec-label text-sand/80 shrink-0">Số lượng bánh:</span>
-              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+              <span class="selected-box-count quick-spec-value text-ivory font-medium text-right" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
             </div>
-            <div class="flex items-baseline justify-between gap-4" th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
+            <div class="variant-package-row flex items-baseline justify-between gap-4" th:if="${product.boxCountAvailable}">
               <span class="quick-spec-label text-sand/80 shrink-0">Quy cách:</span>
-              <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.packageSpecification}">Hộp 4 bánh cao cấp kèm Trà Sen</span>
+              <span class="selected-package quick-spec-value text-ivory font-medium text-right" th:text="${product.packageSpecification}">Hộp 4 bánh</span>
             </div>
             <div class="flex items-baseline justify-between gap-4" th:if="${product.weight != null}">
               <span class="quick-spec-label text-sand/80 shrink-0">Trọng lượng:</span>
@@ -163,35 +189,16 @@
           </th:block>
         </div>
 
-        <!-- Purchase Action: Quantity Selector + Single Primary Add to Cart Button -->
+        <!-- Cart mutation belongs to the Cart feature and is disabled until that backend is available. -->
         <div class="pt-2">
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            <!-- Accessible Square-Corner Quantity Selector -->
-            <div class="qty-counter w-36 shrink-0 rounded-none" role="group" aria-label="Bộ chọn số lượng">
-              <button type="button"
-                      id="qtyDecreaseBtn"
-                      aria-label="Giảm số lượng"
-                      class="qty-btn"
-                      onclick="adjustQty(-1)">-</button>
-              <span id="qtyDisplay" class="qty-value">1</span>
-              <button type="button"
-                      id="qtyIncreaseBtn"
-                      aria-label="Tăng số lượng"
-                      class="qty-btn"
-                      onclick="adjustQty(1)">+</button>
-            </div>
-
-            <!-- Single Primary Action: Add to Cart -->
-            <button id="addToCartBtn"
-                    type="button"
-                    th:data-product-id="${product.id}"
-                    th:data-product-name="${product.name}"
-                    th:data-product-price="${product.price}"
-                    class="btn-primary-cta flex-1 rounded-none">
-              <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-              <span>Thêm vào giỏ hàng</span>
-            </button>
-          </div>
+          <button type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Chức năng này sẽ được kết nối trong feature Cart"
+                  class="btn-primary-cta w-full rounded-none opacity-60 cursor-not-allowed">
+            <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+            <span>Thêm vào giỏ hàng — đang phát triển</span>
+          </button>
         </div>
 
       </div>
@@ -238,15 +245,15 @@
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Loại bánh:</span>
               <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.productType}">Bánh nướng</span>
             </div>
-            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
-                 th:if="${product.fillingDisplayName != null and !#strings.isEmpty(product.fillingDisplayName)}">
+            <div class="variant-filling-row spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.fillingAvailable}">
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Nhân bánh:</span>
-              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
+              <span class="selected-filling spec-value text-ivory font-medium text-[15px]" th:text="${product.fillingDisplayName}">Thập cẩm sò điệp XO</span>
             </div>
-            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
-                 th:if="${product.weight != null}">
+            <div class="variant-weight-row spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.weightAvailable}">
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Trọng lượng:</span>
-              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.weight + 'g'}">200g</span>
+              <span class="selected-weight spec-value text-ivory font-medium text-[15px]" th:text="${product.weight + 'g'}">200g</span>
             </div>
             <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
                  th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
@@ -272,15 +279,15 @@
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Loại sản phẩm:</span>
               <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.productType}">Hộp quà Trung Thu</span>
             </div>
-            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
-                 th:if="${product.boxCount != null}">
+            <div class="variant-box-count-row spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.boxCountAvailable}">
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Số lượng bánh:</span>
-              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+              <span class="selected-box-count spec-value text-ivory font-medium text-[15px]" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
             </div>
-            <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
-                 th:if="${product.packageSpecification != null and !#strings.isEmpty(product.packageSpecification)}">
+            <div class="variant-package-row spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.boxCountAvailable}">
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Quy cách:</span>
-              <span class="spec-value text-ivory font-medium text-[15px]" th:text="${product.packageSpecification}">Hộp 4 bánh cao cấp kèm Trà Sen Tây Hồ trong hộp sơn mài</span>
+              <span class="selected-package spec-value text-ivory font-medium text-[15px]" th:text="${product.packageSpecification}">Hộp 4 bánh</span>
             </div>
             <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
                  th:if="${product.weight != null}">
@@ -312,8 +319,37 @@
     </div>
   </section>
 
+  <section th:if="${product.category == 'gift-boxes'}" class="max-w-7xl mx-auto px-4 sm:px-8 pb-8">
+    <div class="bg-dark-navy border border-gold/25 p-6 sm:p-8 shadow-navy-card">
+      <h2 class="font-serif text-2xl text-ivory font-semibold mb-6">Thành phần hộp quà</h2>
+      <div class="space-y-6">
+        <article th:each="variant : ${product.variants}"
+                 th:if="${variant.presetRecipe != null}"
+                 th:data-preset-variant-id="${variant.id}"
+                 th:classappend="${variant.id != product.primaryVariant.id} ? ' hidden' : ''"
+                 class="preset-recipe-card border border-gold/15 bg-midnight/30 p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <h3 class="text-gold font-semibold" th:text="${variant.name}">Phiên bản hộp quà</h3>
+            <span class="text-xs text-sand" th:text="${variant.presetRecipe.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</span>
+          </div>
+          <p class="text-sm text-sand mb-3"
+             th:text="${'Vỏ hộp: ' + variant.presetRecipe.boxVariantName}">Vỏ hộp</p>
+          <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-ivory">
+            <li th:each="component : ${variant.presetRecipe.components}"
+                class="flex justify-between gap-4 border-b border-gold/10 py-2">
+              <span th:text="${component.name}">Tên bánh</span>
+              <span class="text-gold shrink-0" th:text="${'× ' + component.quantityPerBox}">× 1</span>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- 5. SẢN PHẨM LIÊN QUAN (SAME-CATEGORY, CLEAN FACTUAL CARDS) -->
-  <section id="related-products-section" class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-20">
+  <section id="related-products-section"
+           th:if="${!#lists.isEmpty(relatedProducts)}"
+           class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-20">
     <div class="text-center mb-10">
       <div class="inline-flex items-center justify-center gap-4 text-gold">
         <span class="h-px w-12 bg-gradient-to-r from-transparent to-gold"></span>
@@ -338,7 +374,7 @@
           <!-- Square Product Image -->
           <div class="relative overflow-hidden bg-deep-indigo aspect-square rounded-none">
             <img th:src="${rp.imageUrl}"
-                 th:alt="${rp.name}"
+                 th:alt="${rp.imageAlt}"
                  referrerpolicy="no-referrer"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-none"
                  loading="lazy"/>
@@ -365,7 +401,7 @@
           </div>
 
           <!-- Canonical Product Detail Link -->
-          <a th:href="@{${rp.detailUrl}}"
+          <a th:href="@{/products/{slug}(slug=${rp.slug})}"
              class="related-cta-btn w-full min-h-[44px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[14px] font-semibold px-4 py-2 transition-colors duration-200 uppercase tracking-wider rounded-none cursor-pointer text-center">
             Xem chi tiết
           </a>

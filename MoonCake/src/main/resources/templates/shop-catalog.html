@@ -118,13 +118,10 @@
               Số lượng bánh
             </h3>
             <div class="space-y-2 text-xs text-sand">
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="4" name="box_count" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Hộp 4 bánh</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="6" name="box_count" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Hộp 6 bánh</span>
+              <label th:each="count : ${boxCountOptions}"
+                     class="flex items-center space-x-3 cursor-pointer group">
+                <input th:value="${count}" name="box_count" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+                <span class="group-hover:text-gold transition-colors" th:text="${'Hộp ' + count + ' bánh'}">Hộp 4 bánh</span>
               </label>
             </div>
           </div>
@@ -138,25 +135,10 @@
               Nhân bánh
             </h3>
             <div class="space-y-2 text-xs text-sand">
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="thap-cam" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Thập cẩm</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="lava" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Lava trứng muối</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="hat-sen" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Hạt sen</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="tra-xanh" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Trà xanh</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="dau-xanh" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">Đậu xanh</span>
+              <label th:each="filling : ${fillingOptions}"
+                     class="flex items-center space-x-3 cursor-pointer group">
+                <input th:value="${filling}" name="filling_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+                <span class="group-hover:text-gold transition-colors" th:text="${filling}">Nhân bánh</span>
               </label>
             </div>
           </div>
@@ -192,13 +174,10 @@
               Trọng lượng
             </h3>
             <div class="space-y-2 text-xs text-sand">
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="150" name="weight_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">150g</span>
-              </label>
-              <label class="flex items-center space-x-3 cursor-pointer group">
-                <input value="200" name="weight_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                <span class="group-hover:text-gold transition-colors">200g</span>
+              <label th:each="weight : ${weightOptions}"
+                     class="flex items-center space-x-3 cursor-pointer group">
+                <input th:value="${weight}" name="weight_filter" class="w-4 h-4 rounded-none bg-midnight border-gold/45 text-gold focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+                <span class="group-hover:text-gold transition-colors" th:text="${weight + 'g'}">150g</span>
               </label>
             </div>
           </div>
@@ -209,16 +188,25 @@
           <button id="apply-filters-btn" type="button" class="w-full bg-gold hover:bg-gold-hover text-dark-navy font-semibold text-xs tracking-wider uppercase py-3 transition-colors duration-200 rounded-none shadow-gold-sm min-h-[44px] cursor-pointer">
             Áp Dụng Bộ Lọc
           </button>
-          <a id="clear-all-filters-link" class="block text-center text-xs text-sand hover:text-gold transition-colors underline decoration-gold/40 underline-offset-4 cursor-pointer py-1" href="javascript:void(0)">
+          <button id="clear-all-filters-link" type="button" class="block w-full text-center text-xs text-sand hover:text-gold transition-colors underline decoration-gold/40 underline-offset-4 cursor-pointer py-1">
             Xóa Tất Cả Bộ Lọc
-          </a>
+          </button>
         </div>
       </aside>
 
       <!-- RIGHT CONTENT: TOOLBAR & PRODUCT GRID (9 cols on desktop) -->
       <section class="lg:col-span-9 space-y-6">
         <!-- Toolbar Bar -->
-        <div class="bg-dark-navy border border-gold/25 px-6 py-4 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-navy-card">
+        <div class="bg-dark-navy border border-gold/25 px-6 py-4 rounded-none flex flex-col gap-4 shadow-navy-card">
+          <div>
+            <label for="catalog-search" class="sr-only">Tìm kiếm sản phẩm</label>
+            <input id="catalog-search"
+                   type="search"
+                   autocomplete="off"
+                   placeholder="Tìm theo tên, nhân bánh hoặc mã SKU"
+                   class="w-full bg-deep-indigo text-ivory border border-gold/35 py-2.5 px-4 rounded-none text-sm placeholder:text-sand/70 focus:ring-0 focus:border-gold"/>
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <p class="text-sm text-sand tracking-wide">
             Hiển thị <span id="visible-count" class="text-gold font-semibold" th:text="${totalCount}">4</span> sản phẩm
           </p>
@@ -233,6 +221,7 @@
               </select>
             </div>
           </div>
+          </div>
         </div>
 
         <!-- Product Grid (Responsive: 1 col mobile, 2 col tablet, 3 col desktop) -->
@@ -242,9 +231,10 @@
                    th:data-id="${p.id}"
                    th:data-name="${p.name}"
                    th:data-price="${p.price}"
-                   th:data-box-count="${p.boxCount}"
-                   th:data-weight="${p.weight}"
-                   th:data-filling="${p.filling}"
+                   th:data-box-count="${p.boxCountFilterValues}"
+                   th:data-weight="${p.weightFilterValues}"
+                   th:data-filling="${p.fillingFilterValues}"
+                   th:data-search-text="${p.searchText}"
                    class="product-card group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-none shadow-navy-card">
             
             <!-- Top portion: Image + Title + Description (Grows naturally) -->
@@ -252,7 +242,7 @@
               <!-- 1. Product Image Container (Square corners, flush with card edges) -->
               <div class="relative overflow-hidden bg-deep-indigo aspect-[4/3] sm:aspect-square rounded-none">
                 <img th:src="${p.imageUrl}"
-                     th:alt="${p.name}"
+                     th:alt="${p.imageAlt}"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-none"
                      loading="lazy"/>
               </div>
@@ -277,7 +267,8 @@
             <div class="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 mt-auto">
               <!-- 4. Price Block (Label above, bold gold price below) -->
               <div class="pt-4 border-t border-gold/15 mb-4">
-                <span class="text-[11px] text-sand block uppercase tracking-wider font-sans mb-1">Giá niêm yết</span>
+                <span class="text-[11px] text-sand block uppercase tracking-wider font-sans mb-1"
+                      th:text="${p.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
                 <span class="text-[23px] sm:text-[25px] font-bold text-gold font-sans leading-none block"
                       th:text="${p.formattedPrice}">
                   880.000đ
@@ -285,7 +276,7 @@
               </div>
 
               <!-- 5. Primary Full-Width CTA (100% width, min 46px height, rounded-none, no overflow) -->
-              <a th:href="@{${p.detailUrl}}"
+              <a th:href="@{/products/{slug}(slug=${p.slug})}"
                  class="w-full min-h-[46px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[15px] font-semibold px-4 py-2.5 transition-colors duration-200 uppercase tracking-wider rounded-none focus:outline-none focus:ring-2 focus:ring-gold/50 cursor-pointer text-center box-border">
                 Xem chi tiết
               </a>

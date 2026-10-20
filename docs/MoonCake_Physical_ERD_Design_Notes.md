@@ -1,6 +1,8 @@
 # MoonCake MVP — Physical ERD cho Microsoft SQL Server
 
-**Cơ sở:** Business Rules v1.1 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Schema đã được triển khai bằng Flyway V1/V2 và kiểm thử trên Microsoft SQL Server 2019 Developer.
+**Cơ sở:** Business Rules v1.1.1 (hiệu chỉnh trạng thái, không đổi nghiệp vụ) và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Schema đã được triển khai bằng Flyway V1/V2 và kiểm thử trên Microsoft SQL Server 2019 Developer.
+
+> **Lưu ý về comment bất biến trong V1:** Phần đầu `V1__initial_schema.sql` còn câu mô tả được sao chép từ bản DESIGN DDL (“NOT executed”/chạy qua SSMS). Câu này không phản ánh cách file đang được sử dụng: V1 là migration thực thi của Flyway và đã được áp dụng. Không sửa riêng comment trong V1 vì sẽ làm thay đổi checksum migration đã chia sẻ; dùng ghi chú này làm diễn giải chính thức.
 
 ## 1. Phạm vi đã khóa
 

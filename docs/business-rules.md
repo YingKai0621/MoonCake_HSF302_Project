@@ -1,9 +1,11 @@
 # MoonCake MVP — Business Rules
 
-**Dự án:** HSF302 — MoonCake  
-**Phiên bản tài liệu:** 1.1 — 20/10/2026  
-**Trạng thái:** Phạm vi và các quyết định nghiệp vụ MVP đã được làm rõ; tài liệu chuẩn để đối chiếu Physical DDL trước Flyway V1 và triển khai Spring Boot  
-**Database dự kiến:** Microsoft SQL Server 2019+  
+**Dự án:** HSF302 — MoonCake
+**Phiên bản tài liệu:** 1.1.1 — 20/10/2026
+
+**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt; Physical DDL đã được chuyển thành Flyway V1/V2, kiểm thử trên SQL Server 2019 và sẵn sàng làm nguồn triển khai Spring Boot
+
+**Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
@@ -18,10 +20,15 @@
 - Làm rõ checkout một lần bằng chuyển trạng thái `ACTIVE → CHECKED_OUT` nguyên tử, vòng đời giỏ, SKU bị ngừng bán, tier giảm giá chồng nhau và phí ship khi đơn không có hộp quà.
 - Làm rõ khóa idempotency cho SALE, CANCEL_RETURN, PACK và trách nhiệm tạo `INVENTORY_BALANCE` cho SKU có quản lý tồn.
 
+### Hiệu chỉnh trạng thái trong phiên bản 1.1.1
+
+- Đồng bộ câu chữ hậu Flyway: V1/V2 đã được tạo, chia sẻ và kiểm thử; các checklist cũ “trước khi tạo V1” được chuyển thành hồ sơ xác minh và quy tắc cho migration tiếp theo.
+- Không thay đổi bất kỳ quyết định nghiệp vụ, bảng, cột, ràng buộc hoặc dữ liệu seed nào của phiên bản 1.1.
+
 ### Thứ tự ưu tiên khi có khác biệt
 
 1. Business Rules đã được người phụ trách xác nhận là nguồn quyết định **hành vi nghiệp vụ**.
-2. Physical ERD/DDL là nguồn quyết định **cấu trúc dữ liệu đã duyệt**, nhưng phải được cập nhật trước khi tạo Flyway V1 nếu chưa biểu diễn được Business Rules.
+2. Flyway migration đang áp dụng là nguồn quyết định **cấu trúc dữ liệu thực thi**; Physical ERD/DDL là tài liệu thiết kế đối chiếu và phải được giữ đồng bộ bằng tài liệu/migration mới đã duyệt.
 3. Sau khi Flyway migration đã được áp dụng ở môi trường dùng chung, không sửa file migration cũ; mọi thay đổi đi bằng migration mới.
 4. Source code phải tuân theo Business Rules và schema đang được Flyway quản lý; không dùng code để âm thầm thay đổi nghiệp vụ.
 
@@ -179,15 +186,15 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 - Doanh nghiệp có thể cung cấp thông tin trong `BUSINESS` và `SALES_ORDER.business_id`; chiết khấu số lượng **không phụ thuộc** vào có `BUSINESS` hay không.
 - Chưa có các module kế toán, nhà cung cấp, kho đa địa điểm, lô sản xuất, hóa đơn VAT, vận chuyển qua API, đổi trả sau giao hay sản xuất theo công đoạn.
 
-## 11. Ranh giới triển khai Flyway / Backend
+## 11. Ranh giới Flyway / Backend
 
-### Flyway + SQL Server (triển khai ở migration)
+### Flyway + SQL Server
 
-- Tạo 19 bảng theo Physical SQL đã được rà soát, PK/FK, `NOT NULL`, `CHECK`, `UNIQUE`, index và kiểu dữ liệu phù hợp SQL Server.
+- V1 đã tạo 19 bảng theo Physical SQL đã được rà soát, gồm PK/FK, `NOT NULL`, `CHECK`, `UNIQUE`, index và kiểu dữ liệu phù hợp SQL Server.
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
-- Trước khi khóa V1, Physical DDL phải bổ sung/kiểm tra filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
+- V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- Chưa chạy thử SQL tham chiếu trên SQL Server trong quá trình biên soạn tài liệu này. Codex phải kiểm tra cú pháp/compatibility SQL Server trước khi tạo V1.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019 và xác nhận schema ở version 2. Không sửa checksum V1/V2; mọi thay đổi schema tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -237,11 +244,11 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 | BR-28 | Hai request đồng thời checkout cùng một giỏ `ACTIVE` | Chỉ một request claim được giỏ và tạo đúng một đơn; request còn lại không tạo order/payment/movement và không trừ tồn |
 | BR-29 | Admin sửa component của PRESET đã `READY`/đã có tồn | Từ chối; yêu cầu tạo SKU GIFT_SET và PRESET configuration mới, recipe cũ không đổi |
 
-## 13. Checklist cần Codex báo cáo trước khi tạo Flyway V1
+## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 
-1. Đọc `Physical SQL`, `Physical ERD`, `Logical V5` và tài liệu này; xác nhận đủ **19 bảng**, tên/kiểu cột khớp nhau. Không tự đổi nghiệp vụ theo suy luận.
+1. V1/V2 đã được đối chiếu với `Physical SQL`, `Physical ERD`, `Logical V5` và tài liệu này; xác nhận đủ **19 bảng**. Khi tạo migration tiếp theo vẫn phải đọc lại các nguồn này và không tự đổi nghiệp vụ theo suy luận.
 2. Kiểm tra source hiện có: `pom.xml`, SQL Server driver, Flyway SQL Server support, cấu hình Spring Boot, Entity/JPA hiện hữu; **không tạo bảng trùng** hay xóa code tùy tiện.
-3. Kiểm tra DDL SQL Server trên **database trống** (đặc biệt FK kép giữa `CART_ITEM`–`BOX_CONFIGURATION`, hai unique index chống dòng giỏ trùng, filtered unique indexes khác, `CHECK`, kiểu Unicode và FK ordering). Phân biệt bản SQL tham chiếu với file migration chạy thật.
+3. V1/V2 đã được kiểm tra trên **database trống** với FK kép giữa `CART_ITEM`–`BOX_CONFIGURATION`, hai unique index chống dòng giỏ trùng, filtered unique indexes khác, `CHECK`, kiểu Unicode và FK ordering. Luôn phân biệt bản SQL tham chiếu với file migration chạy thật.
 4. Kiểm tra trường hợp **`GIFT_SET` / `GIFT_BOX`** để không nhầm loại sản phẩm với nhóm chiết khấu; phân biệt PRESET có tồn độc lập và CUSTOM trừ thành phần.
 5. Kiểm tra tính nhất quán của `STOCK_MOVEMENT.operation_key`/`operation_group_key` khi có nhiều dòng biến động cho một đơn hoặc một lần PACK.
 6. Rà soát cách lưu snapshot `ORDER_ITEM_COMPONENT` và quan hệ tồn tại của `BOX_CONFIGURATION` khi giỏ đã checkout, tránh mất lịch sử.

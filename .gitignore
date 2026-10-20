@@ -3,6 +3,8 @@
 
 # Keep .gitignore itself tracked
 !.gitignore
+!/AGENTS.md
+!/.cursor/
 
 # Whitelist MoonCake project and docs folders
 !/MoonCake/

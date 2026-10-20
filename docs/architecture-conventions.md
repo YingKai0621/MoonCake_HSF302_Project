@@ -1,0 +1,248 @@
+# MoonCake MVP — Architecture and Coding Conventions
+
+**Version:** 1.2
+
+**Date:** 20/10/2026
+
+**Status:** Updated baseline; ready for team review before Foundation implementation
+**Applies to:** Java, Spring Boot MVC, Thymeleaf, JPA, SQL Server, and Flyway code in `MoonCake/`
+
+## 1. Architecture style
+
+Use feature-first packages with shared database domain classes. This keeps each member's feature work together while ensuring the 19-table mapping has one definition.
+
+```text
+com.se201411.project.mooncake
+├── common
+│   ├── exception
+│   ├── validation
+│   └── util
+├── config
+├── domain
+│   ├── entity
+│   └── enums
+├── product
+│   ├── controller
+│   ├── dto
+│   ├── repository
+│   └── service
+│       └── impl
+├── cart
+│   ├── controller
+│   ├── dto
+│   ├── repository
+│   └── service
+│       └── impl
+├── order
+│   ├── controller
+│   ├── dto
+│   ├── repository
+│   └── service
+│       └── impl
+├── inventory
+│   ├── controller
+│   ├── dto
+│   ├── repository
+│   └── service
+│       └── impl
+└── security
+    ├── config
+    ├── controller
+    ├── dto
+    ├── repository
+    └── service
+        └── impl
+```
+
+Create only packages that contain real code. Do not add empty DTO subpackages just to mirror the diagram.
+
+## 2. Dependency direction
+
+The normal direction is:
+
+```text
+Thymeleaf/Form -> Controller -> Service contract -> Service implementation -> Repository -> Entity/Database
+```
+
+Rules:
+
+- Controllers never contain pricing, inventory, order-state, or authorization business logic.
+- Controllers never call repositories directly.
+- Repositories do not call services and do not implement business workflows.
+- A feature may call another feature through its public service contract only.
+- A feature must not inject another feature's repository.
+- Shared `domain` types never depend on controller, DTO, service, or repository packages.
+- Avoid circular service dependencies; choose one orchestration owner instead.
+
+## 3. Java and naming baseline
+
+- Target Java 21 language/API compatibility, even if a developer machine has a newer JDK.
+- Packages use lowercase singular feature names.
+- Classes use descriptive names such as `ProductController`, `CartService`, `CheckoutServiceImpl`, and `OrderRepository`.
+- Method names describe business intent, for example `claimActiveCart`, `calculateCheckoutPrice`, and `deductAvailableStock`.
+- Do not introduce Lombok or another code-generation dependency without team approval.
+- Prefer constructor injection; do not use field injection.
+- Keep methods focused and extract domain calculations that require independent tests.
+- The current `com.se201411.project.mooncake.model.Product` is a legacy UI model, not a JPA entity. Rename it to `CatalogProductView` before adding `domain.entity.Product`, preserving existing rendered pages during the transition.
+
+## 4. Entity and enum conventions
+
+- The 19 approved table mappings live under `domain.entity` and are created in the Foundation PR.
+- Database enums live under `domain.enums` and use exact SQL values with `EnumType.STRING`.
+- Use these exact enum class names: `ProductType`, `AccountRole`, `AccountStatus`, `CartStatus`, `ConfigurationType`, `ConfigurationStatus`, `OrderType`, `OrderStatus`, `DiscountGroup`, `OrderItemKind`, `InventorySource`, `ComponentRole`, `PaymentMethod`, `PaymentStatus`, and `StockMovementType`.
+- IDs use `Long`; SQL `IDENTITY` keys use identity generation.
+- VND monetary values use `BigDecimal` with zero fractional digits. Never use `float` or `double` for money.
+- Map SQL `DATETIME2(3)` to `LocalDateTime`, interpreted strictly as UTC because `DATETIME2` stores no offset. Obtain current values through an injected UTC `Clock`; do not call the host machine's local time directly.
+- Associations default to lazy loading unless an explicit query use case proves otherwise.
+- Do not add broad cascade or orphan removal to historical/order relationships.
+- Do not expose every relationship bidirectionally. Add the minimum navigation required by approved use cases.
+- Avoid entity `toString`, equality, or serialization implementations that recursively traverse associations.
+- Never add a field that is not present in Flyway/Physical DDL.
+- Shared entity changes require review by all affected module owners.
+
+The database retains final responsibility for PK, FK, unique, filtered unique, and CHECK constraints. Service validation should provide friendly errors but must not replace database protection.
+
+## 5. DTO, form, and view-model conventions
+
+- Web inputs use dedicated form/request classes with Bean Validation.
+- Thymeleaf outputs use DTOs/view models when an entity contains internal fields, lazy relationships, or data from multiple tables.
+- Do not bind complex JPA entities directly to create/update forms.
+- Cross-module service contracts exchange IDs and immutable DTOs/results rather than managed entities.
+- Name types by purpose, such as `CreateProductForm`, `ProductDetailView`, `CartSummary`, and `CheckoutCommand`.
+- Keep a DTO in the feature that owns its meaning; do not create one global dumping-ground DTO package.
+
+## 6. Service and implementation conventions
+
+- Put public cross-module contracts in `feature.service`.
+- Put implementations in `feature.service.impl`.
+- Use an interface when another module consumes the service, when the behavior is a major test boundary, or when multiple implementations are plausible.
+- A small internal service that has no external consumer may be a concrete class; do not create empty interfaces mechanically.
+- Put `@Transactional` on public service-implementation use cases, not on controllers.
+- Use read-only transactions for multi-query read use cases when useful.
+- Convert persistence/concurrency failures into meaningful application exceptions at the service boundary.
+
+## 7. Required transaction boundaries
+
+### Checkout
+
+One `CheckoutService` transaction must:
+
+1. Conditionally claim the cart from `ACTIVE` to `CHECKED_OUT` and require one affected row.
+2. Revalidate SKU/configuration status and calculate server-side prices.
+3. Create order, item, component, and COD `UNPAID` snapshots.
+4. Aggregate inventory demand and call `InventoryService` atomic deductions.
+5. Write idempotent SALE movements.
+6. Commit everything or roll everything back.
+
+All called services participate in the same transaction with default `REQUIRED` propagation. Do not use `REQUIRES_NEW` for cart claim, pricing persistence, inventory, payment, or movement writes.
+
+### Cart and CUSTOM configuration mutation
+
+One mutation transaction must lock the owning CART row for update, verify `cart_status = ACTIVE` and ownership, then modify `CART_ITEM` or its CUSTOM configuration. Locking the cart row serializes add/update/delete with checkout. Under that lock, adding an existing target updates its quantity; inserting a new target remains protected by the filtered unique indexes.
+
+If a uniqueness/concurrency exception still occurs, roll back the whole transaction and translate or retry from a new transaction; never continue using a transaction marked rollback-only.
+
+### Cancellation
+
+One order-management transaction conditionally changes `PLACED`/`PROCESSING -> CANCELLED` and requires one affected row before restoring stock. It restores the original inventory source once and writes idempotent CANCEL_RETURN movements in the same transaction. Competing transitions such as `PROCESSING -> SHIPPING` must also be conditional on the expected current state.
+
+### Delivery and COD collection
+
+One transaction conditionally changes `SHIPPING -> COMPLETED` and requires one affected row, then conditionally changes the existing COD payment `UNPAID -> PAID` and writes `paid_at`. Both updates commit or roll back together. Repeated confirmation must return already-processed/conflict without creating or rewriting payment data.
+
+### PACK
+
+One packing transaction deducts loose box/cake components, increases the finished GIFT_SET SKU, and writes grouped PACK movements.
+
+### PRESET definition
+
+One PRESET mutation transaction locks the configuration row. Composition changes are allowed only while it is `DRAFT`, its GIFT_SET SKU has not been opened for sale, it has no finished stock, and it has no historical reference. Transition to `READY` validates box capacity and component product types; READY never transitions back to DRAFT. A changed READY recipe uses a new SKU/configuration.
+
+Do not use asynchronous events for these MVP consistency boundaries.
+
+## 8. Repository conventions
+
+- Repositories belong to the feature that owns the aggregate/use case.
+- Start with Spring Data derived queries for simple reads.
+- Use explicit JPQL/native queries for conditional updates, locking, aggregation, or performance-sensitive projections.
+- Keep atomic inventory/cart claim updates in clearly named repository methods that return affected-row counts.
+- Do not hide a complete business workflow inside a repository default method.
+- Prevent N+1 query problems with deliberate fetch joins/entity graphs/projections, not global eager loading.
+- Product owns `PresetConfigurationRepository`/`PresetConfigurationItemRepository`; Cart owns `CustomBoxConfigurationRepository`/`CustomBoxConfigurationItemRepository`. They may target the same shared entities but expose role-specific queries only.
+- Do not create a general-purpose configuration repository or use one repository to mutate both PRESET and CUSTOM types. Prefer restricted Spring Data `Repository` interfaces/custom implementations over exposing broad CRUD methods for these shared tables.
+- Product Admin must call `InventoryService` to initialize/verify stock balance; it must not inject an Inventory repository.
+
+## 9. MVC and Thymeleaf conventions
+
+- Customer/Admin pages use Spring MVC controllers that return view names and handle form POST/redirect flows.
+- Do not create REST APIs for every screen unless a real JavaScript interaction requires one.
+- Separate customer and Admin routes/controllers when authorization or layout differs.
+- Use Post/Redirect/Get after successful form mutations.
+- Display validation errors without trusting prices, roles, IDs, or ownership claims from hidden frontend fields.
+- Keep reusable header/footer fragments and existing CSS/JS assets unless the feature requires a reviewed change.
+
+## 10. Validation, errors, and security
+
+- Bean Validation checks shape and required input; services enforce ownership and cross-table business rules.
+- Use a small application exception hierarchy for not-found, validation/business conflict, authorization, concurrency, and insufficient-stock cases.
+- Provide a shared MVC exception handler/error mapping rather than repeated try/catch blocks in controllers.
+- Never trust a customer-supplied account/customer/cart owner ID without comparing it to the authenticated user or guest token.
+- Guest checkout remains supported; do not require registration for all purchases.
+- Protect Admin routes and service operations, not only Admin navigation links.
+- Foundation defines only the shared `ShopperIdentity` DTO, `CurrentCustomerService` contract, and common authorization/error vocabulary. It does not add Spring Security, create `SecurityConfig`, or implement login/logout.
+- Member 4 owns the Spring Security dependency and all implementation files: `SecurityConfig`, `UserDetailsService`, `PasswordEncoder`, `AuthenticationService`, current-shopper resolution, login/logout controller/view, and service-level/Admin-route authorization.
+- Member 4's first security PR keeps catalog, cart, checkout, static assets, and guest identity public; protects `/admin/**` with role `ADMIN`; and authenticates only existing ACTIVE accounts.
+- Do not implement customer registration, password reset, social login, MFA, email verification, or account approval in the MVP without a new approved business rule.
+- Store only a strong one-way password hash supported by Spring Security; never store or log raw passwords.
+
+### Guest token
+
+- The backend generates the guest token with a cryptographically secure random source. Use 32 random bytes encoded with URL-safe Base64 without padding; the result fits `CART.guest_token NVARCHAR(128)`.
+- Store it in an `HttpOnly`, `SameSite=Lax` cookie with `Path=/`; add `Secure` whenever HTTPS is used. Do not accept a caller-selected token, place it in a URL, expose it to JavaScript/local storage, or write it to logs.
+- Resolve guest ownership from the server-managed cookie. Every cart/configuration read or mutation must compare that identity with `CART.guest_token`; a submitted `cart_id` alone never proves ownership.
+- Keep CSRF protection enabled for state-changing SSR requests. After successful checkout, the same guest identity may receive a new ACTIVE cart when needed; do not reactivate the CHECKED_OUT cart.
+
+### Initial Admin bootstrap
+
+- Member 4 provides a one-time `bootstrap-admin` profile/command that reads `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` from environment variables.
+- The command hashes the password through the application's `PasswordEncoder`, creates an ACTIVE ADMIN only when no Admin exists, and never prints the raw password or encoded hash.
+- The bootstrap path is disabled during normal startup. If an Admin already exists, it exits without changing credentials. After successful creation, remove the environment variables and do not commit them.
+- Do not seed an Admin password/hash through Flyway, `.env.example`, source code, or test fixtures intended for shared environments.
+
+## 11. Database and configuration rules
+
+- Flyway is the only schema owner; keep `spring.jpa.hibernate.ddl-auto=none`.
+- Do not edit an applied/shared migration. Add a new reviewed version.
+- Never run the reference Physical SQL against a Flyway-managed database.
+- Keep database credentials in `.env`/environment variables and commit only `.env.example`.
+- Do not log passwords, connection strings containing credentials, personal data, or payment-sensitive values.
+- Use UTC consistently for stored timestamps.
+
+## 12. Testing conventions
+
+- Unit-test money, discount, state-machine, component aggregation, and inventory-demand calculations.
+- Repository/integration tests cover conditional updates, constraints, and important queries against SQL Server-compatible behavior.
+- Service tests cover transaction outcomes and failure rollback.
+- MVC tests cover validation, authorization, view names, and redirects for important routes.
+- Critical integration scenarios include duplicate cart additions, concurrent checkout, insufficient stock, repeated cancellation, repeated delivery confirmation, and immutable PRESET composition.
+- Every PR reports the exact tests run and does not claim database verification when only mocks were used.
+
+### Test database isolation
+
+- Default unit and MVC slice tests must not require SQL Server credentials.
+- SQL Server repository/transaction tests use the `integration` Spring profile (`application-integration.properties`) and a dedicated local database named `MoonCakeTestDB`; they must never point at `MoonCakeDB` or another shared/production-like database.
+- The integration profile reads `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_NAME`, `TEST_DB_USERNAME`, and `TEST_DB_PASSWORD`; a safety assertion must confirm the connected database is exactly `MoonCakeTestDB` before tests may mutate data.
+- Keep `spring.jpa.hibernate.ddl-auto=none` in the default application configuration. Override it with `spring.jpa.hibernate.ddl-auto=validate` only in the integration profile, after Flyway has migrated the test schema. Validation complements but does not replace explicit tests for CHECK, FK, filtered indexes, and concurrency.
+- Keep test credentials in `.env`/OS environment variables such as `TEST_DB_USERNAME` and `TEST_DB_PASSWORD`; do not commit them.
+- Name SQL Server integration tests `*IT`, annotate them with `@ActiveProfiles("integration")`, and run them separately with the Maven `integration` profile/Failsafe. Rename the existing `MoonCakeApplicationTests` context test to `MoonCakeApplicationIT` and move it into this path before feature development begins.
+- Do not substitute H2 for SQL Server constraint/concurrency tests because filtered indexes, locking, and SQL semantics differ.
+- Test cleanup may affect only data created inside `MoonCakeTestDB`. Never reset or drop an existing developer database as part of a test.
+- Verify `mvnw.cmd -v` on each development machine. If the checked-in wrapper is reproducibly broken, repair/regenerate it in a separate tooling commit before declaring it the required PR command.
+
+## 13. Change discipline
+
+- Avoid unrelated formatting/refactoring in a feature PR.
+- Do not rename approved database concepts such as `GIFT_SET` versus discount group `GIFT_BOX`.
+- Update architecture/work-plan documents only when a team decision changes.
+- If an implementation requires behavior not covered by Business Rules, stop and request a decision before coding it.
+

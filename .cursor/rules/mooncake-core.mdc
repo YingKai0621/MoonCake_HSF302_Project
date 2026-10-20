@@ -1,0 +1,26 @@
+---
+description: Core MoonCake architecture, database, and collaboration rules
+alwaysApply: true
+---
+
+# MoonCake Core Rules
+
+- Read `/AGENTS.md` and the documents it references before editing code.
+- `docs/business-rules.md` is the approved source for MVP behavior.
+- Use Spring Boot MVC + Thymeleaf SSR, SQL Server, and COD only.
+- Never commit `.env` or credentials.
+- Never edit an applied/shared Flyway V1 or V2; propose a new reviewed migration.
+- Preserve the approved 19-table model and do not add speculative features.
+- Follow feature-first packages and Controller -> Service -> Repository.
+- Call other modules through service contracts, never their repositories.
+- Foundation defines shared identity contracts only; Member 4 owns concrete Spring Security, authentication, guest cookies, and Admin bootstrap.
+- Honor the PRESET-versus-CUSTOM repository ownership defined in `docs/team-work-plan.md`.
+- Keep checkout, cart claim, order/payment creation, stock deduction, and movements atomic.
+- Serialize cart mutations and use conditional updates for order/payment state changes.
+- Treat READY/stocked/referenced PRESET compositions as immutable.
+- Backend-generated secure guest cookies identify guest carts; never trust caller-supplied ownership data.
+- Keep default JPA `ddl-auto=none`; integration tests use `validate` after Flyway.
+- Run SQL Server integration tests separately against `MoonCakeTestDB`, never `MoonCakeDB`.
+- Respect module ownership in `docs/team-work-plan.md`.
+- Run relevant tests and report schema impact before handoff.
+

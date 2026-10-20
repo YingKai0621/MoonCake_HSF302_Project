@@ -1,6 +1,7 @@
 ﻿-- MoonCake MVP — SQL Server physical schema (DESIGN DDL; NOT executed).
--- Based on approved Logical V5, 19 tables. Target: Microsoft SQL Server 2019+.
--- Create an EMPTY database first; run this script using SSMS / sqlcmd after review.
+-- Based on approved Business Rules v1.1 and Logical V5, 19 tables. Target: Microsoft SQL Server 2019+.
+-- Implemented by Flyway V1__initial_schema.sql and validated on SQL Server 2019 Developer.
+-- Do not run this reference file on a database already managed by Flyway.
 -- Currency: VND as DECIMAL(18,0). Timestamps: UTC DATETIME2(3).
 -- Future payOS/VietQR: add fields/statuses/attempts in a NEW migration; not included here.
 -- No reservation column; checkout decrements available_quantity atomically.
@@ -321,11 +322,16 @@ CREATE UNIQUE INDEX UX_BUSINESS_tax_code ON dbo.BUSINESS (tax_code) WHERE tax_co
 CREATE UNIQUE INDEX UX_BOX_CONFIGURATION_preset_variant_id ON dbo.BOX_CONFIGURATION (preset_variant_id) WHERE preset_variant_id IS NOT NULL;
 CREATE UNIQUE INDEX UX_PRODUCT_IMAGE_primary ON dbo.PRODUCT_IMAGE (variant_id) WHERE is_primary = 1;
 CREATE UNIQUE INDEX UX_BOX_CONFIGURATION_ITEM_variant ON dbo.BOX_CONFIGURATION_ITEM (configuration_id, mooncake_variant_id);
+-- Component snapshots for the same SKU are aggregated into one row per order item.
+CREATE UNIQUE INDEX UX_ORDER_ITEM_COMPONENT_item_variant ON dbo.ORDER_ITEM_COMPONENT (order_item_id, component_variant_id);
 CREATE UNIQUE INDEX UX_PAYMENT_one_paid_per_order ON dbo.PAYMENT (order_id) WHERE payment_status = 'PAID';
 CREATE UNIQUE INDEX UX_STOCK_MOVEMENT_operation_key ON dbo.STOCK_MOVEMENT (operation_key) WHERE operation_key IS NOT NULL;
 CREATE UNIQUE INDEX UX_VOLUME_DISCOUNT_TIER_active_group_min ON dbo.VOLUME_DISCOUNT_TIER (discount_group, min_quantity) WHERE is_active = 1;
 CREATE UNIQUE INDEX UX_CART_active_customer ON dbo.CART (customer_id) WHERE cart_status = 'ACTIVE' AND customer_id IS NOT NULL;
 CREATE UNIQUE INDEX UX_CART_active_guest ON dbo.CART (guest_token) WHERE cart_status = 'ACTIVE' AND guest_token IS NOT NULL;
+-- One cart line per purchase target. Adding the same target again must update quantity.
+CREATE UNIQUE INDEX UX_CART_ITEM_cart_variant ON dbo.CART_ITEM (cart_id, variant_id) WHERE variant_id IS NOT NULL;
+CREATE UNIQUE INDEX UX_CART_ITEM_cart_configuration ON dbo.CART_ITEM (cart_id, configuration_id) WHERE configuration_id IS NOT NULL;
 
 -- Helpful non-unique indexes (chosen for MVP access patterns).
 CREATE INDEX IX_PRODUCT_category ON dbo.PRODUCT (category_id);
@@ -361,3 +367,13 @@ COMMIT TRANSACTION;
 -- 8) PACK admin action: negative movements for loose components and positive for finished GIFT_SET, one transaction.
 -- 9) PAYMENT row is COD+UNPAID on placement; PAID only after confirmed collected delivery.
 -- 10) Do not delete historical rows; use is_active. New migrations expand PAYMENT for payOS/VietQR.
+-- 11) A CART may be checked out successfully only once. As the first write in the checkout transaction,
+--     atomically claim it with:
+--       UPDATE dbo.CART SET cart_status = 'CHECKED_OUT', updated_at = SYSUTCDATETIME()
+--       WHERE cart_id = @cartId AND cart_status = 'ACTIVE';
+--     Require @@ROWCOUNT = 1. Create order/payment, deduct inventory and write movements in that SAME
+--     transaction; any failure rolls back the cart claim. A zero row count must stop the repeated/concurrent
+--     request before it creates an order or changes inventory.
+-- 12) PRESET configurations become immutable once READY/stocked/sold. Do not UPDATE their BOX or component
+--     composition; a changed recipe requires a new GIFT_SET SKU and a new PRESET configuration. Enforce this
+--     through the Spring Boot Admin/Service layer rather than a database trigger.

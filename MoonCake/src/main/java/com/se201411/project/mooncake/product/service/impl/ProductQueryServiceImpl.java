@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CatalogVariantView;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.PresetComponentView;
 import com.se201411.project.mooncake.product.dto.PresetRecipeView;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
@@ -115,6 +116,51 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             variant.getUnitPrice(),
             true
         );
+    }
+
+    @Override
+    public List<CartVariantSnapshot> findVariantsForCart(Collection<Long> variantIds) {
+        if (variantIds == null || variantIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<ProductVariant> variants = productVariantRepository.findByIdsForCart(variantIds);
+        Map<Long, BoxConfiguration> readyPresets = loadReadyPresets(variants);
+        Map<Long, List<ProductImage>> imagesByVariantId = loadImages(variants);
+
+        List<CartVariantSnapshot> result = new ArrayList<>();
+        for (ProductVariant variant : variants) {
+            Product product = variant.getProduct();
+            boolean currentlySellable = isCurrentlySellable(variant, readyPresets);
+            ProductImage primaryImage = findPrimaryImage(
+                imagesByVariantId.getOrDefault(variant.getId(), List.of())
+            );
+
+            String imageUrl = FALLBACK_IMAGE;
+            String imageAlt = product.getName() + " - " + variant.getName();
+            if (primaryImage != null) {
+                imageUrl = primaryImage.getImageUrl();
+                if (primaryImage.getAltText() != null
+                    && !primaryImage.getAltText().isBlank()) {
+                    imageAlt = primaryImage.getAltText();
+                }
+            }
+
+            CartVariantSnapshot snapshot = new CartVariantSnapshot(
+                variant.getId(),
+                product.getSlug(),
+                product.getName(),
+                variant.getName(),
+                variant.getSku(),
+                product.getProductType(),
+                variant.getUnitPrice(),
+                imageUrl,
+                imageAlt,
+                currentlySellable
+            );
+            result.add(snapshot);
+        }
+        return List.copyOf(result);
     }
 
     private List<CatalogProductView> loadCatalogViews(List<Product> products) {
@@ -269,10 +315,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         BoxConfiguration preset,
         Map<Long, List<BoxConfigurationItem>> itemsByConfigurationId
     ) {
-        ProductImage primaryImage = null;
-        if (!images.isEmpty()) {
-            primaryImage = images.getFirst();
-        }
+        ProductImage primaryImage = findPrimaryImage(images);
 
         String imageUrl = FALLBACK_IMAGE;
         String imageAlt = product.getName() + " - " + variant.getName();
@@ -304,6 +347,27 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             imageAlt,
             presetView
         );
+    }
+
+    private ProductImage findPrimaryImage(List<ProductImage> images) {
+        if (images.isEmpty()) {
+            return null;
+        }
+        return images.getFirst();
+    }
+
+    private boolean isCurrentlySellable(
+        ProductVariant variant,
+        Map<Long, BoxConfiguration> readyPresets
+    ) {
+        Product product = variant.getProduct();
+        if (!variant.isActive() || !product.isActive() || !product.getCategory().isActive()) {
+            return false;
+        }
+        if (product.getProductType() == ProductType.GIFT_SET) {
+            return readyPresets.containsKey(variant.getId());
+        }
+        return true;
     }
 
     private PresetRecipeView toPresetView(

@@ -4,6 +4,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
+  initializeQuantitySteppers();
+
   // Initialize Lucide Icons if loaded on the page
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
@@ -60,3 +62,64 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 });
+
+function initializeQuantitySteppers() {
+  const steppers = document.querySelectorAll('[data-quantity-stepper]');
+
+  steppers.forEach(function (stepper) {
+    const input = stepper.querySelector('input[type="number"]');
+    const decreaseButton = stepper.querySelector('[data-quantity-action="decrease"]');
+    const buttons = stepper.querySelectorAll('[data-quantity-action]');
+
+    if (!input) {
+      return;
+    }
+
+    updateDecreaseButton(input, decreaseButton);
+
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        const previousValue = input.value;
+        const action = button.getAttribute('data-quantity-action');
+
+        if (action === 'decrease') {
+          input.stepDown();
+        } else {
+          input.stepUp();
+        }
+
+        updateDecreaseButton(input, decreaseButton);
+        if (input.value !== previousValue) {
+          submitQuantityIfRequired(stepper, input);
+        }
+      });
+    });
+
+    input.addEventListener('input', function () {
+      updateDecreaseButton(input, decreaseButton);
+    });
+
+    input.addEventListener('change', function () {
+      if (input.checkValidity()) {
+        submitQuantityIfRequired(stepper, input);
+      }
+    });
+  });
+}
+
+function updateDecreaseButton(input, decreaseButton) {
+  if (!decreaseButton) {
+    return;
+  }
+
+  const minimum = Number(input.min || 1);
+  const quantity = Number(input.value);
+  decreaseButton.disabled = !Number.isFinite(quantity) || quantity <= minimum;
+}
+
+function submitQuantityIfRequired(stepper, input) {
+  const shouldSubmit = stepper.getAttribute('data-auto-submit') === 'true';
+  if (shouldSubmit && input.form) {
+    input.form.requestSubmit();
+  }
+}

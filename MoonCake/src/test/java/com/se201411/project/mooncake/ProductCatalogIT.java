@@ -230,7 +230,7 @@ class ProductCatalogIT {
                 "Bánh integration test (Bánh nhân thử nghiệm)"
             )))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(
-                "Thêm vào giỏ hàng — đang phát triển"
+                "Đăng nhập để thêm vào giỏ"
             )))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(
                 "data-preset-variant-id=\"" + readyVariant.getId() + "\""

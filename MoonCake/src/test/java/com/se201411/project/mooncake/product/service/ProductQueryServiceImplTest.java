@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationItemRepository;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationRepository;
 import com.se201411.project.mooncake.product.repository.ProductImageRepository;
@@ -133,6 +134,29 @@ class ProductQueryServiceImplTest {
         assertThatThrownBy(() -> service.requireSellableVariant(variant.getId()))
             .isInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("PRESET READY");
+    }
+
+    @Test
+    void cartReadKeepsInactiveVariantVisibleButMarksItUnavailable() {
+        Category category = category(1L);
+        Product product = product(10L, category, ProductType.MOONCAKE, "banh-cu");
+        ProductVariant variant = variant(101L, product, "MC-CU", "Bánh 120g", 120_000);
+        variant.setActive(false);
+
+        when(productVariantRepository.findByIdsForCart(List.of(variant.getId())))
+            .thenReturn(List.of(variant));
+        when(productImageRepository.findOrderedByVariantIds(List.of(variant.getId())))
+            .thenReturn(List.of());
+
+        List<CartVariantSnapshot> result = service.findVariantsForCart(
+            List.of(variant.getId())
+        );
+
+        assertThat(result).singleElement().satisfies(snapshot -> {
+            assertThat(snapshot.productSlug()).isEqualTo("banh-cu");
+            assertThat(snapshot.sku()).isEqualTo("MC-CU");
+            assertThat(snapshot.currentlySellable()).isFalse();
+        });
     }
 
     private Category category(long id) {

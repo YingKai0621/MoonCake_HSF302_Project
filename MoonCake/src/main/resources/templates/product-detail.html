@@ -116,6 +116,8 @@
         <div class="space-y-2" th:if="${product.multipleVariants}">
           <label for="variantSelect" class="text-xs uppercase tracking-wider text-gold font-semibold">Chọn phiên bản</label>
           <select id="variantSelect"
+                  name="variantId"
+                  form="addCartItemForm"
                   class="w-full bg-deep-indigo text-ivory border border-gold/35 py-3 px-4 rounded-none focus:ring-0 focus:border-gold cursor-pointer">
             <option th:each="variant : ${product.variants}"
                     th:value="${variant.id}"
@@ -189,15 +191,53 @@
           </th:block>
         </div>
 
-        <!-- Cart mutation belongs to the Cart feature and is disabled until that backend is available. -->
-        <div class="pt-2">
+        <div class="pt-2" th:if="${customerLoggedIn}">
+          <form id="addCartItemForm" th:action="@{/cart/items}" method="post" class="space-y-3">
+            <input th:unless="${product.multipleVariants}"
+                   type="hidden"
+                   name="variantId"
+                   th:value="${product.primaryVariant.id}">
+            <div class="flex items-center gap-3">
+              <label for="cartQuantity" class="text-sm text-sand shrink-0">Số lượng</label>
+              <div class="quantity-stepper" data-quantity-stepper>
+                <button type="button"
+                        class="quantity-stepper__button"
+                        data-quantity-action="decrease"
+                        aria-label="Giảm số lượng">−</button>
+                <input id="cartQuantity"
+                       name="quantity"
+                       type="number"
+                       min="1"
+                       value="1"
+                       required
+                       class="quantity-stepper__input">
+                <button type="button"
+                        class="quantity-stepper__button"
+                        data-quantity-action="increase"
+                        aria-label="Tăng số lượng">+</button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary-cta w-full rounded-none">
+              <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+              <span>Thêm vào giỏ hàng</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="pt-2" th:if="${!loggedIn}">
+          <a th:href="@{/cart/continue(returnUrl=${product.detailUrl})}"
+             class="btn-primary-cta w-full rounded-none text-center">
+            <span class="material-symbols-outlined text-[20px]">login</span>
+            <span>Đăng nhập để thêm vào giỏ</span>
+          </a>
+        </div>
+
+        <div class="pt-2" th:if="${loggedIn and !customerLoggedIn}">
           <button type="button"
                   disabled
                   aria-disabled="true"
-                  title="Chức năng này sẽ được kết nối trong feature Cart"
                   class="btn-primary-cta w-full rounded-none opacity-60 cursor-not-allowed">
-            <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-            <span>Thêm vào giỏ hàng — đang phát triển</span>
+            Chỉ tài khoản khách hàng được mua hàng
           </button>
         </div>
 

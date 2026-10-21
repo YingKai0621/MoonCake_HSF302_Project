@@ -36,6 +36,33 @@ public interface CartRepository extends Repository<Cart, Long> {
         @Param("status") CartStatus status
     );
 
+    @Query("""
+        select c
+        from Cart c
+        where c.id = :cartId
+          and c.customer.id = :customerId
+          and c.status = :status
+        """)
+    Optional<Cart> findOwnedCart(
+        @Param("cartId") long cartId,
+        @Param("customerId") long customerId,
+        @Param("status") CartStatus status
+    );
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+        UPDATE dbo.CART
+        SET cart_status = 'CHECKED_OUT',
+            updated_at = SYSUTCDATETIME()
+        WHERE cart_id = :cartId
+          AND customer_id = :customerId
+          AND cart_status = 'ACTIVE'
+        """, nativeQuery = true)
+    int claimForCheckout(
+        @Param("cartId") long cartId,
+        @Param("customerId") long customerId
+    );
+
     /**
      * SQL Server range locking prevents two first-add requests from creating two
      * ACTIVE carts for the same customer.

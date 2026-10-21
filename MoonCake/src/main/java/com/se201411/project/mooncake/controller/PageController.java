@@ -14,13 +14,4 @@ public class PageController {
         return "homepage";
     }
 
-    @GetMapping("/checkout")
-    public String checkout() {
-        return "checkout";
-    }
-
-    @GetMapping("/order-success")
-    public String orderSuccess() {
-        return "order-success";
-    }
 }

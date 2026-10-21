@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <div th:if="${successMessage}"
+    <div th:if="${successMessage != null and !cart.empty}"
          class="mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3"
          th:text="${successMessage}">
       Cập nhật giỏ hàng thành công
@@ -204,11 +204,17 @@
             <span class="font-medium">Tổng tạm tính</span>
             <span class="text-2xl font-bold text-gold" th:text="${cart.formattedSubtotal}">0đ</span>
           </div>
-          <button type="button"
+          <a th:if="${!cart.hasUnavailableItems}"
+             th:href="@{/checkout}"
+             class="block w-full text-center bg-gold hover:bg-goldHover text-surface font-bold py-3.5 px-4 transition-colors">
+            Tiến hành thanh toán
+          </a>
+          <button th:if="${cart.hasUnavailableItems}"
+                  type="button"
                   disabled
                   aria-disabled="true"
                   class="w-full bg-gold/50 text-surface font-bold py-3.5 px-4 cursor-not-allowed">
-            Tiến hành thanh toán
+            Vui lòng xử lý sản phẩm ngừng bán
           </button>
           <a th:href="@{/products}" class="block text-center text-xs text-sand hover:text-gold transition-colors">
             Tiếp tục mua sắm

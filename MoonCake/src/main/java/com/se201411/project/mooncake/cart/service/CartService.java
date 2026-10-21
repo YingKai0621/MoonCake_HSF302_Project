@@ -6,6 +6,8 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 
 public interface CartService {
 
+    CheckoutCartSnapshot requireCurrentActiveCart(ShopperIdentity customerIdentity);
+
     CartSnapshot requireActiveCart(long cartId, ShopperIdentity customerIdentity);
 
     CheckoutCartSnapshot claimForCheckout(long cartId, ShopperIdentity customerIdentity);

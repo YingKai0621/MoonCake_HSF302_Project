@@ -40,7 +40,6 @@ public class SecurityConfig {
             .requestMatchers(
                 "/cart/**",
                 "/checkout/**",
-                "/order-success/**",
                 "/orders/**",
                 "/custom-boxes/**"
             ).hasRole("CUSTOMER")

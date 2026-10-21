@@ -5,11 +5,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
 
     SalesOrder save(SalesOrder order);
+
+    @Query("""
+        select salesOrder
+        from SalesOrder salesOrder
+        where salesOrder.customer.id = :customerId
+        order by salesOrder.createdAt desc, salesOrder.id desc
+        """)
+    List<SalesOrder> findAllOwnedByCustomerId(
+        @Param("customerId") long customerId
+    );
 
     @Query("""
         select salesOrder

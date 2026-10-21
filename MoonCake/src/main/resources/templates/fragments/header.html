@@ -94,6 +94,11 @@
           </div>
 
           <div th:if="${loggedIn}" class="flex items-center gap-3 text-sm text-[#FAF4A9]">
+            <a th:if="${customerLoggedIn}"
+               th:href="@{/orders}"
+               class="px-3 py-2 hover:text-white transition-colors">
+              Đơn hàng
+            </a>
             <span th:text="${currentUserEmail}" class="max-w-52 truncate">customer@example.com</span>
             <form th:action="@{/logout}" method="post">
               <button type="submit" class="px-3 py-2 border border-[#FAF4A9]/40 hover:border-[#FAF4A9] transition-colors">

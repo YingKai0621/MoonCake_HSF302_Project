@@ -1,0 +1,16 @@
+---
+description: Keep MoonCake code straightforward and easy for students to explain
+alwaysApply: true
+---
+
+# Simple, Explainable Code
+
+- Write code that a team member can trace line by line and explain during a review.
+- Prefer clear `if`, `switch`, and `for` statements over nested expressions.
+- Prefer named helper methods/functions and descriptive intermediate variables.
+- Avoid Java Stream chains, method references, and lambdas when a short loop is clearer.
+- Avoid JavaScript arrow functions and chained `map`/`filter`/`some` calls when a named function or loop is clearer.
+- Keep unavoidable framework callbacks small and use normal `function` syntax in JavaScript.
+- Do not compress business rules into clever one-liners or nested ternary expressions.
+- Use advanced syntax only when it materially improves clarity; add a short explanation when it is not obvious.
+- Preserve correctness, transaction boundaries, validation, and tests while simplifying code.

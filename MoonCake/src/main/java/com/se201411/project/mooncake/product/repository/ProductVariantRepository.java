@@ -35,4 +35,14 @@ public interface ProductVariantRepository extends Repository<ProductVariant, Lon
           and c.active = true
         """)
     Optional<ProductVariant> findSellableById(@Param("variantId") long variantId);
+
+    @Query("""
+        select v
+        from ProductVariant v
+        join fetch v.product p
+        join fetch p.category c
+        where v.id in :variantIds
+        order by v.id
+        """)
+    List<ProductVariant> findByIdsForCart(@Param("variantIds") Collection<Long> variantIds);
 }

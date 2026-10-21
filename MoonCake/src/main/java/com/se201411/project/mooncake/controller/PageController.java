@@ -14,11 +14,6 @@ public class PageController {
         return "homepage";
     }
 
-    @GetMapping("/cart")
-    public String cart() {
-        return "cart";
-    }
-
     @GetMapping("/checkout")
     public String checkout() {
         return "checkout";

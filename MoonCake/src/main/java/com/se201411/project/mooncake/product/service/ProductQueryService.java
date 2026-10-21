@@ -2,8 +2,10 @@ package com.se201411.project.mooncake.product.service;
 
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ProductQueryService {
@@ -24,4 +26,10 @@ public interface ProductQueryService {
      * Resolves a SKU for Cart/Checkout without exposing a managed JPA entity.
      */
     SellableVariantSnapshot requireSellableVariant(long variantId);
+
+    /**
+     * Loads current product information for existing cart lines, including SKUs
+     * that have become inactive after they were added.
+     */
+    List<CartVariantSnapshot> findVariantsForCart(Collection<Long> variantIds);
 }

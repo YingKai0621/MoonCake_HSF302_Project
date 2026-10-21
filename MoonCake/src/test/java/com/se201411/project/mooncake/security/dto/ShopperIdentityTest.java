@@ -18,5 +18,7 @@ class ShopperIdentityTest {
     void rejectsNonPositiveCustomerId() {
         assertThatThrownBy(() -> new ShopperIdentity(0L))
             .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new ShopperIdentity(-1L))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

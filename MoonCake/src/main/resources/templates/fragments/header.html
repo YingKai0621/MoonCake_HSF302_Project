@@ -79,20 +79,40 @@
         <!-- Center: Reserved Gap for Emblem Overlap (130px) -->
         <div class="w-[130px]"></div>
 
-        <!-- Right: Shopping Cart Link -->
-        <a th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
-          <div class="relative flex items-center justify-center">
-            <svg class="w-6 h-6 text-[#FAF4A9] group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            <span id="headerCartBadge" class="absolute -top-1.5 -right-2.5 bg-[#FAF4A9] text-[#0C1626] font-bold text-[11px] w-5 h-5 rounded-full flex items-center justify-center shadow-md border border-[#0C1626]">
-              2
-            </span>
+        <!-- Right: Account and Shopping Cart -->
+        <div class="flex items-center gap-3">
+          <div th:unless="${loggedIn}" class="flex items-center gap-2 text-sm">
+            <a th:href="@{/login}" class="px-3 py-2 text-[#FAF4A9] hover:text-white transition-colors">
+              Đăng nhập
+            </a>
+            <a th:href="@{/register}" class="px-3 py-2 border border-[#FAF4A9]/40 text-[#FAF4A9] hover:border-[#FAF4A9] transition-colors">
+              Đăng ký
+            </a>
           </div>
-          <span class="font-serif text-[16px] font-semibold tracking-wide">
-            Giỏ hàng
-          </span>
-        </a>
+
+          <div th:if="${loggedIn}" class="flex items-center gap-3 text-sm text-[#FAF4A9]">
+            <span th:text="${currentUserEmail}" class="max-w-52 truncate">customer@example.com</span>
+            <form th:action="@{/logout}" method="post">
+              <button type="submit" class="px-3 py-2 border border-[#FAF4A9]/40 hover:border-[#FAF4A9] transition-colors">
+                Đăng xuất
+              </button>
+            </form>
+          </div>
+
+          <a th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#FAF4A9] group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <span id="headerCartBadge" class="absolute -top-1.5 -right-2.5 bg-[#FAF4A9] text-[#0C1626] font-bold text-[11px] w-5 h-5 rounded-full flex items-center justify-center shadow-md border border-[#0C1626]">
+                0
+              </span>
+            </div>
+            <span class="font-serif text-[16px] font-semibold tracking-wide">
+              Giỏ hàng
+            </span>
+          </a>
+        </div>
 
       </div>
     </div>

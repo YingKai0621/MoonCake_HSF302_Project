@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký | MoonCake</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/pages/auth.css}" href="/css/pages/auth.css">
+</head>
+<body class="auth-page">
+  <header th:replace="~{fragments/header :: header('register')}"></header>
+
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="register-title">
+      <p class="auth-eyebrow">MOONCAKE</p>
+      <h1 id="register-title">Tạo tài khoản</h1>
+      <p class="auth-description">Email sẽ được dùng làm tên đăng nhập.</p>
+
+      <form th:action="@{/register}" th:object="${registrationForm}"
+            method="post" class="auth-form">
+        <div class="auth-field">
+          <label for="fullName">Họ và tên</label>
+          <input id="fullName" type="text" th:field="*{fullName}"
+                 maxlength="160" autocomplete="name" required>
+          <p class="auth-field-error" th:if="${#fields.hasErrors('fullName')}"
+             th:errors="*{fullName}">Lỗi họ tên</p>
+        </div>
+
+        <div class="auth-field">
+          <label for="phone">Số điện thoại</label>
+          <input id="phone" type="tel" th:field="*{phone}"
+                 maxlength="20" autocomplete="tel" required>
+          <p class="auth-field-error" th:if="${#fields.hasErrors('phone')}"
+             th:errors="*{phone}">Lỗi số điện thoại</p>
+        </div>
+
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" th:field="*{email}"
+                 maxlength="254" autocomplete="email" required>
+          <p class="auth-field-error" th:if="${#fields.hasErrors('email')}"
+             th:errors="*{email}">Lỗi email</p>
+        </div>
+
+        <div class="auth-field">
+          <label for="password">Mật khẩu</label>
+          <input id="password" name="password" type="password"
+                 minlength="8" maxlength="64" autocomplete="new-password" required>
+          <p class="auth-help">Từ 8 đến 64 ký tự.</p>
+          <p class="auth-field-error" th:if="${#fields.hasErrors('password')}"
+             th:errors="*{password}">Lỗi mật khẩu</p>
+        </div>
+
+        <div class="auth-field">
+          <label for="confirmPassword">Xác nhận mật khẩu</label>
+          <input id="confirmPassword" name="confirmPassword" type="password"
+                 minlength="8" maxlength="64" autocomplete="new-password" required>
+          <p class="auth-field-error" th:if="${#fields.hasErrors('confirmPassword')}"
+             th:errors="*{confirmPassword}">Lỗi xác nhận mật khẩu</p>
+        </div>
+
+        <button type="submit" class="auth-submit">Đăng ký</button>
+      </form>
+
+      <p class="auth-switch">
+        Đã có tài khoản?
+        <a th:href="@{/login}">Đăng nhập</a>
+      </p>
+    </section>
+  </main>
+</body>
+</html>

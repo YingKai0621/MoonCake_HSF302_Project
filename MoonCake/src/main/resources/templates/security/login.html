@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập | MoonCake</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/pages/auth.css}" href="/css/pages/auth.css">
+</head>
+<body class="auth-page">
+  <header th:replace="~{fragments/header :: header('login')}"></header>
+
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="login-title">
+      <p class="auth-eyebrow">MOONCAKE</p>
+      <h1 id="login-title">Đăng nhập</h1>
+      <p class="auth-description">Đăng nhập để thêm sản phẩm vào giỏ và đặt hàng.</p>
+
+      <div th:if="${param.registered}" class="auth-message auth-message-success">
+        Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.
+      </div>
+      <div th:if="${param.error}" class="auth-message auth-message-error">
+        Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị vô hiệu hóa.
+      </div>
+      <div th:if="${param.logout}" class="auth-message auth-message-success">
+        Bạn đã đăng xuất thành công.
+      </div>
+
+      <form th:action="@{/login}" method="post" class="auth-form">
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" maxlength="254"
+                 autocomplete="username" required autofocus>
+        </div>
+
+        <div class="auth-field">
+          <label for="password">Mật khẩu</label>
+          <input id="password" name="password" type="password"
+                 autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="auth-submit">Đăng nhập</button>
+      </form>
+
+      <p class="auth-switch">
+        Chưa có tài khoản?
+        <a th:href="@{/register}">Đăng ký</a>
+      </p>
+    </section>
+  </main>
+</body>
+</html>

@@ -49,7 +49,7 @@ Develop vertically by feature: persistence, service, MVC controller, Thymeleaf v
 
 - Visitors may browse catalog and product pages without signing in.
 - Add-to-cart, buy-now, CUSTOM-box, cart, checkout, and customer-order operations require an ACTIVE account with role `CUSTOMER`.
-- Customer registration creates `ACCOUNT` and linked `CUSTOMER` in one transaction; role/status are decided by the backend, never by form input.
+- Customer registration uses normalized email as the login name and creates `ACCOUNT` plus linked `CUSTOMER` in one transaction; role/status are decided by the backend, never by form input.
 - An unauthenticated purchase action redirects to login with a validated internal return URL. It does not mutate data or automatically replay a POST.
 - The schema's guest fields remain for applied-migration compatibility but are not used by the v1.2 application.
 

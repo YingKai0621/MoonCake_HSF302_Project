@@ -87,6 +87,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 
 - Catalog, trang chi tiết sản phẩm và tài nguyên tĩnh là công khai. Xem giỏ, thêm/sửa/xóa dòng giỏ, tạo/sửa CUSTOM configuration, checkout và xem lịch sử đơn yêu cầu tài khoản `CUSTOMER` đang `ACTIVE`.
 - Khách được tự đăng ký bằng email, mật khẩu, họ tên và số điện thoại. Backend luôn gán `ACCOUNT.role = CUSTOMER`; không nhận role/status/account ID từ form đăng ký.
+- `ACCOUNT.email` là tên đăng nhập; MVP không có username riêng. Backend loại bỏ khoảng trắng hai đầu và chuyển email về chữ thường trước khi kiểm tra trùng, lưu hoặc đăng nhập.
+- Mật khẩu đăng ký có từ 8 đến 64 ký tự và phải nhập xác nhận khớp. Đăng ký thành công chuyển khách về trang đăng nhập; không tự động đăng nhập.
 - Đăng ký phải chuẩn hóa email nhất quán, từ chối email đã tồn tại, hash mật khẩu bằng `PasswordEncoder`, rồi tạo `ACCOUNT` và `CUSTOMER` trong **cùng một transaction**. Nếu một bước thất bại thì không lưu bản ghi còn lại.
 - Do MVP không có xác minh email hay duyệt tài khoản, đăng ký thành công tạo `ACCOUNT.status = ACTIVE`. Password reset, social login, MFA, email verification và account approval vẫn ngoài phạm vi.
 - `CUSTOMER.account_id` và `CUSTOMER.email` được backend gắn với tài khoản vừa đăng ký. Trong luồng mua MVP v1.2, mọi `CUSTOMER` được dùng làm chủ giỏ phải có `account_id`; mọi đơn thành công phải có `SALES_ORDER.customer_id`.

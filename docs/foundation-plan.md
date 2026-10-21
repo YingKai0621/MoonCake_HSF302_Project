@@ -1,15 +1,17 @@
 # MoonCake MVP — Foundation Implementation Plan
 
-**Version:** 1.3
+**Version:** 1.4
 
-**Date:** 20/10/2026
-**Status:** Implemented on `feature/backend-foundation`; pending team review
+**Date:** 21/10/2026
+**Status:** Implemented; shared identity contract amended for authenticated-customer purchases
 
 ## 1. Foundation objective
 
 Foundation creates one compileable, reviewed starting point for four parallel feature streams. It establishes shared domain mappings and contracts without implementing full Product, Cart, Checkout, Inventory, Admin, or Security features.
 
-Foundation must not change the approved MVP, add tables, add demo business data, or rewrite Flyway V1/V2.
+Foundation must not change the approved MVP, add tables, add demo business data, or rewrite applied Flyway migrations.
+
+After Foundation was merged, Business Rules v1.2 removed guest purchase behavior and approved customer self-registration. The schema remains unchanged, but the unused guest branch is removed from the shared Java identity contract before Cart and Checkout implementations begin.
 
 ## 2. Preconditions
 
@@ -31,7 +33,7 @@ Foundation includes:
 - Reviewed relationship ownership and fetch choices.
 - Shared exception/error conventions.
 - Initial public service contracts and boundary DTOs needed for parallel development.
-- Shared `ShopperIdentity` and `CurrentCustomerService` contracts only. Spring Security dependency/configuration and login/logout implementation belong to Member 4, not Foundation.
+- Shared `ShopperIdentity` and `CurrentCustomerService` contracts only. They now represent an authenticated CUSTOMER, not a guest-or-customer union.
 - A separate SQL Server integration-test profile targeting `MoonCakeTestDB`, never the development `MoonCakeDB`.
 - Safe `TEST_DB_*` placeholders in `.env.example`; no real test credentials are committed.
 - Tests proving the application context and mappings work with the Flyway-managed schema.
@@ -150,7 +152,7 @@ Agree on responsibilities and boundary data before implementation. Foundation ma
 - Cart lookup/claim and cart summary.
 - Checkout pricing result containing group totals, per-line snapshots, discount, shipping, and total.
 - Inventory demand and atomic deduction/restoration result.
-- Current customer or guest identity resolution.
+- Authenticated current-customer identity resolution.
 
 The exact Foundation contract names and ownership are:
 
@@ -159,9 +161,9 @@ The exact Foundation contract names and ownership are:
 - `cart.service.CartService`: returns an owned ACTIVE cart snapshot and conditionally claims it for checkout.
 - `cart.service.PricingService`: returns an immutable checkout quote containing per-line and grouped totals.
 - `inventory.service.InventoryService`: initializes/verifies balances and performs atomic sale deduction/cancellation restoration from aggregated demand commands.
-- `security.service.CurrentCustomerService`: resolves an immutable `ShopperIdentity` containing exactly one of customer ID or guest token.
+- `security.service.CurrentCustomerService`: requires an authenticated ACTIVE CUSTOMER and returns an immutable `ShopperIdentity` containing its customer ID.
 
-Foundation creates the `CurrentCustomerService` interface and `ShopperIdentity` only. Member 4 later provides their implementation together with Spring Security; Foundation must not create `SecurityConfig`, `UserDetailsService`, `AuthenticationServiceImpl`, login/logout MVC, or a `PasswordEncoder` bean.
+Foundation created the `CurrentCustomerService` interface and `ShopperIdentity` only. The post-Foundation Customer Authentication feature provides their implementation together with the single Spring Security configuration, registration, login, and logout. The Admin feature consumes that baseline and must not create an alternative authentication implementation.
 
 Freeze these cross-module method signatures before parallel branches start:
 
@@ -173,8 +175,8 @@ SellableVariantSnapshot requireSellableVariant(long variantId);
 PresetRecipeSnapshot requireReadyPreset(long giftSetVariantId);
 
 // cart.service.CartService
-CartSnapshot requireActiveCart(long cartId, ShopperIdentity shopper);
-CheckoutCartSnapshot claimForCheckout(long cartId, ShopperIdentity shopper);
+CartSnapshot requireActiveCart(long cartId, ShopperIdentity customerIdentity);
+CheckoutCartSnapshot claimForCheckout(long cartId, ShopperIdentity customerIdentity);
 
 // cart.service.PricingService
 CheckoutQuote calculateCheckoutQuote(CheckoutCartSnapshot cart);
@@ -186,14 +188,14 @@ void deductForSale(SaleInventoryCommand command);
 void restoreForCancellation(CancellationInventoryCommand command);
 
 // security.service.CurrentCustomerService
-ShopperIdentity resolveCurrentShopper();
+ShopperIdentity requireCurrentCustomer();
 ```
 
 `claimForCheckout` performs the conditional cart state update and returns the immutable checkout input captured in the same transaction. Inventory commands contain an operation/order identifier and aggregated demand by variant; they never accept duplicate variant rows. Foundation defines only the DTO fields required by these responsibilities. Feature-only mutation methods stay in their owning feature PR. Any signature change must first update this list and identify affected consumers.
 
 Required boundary data is intentionally minimal:
 
-- `ShopperIdentity`: exactly one of `customerId` or `guestToken`.
+- `ShopperIdentity`: one positive `customerId` resolved from the authenticated principal.
 - `SellableVariantSnapshot`: variant/product IDs, SKU, product type, display name, current unit price, and active state.
 - `PresetRecipeSnapshot`: configuration/GIFT_SET IDs, box variant ID, status, and immutable component variant/quantity entries.
 - `CartSnapshot`: cart ID/owner plus immutable target and quantity entries for display/mutation responses.
@@ -250,10 +252,10 @@ Keep one coherent Foundation PR but organize it into reviewable commits:
 4. Cart/configuration entities and repository ownership boundaries.
 5. Order/payment entities.
 6. Inventory entities.
-7. Shared contracts/errors, including `ShopperIdentity` and the unimplemented `CurrentCustomerService` contract.
+7. Shared contracts/errors, including the authenticated-customer `ShopperIdentity` and the unimplemented `CurrentCustomerService` contract.
 8. Isolated SQL Server integration profile, mapping/context tests, and documentation corrections.
 
-Do not combine Foundation with feature repositories, service implementations, Admin CRUD, Spring Security configuration, authentication screens, cart UI, or checkout implementation.
+Do not treat the later identity-contract amendment as authorization to mix Admin CRUD, cart UI, or checkout implementation into Foundation history. Spring Security and authentication screens belong to their own Customer Authentication feature PR.
 
 ## 12. Foundation Definition of Done
 

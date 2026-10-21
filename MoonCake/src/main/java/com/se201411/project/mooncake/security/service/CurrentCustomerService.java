@@ -4,5 +4,5 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 
 public interface CurrentCustomerService {
 
-    ShopperIdentity resolveCurrentShopper();
+    ShopperIdentity requireCurrentCustomer();
 }

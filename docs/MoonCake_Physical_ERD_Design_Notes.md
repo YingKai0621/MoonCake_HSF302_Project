@@ -1,6 +1,6 @@
 # MoonCake MVP — Physical ERD cho Microsoft SQL Server
 
-**Cơ sở:** Business Rules v1.1.1 (hiệu chỉnh trạng thái, không đổi nghiệp vụ) và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Schema đã được triển khai bằng Flyway V1/V2 và kiểm thử trên Microsoft SQL Server 2019 Developer.
+**Cơ sở:** Business Rules v1.2 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Cấu trúc schema được triển khai bởi Flyway V1, V2 seed bậc chiết khấu; V3 chỉ seed catalog demo và không đổi thiết kế 19 bảng.
 
 > **Lưu ý về comment bất biến trong V1:** Phần đầu `V1__initial_schema.sql` còn câu mô tả được sao chép từ bản DESIGN DDL (“NOT executed”/chạy qua SSMS). Câu này không phản ánh cách file đang được sử dụng: V1 là migration thực thi của Flyway và đã được áp dụng. Không sửa riêng comment trong V1 vì sẽ làm thay đổi checksum migration đã chia sẻ; dùng ghi chú này làm diễn giải chính thức.
 
@@ -8,6 +8,8 @@
 
 - 4 kiểu mua: bánh lẻ; hộp rỗng; hộp đóng sẵn có SKU tồn kho riêng; hộp tự chọn lấy bánh + hộp rỗng từ tồn thành phần.
 - COD duy nhất trong MVP. Khách đặt tự động, không duyệt đơn, không có `reserved_quantity` hoặc hạn chờ chuyển khoản.
+- Ứng dụng v1.2 cho phép khách chưa đăng nhập xem catalog nhưng yêu cầu đăng ký/đăng nhập trước khi tạo giỏ, CUSTOM box hoặc checkout. Mọi giỏ mới dùng `customer_id`; `guest_token` để NULL.
+- V1 vẫn giữ nhánh cấu trúc nullable cho guest cart và `SALES_ORDER.customer_id` nullable để bảo toàn checksum migration/schema 19 bảng đã chia sẻ. Backend v1.2 không sử dụng nhánh đó và yêu cầu đơn bán lẻ có `customer_id`; quyết định thu hẹp hành vi này không cần migration.
 - Đặt đơn thành công là claim giỏ `ACTIVE → CHECKED_OUT`, kiểm tra + tạo đơn + trừ tồn trong 1 transaction; một giỏ chỉ checkout thành công **đúng một lần**. Hủy hợp lệ trước `SHIPPING` hoàn tồn **đúng một lần**.
 - Chiết khấu theo **hai nhóm độc lập** (`GIFT_BOX`, `MOONCAKE`), ngưỡng 50/100: 5%/10%. Hộp rỗng không giảm.
 - Phí vận chuyển demo: dưới 50 hộp quà là 30.000 VND; từ 50 hộp là 150.000 VND (có thể cấu hình ở service); giữ snapshot phí trên đơn.

@@ -1,286 +1,223 @@
 # MoonCake MVP — Team Work Plan
 
-**Version:** 1.2
+**Version:** 1.3
 
-**Date:** 20/10/2026
+**Date:** 21/10/2026
 
-**Status:** Updated baseline; ready for team review before the Foundation PR
+**Status:** Approved current ownership after Foundation; Customer Sales and Admin flows separated
 **Scope:** Four-member HSF302 team, Spring Boot MVC + Thymeleaf SSR, SQL Server, COD-only MVP
 
 ## 1. Purpose
 
-This document defines feature ownership, collaboration boundaries, integration order, and the Git workflow. It prevents two members or their AI assistants from implementing the same responsibility differently.
+This document defines current feature ownership, collaboration boundaries, integration order, and the Git workflow. It prevents team members or their AI assistants from implementing the same responsibility differently.
 
 Read it together with:
 
 1. `business-rules.md` for approved behavior.
 2. `architecture-conventions.md` for code structure.
-3. `foundation-plan.md` for the shared starting implementation.
-4. `MoonCake_Physical_ERD_Design_Notes.md`, the approved Physical SQL, and Flyway V1/V2 for database structure.
+3. `foundation-plan.md` for the shared implementation already merged.
+4. `MoonCake_Physical_ERD_Design_Notes.md`, the approved Physical SQL, and all applied Flyway migrations for database structure.
 
-Module ownership means responsibility for design, implementation, tests, and review. It does not authorize a member to change shared entities, migrations, or another module's public contract without agreement.
+Ownership means responsibility for design, implementation, tests, and review. It does not authorize a person to change shared entities, migrations, or another flow's public contract without agreement.
 
-## 2. Shared delivery model
+## 2. Current delivery model
 
-- Develop vertically by feature: persistence, service, MVC controller, Thymeleaf view, and tests.
-- Reuse the existing Thymeleaf/CSS/JS screens; replace demo/hardcoded data incrementally.
-- Do not wait for all frontend work to finish before backend work starts.
-- Merge the Foundation PR before parallel feature implementation.
-- Prioritize the end-to-end customer flow: browse product -> cart -> COD checkout -> inventory deduction.
-- Complete secondary Admin screens and UI polish after the critical flow works.
+The project currently has two primary ownership streams:
 
-## 3. Member 1 — Product, Catalog, and PRESET Definition
+- **Customer Sales owner:** implements the complete customer-facing selling flow with Codex support.
+- **Admin owner:** implements Admin pages and Admin-only operations.
+
+The remaining team members may support UI, testing, or review through an explicitly assigned PR. They must not create parallel controllers, services, repositories, or security configuration for an already-owned use case.
+
+Develop vertically by feature: persistence, service, MVC controller, Thymeleaf view, and tests. Reuse existing Thymeleaf/CSS/JS screens and replace demo data incrementally. Keep PRs small enough to review and integrate the end-to-end customer path before secondary Admin polish.
+
+## 3. Customer Sales ownership
 
 ### Primary scope
 
-- Customer product catalog, search/filter, product detail, SKU display, and product images.
-- Admin CRUD for categories, products, variants, images, and empty-box definitions.
-- Define PRESET gift-box recipes before they become READY.
-- Enforce the rule that a READY/stocked/referenced PRESET cannot have its composition changed.
+- Public catalog, product search/filter, product detail, variants, images, and PRESET recipe display.
+- Customer registration, login, logout, session security, and current-customer resolution.
+- The application's single `SecurityConfig` and shared `PasswordEncoder`.
+- Authenticated customer cart and cart-line operations.
+- CUSTOM gift-box creation/editing, exact-capacity validation, and ownership checks.
+- Server-side pricing and volume discounts.
+- COD checkout, immutable order/payment/component snapshots, and atomic sale inventory deduction.
+- Customer order history and detail.
+- Customer-facing controllers, forms/DTOs, templates, authorization checks, and tests for those flows.
 
-### Primary database area
+### Authentication behavior
 
-- `CATEGORY`
-- `PRODUCT`
-- `PRODUCT_VARIANT`
-- `PRODUCT_IMAGE`
-- `BOX`
-- PRESET behavior over shared `BOX_CONFIGURATION` and `BOX_CONFIGURATION_ITEM`
+- Visitors may browse catalog and product pages without signing in.
+- Add-to-cart, buy-now, CUSTOM-box, cart, checkout, and customer-order operations require an ACTIVE account with role `CUSTOMER`.
+- Customer registration creates `ACCOUNT` and linked `CUSTOMER` in one transaction; role/status are decided by the backend, never by form input.
+- An unauthenticated purchase action redirects to login with a validated internal return URL. It does not mutate data or automatically replay a POST.
+- The schema's guest fields remain for applied-migration compatibility but are not used by the v1.2 application.
 
-### Expected output
+### Database and service area
 
-- Customer catalog reads real SQL Server data instead of `PageController` hardcoded lists.
-- Admin can manage the approved catalog fields.
-- A changed PRESET recipe produces a new GIFT_SET SKU/configuration rather than rewriting historical composition.
+- Catalog reads over `CATEGORY`, `PRODUCT`, `PRODUCT_VARIANT`, `PRODUCT_IMAGE`, `BOX`, and READY PRESET configurations.
+- `ACCOUNT` and `CUSTOMER` for customer registration/authentication.
+- `CART`, `CART_ITEM`, CUSTOM `BOX_CONFIGURATION`, and `BOX_CONFIGURATION_ITEM`.
+- `VOLUME_DISCOUNT_TIER`.
+- `SALES_ORDER`, `ORDER_ITEM`, `ORDER_ITEM_COMPONENT`, and COD `PAYMENT` for checkout and customer reads.
+- Sale-side operations over `INVENTORY_BALANCE` and `STOCK_MOVEMENT`, through Inventory service contracts.
 
 ### Public contracts owned
 
 - `ProductQueryService`
-- `ProductAdminService`
 - `PresetConfigurationQueryService`
-- `PresetConfigurationAdminService`
-
-### Persistence ownership
-
-- Own catalog repositories plus the narrowly scoped `PresetConfigurationRepository` and `PresetConfigurationItemRepository`.
-- The PRESET repositories may read/write only PRESET configurations through Product services; they must not mutate CUSTOM configurations.
-- SKU creation/activation calls the public Inventory contract to initialize or verify `INVENTORY_BALANCE`; Product code must not write the Inventory repository directly.
-
-## 4. Member 2 — Cart, CUSTOM Gift Box, and Pricing
-
-### Primary scope
-
-- Guest/customer cart lifecycle and cart-line operations.
-- Add the same target by increasing quantity, never inserting a duplicate line.
-- Create and edit CUSTOM box configurations owned by an ACTIVE cart.
-- Validate exact box capacity before READY/checkout.
-- Calculate provisional cart prices and volume-discount groups.
-
-### Primary database area
-
-- `CART`
-- `CART_ITEM`
-- CUSTOM behavior over `BOX_CONFIGURATION`
-- CUSTOM behavior over `BOX_CONFIGURATION_ITEM`
-- `VOLUME_DISCOUNT_TIER`
-
-### Expected output
-
-- Customers can add variants, build a CUSTOM gift box, update quantities, and see server-calculated provisional totals.
-- Cart and CUSTOM configuration ownership is protected.
-- Pricing follows separate `GIFT_BOX` and `MOONCAKE` quantity groups.
-
-### Public contracts owned
-
+- `AuthenticationService`
+- `CurrentCustomerService`
 - `CartService`
 - `CustomBoxService`
 - `PricingService`
-
-### Persistence ownership
-
-- Own `CartRepository`, `CartItemRepository`, `CustomBoxConfigurationRepository`, and `CustomBoxConfigurationItemRepository`.
-- The CUSTOM repositories may read/write only configurations owned by an ACTIVE cart; they must not mutate PRESET configurations.
-- All cart/configuration mutations serialize on the owning cart row so they cannot race checkout.
-
-## 5. Member 3 — Checkout, Order, and COD Payment
-
-### Primary scope
-
-- Coordinate the complete checkout transaction.
-- Create immutable order, order-item, and component snapshots.
-- Create COD payment as `UNPAID` at checkout.
-- Implement order history/detail, Admin order processing, valid state transitions, cancellation, and delivery/COD collection.
-- Keep cancellation inventory restoration and delivery/payment completion atomic.
-
-### Primary database area
-
-- `SALES_ORDER`
-- `ORDER_ITEM`
-- `ORDER_ITEM_COMPONENT`
-- `PAYMENT`
-- `BUSINESS`
-
-### Expected output
-
-- Exactly one successful order can be created from an ACTIVE cart.
-- Concurrent/repeated checkout cannot create duplicate orders or deduct stock twice.
-- Order, pricing, recipient, component, and payment snapshots remain stable after catalog changes.
-
-### Public contracts owned
-
 - `CheckoutService`
-- `OrderQueryService`
-- `OrderManagementService`
+- Customer-facing methods of `OrderQueryService`
+- Sale-deduction methods of `InventoryService`
 
-### Transaction coordinator rule
+### Required behavior
 
-Member 3 owns the checkout and cancellation orchestration. The implementation calls Member 2 pricing/cart contracts and Member 4 inventory contracts. It must not reproduce their repository logic inside the order module.
+- Add the same cart target by increasing quantity, never inserting a duplicate line.
+- Serialize cart/CUSTOM mutations on the owning ACTIVE cart row.
+- Derive ownership from the authenticated CUSTOMER principal.
+- Claim `CART` from `ACTIVE` to `CHECKED_OUT` before creating an order.
+- Create the order, COD `UNPAID` payment, inventory deductions, and SALE movements in one transaction.
+- PRESET sales deduct finished GIFT_SET stock; CUSTOM sales deduct the empty box and cake components.
 
-## 6. Member 4 — Inventory, PACK, Identity, and Security
+## 4. Admin ownership
 
 ### Primary scope
 
-- Inventory balances, receiving, adjustment, low-stock views, and movement history.
-- Atomic stock deduction/restoration operations used by checkout and cancellation.
-- PACK operation: consume loose box/cake components and increase finished GIFT_SET stock in one transaction.
-- Account/customer authentication, authorization, current-customer resolution, and Admin route protection.
-- MVP authentication is limited to login/logout for existing accounts and role protection. Customer self-registration, password reset, social login, MFA, and account verification are outside scope until separately approved.
-- Secure backend-generated guest identity cookie and ownership checks for guest carts/configurations.
-- One-time initial Admin bootstrap from environment variables; never seed or hardcode an Admin password.
+- `/admin/**` controllers, forms/DTOs, templates, navigation, and authorization tests.
+- Category, product, variant, image, and empty-box management.
+- PRESET recipe creation while DRAFT and activation to READY.
+- Inventory receiving, manual adjustment, low-stock views, movement history, and PACK operations.
+- Admin order views and valid processing, shipping, cancellation, and delivery/COD-completion actions.
+- One-time initial-Admin bootstrap from environment variables.
 
-### Primary database area
+### Database and service area
 
-- `INVENTORY_BALANCE`
-- `STOCK_MOVEMENT`
-- `ACCOUNT`
-- `CUSTOMER`
-
-### Expected output
-
-- The application prevents overselling with conditional database updates.
-- SALE, CANCEL_RETURN, and PACK movement keys remain idempotent.
-- Admin/customer access is protected without preventing guest checkout.
-- Guest tokens are unguessable, server-managed, absent from URLs/logs/local storage, and never accepted as caller-selected ownership proof.
-- The first Admin can be created through the disabled-by-default `bootstrap-admin` profile without storing credentials in Git or Flyway.
+- Admin mutations over catalog and PRESET tables.
+- `INVENTORY_BALANCE` and `STOCK_MOVEMENT` for receive, adjust, PACK, and valid restoration operations.
+- Admin state transitions over `SALES_ORDER` and `PAYMENT` through order service contracts.
+- `ACCOUNT` only for Admin bootstrap/status checks; customer registration belongs to Customer Sales.
 
 ### Public contracts owned
 
-- `InventoryService`
+- `ProductAdminService`
+- `PresetConfigurationAdminService`
+- `InventoryAdminService` or clearly Admin-scoped methods of `InventoryService`
 - `PackingService`
-- `AuthenticationService`
-- `CurrentCustomerService`
+- Admin-facing methods of `OrderQueryService`
+- `OrderManagementService`
+- `AdminBootstrapService`
 
-### Security ownership boundary
+### Required behavior
 
-- Foundation creates only `ShopperIdentity`, the `CurrentCustomerService` interface, and shared authorization/error types.
-- Member 4 exclusively adds the Spring Security dependency and owns `SecurityConfig`, `UserDetailsService`, `PasswordEncoder`, `AuthenticationService` implementation, `CurrentCustomerService` implementation, login/logout controller/view, guest-cookie handling, and Admin bootstrap.
-- Other members do not create alternate security configuration or authentication services. Member 4's initial security PR must merge before Admin feature controllers rely on route protection.
+- A READY, stocked, or historically referenced PRESET composition is immutable; changed contents require a new SKU/configuration.
+- Receive/adjust/PACK operations update balance and movement history atomically.
+- Cancellation restores stock exactly once and only for an allowed pre-shipping state.
+- Delivery changes `SHIPPING -> COMPLETED` and COD `UNPAID -> PAID` atomically.
+- Admin code uses the shared `SecurityConfig`, `PasswordEncoder`, and account-loading mechanism. It must not create another filter chain or authentication service.
 
-## 7. Shared ownership and change control
+## 5. Shared boundaries and file ownership
 
-### Foundation-owned artifacts
+- Customer Sales owns security baseline files. Admin may request a route/role change but coordinates before editing them.
+- Product query and Product Admin implementations use separate service methods. Admin mutations must not leak into public query controllers.
+- Customer Sales owns checkout orchestration. Admin state transitions call order/inventory contracts and do not reproduce checkout logic.
+- Sale inventory deduction and Admin inventory operations may share repositories, but each operation has one service owner and one transaction coordinator. Any public `InventoryService` signature change requires both owners to review it.
+- Customer Sales owns customer order history; Admin owns order management. Shared repository queries should be added through the owning service, not copied into another module.
+- Product owns PRESET repositories; Cart owns CUSTOM configuration repositories. Do not create a general repository that freely mutates both types.
+- Controllers call services, never another module's repository.
+- Cross-module contracts exchange IDs and immutable DTOs, not managed entities.
+
+## 6. Foundation and database change control
+
+Foundation-owned artifacts are:
 
 - All 19 JPA entities and database enums.
 - Cross-module relationship mappings.
 - Global exception/error conventions.
-- Public service contracts agreed before parallel work.
-- Spring/Flyway/database configuration.
-- The dedicated SQL Server integration-test profile and its non-production database contract.
-- Shared security identity contracts only; concrete Spring Security configuration is explicitly excluded from Foundation ownership.
+- Shared public contracts created before feature work.
+- Spring/Flyway/database and SQL Server integration-test configuration.
 
-Changing these after Foundation merge requires review from every affected module owner.
+Changing a shared entity, enum, contract, or configuration after Foundation requires review from every affected owner.
 
-### Database changes
+Applied Flyway V1/V2/V3 files are immutable. A genuine schema change requires a written Business Rules/ERD comparison, team approval, and a new migration version. Never let Hibernate create or update schema.
 
-- Flyway V1/V2 are immutable after sharing.
-- A schema change requires a written reason, comparison with Business Rules/ERD, team approval, and a new migration version.
-- Only one active PR should introduce a particular migration version.
-- Never let Hibernate generate or update schema.
+The authenticated-customer decision does not require a migration: new carts use `customer_id`, leave `guest_token` null, and new retail orders have `customer_id` at the application boundary.
 
-### Legacy `PageController`
+## 7. Implementation order
 
-- Do not let all members edit it independently.
-- Member 1 replaces product routes first; other routes move to feature controllers through small PRs.
-- Delete hardcoded demo data only after the corresponding database-backed page works.
+### Phase 0 — Documentation and shared-contract alignment
 
-## 8. Cross-module dependency rules
+- Approve Business Rules v1.2 and this ownership plan.
+- Narrow `ShopperIdentity`/`CurrentCustomerService` to authenticated customers.
+- Confirm no applied migration was changed.
 
-- Product contracts are consumed by Cart, Checkout, and Inventory/PACK.
-- Inventory contracts are consumed by Product Admin when a managed-stock SKU is created or activated.
-- Cart and Pricing contracts are consumed by Checkout.
-- Inventory contracts are consumed by Checkout/Order and Admin inventory screens.
-- Current-customer/security contracts are consumed by all web modules.
-- Order contracts may be consumed by Admin views, but Inventory must not change order state itself.
-- A module may call another module's service interface; it may not call that module's repository.
-- Cross-module contracts exchange IDs and DTOs, not mutable JPA entities.
+### Phase 1 — Customer authentication baseline
 
-## 9. Implementation phases
+- Add Spring Security dependency and the single `SecurityConfig`.
+- Implement registration, login/logout, ACTIVE CUSTOMER resolution, CSRF-safe SSR forms, and safe post-login return behavior.
+- Test public catalog access, protected purchase routes, duplicate email, disabled account, and cross-customer access.
 
-### Phase 0 — Documentation baseline
+### Phase 2 — Customer selling flow
 
-- Approve Business Rules, this work plan, architecture conventions, and Foundation plan.
-- Confirm the already-merged Flyway/database baseline, then merge the reviewed documentation and AI guidance.
+- Integrate database-backed catalog.
+- Implement cart and CUSTOM gift boxes.
+- Implement pricing, COD checkout, inventory sale deduction, and customer order history.
+- Test duplicate additions, insufficient stock, repeated/concurrent checkout, and transaction rollback.
 
-### Phase 1 — Foundation
+### Phase 3 — Admin flow
 
-- Implement the package skeleton, enums, all entities, mapping tests, shared errors, and agreed service contracts.
-- Merge and tag a stable starting point for all feature branches.
+- Implement catalog/PRESET management, inventory receive/adjust/PACK, order transitions, cancellation, COD completion, and Admin bootstrap.
+- Integrate against the already-merged security and service contracts.
 
-### Phase 2 — Core feature development
+### Phase 4 — Integration and polish
 
-- Members implement their vertical feature slices in parallel.
-- Use agreed interfaces or small fakes while a dependency is not merged.
-- Avoid creating an alternative interface privately inside a feature branch.
+- Test authorization, concurrency, idempotency, state transitions, SQL Server constraints, and critical SSR journeys.
+- Remove remaining demo data only after its database-backed replacement works.
+- Finish UI consistency without mixing unrelated refactors into business PRs.
 
-### Phase 3 — Integration
+## 8. Git and PR workflow
 
-- Integrate Product -> Cart -> Checkout -> Inventory first.
-- Then integrate cancellation/refund-to-stock, PACK, authentication, and Admin workflows.
+Suggested short-lived branches are:
 
-### Phase 4 — Testing and polish
-
-- Test concurrency, idempotency, state transitions, authorization, validation, and critical SSR flows.
-- Remove remaining demo data and finish UI consistency.
-
-## 10. Git and PR workflow
-
-Suggested short-lived branch prefixes are:
-
-- `feature/product-catalog`
-- `feature/cart-custom-box`
-- `feature/checkout-orders`
-- `feature/inventory-admin-auth`
-
-Branches are ownership labels, not permission to accumulate a very large PR. Each member should open small reviewable PRs, regularly update from `main`, and integrate early.
+- `feature/customer-auth`
+- `feature/customer-cart-custom-box`
+- `feature/customer-checkout-orders`
+- `feature/admin-catalog-preset`
+- `feature/admin-inventory-orders`
 
 Every PR must state:
 
-- Scope and module owner.
+- Scope and owner.
 - Files and behavior changed.
-- Tests executed and their result.
+- Tests executed and results.
 - Database impact (`none` or migration version).
-- Public contract changes and affected members.
+- Public contract changes and affected owners.
 - Remaining assumptions or follow-up work.
 
-## 11. Definition of Done for a feature
+Regularly update from `main`, coordinate before editing a shared contract, and do not combine an unrelated refactor with a feature PR.
+
+## 9. Definition of Done
 
 A feature is complete only when:
 
 - It follows Business Rules and the approved schema.
 - Controller, service, repository, DTO/form/view model, and Thymeleaf behavior are integrated as needed.
-- Server-side validation and authorization are present.
-- Critical business behavior has automated tests proportional to risk.
+- Server-side validation, ownership checks, and route/service authorization are present.
+- Critical behavior has automated tests proportional to risk.
 - No credentials, demo secrets, or unrelated schema changes are included.
-- The owner has tested the relevant page or transaction against SQL Server.
+- The owner tested the relevant page or transaction against the correct environment.
 - Documentation is updated if a public contract or team agreement changed.
 
-## 12. Conflict resolution
+## 10. Conflict resolution
 
 When requirements, schema, or module contracts conflict:
 
 1. Stop the affected implementation.
-2. Record the conflicting sources and affected modules.
+2. Record the conflicting sources and affected owners.
 3. Prefer confirmed Business Rules for behavior and approved Flyway/Physical DDL for structure.
 4. Get agreement before modifying a shared contract or adding a migration.
 5. Document the decision so human members and AI assistants receive the same instruction.
-

@@ -6,7 +6,7 @@ import java.util.List;
 
 public record CheckoutCartSnapshot(
     long cartId,
-    ShopperIdentity shopper,
+    ShopperIdentity customerIdentity,
     List<CartLineSnapshot> lines
 ) {
     public CheckoutCartSnapshot {

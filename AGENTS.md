@@ -19,8 +19,9 @@ If the sources conflict, stop and report the conflict. Do not invent a business 
 
 - Spring Boot MVC + Thymeleaf SSR and Microsoft SQL Server.
 - MVP payment is COD only. Do not add payOS, VietQR, reservation, payment approval, or unrelated features.
+- Visitors may browse the catalog, but registration/login is required before cart, CUSTOM-box, checkout, or customer-order operations. Customer self-registration is in scope.
 - Keep the approved 19-table design unless a reviewed migration is explicitly required.
-- Never edit an applied/shared `V1__...` or `V2__...` migration. Use a new version after team approval.
+- Never edit an applied/shared `V1__...`, `V2__...`, or `V3__...` migration. Use a new version after team approval.
 - Never commit `.env`, passwords, tokens, or real connection strings.
 
 ## Architecture
@@ -32,7 +33,7 @@ If the sources conflict, stop and report the conflict. Do not invent a business 
 - Keep the legacy catalog data as `product.dto.CatalogProductView`; never treat it as the database-backed `entity.Product`.
 - Put transaction boundaries in service implementations, never controllers.
 - Do not let Hibernate create or modify schema; Flyway remains the schema owner.
-- Foundation defines only the shared shopper-identity contract and common authentication errors. Member 4 exclusively owns the concrete Spring Security configuration, authentication implementation, guest-cookie handling, and initial-Admin bootstrap.
+- Foundation defines the shared customer-identity contract and common authentication errors. The Customer Sales owner owns the single Spring Security configuration, customer registration/login/logout, and current-customer implementation; the Admin owner consumes it and owns only Admin access flows and initial-Admin bootstrap.
 
 ## Critical behavior
 
@@ -42,7 +43,8 @@ If the sources conflict, stop and report the conflict. Do not invent a business 
 - PRESET sales deduct finished GIFT_SET stock; CUSTOM sales deduct box and cake component stock.
 - Compute prices, tier discounts, shipping, snapshots, and totals on the server.
 - Serialize cart/CUSTOM mutations on the ACTIVE cart row; use conditional state transitions for checkout, cancellation, shipping, and COD completion.
-- Generate guest tokens only on the backend with cryptographically secure randomness, store them in protected cookies, and verify cart ownership server-side; never trust a caller-supplied token or cart ID as proof of ownership.
+- Resolve cart/configuration/order ownership from the authenticated CUSTOMER principal; never trust caller-supplied account, customer, cart, or configuration IDs as proof of ownership.
+- Keep catalog reads public. Unauthenticated purchase actions go through login and must not mutate state or automatically replay a POST.
 
 ## Collaboration and verification
 

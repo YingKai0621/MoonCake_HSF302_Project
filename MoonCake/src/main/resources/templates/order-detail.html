@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Chi tiết đơn hàng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D', surface: '#0C1626', control: '#162842',
+            gold: '#D1A85A', goldHover: '#E5C37E', ivory: '#F8F4EB', sand: '#C2BAAB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+  <header th:replace="~{fragments/header :: header('orders')}"></header>
+
+  <main class="flex-grow max-w-[1180px] w-full mx-auto px-4 sm:px-6 py-10">
+    <a th:href="@{/orders}" class="inline-flex items-center gap-2 text-sm text-sand hover:text-gold mb-6 transition-colors">
+      <span aria-hidden="true">←</span>
+      Quay lại danh sách đơn hàng
+    </a>
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Chi tiết đơn hàng</p>
+        <h1 class="font-mono text-2xl md:text-3xl font-bold" th:text="${order.orderCode}">MC-00000000-00000000</h1>
+        <p class="text-sm text-sand mt-2" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc 21/10/2026 20:00</p>
+      </div>
+      <span class="self-start sm:self-auto px-4 py-2 text-sm text-gold bg-gold/10 border border-gold/30 rounded"
+            th:text="${order.statusLabel}">Đã tiếp nhận</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div class="lg:col-span-8 space-y-6">
+        <section class="bg-surface border border-gold/20 rounded-lg p-6">
+          <h2 class="font-serif text-xl font-semibold pb-4 mb-5 border-b border-gold/15">Thông tin nhận hàng</h2>
+          <dl class="space-y-4 text-sm">
+            <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Người nhận</dt><dd class="col-span-2 font-medium" th:text="${order.recipientName}">Tên người nhận</dd></div>
+            <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Số điện thoại</dt><dd class="col-span-2" th:text="${order.recipientPhone}">0900000000</dd></div>
+            <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Địa chỉ</dt><dd class="col-span-2 leading-relaxed" th:text="${order.shippingAddress}">Địa chỉ</dd></div>
+            <div th:if="${order.orderNote}" class="grid grid-cols-3 gap-3"><dt class="text-sand">Ghi chú</dt><dd class="col-span-2" th:text="${order.orderNote}">Ghi chú</dd></div>
+            <div class="grid grid-cols-3 gap-3 pt-3 border-t border-gold/15">
+              <dt class="text-sand">Thanh toán</dt>
+              <dd class="col-span-2"><strong>COD</strong><span class="text-sand" th:text="${' · ' + order.paymentStatusLabel}"> · Chưa thanh toán</span></dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="bg-surface border border-gold/20 rounded-lg p-6">
+          <div class="flex justify-between items-center pb-4 mb-5 border-b border-gold/15">
+            <h2 class="font-serif text-xl font-semibold">Sản phẩm</h2>
+            <span class="text-sm text-sand" th:text="${order.totalQuantity + ' sản phẩm'}">0 sản phẩm</span>
+          </div>
+
+          <div class="space-y-6">
+            <article th:each="item : ${order.items}" class="pb-6 border-b border-gold/10 last:border-0 last:pb-0">
+              <div class="flex justify-between gap-4">
+                <div>
+                  <h3 class="font-semibold" th:text="${item.productName}">Sản phẩm</h3>
+                  <p class="text-xs text-sand mt-1" th:text="${'SKU: ' + item.sku + ' · SL: ' + item.quantity}">SKU</p>
+                  <p class="text-xs text-sand mt-1" th:text="${item.formattedUnitFinalPrice + ' / sản phẩm'}">0đ / sản phẩm</p>
+                  <p th:if="${item.discountLabel}" class="text-xs text-gold mt-1" th:text="${item.discountLabel}">Giảm 5%</p>
+                </div>
+                <p class="font-semibold whitespace-nowrap" th:text="${item.formattedLineTotal}">0đ</p>
+              </div>
+
+              <div th:unless="${#lists.isEmpty(item.components)}" class="mt-4 pl-4 border-l border-gold/25 space-y-2">
+                <p class="text-xs uppercase tracking-wider text-gold">Thành phần mỗi hộp</p>
+                <div th:each="component : ${item.components}" class="flex justify-between gap-4 text-xs text-sand">
+                  <span th:text="${component.roleLabel + ': ' + component.name}">Bánh: Thành phần</span>
+                  <span th:text="${'× ' + component.quantityPerSet}">× 1</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="lg:col-span-4 lg:sticky lg:top-6 bg-surface border border-gold/20 rounded-lg p-6">
+        <h2 class="font-serif text-xl font-semibold pb-4 mb-4 border-b border-gold/15">Tổng đơn hàng</h2>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between"><span class="text-sand">Tạm tính</span><span th:text="${order.formattedSubtotal}">0đ</span></div>
+          <div class="flex justify-between"><span class="text-sand">Chiết khấu</span><span class="text-gold" th:text="${order.formattedDiscount == '0đ' ? '0đ' : '- ' + order.formattedDiscount}">0đ</span></div>
+          <div class="flex justify-between"><span class="text-sand">Phí giao hàng</span><span th:text="${order.formattedShippingFee}">0đ</span></div>
+          <div class="flex justify-between items-baseline pt-4 border-t border-gold/15">
+            <span class="font-medium">Tổng cộng</span>
+            <span class="text-2xl font-bold text-gold" th:text="${order.formattedTotal}">0đ</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+</body>
+</html>

@@ -8,20 +8,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ShopperIdentityTest {
 
     @Test
-    void acceptsExactlyOneOwnerType() {
+    void acceptsPositiveCustomerId() {
         ShopperIdentity customer = ShopperIdentity.forCustomer(7L);
-        ShopperIdentity guest = ShopperIdentity.forGuest("opaque-guest-token");
 
-        assertThat(customer.isCustomer()).isTrue();
-        assertThat(guest.isCustomer()).isFalse();
-        assertThat(guest.toString()).doesNotContain("opaque-guest-token");
+        assertThat(customer.customerId()).isEqualTo(7L);
     }
 
     @Test
-    void rejectsMissingOrAmbiguousOwner() {
-        assertThatThrownBy(() -> new ShopperIdentity(null, null))
-            .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new ShopperIdentity(1L, "guest"))
+    void rejectsNonPositiveCustomerId() {
+        assertThatThrownBy(() -> new ShopperIdentity(0L))
             .isInstanceOf(IllegalArgumentException.class);
     }
 }

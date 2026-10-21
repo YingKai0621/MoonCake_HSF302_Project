@@ -1,14 +1,22 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.1.1 — 20/10/2026
+**Phiên bản tài liệu:** 1.2 — 21/10/2026
 
-**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt; Physical DDL đã được chuyển thành Flyway V1/V2, kiểm thử trên SQL Server 2019 và sẵn sàng làm nguồn triển khai Spring Boot
+**Trạng thái:** Quy tắc nghiệp vụ MVP đã cập nhật theo yêu cầu đăng nhập trước khi mua; schema 19 bảng hiện tại vẫn đủ và không cần migration mới
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.2
+
+- Khách chưa đăng nhập vẫn được xem catalog và chi tiết sản phẩm nhưng không được tạo/sửa giỏ, tạo hộp CUSTOM hoặc checkout.
+- Khách được tự đăng ký tài khoản `CUSTOMER`; đăng ký tạo `ACCOUNT` và `CUSTOMER` nguyên tử, sau đó có thể đăng nhập để mua hàng.
+- Bỏ guest cart/guest checkout khỏi hành vi MVP của ứng dụng. Các cột nullable liên quan guest vẫn được giữ trong schema V1 đã áp dụng nhưng backend mới không sử dụng chúng.
+- Chốt điều hướng: thao tác mua khi chưa đăng nhập đưa khách đến màn hình đăng nhập; không thực hiện âm thầm thao tác mua trước khi xác thực.
+- Phân lại ownership: một luồng Customer Sales sở hữu customer authentication và toàn bộ luồng bán; luồng Admin dùng chung nền tảng bảo mật và không tạo `SecurityConfig` thứ hai.
 
 ### Thay đổi chính trong phiên bản 1.1
 
@@ -34,7 +42,7 @@
 
 ## 1. Phạm vi MVP
 
-MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), giỏ hàng, checkout, đặt hàng, COD, chiết khấu theo số lượng và trang Admin quản lý sản phẩm/đơn hàng/tồn kho. Khách **không bắt buộc đăng nhập** khi mua.
+MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đăng ký/đăng nhập khách hàng, giỏ hàng, checkout, đặt hàng, COD, chiết khấu theo số lượng và trang Admin quản lý sản phẩm/đơn hàng/tồn kho. Khách chưa đăng nhập được xem catalog; khách **phải đăng nhập bằng tài khoản CUSTOMER đang ACTIVE** trước khi thêm vào giỏ, tạo hộp CUSTOM hoặc đặt hàng.
 
 **Bốn cách mua hàng:**
 
@@ -67,7 +75,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), gi�
 - Nếu công thức hộp PRESET thay đổi, Admin phải tạo **SKU GIFT_SET mới + BOX_CONFIGURATION PRESET mới + danh sách component mới**. SKU/config cũ được giữ nguyên để bán hết tồn phù hợp hoặc chuyển `is_active = 0`; không gắn thành phần mới lên SKU của hàng đã đóng sẵn.
 - Database hiện bảo vệ quan hệ một PRESET trên mỗi `preset_variant_id`, nhưng không dùng trigger để cấm `UPDATE`. Quy tắc bất biến PRESET phải được bảo vệ tại Admin/Service và bằng quyền truy cập database; không cho người dùng nghiệp vụ sửa trực tiếp các bảng cấu hình.
 - Cấu hình CUSTOM ở trạng thái nháp (`DRAFT`) có thể chưa đủ bánh. Chỉ được đánh dấu sẵn sàng (`READY`), cho vào checkout và đặt hàng khi **tổng `quantity_per_box` bằng `BOX.capacity_cakes`**.
-- Chỉ chủ giỏ hàng/phiên khách sở hữu mới được sửa cấu hình CUSTOM. Hệ thống kiểm tra cả quyền sở hữu và `CART_ITEM.cart_id` khớp `BOX_CONFIGURATION.cart_id`.
+- Chỉ khách hàng đã đăng nhập sở hữu giỏ mới được sửa cấu hình CUSTOM. Hệ thống lấy `customer_id` từ phiên đăng nhập, kiểm tra quyền sở hữu và kiểm tra `CART_ITEM.cart_id` khớp `BOX_CONFIGURATION.cart_id`; không tin ID do form gửi lên làm bằng chứng sở hữu.
 - Quy ước snapshot `ORDER_ITEM_COMPONENT` được khóa như sau:
   - Bánh lẻ và hộp rỗng mua rời (`ORDER_ITEM` loại STANDARD): không tạo component; toàn bộ snapshot nằm trên `ORDER_ITEM`.
   - Hộp PRESET/GIFT_SET: snapshot **1 thành phần BOX** (`quantity_per_set = 1`) và các thành phần CAKE theo công thức PRESET tại checkout để hiển thị lịch sử. Tên/giá component là thông tin snapshot, không dùng để cộng lại giá bán PRESET; tồn kho vẫn chỉ trừ SKU GIFT_SET thành phẩm và `inventory_source_snapshot = STOCKED_SKU`.
@@ -75,24 +83,29 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), gi�
   - Các component cùng SKU trong một hộp phải được cộng gộp thành một dòng snapshot; `quantity_per_set` là số lượng trong **một bộ**, còn số bộ nằm trên `ORDER_ITEM.quantity`.
 - Không cho sửa hoặc xóa cấu hình đã được một đơn thành công tham chiếu. Giỏ/config có thể được sửa trước checkout; sau checkout, `ORDER_ITEM` và `ORDER_ITEM_COMPONENT` là lịch sử bất biến qua luồng nghiệp vụ thông thường.
 
-## 4. Giỏ hàng và khách vãng lai
+## 4. Đăng ký, đăng nhập và giỏ hàng
 
-- `ACCOUNT` quản lý đăng nhập/quyền (`ADMIN`, `CUSTOMER`). `CUSTOMER` là hồ sơ người mua; có thể gắn tài khoản hoặc không.
-- `CART` thuộc về **một** `CUSTOMER` đã nhận diện **hoặc** một `guest_token`, không thuộc cả hai cùng lúc. Một chủ thể có tối đa một giỏ `ACTIVE` ở một thời điểm.
+- Catalog, trang chi tiết sản phẩm và tài nguyên tĩnh là công khai. Xem giỏ, thêm/sửa/xóa dòng giỏ, tạo/sửa CUSTOM configuration, checkout và xem lịch sử đơn yêu cầu tài khoản `CUSTOMER` đang `ACTIVE`.
+- Khách được tự đăng ký bằng email, mật khẩu, họ tên và số điện thoại. Backend luôn gán `ACCOUNT.role = CUSTOMER`; không nhận role/status/account ID từ form đăng ký.
+- Đăng ký phải chuẩn hóa email nhất quán, từ chối email đã tồn tại, hash mật khẩu bằng `PasswordEncoder`, rồi tạo `ACCOUNT` và `CUSTOMER` trong **cùng một transaction**. Nếu một bước thất bại thì không lưu bản ghi còn lại.
+- Do MVP không có xác minh email hay duyệt tài khoản, đăng ký thành công tạo `ACCOUNT.status = ACTIVE`. Password reset, social login, MFA, email verification và account approval vẫn ngoài phạm vi.
+- `CUSTOMER.account_id` và `CUSTOMER.email` được backend gắn với tài khoản vừa đăng ký. Trong luồng mua MVP v1.2, mọi `CUSTOMER` được dùng làm chủ giỏ phải có `account_id`; mọi đơn thành công phải có `SALES_ORDER.customer_id`.
+- Khi khách chưa đăng nhập bấm “Thêm vào giỏ”, “Mua ngay” hoặc bắt đầu hộp CUSTOM, ứng dụng đưa khách đến `/login` cùng một return URL nội bộ an toàn. Không tạo giỏ, không lưu pending cart mutation và không tự phát lại POST trước khi xác thực; sau đăng nhập, khách quay lại trang phù hợp và xác nhận thao tác mua.
+- `CART` của luồng MVP ứng dụng thuộc về đúng một `CUSTOMER`: `customer_id` có giá trị và `guest_token IS NULL`. Một khách có tối đa một giỏ `ACTIVE` ở một thời điểm.
+- Schema V1 vẫn cho phép owner bằng `guest_token` để giữ checksum và thiết kế 19 bảng đã áp dụng. Đây là khả năng cấu trúc chưa dùng; backend MVP v1.2 không tạo, đọc như giỏ hiện hành, gộp hoặc checkout guest cart. Không cần migration chỉ để thu hẹp hành vi ứng dụng.
 - `CART_ITEM` lưu **đúng một** loại đích mua: `variant_id` (bánh lẻ, hộp rỗng, GIFT_SET) **hoặc** `configuration_id` (CUSTOM); `quantity` là số nguyên dương.
 - Trong cùng một giỏ, mỗi `variant_id` hoặc `configuration_id` chỉ xuất hiện ở **một `CART_ITEM`**. Thêm lại cùng đích mua phải tăng `quantity`, không tạo dòng trùng. Backend vẫn phải cộng gộp theo SKU khi kiểm tra tồn để phòng dữ liệu cũ hoặc lỗi đồng thời.
 - Thêm, xóa, đổi số lượng trong giỏ **không trừ tồn kho**. Tồn kho được kiểm tra lại tại checkout; số lượng còn bán trên trang sản phẩm chỉ để tham khảo.
-- Khách vãng lai được đặt hàng mà không đăng ký. `SALES_ORDER.customer_id` có thể `NULL` nhưng các thông tin người mua/nhận hàng tại thời điểm đặt là bắt buộc theo schema.
 - Checkout thành công phải chuyển giỏ hiện tại sang `CHECKED_OUT`. Giỏ đó và các CUSTOM configuration của nó không được dùng lại hoặc sửa tiếp; lần mua sau hệ thống tạo một giỏ `ACTIVE` mới khi cần.
 - Checkout thất bại không đổi trạng thái giỏ và không xóa lựa chọn của khách.
 - Một `CART` chỉ được checkout thành công **một lần**. Checkout phải bắt đầu bằng thao tác chuyển có điều kiện `ACTIVE → CHECKED_OUT`; chỉ request cập nhật được đúng một dòng mới được phép tạo đơn và trừ tồn.
 - Việc claim giỏ, kiểm tra dữ liệu, tạo order/items/components/payment, trừ tồn và ghi movements phải nằm trong **cùng transaction**. Nếu transaction rollback thì giỏ trở lại `ACTIVE`; nếu commit thì mọi request lặp hoặc đồng thời sau đó phải thất bại an toàn, không tạo đơn và không trừ tồn lần hai.
 - Không có luồng đưa giỏ `CHECKED_OUT` trở lại `ACTIVE`. Request checkout lặp có thể trả kết quả “giỏ đã được checkout”/conflict, nhưng không được mô phỏng một lần đặt hàng mới.
-- Tự động gộp guest cart với customer cart khi đăng nhập **ngoài phạm vi MVP**. Khi đăng nhập, hệ thống dùng giỏ `ACTIVE` của customer; guest cart cũ không được xóa âm thầm và có thể được đánh dấu `ABANDONED` theo tác vụ dọn dẹp sau này. Không chuyển CUSTOM configuration giữa hai giỏ bằng cách sửa FK tùy tiện.
+- Mọi thao tác giỏ/checkout lấy `customer_id` từ principal phía server. `cart_id` hoặc `customer_id` do trình duyệt gửi không chứng minh quyền sở hữu; service phải đối chiếu giỏ với khách hiện tại.
 
 ## 5. Checkout, đơn hàng và trạng thái
 
-- Khi khách nhấn **Đặt hàng (COD)**, backend tự kiểm tra SKU/cấu hình đang hợp lệ, đủ tồn kho, tính giá, chiết khấu, phí giao hàng và thông tin người nhận.
+- Khi khách `CUSTOMER` đã đăng nhập nhấn **Đặt hàng (COD)**, backend tự kiểm tra quyền sở hữu giỏ, SKU/cấu hình đang hợp lệ, đủ tồn kho, tính giá, chiết khấu, phí giao hàng và thông tin người nhận.
 - Nếu hợp lệ, hệ thống tự động tạo `SALES_ORDER`, `ORDER_ITEM`, `ORDER_ITEM_COMPONENT`, `PAYMENT` và cập nhật kho **trong cùng một giao dịch nhất quán**; sau đó hiển thị đặt hàng thành công.
 - **Không cần Admin duyệt đơn.** Admin không online thì khách vẫn đặt hàng bình thường.
 - Chuyển trạng thái đơn hợp lệ trong MVP:
@@ -121,7 +134,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), gi�
 
 ## 7. Chiết khấu số lượng — hai nhóm tách biệt
 
-Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vãng lai, cá nhân, doanh nghiệp), không yêu cầu xác minh doanh nghiệp để nhận giảm giá số lượng.
+Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nhập** (cá nhân hoặc mua theo thông tin doanh nghiệp), không yêu cầu xác minh doanh nghiệp để nhận giảm giá số lượng.
 
 | Tổng số lượng trong **mỗi nhóm** | `GIFT_BOX` | `MOONCAKE` |
 |---|---:|---:|
@@ -194,11 +207,13 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019 và xác nhận schema ở version 2. Không sửa checksum V1/V2; mọi thay đổi schema tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019 và xác nhận schema ở version 2; V3 chỉ bổ sung catalog demo, không đổi schema. Không sửa checksum migration đã chia sẻ; mọi thay đổi schema tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
 - Xác minh kiểu SKU (`MOONCAKE` / `EMPTY_BOX` / `GIFT_SET`), PRESET/CUSTOM, quyền sở hữu giỏ/config và tổng bánh đúng sức chứa.
+- Tạo tài khoản CUSTOMER và hồ sơ CUSTOMER trong cùng transaction; chuẩn hóa email, hash mật khẩu và xử lý xung đột unique email thành lỗi thân thiện.
+- Catalog được public; mọi cart/CUSTOM/checkout/order-history operation phải yêu cầu principal CUSTOMER ACTIVE và lấy `customer_id` từ server-side authentication.
 - Khi thêm lại cùng SKU/config vào giỏ, tăng `quantity` theo transaction và xử lý xung đột unique an toàn; không tạo dòng trùng.
 - Tính tiền hộp tự chọn, các bậc giảm theo nhóm và phí vận chuyển hoàn toàn trên backend.
 - Checkout transaction: kiểm tra và trừ tồn có điều kiện, tạo đơn/items/components/payment/movements, rollback hoàn toàn nếu thất bại.
@@ -221,7 +236,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 | BR-05 | 30 PRESET + 25 CUSTOM | Nhóm `GIFT_BOX` = 55 ⇒ giảm 5% trên hộp quà |
 | BR-06 | 60 Lava lẻ + 45 Thập Cẩm lẻ | Nhóm `MOONCAKE` = 105 ⇒ giảm 10% trên bánh lẻ |
 | BR-07 | 55 hộp + 105 bánh lẻ + 5 hộp rỗng | Hai mức giảm riêng; hộp rỗng không giảm, phí ship 150.000đ |
-| BR-08 | Khách vãng lai đặt COD | Tạo đơn tự động, không cần Admin duyệt; payment `UNPAID` |
+| BR-08 | Khách chưa đăng nhập bấm thêm giỏ/mua | Chuyển đến login; chưa tạo/sửa giỏ và không thực hiện POST mua hàng |
 | BR-09 | Hai lượt đặt đồng thời khi SKU chỉ còn 1 | Chỉ một lượt thành công, không âm tồn |
 | BR-10 | Đơn `PLACED` bị hủy; hệ thống nhận hủy lặp | Hoàn tồn đúng một lần |
 | BR-11 | Đơn đang `SHIPPING` bị yêu cầu hủy | Không tự hủy/hoàn tồn theo luồng MVP |
@@ -243,6 +258,11 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 | BR-27 | Tạo/activate SKU có quản lý tồn nhưng chưa có balance | Từ chối mở bán cho đến khi có đúng một `INVENTORY_BALANCE` |
 | BR-28 | Hai request đồng thời checkout cùng một giỏ `ACTIVE` | Chỉ một request claim được giỏ và tạo đúng một đơn; request còn lại không tạo order/payment/movement và không trừ tồn |
 | BR-29 | Admin sửa component của PRESET đã `READY`/đã có tồn | Từ chối; yêu cầu tạo SKU GIFT_SET và PRESET configuration mới, recipe cũ không đổi |
+| BR-30 | Đăng ký bằng email mới hợp lệ | Tạo đúng một ACCOUNT CUSTOMER ACTIVE và một CUSTOMER liên kết trong cùng transaction; mật khẩu chỉ lưu dạng hash |
+| BR-31 | Đăng ký lại email đã tồn tại | Từ chối thân thiện; không tạo ACCOUNT/CUSTOMER rác hoặc bản ghi một nửa |
+| BR-32 | Khách đã đăng nhập thêm cùng SKU hai lần | Dùng giỏ ACTIVE của chính khách; một CART_ITEM và quantity tăng đúng |
+| BR-33 | Khách A gửi cart_id của khách B | Từ chối quyền truy cập ở service; không đọc hoặc sửa dữ liệu giỏ B |
+| BR-34 | CUSTOMER bị DISABLED cố dùng URL cart/checkout trực tiếp | Không xác thực/không cho mua; catalog vẫn xem công khai |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 
@@ -256,8 +276,8 @@ Chiết khấu **tự động, áp dụng cho mọi khách** (đăng nhập, vã
 8. Không đưa payOS/VietQR, webhook, reservation, duyệt đơn, quản lý lô hay nghiệp vụ ngoài MVP vào migration đầu tiên.
 9. Khi phát hiện khác biệt giữa Physical DDL và quy tắc ở đây: **liệt kê điểm mâu thuẫn và đề xuất cách xử lý, chờ xác nhận rồi mới sửa schema/migration**.
 10. Kết thúc phải báo cáo: file đã tạo/sửa, lệnh test đã chạy, bảng/FK/index tạo thành công hay chưa, lỗi còn tồn tại. Không khẳng định thành công nếu chưa chạy SQL Server thật.
-11. Xác nhận các quyết định v1.1 đã được thể hiện nhất quán: một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic và checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện.
+11. Xác nhận các quyết định v1.2 đã được thể hiện nhất quán: đăng nhập trước khi mua, đăng ký ACCOUNT + CUSTOMER nguyên tử, một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic và checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện.
 
 ---
 
-**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động COD; checkout trừ tồn một lần; hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Các chức năng online payment được để cho giai đoạn sau.
+**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: catalog công khai nhưng khách phải đăng ký/đăng nhập trước khi mua; giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động COD; checkout trừ tồn một lần; hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Các chức năng online payment được để cho giai đoạn sau.

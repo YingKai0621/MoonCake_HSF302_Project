@@ -1,10 +1,10 @@
 # MoonCake MVP — Architecture and Coding Conventions
 
-**Version:** 1.3
+**Version:** 1.4
 
-**Date:** 20/10/2026
+**Date:** 21/10/2026
 
-**Status:** Approved baseline; package decision updated for Foundation implementation
+**Status:** Approved baseline; authenticated-customer purchase flow added after Foundation
 **Applies to:** Java, Spring Boot MVC, Thymeleaf, JPA, SQL Server, and Flyway code in `MoonCake/`
 
 ## 1. Architecture style
@@ -189,25 +189,22 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Bean Validation checks shape and required input; services enforce ownership and cross-table business rules.
 - Use a small application exception hierarchy for not-found, validation/business conflict, authorization, concurrency, and insufficient-stock cases.
 - Provide a shared MVC exception handler/error mapping rather than repeated try/catch blocks in controllers.
-- Never trust a customer-supplied account/customer/cart owner ID without comparing it to the authenticated user or guest token.
-- Guest checkout remains supported; do not require registration for all purchases.
+- Resolve the current `ACCOUNT` and `CUSTOMER` from the authenticated Spring Security principal. Never accept a submitted account ID, customer ID, cart ID, or configuration ID as proof of ownership.
+- Catalog and product-detail pages remain public. Adding to cart, building a CUSTOM box, viewing or changing a cart, checkout, and customer order history require an authenticated ACTIVE account with role `CUSTOMER`.
+- An unauthenticated purchase action redirects to `/login` with a validated local return URL. Do not mutate a cart and do not automatically replay the original POST after login; return to a safe GET page so the customer can confirm the action again.
 - Protect Admin routes and service operations, not only Admin navigation links.
-- Foundation defines only the shared `ShopperIdentity` DTO, `CurrentCustomerService` contract, and common authorization/error vocabulary. It does not add Spring Security, create `SecurityConfig`, or implement login/logout.
-- Member 4 owns the Spring Security dependency and all implementation files: `SecurityConfig`, `UserDetailsService`, `PasswordEncoder`, `AuthenticationService`, current-shopper resolution, login/logout controller/view, and service-level/Admin-route authorization.
-- Member 4's first security PR keeps catalog, cart, checkout, static assets, and guest identity public; protects `/admin/**` with role `ADMIN`; and authenticates only existing ACTIVE accounts.
-- Do not implement customer registration, password reset, social login, MFA, email verification, or account approval in the MVP without a new approved business rule.
+- Use one application `SecurityConfig`. The Customer Sales owner owns the Spring Security baseline, login/logout, customer registration, and `CurrentCustomerService`; the Admin owner consumes that configuration and must not create a second filter chain or authentication implementation without review.
+- Public endpoints are limited to catalog/product reads, `/login`, `/register`, required static assets, and shared error pages. `/admin/**` requires role `ADMIN`; customer purchase routes require role `CUSTOMER`.
+- Keep CSRF enabled for state-changing SSR requests. Use Spring Security form login and server-side session authentication.
+- Customer registration creates one `ACCOUNT` with forced role `CUSTOMER` and one linked `CUSTOMER` in the same transaction. Normalize email consistently, reject an existing email, hash the password through `PasswordEncoder`, and never bind role/status from the registration form.
+- A successfully registered account is `ACTIVE` immediately because email verification and account approval are outside this MVP.
+- Password reset, social login, MFA, email verification, and account approval remain outside scope.
 - Store only a strong one-way password hash supported by Spring Security; never store or log raw passwords.
-
-### Guest token
-
-- The backend generates the guest token with a cryptographically secure random source. Use 32 random bytes encoded with URL-safe Base64 without padding; the result fits `CART.guest_token NVARCHAR(128)`.
-- Store it in an `HttpOnly`, `SameSite=Lax` cookie with `Path=/`; add `Secure` whenever HTTPS is used. Do not accept a caller-selected token, place it in a URL, expose it to JavaScript/local storage, or write it to logs.
-- Resolve guest ownership from the server-managed cookie. Every cart/configuration read or mutation must compare that identity with `CART.guest_token`; a submitted `cart_id` alone never proves ownership.
-- Keep CSRF protection enabled for state-changing SSR requests. After successful checkout, the same guest identity may receive a new ACTIVE cart when needed; do not reactivate the CHECKED_OUT cart.
+- The shared V1 schema retains nullable guest-related columns for migration-checksum compatibility, but the v1.2 application does not create or operate guest carts. New MVP carts use `customer_id` and leave `guest_token` null.
 
 ### Initial Admin bootstrap
 
-- Member 4 provides a one-time `bootstrap-admin` profile/command that reads `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` from environment variables.
+- The Admin owner provides a one-time `bootstrap-admin` profile/command that reads `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` from environment variables and uses the shared `PasswordEncoder`.
 - The command hashes the password through the application's `PasswordEncoder`, creates an ACTIVE ADMIN only when no Admin exists, and never prints the raw password or encoded hash.
 - The bootstrap path is disabled during normal startup. If an Admin already exists, it exits without changing credentials. After successful creation, remove the environment variables and do not commit them.
 - Do not seed an Admin password/hash through Flyway, `.env.example`, source code, or test fixtures intended for shared environments.
@@ -227,7 +224,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Repository/integration tests cover conditional updates, constraints, and important queries against SQL Server-compatible behavior.
 - Service tests cover transaction outcomes and failure rollback.
 - MVC tests cover validation, authorization, view names, and redirects for important routes.
-- Critical integration scenarios include duplicate cart additions, concurrent checkout, insufficient stock, repeated cancellation, repeated delivery confirmation, and immutable PRESET composition.
+- Critical integration scenarios include registration with a duplicate email, unauthenticated purchase redirects, cross-customer ownership rejection, duplicate cart additions, concurrent checkout, insufficient stock, repeated cancellation, repeated delivery confirmation, and immutable PRESET composition.
 - Every PR reports the exact tests run and does not claim database verification when only mocks were used.
 
 ### Test database isolation

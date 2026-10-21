@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Controller
@@ -49,6 +50,14 @@ public class AuthenticationController {
             );
         }
 
+        if (isPasswordTooLongForBcrypt(registrationForm.getPassword())) {
+            bindingResult.rejectValue(
+                "password",
+                "password.tooLongForBcrypt",
+                "Mật khẩu chứa ký tự đặc biệt quá dài, vui lòng rút ngắn"
+            );
+        }
+
         if (bindingResult.hasErrors()) {
             return "security/register";
         }
@@ -65,5 +74,13 @@ public class AuthenticationController {
         }
 
         return "redirect:/login?registered";
+    }
+
+    private boolean isPasswordTooLongForBcrypt(String password) {
+        if (password == null) {
+            return false;
+        }
+        byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
+        return passwordBytes.length > 72;
     }
 }

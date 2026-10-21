@@ -123,7 +123,7 @@ class AuthenticationServiceImplTest {
         form.setPassword("password123");
         form.setConfirmPassword("password123");
         form.setFullName("  Nguyễn Văn A  ");
-        form.setPhone("  0901234567  ");
+        form.setPhone("0901234567");
         return form;
     }
 }

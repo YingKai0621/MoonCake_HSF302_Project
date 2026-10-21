@@ -31,7 +31,9 @@
         <div class="auth-field">
           <label for="phone">Số điện thoại</label>
           <input id="phone" type="tel" th:field="*{phone}"
-                 maxlength="20" autocomplete="tel" required>
+                 minlength="10" maxlength="10" pattern="0[0-9]{9}"
+                 inputmode="numeric" autocomplete="tel" required>
+          <p class="auth-help">Gồm 10 chữ số và bắt đầu bằng 0.</p>
           <p class="auth-field-error" th:if="${#fields.hasErrors('phone')}"
              th:errors="*{phone}">Lỗi số điện thoại</p>
         </div>

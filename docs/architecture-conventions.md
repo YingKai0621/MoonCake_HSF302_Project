@@ -82,6 +82,10 @@ Rules:
 - Do not introduce Lombok or another code-generation dependency without team approval.
 - Prefer constructor injection; do not use field injection.
 - Keep methods focused and extract domain calculations that require independent tests.
+- Prefer straightforward, line-by-line code that every member can explain in a review. Use descriptive intermediate variables and named helper methods.
+- Prefer ordinary `for`, `if`, and `switch` statements over Java Stream/lambda chains when the loop is easier to follow.
+- In JavaScript, prefer named functions and ordinary loops over arrow functions and chained `map`/`filter`/`some` expressions. Keep unavoidable callbacks short.
+- Avoid clever one-liners and nested ternary expressions for business behavior; readability for the student team takes priority over brevity.
 - The former `com.se201411.project.mooncake.model.Product` is a legacy UI model, not a JPA entity. Keep its renamed form as `product.dto.CatalogProductView` while adding `entity.Product`, preserving existing rendered pages during the transition.
 
 ## 4. Entity and enum conventions

@@ -63,6 +63,7 @@ public class PresetConfigurationQueryServiceImpl implements PresetConfigurationQ
             configuration.getId(),
             giftSetVariantId,
             configuration.getBox().getEmptyBoxVariant().getId(),
+            configuration.getBox().getCapacityCakes(),
             configuration.getStatus(),
             components
         );

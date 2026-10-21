@@ -8,6 +8,7 @@ public record PresetRecipeSnapshot(
     long configurationId,
     long giftSetVariantId,
     long boxVariantId,
+    int capacityCakes,
     ConfigurationStatus status,
     List<PresetComponentSnapshot> components
 ) {

@@ -71,11 +71,19 @@ class SecurityConfigTest {
         mockMvc.perform(get("/custom-boxes"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/login"));
+
+        mockMvc.perform(get("/checkout"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void customerCanUseCustomerRouteButNotAdminRoute() throws Exception {
         mockMvc.perform(get("/cart").with(user("customer").roles("CUSTOMER")))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(get("/orders/MC-TEST/success")
+                .with(user("customer").roles("CUSTOMER")))
             .andExpect(status().isOk());
 
         mockMvc.perform(get("/admin/dashboard").with(user("customer").roles("CUSTOMER")))
@@ -185,6 +193,16 @@ class SecurityConfigTest {
         @GetMapping("/custom-boxes")
         String customBoxes() {
             return "custom-boxes";
+        }
+
+        @GetMapping("/checkout")
+        String checkout() {
+            return "checkout";
+        }
+
+        @GetMapping("/orders/{orderCode}/success")
+        String orderSuccess() {
+            return "order-success";
         }
 
         @PostMapping("/cart/items")

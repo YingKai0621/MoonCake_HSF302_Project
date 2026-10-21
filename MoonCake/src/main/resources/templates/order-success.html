@@ -3,244 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MoonCake — Đặt Hàng Thành Công</title>
-  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
+  <title>MoonCake — Đặt hàng thành công</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
-  <!-- Material Symbols Outlined -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <!-- Tailwind CSS CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            midnight: '#10233D',
-            surface: '#0C1626',
-            control: '#162842',
-            gold: '#D1A85A',
-            goldHover: '#E5C37E',
-            ivory: '#F8F4EB',
-            sand: '#C2BAAB',
+            midnight: '#10233D', surface: '#0C1626', control: '#162842',
+            gold: '#D1A85A', goldHover: '#E5C37E', ivory: '#F8F4EB', sand: '#C2BAAB'
           },
           fontFamily: {
             serif: ['"Playfair Display"', 'Georgia', 'serif'],
-            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
           }
         }
       }
     }
   </script>
-  
-  <!-- External Extracted Stylesheets -->
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-[#D1A85A] selection:text-[#0C1626]">
-
-  <!-- ==================== AREA A: SHARED HEADER (MATCHES CART & CHECKOUT EXACTLY) ==================== -->
-    <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
-    <!-- Global Shared Header V4 Fragment -->
+<body class="min-h-screen flex flex-col justify-between">
   <header th:replace="~{fragments/header :: header('order-success')}"></header>
 
-  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
-  <main class="flex-grow max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-8 md:py-10">
-
-    <!-- AREA B: CHECKOUT PROGRESS STEPPER (ALL COMPLETED, READ-ONLY, NON-EDITABLE) -->
-    <!-- [UX RULE]: Completed steps are non-clickable to prevent accidental re-submission of an order -->
-    <div class="max-w-md mx-auto mb-10">
-      <div class="flex items-center justify-between relative">
-        <!-- Connecting Line -->
-        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-[#D1A85A]/30 -z-0"></div>
-        
-        <!-- Step 1: Giỏ hàng (Completed - Readonly) -->
-        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] pr-3 cursor-default">
-          <span class="w-6 h-6 rounded-full bg-[#D1A85A]/20 border border-[#D1A85A] text-[#D1A85A] flex items-center justify-center">
-            <span class="material-symbols-outlined text-sm font-bold">check</span>
-          </span>
-          <span class="text-xs md:text-sm font-medium text-[#C2BAAB] tracking-wide">Giỏ hàng</span>
-        </div>
-
-        <!-- Step 2: Thanh toán (Completed - Readonly) -->
-        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] px-3 cursor-default">
-          <span class="w-6 h-6 rounded-full bg-[#D1A85A]/20 border border-[#D1A85A] text-[#D1A85A] flex items-center justify-center">
-            <span class="material-symbols-outlined text-sm font-bold">check</span>
-          </span>
-          <span class="text-xs md:text-sm font-medium text-[#C2BAAB] tracking-wide">Thanh toán</span>
-        </div>
-
-        <!-- Step 3: Hoàn thành (ACTIVE - CHAMPAGNE GOLD) -->
-        <div class="relative z-10 flex items-center gap-2 bg-[#10233D] pl-3 cursor-default">
-          <span class="w-6 h-6 rounded-full bg-[#D1A85A] text-[#0C1626] font-bold text-xs flex items-center justify-center shadow-[0_0_10px_rgba(209,168,90,0.35)]">
-            <span class="material-symbols-outlined text-sm font-bold">check</span>
-          </span>
-          <span class="text-xs md:text-sm font-semibold text-[#D1A85A] tracking-wide">Hoàn thành</span>
-        </div>
+  <main class="flex-grow max-w-[1100px] w-full mx-auto px-4 sm:px-6 py-10">
+    <section class="text-center max-w-xl mx-auto mb-10">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full border border-gold/40 bg-control text-gold mb-4">
+        <span class="material-symbols-outlined text-3xl">check</span>
       </div>
-    </div>
-
-    <!-- ================= SECTION A: SUCCESS CONFIRMATION ================= -->
-    <div class="text-center max-w-xl mx-auto mb-10">
-      <!-- Elegant Gold Checkmark Emblem -->
-      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full border border-[#D1A85A]/40 bg-[#162842]/70 text-[#D1A85A] mb-4">
-        <span class="material-symbols-outlined text-3xl font-bold">check</span>
+      <h1 class="font-serif text-3xl md:text-4xl font-bold mb-2">Đặt hàng thành công</h1>
+      <p class="text-sm text-sand mb-4">Đơn hàng COD của bạn đã được tiếp nhận.</p>
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-control border border-gold/30 text-xs">
+        <span class="text-sand">Mã đơn hàng:</span>
+        <span class="font-mono font-semibold text-gold" th:text="${order.orderCode}">MC-00000000-00000000</span>
       </div>
+    </section>
 
-      <!-- Main Heading: "Đặt hàng thành công" (Not "Thanh toán thành công" for COD) -->
-      <h1 class="font-serif text-3xl md:text-4xl font-bold text-[#F8F4EB] tracking-tight mb-2">
-        Đặt hàng thành công
-      </h1>
-
-      <!-- Description: Restrained & Honest -->
-      <p class="text-sm text-[#C2BAAB] mb-4">
-        Đơn hàng của bạn đã được tiếp nhận.
-      </p>
-
-      <!-- Order Reference Badge -->
-      <!-- [PRODUCTION NOTE]: 'MC-2026-000123' is a demo order code; in production this will be ${order.orderCode} -->
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#162842] border border-[#D1A85A]/30 text-xs">
-        <span class="text-[#C2BAAB]">Mã đơn hàng:</span>
-        <span class="font-mono font-semibold text-[#D1A85A] tracking-wider">MC-2026-000123</span>
-      </div>
-    </div>
-
-    <!-- ================= SECTION B: ORDER DETAILS (2-COLUMN GRID) ================= -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-[1100px] mx-auto mb-10">
-      
-      <!-- LEFT COLUMN (~58% / col-span-7): THÔNG TIN NHẬN HÀNG -->
-      <!-- [PRODUCTION NOTE]: Recipient, phone, address and payment are injected dynamically from Spring MVC Model -->
-      <section class="lg:col-span-7 bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-6 sm:p-7 shadow-sm space-y-5">
-        <div class="flex items-center justify-between pb-4 border-b border-[#D1A85A]/15">
-          <h2 class="font-serif text-lg font-semibold text-[#F8F4EB]">
-            Thông tin nhận hàng
-          </h2>
-          <!-- Order Status Badge: Preserved strictly as "Đã tiếp nhận" -->
-          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-[#D1A85A]/15 text-[#D1A85A] border border-[#D1A85A]/30">
-            Đã tiếp nhận
-          </span>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+      <section class="lg:col-span-7 bg-surface border border-gold/20 rounded-lg p-6 space-y-5">
+        <div class="flex items-center justify-between pb-4 border-b border-gold/15">
+          <h2 class="font-serif text-lg font-semibold">Thông tin nhận hàng</h2>
+          <span class="px-3 py-1 text-xs text-gold bg-gold/10 border border-gold/30 rounded">Đã tiếp nhận</span>
         </div>
-
-        <div class="space-y-4 text-sm">
-          <div class="grid grid-cols-3 gap-2">
-            <span class="text-[#C2BAAB]">Người nhận</span>
-            <span class="col-span-2 text-[#F8F4EB] font-medium">Nguyễn Văn An</span>
+        <dl class="space-y-4 text-sm">
+          <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Người nhận</dt><dd class="col-span-2 font-medium" th:text="${order.recipientName}">Tên</dd></div>
+          <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Số điện thoại</dt><dd class="col-span-2 font-medium" th:text="${order.recipientPhone}">0900000000</dd></div>
+          <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Địa chỉ</dt><dd class="col-span-2 leading-relaxed" th:text="${order.shippingAddress}">Địa chỉ</dd></div>
+          <div th:if="${order.orderNote}" class="grid grid-cols-3 gap-3"><dt class="text-sand">Ghi chú</dt><dd class="col-span-2" th:text="${order.orderNote}">Ghi chú</dd></div>
+          <div class="grid grid-cols-3 gap-3 pt-3 border-t border-gold/15">
+            <dt class="text-sand">Thanh toán</dt>
+            <dd class="col-span-2"><strong>COD</strong><p class="text-xs text-sand mt-1">Thanh toán khi nhận hàng</p></dd>
           </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <span class="text-[#C2BAAB]">Số điện thoại</span>
-            <span class="col-span-2 text-[#F8F4EB] font-medium font-mono text-[13px]">0912 345 678</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <span class="text-[#C2BAAB]">Địa chỉ giao hàng</span>
-            <span class="col-span-2 text-[#F8F4EB] leading-relaxed">Tầng 18, Toà nhà Bitexco, số 2 Hải Triều, Phường Bến Nghé, TP. Hồ Chí Minh</span>
-          </div>
-
-          <!-- Payment Method clearly distinguished from payment completion -->
-          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-[#D1A85A]/15">
-            <span class="text-[#C2BAAB]">Phương thức thanh toán</span>
-            <div class="col-span-2">
-              <span class="text-[#F8F4EB] font-medium">Thanh toán khi nhận hàng (COD)</span>
-              <p class="text-xs text-[#C2BAAB]/75 mt-0.5 font-normal">Thu tiền mặt trực tiếp khi giao hàng</p>
-            </div>
-          </div>
-        </div>
+        </dl>
       </section>
 
-      <!-- RIGHT COLUMN (~42% / col-span-5): ĐƠN HÀNG CỦA BẠN -->
-      <!-- [PRODUCTION NOTE]: Items, quantities, and prices reflect the persisted Order entity -->
-      <aside class="lg:col-span-5 bg-[#0C1626] border border-[#D1A85A]/20 rounded-lg p-6 sm:p-7 shadow-sm space-y-5">
-        <div class="flex items-center justify-between pb-4 border-b border-[#D1A85A]/15">
-          <h2 class="font-serif text-lg font-semibold text-[#F8F4EB]">
-            Đơn hàng của bạn
-          </h2>
-          <span class="text-xs text-[#C2BAAB] bg-[#162842] px-2.5 py-0.5 rounded border border-[#D1A85A]/20">2 sản phẩm</span>
+      <aside class="lg:col-span-5 bg-surface border border-gold/20 rounded-lg p-6 space-y-5">
+        <div class="flex justify-between pb-4 border-b border-gold/15">
+          <h2 class="font-serif text-lg font-semibold">Đơn hàng của bạn</h2>
+          <span class="text-xs text-sand" th:text="${order.totalQuantity + ' sản phẩm'}">0 sản phẩm</span>
         </div>
-
-        <!-- Product List -->
-        <div class="space-y-3.5">
-          <!-- Product 1: Approved Baseline Sample -->
-          <div class="flex items-start gap-3.5">
-            <div class="w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842]">
-              <img 
-                src="https://lh3.googleusercontent.com/aida/AEtjO1XEoJS_KKTzlPcn7I1MA0HHvV1pqYipmrI6QnHR5YfE1-cnE0BZRYcVsOrs7RGHJSBVUb9BzlHemPA68nobEArj8huKh2CCsWpRDkhCO9Tu5kJyFjSFNnw6yS6gNQt-JmX8ZV1xtiK_LkKHBUanymceZerbxGr0mc0CaMfnd-CdCrKYwxYG4ahoY7k68Xn6gM_3SqXgJOd4WLc5UHw4MZMjs4Ci71Dbg2S27NsKONDHR9kwapqckXywuw" 
-                alt="Hộp Dạ Nguyệt Đoàn Viên" 
-                class="w-full h-full object-cover"
-              >
+        <div class="space-y-4">
+          <article th:each="item : ${order.items}" class="flex justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold" th:text="${item.productName}">Sản phẩm</p>
+              <p class="text-xs text-sand mt-1" th:text="${'SKU: ' + item.sku + ' · SL: ' + item.quantity}">SKU</p>
+              <p class="text-xs text-sand mt-1" th:text="${item.formattedUnitPrice + ' / sản phẩm'}">0đ</p>
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-xs font-semibold text-[#F8F4EB] truncate leading-tight">Hộp Dạ Nguyệt Đoàn Viên</h3>
-              <p class="text-[11px] text-[#C2BAAB] mt-0.5">Hộp tiêu chuẩn · SL: 1</p>
-              <p class="text-xs font-semibold text-[#F8F4EB] mt-1">880.000đ</p>
-            </div>
-          </div>
-
-          <!-- Product 2: Approved Baseline Sample -->
-          <div class="flex items-start gap-3.5">
-            <div class="w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-[#D1A85A]/25 bg-[#162842]">
-              <img 
-                src="https://lh3.googleusercontent.com/aida/AEtjO1VwVIS2NEAqJnnlpnkrgLWu6_ulPauIjEaBqCakYtIfrdmTTt2ADCHqyXwnKHyFXeEIQrmuJK7TQGlLJanNR2L6rWR5nWV7kOCItIoBYYlLQgtSDh5cwznTN9_2LjtJF5rgSiy18L690yNSx4GF5x_R0gktswGx2svtLU7QNWeZUxnxnT1LPR26bJ5dxxUH4WigQo_Jc608RQPNiS8NMxLEd7j_AWTcYz6TcgJ5wrfCoU6dv34obOggxw" 
-                alt="Bánh Lava Trứng Chảy Kim Sa" 
-                class="w-full h-full object-cover"
-              >
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-xs font-semibold text-[#F8F4EB] truncate leading-tight">Bánh Lava Trứng Chảy Kim Sa</h3>
-              <p class="text-[11px] text-[#C2BAAB] mt-0.5">150g · SL: 1</p>
-              <p class="text-xs font-semibold text-[#F8F4EB] mt-1">135.000đ</p>
-            </div>
-          </div>
+            <p class="text-sm font-semibold whitespace-nowrap" th:text="${item.formattedLineTotal}">0đ</p>
+          </article>
         </div>
-
-        <!-- Divider -->
-        <div class="border-t border-[#D1A85A]/15 pt-2"></div>
-
-        <!-- Financial Summary: Mathematically Consistent Baseline -->
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between text-[#C2BAAB]">
-            <span>Tạm tính</span>
-            <span class="text-[#F8F4EB] font-medium">1.015.000đ</span>
-          </div>
-          <div class="flex justify-between text-[#C2BAAB]">
-            <span>Phí giao hàng</span>
-            <span class="text-[#F8F4EB] font-medium">30.000đ</span>
-          </div>
-          <div class="pt-2 border-t border-[#D1A85A]/15 flex justify-between items-baseline">
-            <span class="text-sm font-medium text-[#F8F4EB]">Tổng cộng</span>
-            <span class="font-sans text-[22px] font-bold text-[#D1A85A]">1.045.000đ</span>
+        <div class="border-t border-gold/15 pt-4 space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-sand">Tạm tính</span><span th:text="${order.formattedSubtotal}">0đ</span></div>
+          <div class="flex justify-between"><span class="text-sand">Chiết khấu</span><span class="text-gold" th:text="${'- ' + order.formattedDiscount}">- 0đ</span></div>
+          <div class="flex justify-between"><span class="text-sand">Phí giao hàng</span><span th:text="${order.formattedShippingFee}">0đ</span></div>
+          <div class="flex justify-between items-baseline pt-3 border-t border-gold/15">
+            <span class="font-medium">Tổng cộng</span>
+            <span class="text-2xl font-bold text-gold" th:text="${order.formattedTotal}">0đ</span>
           </div>
         </div>
       </aside>
-
     </div>
 
-    <!-- ================= SECTION C: ACTIONS ================= -->
-    <!-- [NAVIGATION RULE]: 'Tra cứu đơn hàng' links to the future dedicated Guest Order Tracking route without simulating completion -->
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-6">
-      <a 
-        th:href="@{/products}" href="/products" 
-        class="w-full sm:w-auto text-center px-8 py-3.5 rounded bg-[#D1A85A] hover:bg-[#E5C37E] text-[#0C1626] font-bold text-sm tracking-wide uppercase transition-colors"
-      >
+    <div class="text-center">
+      <a th:href="@{/products}" class="inline-block px-8 py-3.5 bg-gold hover:bg-goldHover text-surface font-bold text-sm transition-colors">
         Tiếp tục mua sắm
       </a>
-      <a 
-        href="order_tracking_guest.html" 
-        class="w-full sm:w-auto text-center px-8 py-3.5 rounded border border-[#D1A85A]/30 hover:border-[#D1A85A] text-[#F8F4EB] hover:text-[#D1A85A] text-sm font-semibold transition-colors"
-      >
-        Tra cứu đơn hàng
-      </a>
     </div>
-
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
-    <!-- Global Shared Footer Fragment -->
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
-
-  <!-- External Extracted Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
 </body>
 </html>

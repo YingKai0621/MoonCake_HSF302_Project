@@ -3,6 +3,8 @@ package com.se201411.project.mooncake.cart.service;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationItemRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
 import com.se201411.project.mooncake.cart.service.impl.CustomerCartServiceImpl;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -47,6 +49,10 @@ class CustomerCartServiceImplTest {
     @Mock
     private CartItemRepository cartItemRepository;
     @Mock
+    private CustomBoxConfigurationRepository configurationRepository;
+    @Mock
+    private CustomBoxConfigurationItemRepository configurationItemRepository;
+    @Mock
     private ProductQueryService productQueryService;
     @Mock
     private EntityManager entityManager;
@@ -62,6 +68,8 @@ class CustomerCartServiceImplTest {
         service = new CustomerCartServiceImpl(
             cartRepository,
             cartItemRepository,
+            configurationRepository,
+            configurationItemRepository,
             productQueryService,
             entityManager,
             clock
@@ -208,7 +216,7 @@ class CustomerCartServiceImplTest {
     }
 
     @Test
-    void customConfigurationLineIsNotDeletedByStandardCartFlow() {
+    void customConfigurationOutsideOwnedCartCannotBeDeleted() {
         Cart cart = cart(100L);
         CartItem item = new CartItem();
         setId(item, 500L);
@@ -220,10 +228,15 @@ class CustomerCartServiceImplTest {
             .thenReturn(Optional.of(cart));
         when(cartItemRepository.findByIdAndCartId(500L, 100L))
             .thenReturn(Optional.of(item));
+        when(configurationRepository.findOwnedConfiguration(
+            700L,
+            100L,
+            com.se201411.project.mooncake.enums.ConfigurationType.CUSTOM
+        )).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.removeItem(CUSTOMER, 500L))
-            .isInstanceOf(BusinessRuleViolationException.class)
-            .hasMessageContaining("CUSTOM");
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining("giỏ hàng của bạn");
 
         verify(cartItemRepository, never()).delete(item);
     }

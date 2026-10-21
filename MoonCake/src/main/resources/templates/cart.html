@@ -73,10 +73,15 @@
         <span class="material-symbols-outlined text-gold text-3xl">shopping_bag</span>
       </div>
       <h1 class="font-serif text-3xl font-semibold mb-3">Giỏ hàng đang trống</h1>
-      <p class="text-sand mb-7">Hãy chọn bánh hoặc hộp quà PRESET phù hợp với bạn.</p>
-      <a th:href="@{/products}" class="inline-block bg-gold hover:bg-goldHover text-surface font-bold py-3 px-6 transition-colors">
-        Khám phá sản phẩm
-      </a>
+      <p class="text-sand mb-7">Hãy chọn bánh, hộp quà có sẵn hoặc tự tạo hộp quà của riêng bạn.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a th:href="@{/products}" class="inline-block bg-gold hover:bg-goldHover text-surface font-bold py-3 px-6 transition-colors">
+          Khám phá sản phẩm
+        </a>
+        <a th:href="@{/custom-boxes}" class="inline-block border border-gold/45 text-gold hover:border-gold py-3 px-6 transition-colors">
+          Tạo hộp tự chọn
+        </a>
+      </div>
     </section>
 
     <div th:unless="${cart.empty}" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -108,7 +113,19 @@
                   Tên sản phẩm
                 </a>
                 <p class="text-sm text-sand" th:text="${item.variantName}">Phiên bản</p>
-                <p class="text-xs text-sand" th:text="${'SKU: ' + item.sku}">SKU</p>
+                <p class="text-xs text-sand"
+                   th:text="${item.custom ? 'SKU vỏ hộp: ' + item.sku : 'SKU: ' + item.sku}">SKU</p>
+                <div th:if="${item.custom}" class="pt-2 text-xs text-sand space-y-1">
+                  <p class="text-ivory font-medium" th:text="${item.capacityCakes + ' bánh trong mỗi hộp'}">Thành phần</p>
+                  <p th:each="component : ${item.components}"
+                     th:text="${component.name + ' (' + component.variantName + ') × ' + component.quantityPerBox}">
+                    Bánh × 1
+                  </p>
+                  <a th:href="@{/custom-boxes/{id}/edit(id=${item.configurationId})}"
+                     class="inline-block text-gold hover:text-goldHover pt-1">
+                    Chỉnh thành phần
+                  </a>
+                </div>
                 <p class="text-sm text-gold sm:hidden" th:text="${item.formattedUnitPrice}">0đ</p>
                 <p th:unless="${item.currentlySellable}" class="text-xs text-amber-300 font-medium">
                   Sản phẩm hiện đã ngừng bán
@@ -191,10 +208,13 @@
                   disabled
                   aria-disabled="true"
                   class="w-full bg-gold/50 text-surface font-bold py-3.5 px-4 cursor-not-allowed">
-            Checkout sẽ được triển khai ở PR tiếp theo
+            Tiến hành thanh toán
           </button>
           <a th:href="@{/products}" class="block text-center text-xs text-sand hover:text-gold transition-colors">
             Tiếp tục mua sắm
+          </a>
+          <a th:href="@{/custom-boxes}" class="block text-center text-xs text-sand hover:text-gold transition-colors">
+            Tạo thêm hộp tự chọn
           </a>
         </div>
       </aside>

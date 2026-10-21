@@ -23,6 +23,20 @@ public interface CartItemRepository extends Repository<CartItem, Long> {
     @Query("""
         select i
         from CartItem i
+        join fetch i.configuration configuration
+        join fetch configuration.box box
+        join fetch box.emptyBoxVariant boxVariant
+        join fetch boxVariant.product boxProduct
+        join fetch boxProduct.category boxCategory
+        where i.cart.id = :cartId
+          and i.configuration is not null
+        order by i.addedAt, i.id
+        """)
+    List<CartItem> findCustomItemsByCartId(@Param("cartId") long cartId);
+
+    @Query("""
+        select i
+        from CartItem i
         join fetch i.variant v
         where i.cart.id = :cartId
           and v.id = :variantId
@@ -30,6 +44,18 @@ public interface CartItemRepository extends Repository<CartItem, Long> {
     Optional<CartItem> findVariantItem(
         @Param("cartId") long cartId,
         @Param("variantId") long variantId
+    );
+
+    @Query("""
+        select i
+        from CartItem i
+        join fetch i.configuration configuration
+        where i.cart.id = :cartId
+          and configuration.id = :configurationId
+        """)
+    Optional<CartItem> findConfigurationItem(
+        @Param("cartId") long cartId,
+        @Param("configurationId") long configurationId
     );
 
     @Query("""

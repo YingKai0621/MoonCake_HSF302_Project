@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Hộp quà tự chọn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#D1A85A',
+            goldHover: '#E5C37E',
+            ivory: '#F8F4EB',
+            sand: '#C2BAAB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="min-h-screen flex flex-col bg-midnight text-ivory font-sans">
+  <header th:replace="~{fragments/header :: header('custom-box')}"></header>
+
+  <main class="flex-grow max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-10">
+    <div class="mb-8">
+      <p class="text-gold text-sm font-semibold uppercase tracking-[0.16em] mb-2">Tạo quà theo ý bạn</p>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold"
+          th:text="${editing ? 'Chỉnh sửa hộp quà tự chọn' : 'Hộp quà tự chọn'}">
+        Hộp quà tự chọn
+      </h1>
+      <p class="text-sand mt-3 max-w-2xl">
+        Chọn một mẫu hộp, sau đó chọn đúng số bánh theo sức chứa. Giá được tính từ vỏ hộp và các bánh bạn chọn.
+      </p>
+    </div>
+
+    <section th:if="${builder.boxes.empty or builder.cakes.empty}"
+             class="bg-surface border border-gold/20 rounded-lg px-6 py-12 text-center">
+      <h2 class="font-serif text-2xl mb-3">Chưa thể tạo hộp tự chọn</h2>
+      <p class="text-sand">Hiện chưa có đủ mẫu hộp hoặc bánh đang bán.</p>
+    </section>
+
+    <form th:unless="${builder.boxes.empty or builder.cakes.empty}"
+          th:object="${customBoxForm}"
+          th:action="${editing} ? @{/custom-boxes/{id}(id=${configurationId})} : @{/custom-boxes}"
+          method="post"
+          data-custom-box-form
+          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      <div class="lg:col-span-8 space-y-8">
+        <div th:if="${#fields.hasAnyErrors()}"
+             class="border border-red-400/40 bg-red-950/30 text-red-200 px-4 py-3">
+          <p th:each="error : ${#fields.allErrors()}" th:text="${error}">Dữ liệu không hợp lệ</p>
+        </div>
+
+        <section class="bg-surface border border-gold/20 rounded-lg p-5 sm:p-6">
+          <h2 class="font-serif text-2xl font-semibold mb-5">1. Chọn mẫu hộp</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label th:each="box : ${builder.boxes}"
+                   class="block border border-gold/25 bg-control/40 p-5 cursor-pointer hover:border-gold/70 transition-colors">
+              <div class="flex items-start gap-3">
+                <input type="radio"
+                       th:field="*{boxId}"
+                       th:value="${box.boxId}"
+                       th:attr="data-box-capacity=${box.capacityCakes},data-box-price=${box.unitPrice}"
+                       class="mt-1 accent-[#D1A85A]"
+                       required>
+                <div>
+                  <h3 class="font-semibold" th:text="${box.name}">Vỏ hộp 4 bánh</h3>
+                  <p class="text-sm text-sand mt-1" th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</p>
+                  <p class="text-gold font-semibold mt-3" th:text="${box.formattedPrice}">0đ</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="bg-surface border border-gold/20 rounded-lg p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
+            <h2 class="font-serif text-2xl font-semibold">2. Chọn bánh</h2>
+            <p class="text-sm text-sand">
+              Đã chọn <strong class="text-gold" data-selected-count>0</strong>/<strong data-required-count>0</strong> bánh
+            </p>
+          </div>
+          <p data-capacity-warning
+             class="hidden text-sm text-amber-300 text-right mb-4"
+             role="status"></p>
+
+          <div class="space-y-3">
+            <article th:each="cake, cakeStatus : ${builder.cakes}"
+                     th:attr="data-cake-price=${cake.unitPrice}"
+                     class="grid grid-cols-[64px_1fr_auto] sm:grid-cols-[72px_1fr_auto] gap-4 items-center border border-gold/15 bg-control/25 p-3 sm:p-4">
+              <img th:src="${cake.imageUrl}"
+                   th:alt="${cake.imageAlt}"
+                   class="w-16 h-16 sm:w-[72px] sm:h-[72px] object-cover border border-gold/20">
+              <div class="min-w-0">
+                <h3 class="font-medium" th:text="${cake.productName}">Tên bánh</h3>
+                <p class="text-xs text-sand mt-1" th:text="${cake.variantName + ' · ' + cake.sku}">Phiên bản</p>
+                <p class="text-sm text-gold mt-1" th:text="${cake.formattedPrice}">0đ</p>
+              </div>
+              <div>
+                <input type="hidden"
+                       th:field="*{cakes[__${cakeStatus.index}__].variantId}">
+                <label th:for="${'cake-quantity-' + cakeStatus.index}" class="sr-only">Số lượng bánh</label>
+                <div class="quantity-stepper" data-quantity-stepper data-custom-cake-stepper>
+                  <button type="button"
+                          class="quantity-stepper__button"
+                          data-quantity-action="decrease"
+                          aria-label="Giảm số lượng">−</button>
+                  <input th:id="${'cake-quantity-' + cakeStatus.index}"
+                         type="number"
+                         min="0"
+                         readonly
+                         th:field="*{cakes[__${cakeStatus.index}__].quantity}"
+                         class="quantity-stepper__input"
+                         data-cake-quantity>
+                  <button type="button"
+                          class="quantity-stepper__button"
+                          data-quantity-action="increase"
+                          aria-label="Tăng số lượng">+</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="lg:col-span-4 lg:sticky lg:top-44">
+        <div class="bg-surface border border-gold/25 rounded-lg p-6 space-y-5">
+          <h2 class="font-serif text-xl font-semibold pb-4 border-b border-gold/15">Tóm tắt hộp quà</h2>
+
+          <div class="flex justify-between gap-4 text-sm">
+            <span class="text-sand">Sức chứa</span>
+            <span data-capacity-summary>0 bánh</span>
+          </div>
+          <div class="flex justify-between gap-4 text-sm">
+            <span class="text-sand">Giá một hộp</span>
+            <span class="text-gold font-semibold" data-unit-price-summary>0đ</span>
+          </div>
+
+          <div>
+            <label for="boxQuantity" class="block text-sm text-sand mb-2">Số lượng hộp</label>
+            <div class="quantity-stepper" data-quantity-stepper>
+              <button type="button"
+                      class="quantity-stepper__button"
+                      data-quantity-action="decrease"
+                      aria-label="Giảm số lượng hộp">−</button>
+              <input id="boxQuantity"
+                     type="number"
+                     min="1"
+                     required
+                     th:field="*{boxQuantity}"
+                     class="quantity-stepper__input">
+              <button type="button"
+                      class="quantity-stepper__button"
+                      data-quantity-action="increase"
+                      aria-label="Tăng số lượng hộp">+</button>
+            </div>
+          </div>
+
+          <p class="text-xs text-sand leading-relaxed">
+            Tồn kho sẽ được kiểm tra và trừ khi checkout, không phải khi thêm vào giỏ.
+          </p>
+
+          <button type="submit"
+                  data-custom-submit
+                  class="w-full bg-gold hover:bg-goldHover disabled:bg-gold/40 disabled:cursor-not-allowed text-surface font-bold py-3.5 px-4 transition-colors"
+                  th:text="${editing ? 'Lưu thay đổi' : 'Thêm vào giỏ hàng'}">
+            Thêm vào giỏ hàng
+          </button>
+          <a th:href="@{/cart}" class="block text-center text-sm text-sand hover:text-gold transition-colors">
+            Quay lại giỏ hàng
+          </a>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/pages/custom-box.js}" src="/js/pages/custom-box.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # MoonCake MVP — Architecture and Coding Conventions
 
-**Version:** 1.4
+**Version:** 1.4.1
 
 **Date:** 21/10/2026
 
@@ -198,6 +198,8 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Keep CSRF enabled for state-changing SSR requests. Use Spring Security form login and server-side session authentication.
 - Customer registration creates one `ACCOUNT` with forced role `CUSTOMER` and one linked `CUSTOMER` in the same transaction. Use the normalized email as the login name; trim it and lowercase it with `Locale.ROOT`. Reject an existing email, hash the password through `PasswordEncoder`, and never bind role/status from the registration form.
 - Registration accepts a password of 8–64 characters plus a matching confirmation. On success, redirect to the login page instead of automatically authenticating the new account.
+- Normalize surrounding whitespace from registration email before Bean Validation. A registration phone is exactly 10 digits starting with `0`; do not silently strip spaces or separators from it.
+- Because the shared encoder is BCrypt, reject registration passwords longer than 72 UTF-8 bytes with a field validation error before calling `PasswordEncoder.encode`.
 - A successfully registered account is `ACTIVE` immediately because email verification and account approval are outside this MVP.
 - Password reset, social login, MFA, email verification, and account approval remain outside scope.
 - Store only a strong one-way password hash supported by Spring Security; never store or log raw passwords.

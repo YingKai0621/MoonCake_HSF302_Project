@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.security.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CustomerRegistrationForm {
@@ -24,7 +25,10 @@ public class CustomerRegistrationForm {
     private String fullName;
 
     @NotBlank(message = "Vui lòng nhập số điện thoại")
-    @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự")
+    @Pattern(
+        regexp = "^0[0-9]{9}$",
+        message = "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0"
+    )
     private String phone;
 
     public String getEmail() {
@@ -32,7 +36,11 @@ public class CustomerRegistrationForm {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        if (email == null) {
+            this.email = null;
+            return;
+        }
+        this.email = email.trim();
     }
 
     public String getPassword() {

@@ -6,12 +6,16 @@ import com.se201411.project.mooncake.security.service.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -65,7 +69,13 @@ class AuthenticationControllerTest {
 
     @Test
     void rejectsMismatchedPasswordBeforeCallingService() throws Exception {
-        mockMvc.perform(validRegistrationRequest().param("confirmPassword", "different123"))
+        mockMvc.perform(registrationRequest(
+            "Nguyễn Văn A",
+            "0901234567",
+            "customer@example.com",
+            "password123",
+            "different123"
+        ))
             .andExpect(status().isOk())
             .andExpect(view().name("security/register"))
             .andExpect(model().attributeHasFieldErrors(
@@ -75,6 +85,122 @@ class AuthenticationControllerTest {
 
         verify(authenticationService, never())
             .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
+    void rejectsInvalidPhoneFormatsBeforeCallingService() throws Exception {
+        List<String> invalidPhones = List.of(
+            "1",
+            "9012345678",
+            "090123456",
+            "09012345678",
+            "090 123 4567",
+            "09012abc67"
+        );
+
+        for (String invalidPhone : invalidPhones) {
+            mockMvc.perform(registrationRequest(
+                "Nguyễn Văn A",
+                invalidPhone,
+                "customer@example.com",
+                "password123",
+                "password123"
+            ))
+                .andExpect(status().isOk())
+                .andExpect(view().name("security/register"))
+                .andExpect(model().attributeHasFieldErrors("registrationForm", "phone"));
+        }
+
+        verify(authenticationService, never())
+            .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
+    void rejectsBlankNameInvalidEmailAndShortPassword() throws Exception {
+        mockMvc.perform(registrationRequest(
+            " ",
+            "0901234567",
+            "not-an-email",
+            "short",
+            "short"
+        ))
+            .andExpect(status().isOk())
+            .andExpect(view().name("security/register"))
+            .andExpect(model().attributeHasFieldErrors(
+                "registrationForm",
+                "fullName",
+                "email",
+                "password",
+                "confirmPassword"
+            ));
+
+        verify(authenticationService, never())
+            .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
+    void rejectsFieldsThatExceedDatabaseLengths() throws Exception {
+        String longName = "a".repeat(161);
+        String longEmail = "a".repeat(243) + "@example.com";
+        String longPassword = "a".repeat(65);
+
+        mockMvc.perform(registrationRequest(
+            longName,
+            "0901234567",
+            longEmail,
+            longPassword,
+            longPassword
+        ))
+            .andExpect(status().isOk())
+            .andExpect(view().name("security/register"))
+            .andExpect(model().attributeHasFieldErrors(
+                "registrationForm",
+                "fullName",
+                "email",
+                "password",
+                "confirmPassword"
+            ));
+
+        verify(authenticationService, never())
+            .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
+    void rejectsPasswordThatExceedsBcryptByteLimit() throws Exception {
+        String passwordOver72Bytes = "😀".repeat(19);
+
+        mockMvc.perform(registrationRequest(
+            "Nguyễn Văn A",
+            "0901234567",
+            "customer@example.com",
+            passwordOver72Bytes,
+            passwordOver72Bytes
+        ))
+            .andExpect(status().isOk())
+            .andExpect(view().name("security/register"))
+            .andExpect(model().attributeHasFieldErrors("registrationForm", "password"));
+
+        verify(authenticationService, never())
+            .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
+    void trimsEmailBeforeValidation() throws Exception {
+        mockMvc.perform(registrationRequest(
+            "Nguyễn Văn A",
+            "0901234567",
+            "  customer@example.com  ",
+            "password123",
+            "password123"
+        ))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login?registered"));
+
+        ArgumentCaptor<CustomerRegistrationForm> formCaptor =
+            ArgumentCaptor.forClass(CustomerRegistrationForm.class);
+        verify(authenticationService).registerCustomer(formCaptor.capture());
+        assertThat(formCaptor.getValue().getEmail())
+            .isEqualTo("customer@example.com");
     }
 
     @Test
@@ -91,11 +217,28 @@ class AuthenticationControllerTest {
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
         validRegistrationRequest() {
+        return registrationRequest(
+            "Nguyễn Văn A",
+            "0901234567",
+            "customer@example.com",
+            "password123",
+            "password123"
+        );
+    }
+
+    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
+        registrationRequest(
+            String fullName,
+            String phone,
+            String email,
+            String password,
+            String confirmPassword
+        ) {
         return post("/register")
-            .param("fullName", "Nguyễn Văn A")
-            .param("phone", "0901234567")
-            .param("email", "customer@example.com")
-            .param("password", "password123")
-            .param("confirmPassword", "password123");
+            .param("fullName", fullName)
+            .param("phone", phone)
+            .param("email", email)
+            .param("password", password)
+            .param("confirmPassword", confirmPassword);
     }
 }

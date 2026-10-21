@@ -1,7 +1,7 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.2 — 21/10/2026
+**Phiên bản tài liệu:** 1.2.1 — 21/10/2026
 
 **Trạng thái:** Quy tắc nghiệp vụ MVP đã cập nhật theo yêu cầu đăng nhập trước khi mua; schema 19 bảng hiện tại vẫn đủ và không cần migration mới
 
@@ -17,6 +17,12 @@
 - Bỏ guest cart/guest checkout khỏi hành vi MVP của ứng dụng. Các cột nullable liên quan guest vẫn được giữ trong schema V1 đã áp dụng nhưng backend mới không sử dụng chúng.
 - Chốt điều hướng: thao tác mua khi chưa đăng nhập đưa khách đến màn hình đăng nhập; không thực hiện âm thầm thao tác mua trước khi xác thực.
 - Phân lại ownership: một luồng Customer Sales sở hữu customer authentication và toàn bộ luồng bán; luồng Admin dùng chung nền tảng bảo mật và không tạo `SecurityConfig` thứ hai.
+
+### Hiệu chỉnh validation trong phiên bản 1.2.1
+
+- Số điện thoại đăng ký gồm đúng 10 chữ số, bắt đầu bằng `0`; không nhận khoảng trắng, chữ, dấu phân cách hoặc mã quốc gia `+84` trong MVP.
+- Email được loại bỏ khoảng trắng hai đầu trước khi kiểm tra định dạng và độ dài.
+- Mật khẩu vẫn có 8–64 ký tự, đồng thời không vượt quá giới hạn 72 byte UTF-8 của BCrypt; input vượt giới hạn phải nhận lỗi validation thân thiện.
 
 ### Thay đổi chính trong phiên bản 1.1
 
@@ -89,6 +95,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Khách được tự đăng ký bằng email, mật khẩu, họ tên và số điện thoại. Backend luôn gán `ACCOUNT.role = CUSTOMER`; không nhận role/status/account ID từ form đăng ký.
 - `ACCOUNT.email` là tên đăng nhập; MVP không có username riêng. Backend loại bỏ khoảng trắng hai đầu và chuyển email về chữ thường trước khi kiểm tra trùng, lưu hoặc đăng nhập.
 - Mật khẩu đăng ký có từ 8 đến 64 ký tự và phải nhập xác nhận khớp. Đăng ký thành công chuyển khách về trang đăng nhập; không tự động đăng nhập.
+- Số điện thoại đăng ký gồm đúng 10 chữ số và bắt đầu bằng `0`. MVP không nhận khoảng trắng, dấu phân cách hoặc mã quốc gia `+84` trong trường này.
+- Do sử dụng BCrypt, mật khẩu đăng ký không được vượt quá 72 byte khi mã hóa UTF-8; backend phải từ chối bằng lỗi validation thay vì để quá trình hash thất bại.
 - Đăng ký phải chuẩn hóa email nhất quán, từ chối email đã tồn tại, hash mật khẩu bằng `PasswordEncoder`, rồi tạo `ACCOUNT` và `CUSTOMER` trong **cùng một transaction**. Nếu một bước thất bại thì không lưu bản ghi còn lại.
 - Do MVP không có xác minh email hay duyệt tài khoản, đăng ký thành công tạo `ACCOUNT.status = ACTIVE`. Password reset, social login, MFA, email verification và account approval vẫn ngoài phạm vi.
 - `CUSTOMER.account_id` và `CUSTOMER.email` được backend gắn với tài khoản vừa đăng ký. Trong luồng mua MVP v1.2, mọi `CUSTOMER` được dùng làm chủ giỏ phải có `account_id`; mọi đơn thành công phải có `SALES_ORDER.customer_id`.
@@ -265,6 +273,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-32 | Khách đã đăng nhập thêm cùng SKU hai lần | Dùng giỏ ACTIVE của chính khách; một CART_ITEM và quantity tăng đúng |
 | BR-33 | Khách A gửi cart_id của khách B | Từ chối quyền truy cập ở service; không đọc hoặc sửa dữ liệu giỏ B |
 | BR-34 | CUSTOMER bị DISABLED cố dùng URL cart/checkout trực tiếp | Không xác thực/không cho mua; catalog vẫn xem công khai |
+| BR-35 | Đăng ký với số điện thoại sai định dạng hoặc mật khẩu vượt giới hạn BCrypt | Hiển thị lỗi validation; không gọi service và không tạo ACCOUNT/CUSTOMER |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

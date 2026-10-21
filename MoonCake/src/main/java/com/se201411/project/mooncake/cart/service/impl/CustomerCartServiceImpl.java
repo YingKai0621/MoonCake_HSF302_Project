@@ -1,17 +1,25 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
 import com.se201411.project.mooncake.cart.dto.CartItemView;
+import com.se201411.project.mooncake.cart.dto.CustomCartComponentView;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationItemRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
 import com.se201411.project.mooncake.cart.service.CustomerCartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Cart;
 import com.se201411.project.mooncake.entity.CartItem;
+import com.se201411.project.mooncake.entity.BoxConfiguration;
+import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.CartStatus;
+import com.se201411.project.mooncake.enums.ConfigurationStatus;
+import com.se201411.project.mooncake.enums.ConfigurationType;
+import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
@@ -35,9 +43,12 @@ import java.util.Optional;
 public class CustomerCartServiceImpl implements CustomerCartService {
 
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
+    private static final String FALLBACK_IMAGE = "/images/branding/mooncake_luxury_emblem_v4.png";
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final CustomBoxConfigurationRepository configurationRepository;
+    private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final ProductQueryService productQueryService;
     private final EntityManager entityManager;
     private final Clock clock;
@@ -45,12 +56,16 @@ public class CustomerCartServiceImpl implements CustomerCartService {
     public CustomerCartServiceImpl(
         CartRepository cartRepository,
         CartItemRepository cartItemRepository,
+        CustomBoxConfigurationRepository configurationRepository,
+        CustomBoxConfigurationItemRepository configurationItemRepository,
         ProductQueryService productQueryService,
         EntityManager entityManager,
         Clock clock
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.configurationRepository = configurationRepository;
+        this.configurationItemRepository = configurationItemRepository;
         this.productQueryService = productQueryService;
         this.entityManager = entityManager;
         this.clock = clock;
@@ -69,8 +84,9 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         }
 
         Cart cart = cartResult.get();
-        List<CartItem> cartItems = cartItemRepository.findVariantItemsByCartId(cart.getId());
-        return buildCartView(cart, cartItems);
+        List<CartItem> variantItems = cartItemRepository.findVariantItemsByCartId(cart.getId());
+        List<CartItem> customItems = cartItemRepository.findCustomItemsByCartId(cart.getId());
+        return buildCartView(cart, variantItems, customItems);
     }
 
     @Override
@@ -143,13 +159,11 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         Cart cart = requireLockedActiveCart(customerIdentity.customerId());
         CartItem item = requireOwnedItem(cart.getId(), cartItemId);
 
-        if (item.getVariant() == null) {
-            throw new BusinessRuleViolationException(
-                "Dòng hộp tự chọn sẽ được xử lý trong chức năng CUSTOM"
-            );
-        }
-        if (quantity > item.getQuantity()) {
+        if (item.getVariant() != null && quantity > item.getQuantity()) {
             productQueryService.requireSellableVariant(item.getVariant().getId());
+        }
+        if (item.getConfigurationId() != null && quantity > item.getQuantity()) {
+            validateCustomConfigurationSellable(item.getConfigurationId(), cart.getId());
         }
 
         item.setQuantity(quantity);
@@ -164,17 +178,30 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
         Cart cart = requireLockedActiveCart(customerIdentity.customerId());
         CartItem item = requireOwnedItem(cart.getId(), cartItemId);
-        if (item.getConfigurationId() != null) {
-            throw new BusinessRuleViolationException(
-                "Dòng hộp tự chọn sẽ được xử lý trong chức năng CUSTOM"
+        if (item.getConfigurationId() == null) {
+            cartItemRepository.delete(item);
+        } else {
+            BoxConfiguration configuration = requireOwnedCustomConfiguration(
+                item.getConfigurationId(),
+                cart.getId()
             );
+            cartItemRepository.delete(item);
+            entityManager.flush();
+            List<BoxConfigurationItem> components = configurationItemRepository
+                .findByConfigurationIds(List.of(configuration.getId()));
+            configurationItemRepository.deleteAll(components);
+            entityManager.flush();
+            configurationRepository.delete(configuration);
         }
-        cartItemRepository.delete(item);
         cart.setUpdatedAt(now());
     }
 
-    private CustomerCartView buildCartView(Cart cart, List<CartItem> cartItems) {
-        if (cartItems.isEmpty()) {
+    private CustomerCartView buildCartView(
+        Cart cart,
+        List<CartItem> variantItems,
+        List<CartItem> customItems
+    ) {
+        if (variantItems.isEmpty() && customItems.isEmpty()) {
             return new CustomerCartView(
                 cart.getId(),
                 List.of(),
@@ -186,7 +213,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         }
 
         List<Long> variantIds = new ArrayList<>();
-        for (CartItem item : cartItems) {
+        for (CartItem item : variantItems) {
             variantIds.add(item.getVariant().getId());
         }
 
@@ -202,7 +229,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         BigDecimal subtotal = BigDecimal.ZERO;
         boolean hasUnavailableItems = false;
 
-        for (CartItem item : cartItems) {
+        for (CartItem item : variantItems) {
             long variantId = item.getVariant().getId();
             CartVariantSnapshot variant = variantsById.get(variantId);
             if (variant == null) {
@@ -239,6 +266,63 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             }
         }
 
+        List<Long> configurationIds = new ArrayList<>();
+        for (CartItem item : customItems) {
+            configurationIds.add(item.getConfigurationId());
+        }
+        Map<Long, List<BoxConfigurationItem>> componentsByConfiguration =
+            loadCustomComponents(configurationIds);
+
+        for (CartItem item : customItems) {
+            BoxConfiguration configuration = item.getConfiguration();
+            List<BoxConfigurationItem> components = componentsByConfiguration.getOrDefault(
+                configuration.getId(),
+                List.of()
+            );
+            BigDecimal unitPrice = calculateCustomUnitPrice(configuration, components);
+            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+            boolean currentlySellable = isCustomConfigurationSellable(
+                configuration,
+                components
+            );
+
+            List<CustomCartComponentView> componentViews = new ArrayList<>();
+            for (BoxConfigurationItem component : components) {
+                ProductVariant cake = component.getMooncakeVariant();
+                componentViews.add(new CustomCartComponentView(
+                    cake.getProduct().getName(),
+                    cake.getName(),
+                    component.getQuantityPerBox()
+                ));
+            }
+
+            ProductVariant boxVariant = configuration.getBox().getEmptyBoxVariant();
+            CartItemView customView = CartItemView.custom(
+                item.getId(),
+                configuration.getId(),
+                "Hộp quà tự chọn",
+                boxVariant.getProduct().getName(),
+                boxVariant.getSku(),
+                FALLBACK_IMAGE,
+                boxVariant.getProduct().getName(),
+                item.getQuantity(),
+                unitPrice,
+                formatVnd(unitPrice),
+                lineTotal,
+                formatVnd(lineTotal),
+                currentlySellable,
+                configuration.getBox().getCapacityCakes(),
+                componentViews
+            );
+            itemViews.add(customView);
+
+            totalQuantity = addQuantities(totalQuantity, item.getQuantity());
+            subtotal = subtotal.add(lineTotal);
+            if (!currentlySellable) {
+                hasUnavailableItems = true;
+            }
+        }
+
         return new CustomerCartView(
             cart.getId(),
             itemViews,
@@ -247,6 +331,116 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             formatVnd(subtotal),
             hasUnavailableItems
         );
+    }
+
+    private Map<Long, List<BoxConfigurationItem>> loadCustomComponents(
+        List<Long> configurationIds
+    ) {
+        if (configurationIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<BoxConfigurationItem> components = configurationItemRepository
+            .findByConfigurationIds(configurationIds);
+        Map<Long, List<BoxConfigurationItem>> result = new LinkedHashMap<>();
+        for (BoxConfigurationItem component : components) {
+            long configurationId = component.getConfiguration().getId();
+            List<BoxConfigurationItem> configurationComponents = result.get(configurationId);
+            if (configurationComponents == null) {
+                configurationComponents = new ArrayList<>();
+                result.put(configurationId, configurationComponents);
+            }
+            configurationComponents.add(component);
+        }
+        return result;
+    }
+
+    private BigDecimal calculateCustomUnitPrice(
+        BoxConfiguration configuration,
+        List<BoxConfigurationItem> components
+    ) {
+        BigDecimal unitPrice = configuration.getBox()
+            .getEmptyBoxVariant()
+            .getUnitPrice();
+        for (BoxConfigurationItem component : components) {
+            BigDecimal componentTotal = component.getMooncakeVariant()
+                .getUnitPrice()
+                .multiply(BigDecimal.valueOf(component.getQuantityPerBox()));
+            unitPrice = unitPrice.add(componentTotal);
+        }
+        return unitPrice;
+    }
+
+    private boolean isCustomConfigurationSellable(
+        BoxConfiguration configuration,
+        List<BoxConfigurationItem> components
+    ) {
+        if (configuration.getType() != ConfigurationType.CUSTOM
+            || configuration.getStatus() != ConfigurationStatus.READY) {
+            return false;
+        }
+        if (!configuration.getBox().isActive()) {
+            return false;
+        }
+
+        ProductVariant boxVariant = configuration.getBox().getEmptyBoxVariant();
+        if (!isActiveVariantOfType(boxVariant, ProductType.EMPTY_BOX)) {
+            return false;
+        }
+
+        int cakeCount = 0;
+        for (BoxConfigurationItem component : components) {
+            ProductVariant cake = component.getMooncakeVariant();
+            if (!isActiveVariantOfType(cake, ProductType.MOONCAKE)) {
+                return false;
+            }
+            cakeCount = addQuantities(cakeCount, component.getQuantityPerBox());
+        }
+        return cakeCount == configuration.getBox().getCapacityCakes();
+    }
+
+    private boolean isActiveVariantOfType(
+        ProductVariant variant,
+        ProductType expectedType
+    ) {
+        return variant.isActive()
+            && variant.getProduct().isActive()
+            && variant.getProduct().getCategory().isActive()
+            && variant.getProduct().getProductType() == expectedType;
+    }
+
+    private void validateCustomConfigurationSellable(
+        long configurationId,
+        long cartId
+    ) {
+        BoxConfiguration configuration = requireOwnedCustomConfiguration(
+            configurationId,
+            cartId
+        );
+        List<BoxConfigurationItem> components = configurationItemRepository
+            .findByConfigurationIds(List.of(configurationId));
+        if (!isCustomConfigurationSellable(configuration, components)) {
+            throw new BusinessRuleViolationException(
+                "Hộp tự chọn không còn hợp lệ để tăng số lượng"
+            );
+        }
+    }
+
+    private BoxConfiguration requireOwnedCustomConfiguration(
+        long configurationId,
+        long cartId
+    ) {
+        Optional<BoxConfiguration> result = configurationRepository.findOwnedConfiguration(
+            configurationId,
+            cartId,
+            ConfigurationType.CUSTOM
+        );
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException(
+                "Không tìm thấy cấu hình hộp tự chọn trong giỏ hàng của bạn"
+            );
+        }
+        return result.get();
     }
 
     private Cart lockOrCreateActiveCart(long customerId) {

@@ -21,7 +21,7 @@ class CatalogSeedIT {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void v3CreatesCompleteCatalogWithValidPresetCapacities() {
+    void catalogSeedsCreateValidPresetAndCustomBoxData() {
         Integer categoryCount = jdbcTemplate.queryForObject("""
             SELECT COUNT(*)
             FROM dbo.CATEGORY
@@ -96,6 +96,20 @@ class CatalogSeedIT {
             WHERE sku = N'GIFT-LAM-PHUC-6'
             """, BigDecimal.class);
 
+        Map<String, Object> emptyBoxData = jdbcTemplate.queryForMap("""
+            SELECT
+                SUM(CASE WHEN variant.sku = N'BOX-KIM-PHUC-4'
+                    AND variant.unit_price = 495000
+                    AND variant.is_active = 1
+                    AND product.is_active = 1 THEN 1 ELSE 0 END) AS four_cake_box,
+                SUM(CASE WHEN variant.sku = N'BOX-LAM-PHUC-6'
+                    AND variant.unit_price = 590000
+                    AND variant.is_active = 1
+                    AND product.is_active = 1 THEN 1 ELSE 0 END) AS six_cake_box
+            FROM dbo.PRODUCT_VARIANT AS variant
+            JOIN dbo.PRODUCT AS product ON product.product_id = variant.product_id
+            """);
+
         assertThat(categoryCount).isEqualTo(2);
         assertThat(((Number) productCounts.get("mooncakes")).intValue()).isEqualTo(12);
         assertThat(((Number) productCounts.get("empty_boxes")).intValue()).isEqualTo(2);
@@ -105,5 +119,7 @@ class CatalogSeedIT {
         assertThat(invalidCapacityCount).isZero();
         assertThat(kimPhucPrice).isEqualByComparingTo("590000");
         assertThat(lamPhucPrice).isEqualByComparingTo("930000");
+        assertThat(((Number) emptyBoxData.get("four_cake_box")).intValue()).isEqualTo(1);
+        assertThat(((Number) emptyBoxData.get("six_cake_box")).intValue()).isEqualTo(1);
     }
 }

@@ -67,6 +67,10 @@ class SecurityConfigTest {
         mockMvc.perform(get("/cart"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/login"));
+
+        mockMvc.perform(get("/custom-boxes"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -176,6 +180,11 @@ class SecurityConfigTest {
         @GetMapping("/cart")
         String cart() {
             return "cart";
+        }
+
+        @GetMapping("/custom-boxes")
+        String customBoxes() {
+            return "custom-boxes";
         }
 
         @PostMapping("/cart/items")

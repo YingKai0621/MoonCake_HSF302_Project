@@ -1,0 +1,473 @@
+.business-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.business-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 6.5rem 0;
+  background:
+    radial-gradient(circle at 82% 42%, rgba(209, 168, 90, 0.14), transparent 32%),
+    linear-gradient(135deg, #0c1626 0%, #10233d 58%, #162842 100%);
+  border-bottom: 1px solid rgba(209, 168, 90, 0.24);
+}
+
+.business-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(209, 168, 90, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(209, 168, 90, 0.12) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to right, transparent, black 65%);
+  pointer-events: none;
+}
+
+.business-hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  gap: 4rem;
+  align-items: center;
+}
+
+.business-eyebrow {
+  margin: 0 0 0.9rem;
+  color: #d1a85a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.business-hero h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #f8f4eb;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.75rem, 6vw, 5.25rem);
+  font-weight: 700;
+  line-height: 1.07;
+  letter-spacing: -0.035em;
+}
+
+.business-lead {
+  max-width: 690px;
+  margin: 1.5rem 0 0;
+  color: #c2baab;
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.8;
+}
+
+.business-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 2.2rem;
+}
+
+.business-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.55rem;
+  border: 1px solid #d1a85a;
+  font-size: 0.93rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.business-button:hover {
+  transform: translateY(-2px);
+}
+
+.business-button:focus-visible {
+  outline: 2px solid #faf4a9;
+  outline-offset: 3px;
+}
+
+.business-button-primary {
+  background: #d1a85a;
+  color: #0c1626;
+}
+
+.business-button-primary:hover {
+  background: #e5c37e;
+}
+
+.business-button-secondary {
+  background: rgba(12, 22, 38, 0.48);
+  color: #f8f4eb;
+}
+
+.business-button-secondary:hover {
+  background: #162842;
+  color: #faf4a9;
+}
+
+.business-login-note {
+  margin-top: 1rem;
+  color: rgba(194, 186, 171, 0.82);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.business-hero-note {
+  padding: 2.2rem;
+  background: rgba(12, 22, 38, 0.8);
+  border: 1px solid rgba(209, 168, 90, 0.48);
+  box-shadow: 0 24px 60px rgba(3, 9, 18, 0.42);
+}
+
+.business-note-number {
+  display: block;
+  color: #d1a85a;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(3.6rem, 7vw, 5.8rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.business-note-title {
+  margin: 0.9rem 0 0;
+  color: #f8f4eb;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.business-note-text,
+.business-note-small {
+  margin: 0.65rem 0 0;
+  color: #c2baab;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.business-note-divider {
+  height: 1px;
+  margin: 1.5rem 0;
+  background: rgba(209, 168, 90, 0.32);
+}
+
+.business-section {
+  padding: 5rem 0;
+  background: #10233d;
+  border-bottom: 1px solid rgba(209, 168, 90, 0.18);
+}
+
+.business-section-heading {
+  max-width: 720px;
+  margin-bottom: 2.5rem;
+}
+
+.business-section-heading-wide {
+  max-width: 820px;
+}
+
+.business-section-heading h2,
+.business-cta h2 {
+  margin: 0;
+  color: #f8f4eb;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.business-section-heading > p:last-child,
+.business-cta-inner > div > p:last-child {
+  margin: 1rem 0 0;
+  color: #c2baab;
+  line-height: 1.75;
+}
+
+.business-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.business-card {
+  display: flex;
+  min-height: 310px;
+  flex-direction: column;
+  padding: 2rem;
+  background: #0c1626;
+  border: 1px solid rgba(209, 168, 90, 0.24);
+  box-shadow: 0 15px 35px rgba(4, 10, 18, 0.28);
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.business-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(209, 168, 90, 0.58);
+}
+
+.business-card-index {
+  color: #d1a85a;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+}
+
+.business-card h3 {
+  margin: 2.4rem 0 0;
+  color: #f8f4eb;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.business-card p {
+  margin: 0.9rem 0 1.5rem;
+  color: #c2baab;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.business-card a {
+  margin-top: auto;
+  color: #d1a85a;
+  font-size: 0.87rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.business-card a:hover {
+  color: #faf4a9;
+}
+
+.business-discount-section {
+  background: #0c1626;
+}
+
+.business-discount-visual {
+  overflow: hidden;
+  margin: 0;
+  background: #0c1626;
+  border: 1px solid rgba(209, 168, 90, 0.3);
+  box-shadow: 0 24px 65px rgba(2, 7, 14, 0.4);
+}
+
+.business-discount-visual > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.business-tier-grid {
+  display: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.business-tier {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 1.2rem;
+  background: #0a2747;
+  border: 1px solid rgba(229, 195, 126, 0.75);
+  text-align: center;
+}
+
+.business-tier strong {
+  display: block;
+  margin-bottom: 1rem;
+  color: #f4bd58;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.8rem, 8vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.business-tier span {
+  width: 100%;
+  padding-top: 0.8rem;
+  color: #f8f4eb;
+  border-top: 1px solid rgba(229, 195, 126, 0.72);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.business-discount-notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.business-discount-notes p {
+  margin: 0;
+  padding: 1rem 1.2rem;
+  background: rgba(22, 40, 66, 0.62);
+  color: #c2baab;
+  border-left: 2px solid #d1a85a;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.business-discount-notes strong {
+  color: #f8f4eb;
+}
+
+.business-process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.business-process-grid li {
+  padding: 1.6rem;
+  background: #0c1626;
+  border-top: 2px solid #d1a85a;
+}
+
+.business-process-grid li > span {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  color: #0c1626;
+  background: #d1a85a;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.business-process-grid h3 {
+  margin: 1.2rem 0 0;
+  color: #f8f4eb;
+  font-size: 1rem;
+}
+
+.business-process-grid p {
+  margin: 0.65rem 0 0;
+  color: #c2baab;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.business-cta {
+  padding: 4.5rem 0;
+  background: linear-gradient(120deg, #0c1626, #162842);
+}
+
+.business-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+}
+
+.business-cta-inner > div {
+  max-width: 750px;
+}
+
+.business-cta .business-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 900px) {
+  .business-hero {
+    padding: 4.5rem 0;
+  }
+
+  .business-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .business-hero-note {
+    max-width: 520px;
+  }
+
+  .business-solution-grid,
+  .business-process-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .business-discount-notes {
+    grid-template-columns: 1fr;
+  }
+
+  .business-discount-visual {
+    display: none;
+  }
+
+  .business-tier-grid {
+    display: grid;
+  }
+}
+
+@media (max-width: 640px) {
+  .business-shell {
+    width: min(100% - 1.25rem, 1180px);
+  }
+
+  .business-hero,
+  .business-section,
+  .business-cta {
+    padding: 3.5rem 0;
+  }
+
+  .business-actions {
+    flex-direction: column;
+  }
+
+  .business-button {
+    width: 100%;
+  }
+
+  .business-solution-grid,
+  .business-process-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .business-card {
+    min-height: auto;
+  }
+
+  .business-card h3 {
+    margin-top: 1.5rem;
+  }
+
+  .business-tier-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .business-tier {
+    min-height: 150px;
+    padding: 1rem 0.7rem;
+  }
+
+  .business-tier strong {
+    font-size: 3rem;
+  }
+
+  .business-tier span {
+    font-size: 0.75rem;
+  }
+
+  .business-cta-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .business-button,
+  .business-card {
+    transition: none;
+  }
+}

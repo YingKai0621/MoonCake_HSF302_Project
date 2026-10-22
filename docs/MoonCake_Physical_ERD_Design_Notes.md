@@ -1,6 +1,6 @@
 # MoonCake MVP — Physical ERD cho Microsoft SQL Server
 
-**Cơ sở:** Business Rules v1.2.1 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Cấu trúc schema được triển khai bởi Flyway V1, V2 seed bậc chiết khấu; V3 seed catalog demo và V4 mở bán hai SKU vỏ hộp demo cho CUSTOM. V3/V4 không đổi thiết kế 19 bảng. Hiệu chỉnh validation đăng ký ở v1.2.1 không làm thay đổi schema.
+**Cơ sở:** Business Rules v1.4 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Cấu trúc schema được triển khai bởi Flyway V1; V2 seed bậc chiết khấu ban đầu, V3 seed catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM và V5 cập nhật dữ liệu tier `GIFT_BOX`. V3/V4/V5 không đổi thiết kế 19 bảng.
 
 > **Lưu ý về comment bất biến trong V1:** Phần đầu `V1__initial_schema.sql` còn câu mô tả được sao chép từ bản DESIGN DDL (“NOT executed”/chạy qua SSMS). Câu này không phản ánh cách file đang được sử dụng: V1 là migration thực thi của Flyway và đã được áp dụng. Không sửa riêng comment trong V1 vì sẽ làm thay đổi checksum migration đã chia sẻ; dùng ghi chú này làm diễn giải chính thức.
 
@@ -11,7 +11,7 @@
 - Ứng dụng v1.2 cho phép khách chưa đăng nhập xem catalog nhưng yêu cầu đăng ký/đăng nhập trước khi tạo giỏ, CUSTOM box hoặc checkout. Mọi giỏ mới dùng `customer_id`; `guest_token` để NULL.
 - V1 vẫn giữ nhánh cấu trúc nullable cho guest cart và `SALES_ORDER.customer_id` nullable để bảo toàn checksum migration/schema 19 bảng đã chia sẻ. Backend v1.2 không sử dụng nhánh đó và yêu cầu đơn bán lẻ có `customer_id`; quyết định thu hẹp hành vi này không cần migration.
 - Đặt đơn thành công là claim giỏ `ACTIVE → CHECKED_OUT`, kiểm tra + tạo đơn + trừ tồn trong 1 transaction; một giỏ chỉ checkout thành công **đúng một lần**. Hủy hợp lệ trước `SHIPPING` hoàn tồn **đúng một lần**.
-- Chiết khấu theo **hai nhóm độc lập** (`GIFT_BOX`, `MOONCAKE`), ngưỡng 50/100: 5%/10%. Hộp rỗng không giảm.
+- Chiết khấu theo **hai nhóm độc lập**: `GIFT_BOX` có sáu bậc 5/20/50/100/200/500 tương ứng 5%/8%/10%/12%/15%/18%; `MOONCAKE` giữ ngưỡng 50/100 tương ứng 5%/10%. Hộp rỗng không giảm.
 - Phí vận chuyển demo: dưới 50 hộp quà là 30.000 VND; từ 50 hộp là 150.000 VND (có thể cấu hình ở service); giữ snapshot phí trên đơn.
 - Sau này tích hợp payOS/VietQR bằng migration riêng, không cần tạo các bảng provider ngay trong MVP.
 
@@ -291,7 +291,7 @@ WHERE variant_id = @variantId AND available_quantity >= @quantity;
 ## 6. Những kiểm tra cần làm trước khi dùng SQL thật
 
 1. Chạy trên SQL Server 2019+ **database trống**; kiểm thử FK/CHECK/index và nhập bộ dữ liệu test.
-2. Kiểm thử đơn 55 hộp quà + 105 bánh lẻ: ngưỡng và giá snapshot chính xác.
+2. Kiểm thử đơn 55 hộp quà + 105 bánh lẻ: lần lượt áp dụng 10% và 10%, đồng thời lưu snapshot giá chính xác.
 3. Kiểm thử PRESET/CUSTOM: không bao giờ trừ tồn 2 lần cho một bộ quà.
 4. Kiểm thử hai lượt đặt đồng thời vào SKU còn 1 sản phẩm: tối đa một đơn thành công.
 5. Kiểm thử hủy trước SHIPPING hai lần: tồn chỉ hoàn một lần; hủy sau SHIPPING không hoàn tự động.
@@ -299,6 +299,6 @@ WHERE variant_id = @variantId AND available_quantity >= @quantity;
 7. Kiểm thử thêm cùng SKU/CUSTOM config hai lần: unique index không cho dòng trùng; service tăng `quantity` đúng.
 8. Kiểm thử hai request đồng thời checkout cùng một cart: đúng một request claim được cart, chỉ một order và một bộ stock movement được tạo.
 9. Kiểm thử sửa PRESET đã READY/đã có tồn: service từ chối và yêu cầu SKU/config mới; recipe cũ không đổi.
-10. Không sửa/delete `V1__initial_schema.sql` hoặc `V2__seed_volume_discount_tiers.sql` sau khi đã áp dụng/chia sẻ; thay đổi tiếp theo phải dùng migration version mới.
+10. Không sửa/delete migration V1–V5 sau khi đã áp dụng/chia sẻ; thay đổi tiếp theo phải dùng migration version mới.
 
-**Lưu ý:** DDL tham chiếu đã được đối chiếu với `V1__initial_schema.sql`; Flyway đã áp dụng V1/V2 thành công trên `MoonCakeDB` trống và lần chạy lại xác nhận schema ở version 2, không có migration pending.
+**Lưu ý:** DDL tham chiếu đã được đối chiếu với `V1__initial_schema.sql`. Flyway V1–V5 đã được áp dụng thành công trên `MoonCakeDB`; database hiện ở version 5, không có migration pending. V5 chỉ cập nhật dữ liệu tier `GIFT_BOX`, không thay đổi cấu trúc 19 bảng.

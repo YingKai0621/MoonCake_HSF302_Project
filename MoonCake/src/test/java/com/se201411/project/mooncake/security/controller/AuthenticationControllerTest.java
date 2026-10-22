@@ -139,6 +139,32 @@ class AuthenticationControllerTest {
     }
 
     @Test
+    void rejectsFullNameWithNumbersSpecialCharactersOrExceeding40Characters() throws Exception {
+        List<String> invalidNames = List.of(
+            "Nguyễn Văn A123",
+            "Trần Thị B @#$",
+            "<script>",
+            "a".repeat(41)
+        );
+
+        for (String invalidName : invalidNames) {
+            mockMvc.perform(registrationRequest(
+                invalidName,
+                "0901234567",
+                "customer@example.com",
+                "password123",
+                "password123"
+            ))
+                .andExpect(status().isOk())
+                .andExpect(view().name("security/register"))
+                .andExpect(model().attributeHasFieldErrors("registrationForm", "fullName"));
+        }
+
+        verify(authenticationService, never())
+            .registerCustomer(any(CustomerRegistrationForm.class));
+    }
+
+    @Test
     void rejectsFieldsThatExceedDatabaseLengths() throws Exception {
         String longName = "a".repeat(161);
         String longEmail = "a".repeat(243) + "@example.com";

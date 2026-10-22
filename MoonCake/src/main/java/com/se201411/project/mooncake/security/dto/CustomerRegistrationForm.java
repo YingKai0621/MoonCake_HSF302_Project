@@ -21,7 +21,11 @@ public class CustomerRegistrationForm {
     private String confirmPassword;
 
     @NotBlank(message = "Vui lòng nhập họ tên")
-    @Size(max = 160, message = "Họ tên không được vượt quá 160 ký tự")
+    @Size(max = 40, message = "Họ tên không được vượt quá 40 ký tự")
+    @Pattern(
+        regexp = "^[\\p{L}\\s]+$",
+        message = "Họ tên chỉ được chứa chữ cái và khoảng trắng"
+    )
     private String fullName;
 
     @NotBlank(message = "Vui lòng nhập số điện thoại")

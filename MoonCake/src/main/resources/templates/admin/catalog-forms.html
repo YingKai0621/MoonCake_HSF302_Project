@@ -1,0 +1,103 @@
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<form th:fragment="categories(f)" th:action="@{/admin/categories}" method="post"><input type="hidden" name="id"
+                                                                                        th:if="${f != null}"
+                                                                                        th:value="${f.id}">
+    <div class="grid"><label>Tên danh mục<input type="text" name="name" th:value="${f != null ? f.name : ''}" required
+                                                maxlength="160"></label><label>Slug (chữ thường, số và dấu -)<input
+            type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="160"></label><label>Hoạt
+        động<input type="checkbox" name="active" th:checked="${f != null and f.active}"></label></div>
+    <div class="actions">
+        <button>Lưu</button>
+    </div>
+</form>
+<form th:fragment="products(f)" th:action="@{/admin/products}" method="post"><input type="hidden" name="id"
+                                                                                    th:if="${f != null}"
+                                                                                    th:value="${f.id}">
+    <div class="grid"><label>Danh mục<select name="categoryId" required>
+        <option value="">Chọn...</option>
+        <option th:each="o : ${catalog.categories}" th:value="${o.id}" th:text="${o.name}"
+                th:selected="${f != null and f.categoryId == o.id}"></option>
+    </select></label><label>Loại sản phẩm<select name="productType" required>
+        <option th:each="t : ${T(com.se201411.project.mooncake.enums.ProductType).values()}" th:value="${t}"
+                th:text="${t}" th:selected="${f != null and f.productType == t}"></option>
+    </select></label><label>Tên sản phẩm<input type="text" name="name" th:value="${f != null ? f.name : ''}" required
+                                               maxlength="220"></label><label>Slug<input type="text" name="slug"
+                                                                                         th:value="${f != null ? f.slug : ''}"
+                                                                                         required
+                                                                                         maxlength="180"></label><label>Mô
+        tả ngắn<textarea name="shortDescription" th:text="${f != null ? f.shortDescription : ''}" required
+                         maxlength="600"></textarea></label><label>Mô tả chi tiết<textarea name="detailedDescription"
+                                                                                           th:text="${f != null ? f.detailedDescription : ''}"></textarea></label><label>Thành
+        phần thực phẩm<textarea name="mainIngredients" th:text="${f != null ? f.mainIngredients : ''}"
+                                maxlength="700"></textarea></label><label>Hạn sử dụng<input type="text"
+                                                                                            name="shelfLifeInfo"
+                                                                                            th:value="${f != null ? f.shelfLifeInfo : ''}"
+                                                                                            maxlength="350"></label><label>Hướng
+        dẫn bảo quản<textarea name="storageGuidance" th:text="${f != null ? f.storageGuidance : ''}"
+                              maxlength="600"></textarea></label><label>Hoạt động<input type="checkbox" name="active"
+                                                                                        th:checked="${f != null and f.active}"></label>
+    </div>
+    <div class="actions">
+        <button>Lưu</button>
+    </div>
+</form>
+<form th:fragment="variants(f)" th:action="@{/admin/variants}" method="post"><input type="hidden" name="id"
+                                                                                    th:if="${f != null}"
+                                                                                    th:value="${f.id}">
+    <div class="grid"><label>Sản phẩm<select name="productId" required>
+        <option value="">Chọn...</option>
+        <option th:each="o : ${catalog.products}" th:value="${o.id}" th:text="${o.name}"
+                th:selected="${f != null and f.productId == o.id}"></option>
+    </select></label><label>Mã SKU<input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required
+                                         maxlength="80"></label><label>Tên biến thể<input type="text" name="name"
+                                                                                          th:value="${f != null ? f.name : ''}"
+                                                                                          required
+                                                                                          maxlength="200"></label><label>Giá
+        bán (VND)<input type="number" name="unitPrice" th:value="${f != null ? f.unitPrice : ''}" required min="0"
+                        step="1"></label><label>Khối lượng (g)<input type="number" name="weightGrams"
+                                                                     th:value="${f != null ? f.weightGrams : ''}"
+                                                                     min="1"></label><label>Nhãn nhân bánh<input
+            type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}"
+            maxlength="180"></label><label>Mở bán<input type="checkbox" name="active"
+                                                        th:checked="${f != null and f.active}"></label></div>
+    <div class="actions">
+        <button>Lưu</button>
+    </div>
+</form>
+<form th:fragment="boxes(f)" th:action="@{/admin/boxes}" method="post"><input type="hidden" name="id"
+                                                                              th:if="${f != null}" th:value="${f.id}">
+    <div class="grid"><label>SKU hộp rỗng (EMPTY_BOX)<select name="variantId" required>
+        <option value="">Chọn...</option>
+        <option th:each="o : ${catalog.boxVariants()}" th:value="${o.id}" th:text="${o.sku}"
+                th:selected="${f != null and f.variantId == o.id}"></option>
+    </select></label><label>Sức chứa (số bánh)<input type="number" name="capacityCakes"
+                                                     th:value="${f != null ? f.capacityCakes : ''}" required
+                                                     min="1"></label><label>Chất liệu<input type="text" name="material"
+                                                                                            th:value="${f != null ? f.material : ''}"
+                                                                                            maxlength="180"></label><label>Ghi
+        chú<textarea name="notes" th:text="${f != null ? f.notes : ''}" maxlength="500"></textarea></label><label>Hoạt
+        động<input type="checkbox" name="active" th:checked="${f != null and f.active}"></label></div>
+    <div class="actions">
+        <button>Lưu</button>
+    </div>
+</form>
+<form th:fragment="images(f)" th:action="@{/admin/images}" method="post"><input type="hidden" name="id"
+                                                                                th:if="${f != null}" th:value="${f.id}">
+    <div class="grid"><label>SKU<select name="variantId" required>
+        <option value="">Chọn...</option>
+        <option th:each="o : ${catalog.variants}" th:value="${o.id}" th:text="${o.sku}"
+                th:selected="${f != null and f.variantId == o.id}"></option>
+    </select></label><label>Đường dẫn ảnh (https:// hoặc /images/)<input type="text" name="imageUrl"
+                                                                         th:value="${f != null ? f.imageUrl : ''}"
+                                                                         required maxlength="1000"></label><label>Mô tả
+        ảnh<input type="text" name="altText" th:value="${f != null ? f.altText : ''}" maxlength="250"></label><label>Thứ
+        tự<input type="number" name="sortOrder" th:value="${f != null ? f.sortOrder : ''}" required
+                 min="0"></label><label>Ảnh chính<input type="checkbox" name="primary"
+                                                        th:checked="${f != null and f.primary}"></label></div>
+    <div class="actions">
+        <button>Lưu</button>
+    </div>
+</form>
+</body>
+</html>

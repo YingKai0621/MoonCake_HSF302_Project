@@ -226,3 +226,9 @@ When requirements, schema, or module contracts conflict:
 3. Prefer confirmed Business Rules for behavior and approved Flyway/Physical DDL for structure.
 4. Get agreement before modifying a shared contract or adding a migration.
 5. Document the decision so human members and AI assistants receive the same instruction.
+
+## 11. Admin implementation checkpoint — 22/10/2026
+
+Admin implementation is now present in the working tree: catalog/PRESET management, inventory receive/adjust/PACK, order management with cancellation and COD completion, shared-security authorization, and one-time Admin bootstrap. Ownership and existing shared contracts are unchanged.
+
+See [admin-flow.md](admin-flow.md) for the source-context review, operator workflow, implementation boundaries, exact verification commands and remaining acceptance checks. Unit/MVC verification is complete at this checkpoint; SQL Server integration and the manual browser journey against real data remain pending. Phase 3 must not be reported as fully accepted until those Definition-of-Done checks pass.

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Công thức hộp PRESET')}"></head>
+<body class="page-presets">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div class="page-heading"><span class="eyebrow">THIẾT KẾ HỘP QUÀ</span><h1>Công thức hộp quà</h1><p>Chọn hộp rỗng và số lượng từng loại bánh cho hộp quà bán sẵn (PRESET). Hoàn thiện bản nháp DRAFT, chuyển sang READY, rồi sang Kho để đóng hộp.</p></div>
+    <details class="help-panel" open><summary>Công thức hộp quà hoạt động như thế nào?</summary>
+        <p><strong>Công thức quy định bên trong một hộp có gì.</strong> Ví dụ: hộp 4 bánh gồm 2 bánh Kim Sa + 2 bánh Thập Cẩm. Tạo công thức chưa làm tăng số hộp trong kho.</p>
+        <ol><li>Ở <a th:href="@{/admin/catalog}">Sản phẩm &amp; danh mục</a>, tạo SKU hộp quà (GIFT_SET) chưa mở bán và mẫu hộp rỗng có sức chứa phù hợp.</li>
+        <li>Tại đây, chọn SKU hộp quà và mẫu hộp để tạo bản nháp <strong>DRAFT</strong>.</li>
+        <li>Chọn từng SKU bánh và nhập số bánh trong <strong>một hộp</strong>. Lưu lại cùng SKU sẽ thay số lượng; nhập 0 để bỏ loại bánh đó.</li>
+        <li>Khi tổng số bánh đúng bằng sức chứa hộp, kiểm tra rồi chuyển <strong>READY</strong>. Công thức sẽ khóa; đổi thành phần sau đó phải tạo SKU hộp quà mới.</li>
+        <li>Sang <a th:href="@{/admin/inventory}">Kho &amp; đóng hộp</a> để nhập linh kiện và đóng hộp, rồi mở bán SKU trong trang Sản phẩm.</li></ol>
+        <p class="muted">PRESET là hộp bán sẵn do Admin định nghĩa. CUSTOM là hộp khách tự chọn bánh trong giỏ hàng; không tạo công thức CUSTOM ở trang này.</p>
+    </details>
+    <section><h2>Tạo công thức nháp</h2>
+        <form th:action="@{/admin/presets}" method="post">
+            <div class="grid"><label>SKU GIFT_SET<select name="giftSetVariantId" required>
+                <option value="">Chọn SKU hộp quà...</option>
+                <option th:each="v : ${catalog.giftVariants()}" th:value="${v.id}"
+                        th:text="${v.sku + ' — ' + v.name}"></option>
+            </select></label><label>Mẫu hộp<select name="boxId" required>
+                <option th:each="b : ${catalog.boxes}" th:value="${b.id}"
+                        th:text="${'Hộp #' + b.id + ' · SKU #' + b.variantId + ' · ' + b.capacityCakes + ' bánh'}"></option>
+            </select></label></div>
+            <div class="actions">
+                <button>Tạo DRAFT</button>
+            </div>
+        </form>
+    </section>
+    <section th:each="p : ${presets}" th:id="${'preset-' + p.id}"><h2 th:text="${p.sku + ' · ' + p.status}"></h2>
+        <p>Sức chứa: <strong th:text="${p.capacity}"></strong> bánh</p>
+        <ul>
+            <li th:each="c : ${p.components}" th:text="${c.sku + ' × ' + c.quantity}"></li>
+        </ul>
+        <div th:if="${p.status.name() == 'DRAFT'}">
+            <details>
+                <summary>Đổi mẫu hộp</summary>
+                <form th:action="@{/admin/presets}" method="post"><input type="hidden" name="id"
+                                                                         th:value="${p.id}"><input type="hidden"
+                                                                                                   name="giftSetVariantId"
+                                                                                                   th:value="${p.giftSetVariantId}"><label>Mẫu
+                    hộp<select name="boxId">
+                        <option th:each="b : ${catalog.boxes}" th:value="${b.id}" th:selected="${b.id == p.boxId}"
+                                th:text="${'Hộp #' + b.id + ' · ' + b.capacityCakes + ' bánh'}"></option>
+                    </select></label>
+                    <button>Lưu mẫu hộp</button>
+                </form>
+            </details>
+            <form th:action="@{/admin/presets/{id}/components(id=${p.id})}" method="post">
+                <div class="grid"><label>SKU bánh MOONCAKE<select name="variantId" required>
+                    <option th:each="v : ${catalog.cakeVariants()}" th:value="${v.id}"
+                            th:text="${v.sku + ' — ' + v.name}"></option>
+                </select></label><label>Số bánh mỗi hộp (0 để bỏ)<input type="number" name="quantity" required min="0"
+                                                                        value="1"></label></div>
+                <div class="actions">
+                    <button>Lưu thành phần</button>
+                </div>
+            </form>
+            <form th:action="@{/admin/presets/{id}/activate(id=${p.id})}" method="post" class="actions"><label><input
+                    type="checkbox" required>Tôi đã kiểm tra công thức và muốn khóa thành phần</label>
+                <button>Chuyển READY</button>
+            </form>
+        </div>
+        <p th:unless="${p.status.name() == 'DRAFT'}" class="notice">Công thức đã khóa. Có thể đóng hộp ở mục Kho và mở
+            bán SKU ở Catalog.</p></section>
+</main>
+</body>
+</html>

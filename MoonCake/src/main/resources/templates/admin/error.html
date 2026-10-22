@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Không thể thực hiện thao tác')}"></head>
+<body>
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <h1>Không thể thực hiện thao tác</h1>
+    <p class="error" role="alert" th:text="${message}"></p>
+    <p>Dùng nút Quay lại của trình duyệt để sửa dữ liệu vừa nhập, hoặc mở lại mục quản lý từ thanh điều hướng.</p>
+</main>
+</body>
+</html>

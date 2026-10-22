@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Chi tiết đơn hàng')}"></head>
+<body class="page-orders">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <h1>Chi tiết đơn hàng</h1><a th:href="@{/admin/orders}">← Danh sách đơn</a>
+    <section><h2 th:text="${order.code}"></h2>
+        <p>Trạng thái: <strong th:text="${order.status}"></strong></p>
+        <p><span th:text="${order.recipient}"></span> · <span th:text="${order.phone}"></span></p>
+        <p th:text="${order.address}"></p>
+        <p th:text="${order.note}"></p>
+        <div class="actions">
+            <form th:if="${order.status.name() == 'PLACED'}" th:action="@{/admin/orders/{id}/status(id=${order.id})}"
+                  method="post"><input type="hidden" name="target" value="PROCESSING">
+                <button>Bắt đầu xử lý</button>
+            </form>
+            <form th:if="${order.status.name() == 'PROCESSING'}"
+                  th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"><input type="hidden"
+                                                                                                name="target"
+                                                                                                value="SHIPPING">
+                <button>Bàn giao vận chuyển</button>
+            </form>
+            <form th:if="${order.status.name() == 'SHIPPING'}" th:action="@{/admin/orders/{id}/status(id=${order.id})}"
+                  method="post"><input type="hidden" name="target" value="COMPLETED"><label><input type="checkbox"
+                                                                                                   required>Đã giao
+                thành công và thu đủ COD</label>
+                <button>Xác nhận hoàn thành &amp; đã thu tiền</button>
+            </form>
+        </div>
+        <details th:if="${order.status.name() == 'PLACED' or order.status.name() == 'PROCESSING'}">
+            <summary>Hủy đơn và hoàn kho</summary>
+            <p>Đơn sẽ kết thúc và hoàn lại các SKU đã trừ khi đặt hàng.</p>
+            <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"><input type="hidden"
+                                                                                                name="target"
+                                                                                                value="CANCELLED">
+                <button class="danger">Xác nhận hủy đơn</button>
+            </form>
+        </details>
+    </section>
+    <section class="table-scroll">
+        <table>
+            <thead>
+            <tr>
+                <th>Sản phẩm / thành phần mỗi bộ</th>
+                <th>Số lượng</th>
+                <th>Đơn giá sau giảm (VND)</th>
+                <th>Thành tiền (VND)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${order.items}">
+                <td><strong th:text="${i.name}"></strong><small th:text="${i.sku}"></small>
+                    <ul>
+                        <li th:each="c : ${i.components}" th:text="${c.name + ' × ' + c.quantity}"></li>
+                    </ul>
+                </td>
+                <td th:text="${i.quantity}"></td>
+                <td th:text="${i.price}"></td>
+                <td th:text="${i.total}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <p>Tạm tính: <span th:text="${order.subtotal}"></span> VND · Giảm giá: <span th:text="${order.discount}"></span>
+            VND · Phí giao: <span th:text="${order.shipping}"></span> VND</p>
+        <h2>Tổng thu: <span th:text="${order.total}"></span> VND</h2>
+        <p th:each="p : ${order.payments}">COD: <strong th:text="${p.status}"></strong> · <span
+                th:text="${p.amount}"></span> VND <span th:if="${p.paidAt}"
+                                                        th:text="${' · Thu lúc (UTC): ' + p.paidAt}"></span></p>
+    </section>
+</main>
+</body>
+</html>

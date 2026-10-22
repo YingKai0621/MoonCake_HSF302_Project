@@ -98,6 +98,7 @@
           </div>
 
           <div th:if="${loggedIn}" class="flex items-center gap-3 text-sm text-[#FAF4A9]">
+            <a th:unless="${customerLoggedIn}" th:href="@{/admin}" class="px-3 py-2 hover:text-white transition-colors">Quản trị</a>
             <a th:if="${customerLoggedIn}"
                th:href="@{/orders}"
                class="px-3 py-2 hover:text-white transition-colors">
@@ -111,7 +112,8 @@
             </form>
           </div>
 
-          <a th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
+          <a th:if="${!loggedIn or customerLoggedIn}"
+             th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
             <div class="relative flex items-center justify-center">
               <svg class="w-6 h-6 text-[#FAF4A9] group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

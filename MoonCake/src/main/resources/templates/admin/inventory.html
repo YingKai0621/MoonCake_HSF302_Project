@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Kho & đóng hộp')}"></head>
+<body class="page-inventory">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div class="page-heading"><span class="eyebrow">VẬN HÀNH & TỒN KHO</span><h1>Kho & đóng hộp</h1><p>Theo dõi số lượng có thể bán, nhập hàng và điều chỉnh chênh lệch sau kiểm kê. Đóng hộp sẽ trừ bánh, vỏ hộp và tăng tồn hộp quà thành phẩm.</p></div>
+    <details class="help-panel"><summary>Phân biệt nhập kho, điều chỉnh và đóng hộp</summary>
+        <ul><li><strong>Nhập kho:</strong> ghi nhận hàng mới nhận. Đang có 20 bánh, nhập 10 thì có 30 bánh.</li>
+        <li><strong>Điều chỉnh:</strong> nhập phần chênh lệch sau kiểm kê. Hệ thống có 20, thực tế có 18 thì nhập <strong>-2</strong>, kèm lý do.</li>
+        <li><strong>Đóng hộp:</strong> chọn công thức READY và số hộp cần đóng. Ví dụ mỗi hộp gồm 2 bánh A + 2 bánh B; đóng 10 hộp sẽ trừ 10 vỏ hộp, 20 bánh A, 20 bánh B và cộng 10 hộp quà. Thiếu linh kiện thì không đóng được.</li>
+        <li><strong>Lịch sử biến động:</strong> xem mỗi lần tăng/giảm kho, lý do và đơn hàng liên quan.</li></ul>
+        <p class="muted">Đặt đơn PRESET trừ hộp quà thành phẩm; đặt đơn CUSTOM trừ từng bánh và vỏ hộp. Tồn đã được trừ lúc đặt đơn, không cần trừ thêm khi giao hàng. Hủy đơn hợp lệ sẽ tự hoàn kho.</p>
+    </details>
+    <section class="table-scroll"><h2>Tồn kho hiện tại</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Tên</th>
+                <th>Có thể bán</th>
+                <th>Ngưỡng cảnh báo</th>
+                <th>Tình trạng</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="b : ${balances}" th:classappend="${b.low()} ? 'warning'">
+                <td th:text="${b.sku}"></td>
+                <td th:text="${b.name}"></td>
+                <td th:text="${b.quantity}"></td>
+                <td th:text="${b.threshold}"></td>
+                <td th:text="${b.low()} ? 'Sắp hết' : 'Đủ tồn'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <section><h2>Nhập kho</h2><p class="muted">Nhập số lượng hàng nhận thêm, không nhập tổng tồn mong muốn.</p>
+        <form th:action="@{/admin/inventory/receive}" method="post"><input type="hidden" name="operationKey"
+                                                                           th:value="${receiveKey}">
+            <div class="grid"><label>SKU<select name="variantId" required>
+                <option th:each="b : ${balances}" th:value="${b.variantId}"
+                        th:text="${b.sku + ' — ' + b.name}"></option>
+            </select></label><label>Số lượng<input type="number" name="quantity" required min="1"></label><label>Lý do /
+                ghi chú<input name="reason" required maxlength="500"></label></div>
+            <div class="actions">
+                <button>Nhập kho</button>
+            </div>
+        </form>
+    </section>
+    <section><h2>Điều chỉnh kho</h2><p class="muted">Nhập số chênh lệch: số dương để tăng, số âm để giảm. Ghi rõ lý do kiểm kê.</p>
+        <form th:action="@{/admin/inventory/adjust}" method="post"><input type="hidden" name="operationKey"
+                                                                          th:value="${adjustKey}">
+            <div class="grid"><label>SKU<select name="variantId" required>
+                <option th:each="b : ${balances}" th:value="${b.variantId}"
+                        th:text="${b.sku + ' — ' + b.name}"></option>
+            </select></label><label>Số tăng/giảm (ví dụ -2)<input type="number" name="quantity" required></label><label>Lý
+                do / ghi chú<input name="reason" required maxlength="500"></label></div>
+            <div class="actions">
+                <button>Điều chỉnh kho</button>
+            </div>
+        </form>
+    </section>
+    <section><h2>Đóng hộp PRESET</h2><p class="muted">Số lượng là số hộp thành phẩm cần đóng. Chỉ công thức READY xuất hiện trong danh sách.</p>
+        <form th:action="@{/admin/inventory/pack}" method="post"><input type="hidden" name="operationKey"
+                                                                        th:value="${packKey}">
+            <div class="grid"><label>SKU<select name="variantId" required>
+                <option th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}" th:value="${p.giftSetVariantId}"
+                        th:text="${p.sku}"></option>
+            </select></label><label>Số lượng<input type="number" name="quantity" required min="1"></label><label>Lý do /
+                ghi chú<input name="reason" required maxlength="500"></label></div>
+            <div class="actions">
+                <button>Đóng hộp PRESET</button>
+            </div>
+        </form>
+    </section>
+    <section class="table-scroll"><h2>Lịch sử biến động</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Ngày (UTC)</th>
+                <th>SKU</th>
+                <th>Thao tác</th>
+                <th>Tăng/giảm</th>
+                <th>Lý do</th>
+                <th>Nhóm thao tác / đơn</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${movements}">
+                <td th:text="${m.createdAt}"></td>
+                <td th:text="${m.sku}"></td>
+                <td th:text="${m.type}"></td>
+                <td th:text="${m.delta}"></td>
+                <td th:text="${m.reason}"></td>
+                <td><small th:text="${m.groupKey}"></small><a th:if="${m.orderId}"
+                                                              th:href="@{/admin/orders/{id}(id=${m.orderId})}"
+                                                              th:text="${'Đơn #' + m.orderId}"></a></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="actions"><a th:if="${page > 0}" th:href="@{/admin/inventory(page=${page-1})}">Trang trước</a><a
+                th:if="${movements.size() == 50}" th:href="@{/admin/inventory(page=${page+1})}">Trang sau</a></div>
+    </section>
+</main>
+</body>
+</html>

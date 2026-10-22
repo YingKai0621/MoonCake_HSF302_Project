@@ -66,7 +66,9 @@ class CustomBoxControllerTest {
                 "BOX-4",
                 4,
                 BigDecimal.valueOf(495_000),
-                "495.000đ"
+                "495.000đ",
+                "/images/boxes/box-kim-phuc-4.png",
+                "Vỏ hộp Kim Phúc màu đen với 4 ngăn bánh"
             )),
             List.of(new CustomCakeOptionView(
                 40L,

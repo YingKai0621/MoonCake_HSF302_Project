@@ -3,7 +3,7 @@
 **Dự án:** HSF302 — MoonCake
 **Phiên bản tài liệu:** 1.4 — 22/10/2026
 
-**Trạng thái:** Quy tắc nghiệp vụ MVP đã cập nhật chính sách chiết khấu hộp quà sáu bậc; schema 19 bảng hiện tại vẫn đủ, dữ liệu tier được cập nhật bằng Flyway V5
+**Trạng thái:** Quy tắc nghiệp vụ MVP đã cập nhật chính sách chiết khấu hộp quà sáu bậc; schema 19 bảng hiện tại vẫn đủ, dữ liệu tier được cập nhật bằng Flyway V5 và ảnh catalog nội bộ được hoàn thiện qua V6/V7
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
@@ -16,6 +16,8 @@
 - Nhóm bánh lẻ `MOONCAKE` giữ hai bậc cũ: 50–99 = 5%, từ 100 = 10%.
 - Ngưỡng phí giao hàng giữ nguyên và độc lập với chiết khấu: dưới 50 hộp là 30.000 VND, từ 50 hộp là 150.000 VND.
 - Flyway V5 vô hiệu hóa tier `GIFT_BOX` cũ và thêm sáu tier mới; không xóa tier lịch sử và không thay đổi cấu trúc 19 bảng.
+- Flyway V6 chỉ bổ sung đường dẫn ảnh nội bộ cho 16 SKU catalog hiện có; không thêm sản phẩm, thay đổi nghiệp vụ hoặc thay đổi cấu trúc bảng.
+- Flyway V7 thay ảnh đại diện của hai SKU vỏ hộp CUSTOM bằng ảnh thể hiện đúng hộp 4 ngăn và 6 ngăn; không đổi giá, sức chứa hay nghiệp vụ.
 
 ### Thay đổi chính trong phiên bản 1.3
 
@@ -244,7 +246,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM và V5 cập nhật dữ liệu tier `GIFT_BOX`. Flyway hiện ở version 5; V3/V4/V5 không đổi cấu trúc 19 bảng. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ và V7 cập nhật ảnh vỏ hộp CUSTOM. Flyway hiện ở version 7; V3–V7 không đổi cấu trúc 19 bảng. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 

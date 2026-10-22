@@ -1,6 +1,6 @@
 # MoonCake MVP — Physical ERD cho Microsoft SQL Server
 
-**Cơ sở:** Business Rules v1.4 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Cấu trúc schema được triển khai bởi Flyway V1; V2 seed bậc chiết khấu ban đầu, V3 seed catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM và V5 cập nhật dữ liệu tier `GIFT_BOX`. V3/V4/V5 không đổi thiết kế 19 bảng.
+**Cơ sở:** Business Rules v1.4 và Logical ERD V5 COD-only; Physical được chuyển đổi thành 19 bảng, 5 trang draw.io. Cấu trúc schema được triển khai bởi Flyway V1; V2 seed bậc chiết khấu ban đầu, V3 seed catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ và V7 cập nhật ảnh vỏ hộp CUSTOM. V3–V7 không đổi thiết kế 19 bảng.
 
 > **Lưu ý về comment bất biến trong V1:** Phần đầu `V1__initial_schema.sql` còn câu mô tả được sao chép từ bản DESIGN DDL (“NOT executed”/chạy qua SSMS). Câu này không phản ánh cách file đang được sử dụng: V1 là migration thực thi của Flyway và đã được áp dụng. Không sửa riêng comment trong V1 vì sẽ làm thay đổi checksum migration đã chia sẻ; dùng ghi chú này làm diễn giải chính thức.
 
@@ -299,6 +299,6 @@ WHERE variant_id = @variantId AND available_quantity >= @quantity;
 7. Kiểm thử thêm cùng SKU/CUSTOM config hai lần: unique index không cho dòng trùng; service tăng `quantity` đúng.
 8. Kiểm thử hai request đồng thời checkout cùng một cart: đúng một request claim được cart, chỉ một order và một bộ stock movement được tạo.
 9. Kiểm thử sửa PRESET đã READY/đã có tồn: service từ chối và yêu cầu SKU/config mới; recipe cũ không đổi.
-10. Không sửa/delete migration V1–V5 sau khi đã áp dụng/chia sẻ; thay đổi tiếp theo phải dùng migration version mới.
+10. Không sửa/delete migration V1–V7 sau khi đã áp dụng/chia sẻ; thay đổi tiếp theo phải dùng migration version mới.
 
-**Lưu ý:** DDL tham chiếu đã được đối chiếu với `V1__initial_schema.sql`. Flyway V1–V5 đã được áp dụng thành công trên `MoonCakeDB`; database hiện ở version 5, không có migration pending. V5 chỉ cập nhật dữ liệu tier `GIFT_BOX`, không thay đổi cấu trúc 19 bảng.
+**Lưu ý:** DDL tham chiếu đã được đối chiếu với `V1__initial_schema.sql`. Flyway V1–V7 đã được áp dụng thành công trên `MoonCakeDB`; database hiện ở version 7, không có migration pending. V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ và V7 cập nhật ảnh vỏ hộp CUSTOM; các migration này không thay đổi cấu trúc 19 bảng.

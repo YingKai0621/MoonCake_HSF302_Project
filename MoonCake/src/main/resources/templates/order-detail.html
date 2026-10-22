@@ -38,6 +38,13 @@
       Quay lại danh sách đơn hàng
     </a>
 
+    <div th:if="${successMessage}"
+         class="mb-6 border border-emerald-500/40 bg-emerald-950/30 px-5 py-4 text-emerald-200"
+         role="status"
+         th:text="${successMessage}">
+      Đã hủy đơn hàng thành công.
+    </div>
+
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Chi tiết đơn hàng</p>
@@ -105,11 +112,56 @@
             <span class="text-2xl font-bold text-gold" th:text="${order.formattedTotal}">0đ</span>
           </div>
         </div>
+
+        <form th:if="${order.cancellable}"
+              id="cancel-order-form"
+              th:action="@{/orders/{orderCode}/cancel(orderCode=${order.orderCode})}"
+              method="post"
+              class="mt-6 pt-5 border-t border-gold/15">
+          <button type="button"
+                  data-open-cancel-modal
+                  aria-haspopup="dialog"
+                  aria-controls="cancel-order-modal"
+                  class="w-full border border-red-400/50 px-4 py-3 font-semibold text-red-200 hover:bg-red-950/40 transition-colors">
+            Hủy đơn hàng
+          </button>
+          <p class="mt-3 text-xs leading-relaxed text-sand">
+            Bạn chỉ có thể hủy khi đơn hàng chưa chuyển sang xử lý.
+          </p>
+        </form>
       </aside>
     </div>
+
+    <dialog th:if="${order.cancellable}"
+            id="cancel-order-modal"
+            aria-labelledby="cancel-order-title"
+            aria-describedby="cancel-order-description"
+            class="m-auto w-[calc(100%_-_2rem)] max-w-md rounded-lg border border-gold/30 bg-surface p-0 text-ivory shadow-2xl backdrop:bg-slate-950/80 backdrop:backdrop-blur-sm">
+      <div class="p-6 sm:p-7">
+        <h2 id="cancel-order-title" class="font-serif text-2xl font-semibold">
+          Xác nhận hủy đơn hàng
+        </h2>
+        <p id="cancel-order-description" class="mt-4 leading-relaxed text-sand">
+          Bạn có chắc muốn hủy đơn hàng này? Sau khi hủy, đơn hàng sẽ không thể tiếp tục xử lý.
+        </p>
+        <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button type="button"
+                  data-close-cancel-modal
+                  class="border border-gold/30 px-5 py-3 font-medium text-sand hover:border-gold hover:text-ivory transition-colors">
+            Quay lại
+          </button>
+          <button type="submit"
+                  form="cancel-order-form"
+                  class="border border-red-400/60 bg-red-950/40 px-5 py-3 font-semibold text-red-100 hover:bg-red-900/50 transition-colors">
+            Xác nhận hủy
+          </button>
+        </div>
+      </div>
+    </dialog>
   </main>
 
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/pages/order-detail.js}" src="/js/pages/order-detail.js"></script>
 </body>
 </html>

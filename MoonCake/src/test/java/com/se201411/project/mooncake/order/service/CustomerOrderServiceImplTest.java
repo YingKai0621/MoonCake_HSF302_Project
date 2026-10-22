@@ -138,12 +138,46 @@ class CustomerOrderServiceImplTest {
         );
 
         assertThat(view.statusLabel()).isEqualTo("Đã tiếp nhận");
+        assertThat(view.cancellable()).isTrue();
         assertThat(view.paymentStatusLabel()).isEqualTo("Chưa thanh toán");
         assertThat(view.totalQuantity()).isEqualTo(1);
         assertThat(view.items()).hasSize(1);
         assertThat(view.items().get(0).components()).hasSize(1);
         assertThat(view.items().get(0).components().get(0).roleLabel())
             .isEqualTo("Vỏ hộp");
+    }
+
+    @Test
+    void doesNotAllowCustomerToCancelOrderAfterProcessingStarts() {
+        SalesOrder order = order(
+            10L,
+            "MC-20261021-PROCESSING",
+            OrderStatus.PROCESSING,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        order.setRecipientName("Người nhận");
+        order.setRecipientPhone("0901234567");
+        order.setShippingAddressSnapshot("123 Đường Trung Thu, Hồ Chí Minh");
+        order.setSubtotalAmount(BigDecimal.valueOf(590_000));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.valueOf(30_000));
+
+        Payment payment = new Payment();
+        payment.setMethod(PaymentMethod.COD);
+        payment.setStatus(PaymentStatus.UNPAID);
+
+        when(orderRepository.findOwnedByOrderCode("MC-20261021-PROCESSING", 7L))
+            .thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(10L)).thenReturn(List.of(payment));
+        when(itemRepository.findByOrderId(10L)).thenReturn(List.of());
+
+        CustomerOrderDetailView view = customerOrderService.requireOrder(
+            "MC-20261021-PROCESSING",
+            CUSTOMER
+        );
+
+        assertThat(view.cancellable()).isFalse();
     }
 
     @Test

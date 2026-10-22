@@ -5,6 +5,7 @@ import java.util.List;
 public record CustomerOrderDetailView(
     String orderCode,
     String statusLabel,
+    boolean cancellable,
     String formattedCreatedAt,
     String recipientName,
     String recipientPhone,

@@ -129,6 +129,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         return new CustomerOrderDetailView(
             order.getOrderCode(),
             orderStatusLabel(order.getStatus()),
+            order.getStatus() == OrderStatus.PLACED,
             formatDateTime(order.getCreatedAt()),
             order.getRecipientName(),
             order.getRecipientPhone(),

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | MoonCake Admin'"></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pages/admin.css}">
+</head>
+<body>
+<header th:fragment="nav">
+    <div class="brand-bar">
+        <a class="brand" th:href="@{/admin}"><img th:src="@{/images/branding/mooncake_luxury_emblem_v4.svg}" alt="" width="48" height="48"><span>MOONCAKE<small>KHÔNG GIAN QUẢN TRỊ</small></span></a>
+        <div class="brand-actions"><a th:href="@{/products}">Xem cửa hàng ↗</a><form th:action="@{/logout}" method="post"><button class="logout">Đăng xuất</button></form></div>
+    </div>
+    <nav class="admin-nav" aria-label="Quản trị">
+        <a class="nav-orders" th:href="@{/admin/orders}"><span>01</span> Đơn hàng</a>
+        <a class="nav-catalog" th:href="@{/admin/catalog}"><span>02</span> Sản phẩm &amp; danh mục</a>
+        <a class="nav-presets" th:href="@{/admin/presets}"><span>03</span> Công thức hộp quà</a>
+        <a class="nav-inventory" th:href="@{/admin/inventory}"><span>04</span> Kho &amp; đóng hộp</a>
+    </nav>
+</header>
+<p th:fragment="flash" th:if="${success}" class="notice" role="status" th:text="${success}"></p></body>
+</html>

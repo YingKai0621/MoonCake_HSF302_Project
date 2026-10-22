@@ -94,6 +94,7 @@
           </div>
 
           <div th:if="${loggedIn}" class="flex items-center gap-3 text-sm text-[#FAF4A9]">
+            <a th:unless="${customerLoggedIn}" th:href="@{/admin}" class="px-3 py-2 hover:text-white transition-colors">Quản trị</a>
             <a th:if="${customerLoggedIn}"
                th:href="@{/orders}"
                class="px-3 py-2 hover:text-white transition-colors">

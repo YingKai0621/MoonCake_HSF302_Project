@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Quản lý đơn hàng')}"></head>
+<body class="page-orders">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div class="page-heading"><span class="eyebrow">CHĂM SÓC TỪNG ĐƠN HÀNG</span><h1>Quản lý đơn hàng</h1><p>Lọc đơn theo trạng thái, mở mã đơn để xem người nhận, sản phẩm và thanh toán. Nhận xử lý, chuyển giao hàng và xác nhận đã thu tiền COD khi hoàn tất.</p></div>
+    <p class="muted">Quy trình tham khảo — chọn trạng thái bên dưới để lọc; mở mã đơn để thực hiện chuyển bước.</p>
+    <div class="workflow" aria-label="Quy trình đơn hàng"><span>01 · Chờ xử lý</span><span>02 · Đang chuẩn bị</span><span>03 · Đang giao</span><span>04 · Hoàn tất &amp; thu COD</span></div>
+    <p class="muted">Chỉ hủy trước khi giao hàng. Khi hủy, hệ thống hoàn lại tồn kho của đơn.</p>
+    <form method="get" th:action="@{/admin/orders}" class="actions"><label>Trạng thái<select name="status">
+        <option value="">Tất cả</option>
+        <option th:each="s : ${T(com.se201411.project.mooncake.enums.OrderStatus).values()}" th:value="${s}"
+                th:text="${s}" th:selected="${s == status}"></option>
+    </select></label>
+        <button>Lọc</button>
+    </form>
+    <section class="table-scroll">
+        <table>
+            <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Người nhận</th>
+                <th>Trạng thái</th>
+                <th>Tổng tiền (VND)</th>
+                <th>Ngày đặt (UTC)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${orders}">
+                <td><a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="${o.code}"></a></td>
+                <td th:text="${o.recipient}"></td>
+                <td th:text="${o.status}"></td>
+                <td th:text="${#numbers.formatDecimal(o.total,0,'POINT',0,'COMMA')}"></td>
+                <td th:text="${o.createdAt}"></td>
+            </tr>
+            <tr th:if="${orders.isEmpty()}">
+                <td colspan="5">Chưa có đơn phù hợp.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <div class="actions"><a th:if="${page > 0}" th:href="@{/admin/orders(page=${page-1},status=${status})}">Trang
+        trước</a><a th:if="${orders.size() == 50}" th:href="@{/admin/orders(page=${page+1},status=${status})}">Trang
+        sau</a></div>
+</main>
+</body>
+</html>

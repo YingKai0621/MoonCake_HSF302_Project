@@ -1,17 +1,17 @@
 -- Local demo only. Run the WHOLE file in one SQL Server query console.
--- Select MoonCakeDB / MoonCakeTestDB, migrate through V4, register a CUSTOMER,
+-- Select MoonCakeDB / MoonCakeTestDB, migrate through V7, register a CUSTOMER,
 -- then replace the email below. No account/password is created by this script.
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-DECLARE @CustomerEmail nvarchar(254) = N'togiabao06@gmail.com';
+DECLARE @CustomerEmail nvarchar(254) = N'customer@example.test';
 DECLARE @Now datetime2(3) = SYSUTCDATETIME();
 DECLARE @Start datetime2(3) = DATEADD(day,-30,@Now);
 IF DB_NAME() NOT IN (N'MoonCakeDB',N'MoonCakeTestDB')
     THROW 51100, 'Select the local MoonCakeDB or MoonCakeTestDB first.', 1;
 IF @@TRANCOUNT <> 0
     THROW 51101, 'Run in auto-commit mode without an existing transaction.', 1;
-IF NOT EXISTS (SELECT 1 FROM dbo.flyway_schema_history WHERE version='4' AND success=1)
-    THROW 51102, 'Run Flyway through V4 first.', 1;
+IF NOT EXISTS (SELECT 1 FROM dbo.flyway_schema_history WHERE version='7' AND success=1)
+    THROW 51102, 'Run Flyway through V7 first.', 1;
 BEGIN TRY
     BEGIN TRANSACTION;
     DECLARE @LockResult int;

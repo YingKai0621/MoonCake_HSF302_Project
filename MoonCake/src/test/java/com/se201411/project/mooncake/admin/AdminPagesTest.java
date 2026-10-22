@@ -6,6 +6,7 @@ import com.se201411.project.mooncake.order.controller.AdminOrderController;
 import com.se201411.project.mooncake.product.service.*;
 import com.se201411.project.mooncake.inventory.service.*;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.product.dto.*;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.*;
@@ -53,11 +54,13 @@ class AdminPagesTest {
     InventoryAdminService inventory;
     @Autowired
     OrderManagementService orders;
+    @Autowired
+    OrderCancellationService cancellations;
     MockMvc mvc;
 
     @BeforeEach
     void setup() {
-        reset(catalog, presets, inventory, orders);
+        reset(catalog, presets, inventory, orders, cancellations);
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         when(catalog.catalog()).thenReturn(new AdminCatalogView(
                 List.of(new CategoryForm(1L, "Category", "category", true)),
@@ -93,6 +96,19 @@ class AdminPagesTest {
         mvc.perform(post("/admin/orders/1/status").param("target", "PROCESSING").with(user("admin").roles("ADMIN"))).andExpect(status().isForbidden());
         mvc.perform(post("/admin/orders/1/status").param("target", "PROCESSING").with(csrf()).with(user("customer").roles("CUSTOMER"))).andExpect(status().isForbidden());
         verifyNoInteractions(orders);
+    }
+
+    @Test
+    void cancellationPostUsesSharedCancellationService() throws Exception {
+        mvc.perform(post("/admin/orders/1/status")
+                .param("target", "CANCELLED")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/orders/1"));
+
+        verify(cancellations).cancelForAdmin(1L);
+        verify(orders, never()).transition(1L, OrderStatus.CANCELLED);
     }
 
     @Test
@@ -148,6 +164,11 @@ class AdminPagesTest {
         @Bean
         OrderManagementService orders() {
             return mock(OrderManagementService.class);
+        }
+
+        @Bean
+        OrderCancellationService cancellations() {
+            return mock(OrderCancellationService.class);
         }
 
         @Bean

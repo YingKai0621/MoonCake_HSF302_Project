@@ -1,6 +1,7 @@
 package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,9 +12,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/orders")
 public class AdminOrderController {
     private final OrderManagementService orders;
+    private final OrderCancellationService cancellations;
 
-    public AdminOrderController(OrderManagementService orders) {
+    public AdminOrderController(
+        OrderManagementService orders,
+        OrderCancellationService cancellations
+    ) {
         this.orders = orders;
+        this.cancellations = cancellations;
     }
 
     @GetMapping
@@ -32,7 +38,11 @@ public class AdminOrderController {
 
     @PostMapping("/{id}/status")
     public String transition(@PathVariable long id, @RequestParam OrderStatus target, RedirectAttributes flash) {
-        orders.transition(id, target);
+        if (target == OrderStatus.CANCELLED) {
+            cancellations.cancelForAdmin(id);
+        } else {
+            orders.transition(id, target);
+        }
         flash.addFlashAttribute("success", "Đã cập nhật đơn hàng.");
         return "redirect:/admin/orders/" + id;
     }

@@ -60,6 +60,9 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/products/mooncakes"))
             .andExpect(status().isOk());
+
+        mockMvc.perform(get("/business"))
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -203,6 +206,11 @@ class SecurityConfigTest {
         @GetMapping("/products/mooncakes")
         String products() {
             return "products";
+        }
+
+        @GetMapping("/business")
+        String business() {
+            return "business";
         }
 
         @GetMapping("/cart")

@@ -34,7 +34,13 @@ public class SecurityConfig {
     ) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-            .requestMatchers(HttpMethod.GET, "/", "/products", "/products/**").permitAll()
+            .requestMatchers(
+                HttpMethod.GET,
+                "/",
+                "/business",
+                "/products",
+                "/products/**"
+            ).permitAll()
             .requestMatchers("/login", "/register", "/error").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers(

@@ -14,4 +14,9 @@ public class PageController {
         return "homepage";
     }
 
+    @GetMapping("/business")
+    public String business() {
+        return "business";
+    }
+
 }

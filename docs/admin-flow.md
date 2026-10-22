@@ -4,9 +4,9 @@ Date: 22/10/2026. Status: implemented in the working tree; SQL Server acceptance
 
 ## Context reviewed
 
-The implementation was checked against every document in `docs/`: Business Rules 1.2.1, architecture conventions 1.4.1, team ownership 1.3, Foundation 1.4, Physical SQL, Physical ERD notes, and the Conceptual, Logical V5 and Physical draw.io diagrams. All applied Flyway migrations V1–V4 were also inspected.
+The implementation was checked against the current approved sources: Business Rules 1.4, architecture conventions 1.5, team ownership 1.4, Foundation 1.4, Physical SQL, Physical ERD notes, and the Conceptual, Logical V5 and Physical draw.io diagrams. All applied Flyway migrations V1–V7 were also inspected.
 
-The Conceptual diagram retains the earlier `WHOLESALE_TIER` name and exploratory payment wording. Its own note identifies it as a proposal. The approved Business Rules and Logical/Physical models establish `VOLUME_DISCOUNT_TIER` and COD-only behavior; this implementation follows those current sources. Foundation's version-2 verification is historical: V3/V4 are already present and remain unchanged.
+The Conceptual diagram retains the earlier `WHOLESALE_TIER` name and exploratory payment wording. Its own note identifies it as a proposal. The approved Business Rules and Logical/Physical models establish `VOLUME_DISCOUNT_TIER` and COD-only behavior; this implementation follows those current sources. Foundation's version-2 verification is historical: V3–V7 are already present and remain unchanged.
 
 The existing application already implements customer authentication, database catalog queries, customer cart/CUSTOM boxes, pricing, atomic COD checkout, inventory sale/restoration contracts, and customer order history. Before this change there were no Admin controllers, pages, catalog mutation services, packing orchestration, order transition service, or bootstrap command. Existing unit/MVC tests passed before the Admin work.
 
@@ -66,16 +66,16 @@ Cancellation is allowed only before SHIPPING. Restoration aggregates the stored 
 
 ## Ownership and schema impact
 
-New code stays in `product`, `inventory`, `order`, `security` and shared validation/error packages. Controllers call services. Product mutations initialize balances through `InventoryService`; packing reads PRESET through `PresetConfigurationQueryService`; order cancellation invokes `InventoryService.restoreForCancellation`.
+New code stays in `product`, `inventory`, `order`, `security` and shared validation/error packages. Controllers call services. Product mutations initialize balances through `InventoryService`; packing reads PRESET through `PresetConfigurationQueryService`; every cancellation entry point delegates to the shared `OrderCancellationService`, which performs the conditional transition and invokes `InventoryService.restoreForCancellation` in one transaction.
 
-No existing public service signature, entity, enum, security filter chain, or applied migration was changed. New Admin service contracts are confined to the Admin scope already assigned by the team plan. The only existing UI file changed is the shared header for the Admin navigation link. There is no schema migration or change to the 19-table model.
+The shared `OrderCancellationService` contract was added to enforce the ownership rule already approved in the team plan. No entity, enum, security filter chain, applied migration, or 19-table schema was changed. Admin-only contracts remain confined to the Admin scope, and the shared header hides the customer cart control from Admin accounts.
 
-Admin order reads and transitions currently share `OrderManagementService`; no competing customer `OrderQueryService` was introduced. Volume-discount editing remains with the Customer Sales ownership established by the team plan.
+Admin order reads and non-cancellation transitions use `OrderManagementService`; Admin cancellation calls the shared `OrderCancellationService`. No competing customer `OrderQueryService` was introduced. Volume-discount editing remains with the Customer Sales ownership established by the team plan.
 
 ## Verification
 
 - `mvnw.cmd -v`: Maven wrapper works on JDK 21.
-- `mvnw.cmd test`: 101 unit/MVC tests passed at the implementation checkpoint. This includes 25 new Admin tests covering service authorization, bootstrap, PRESET immutability/capacity, PACK aggregation/replay, snapshot restoration, order state transitions, real Thymeleaf rendering, form binding and CSRF/role checks.
+- `mvn test`: 106 unit/MVC tests passed after merging current `main` into the Admin branch. This includes focused tests for shared cancellation routing, conditional cancellation, snapshot-based restoration, service authorization, bootstrap, PRESET immutability/capacity, PACK aggregation/replay, order state transitions, real Thymeleaf rendering, form binding and CSRF/role checks.
 - `mvnw.cmd -DskipTests test-compile`: compile gate for SQL Server integration tests.
 - `AdminFlowIT` covers real SQL Server catalog/balance creation, DRAFT→READY immutability, PACK/operation locks, failed PACK rollback, concurrent COD completion, and completion rollback for missing payment. These tests are **not yet executed** because this workspace has no `TEST_DB_*` credentials or configured IDE database connection.
 

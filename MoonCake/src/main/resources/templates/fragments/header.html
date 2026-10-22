@@ -50,9 +50,13 @@
 
         <!-- RIGHT MENU GROUP (Doanh Nghiệp & Liên Hệ) -->
         <nav class="flex items-center justify-start pl-8 lg:pl-14 gap-10 lg:gap-14 font-serif text-[22px] font-semibold tracking-wide">
-          <a href="javascript:void(0)" title="Dịch vụ Doanh Nghiệp (Đang cập nhật)" class="relative py-2 text-[#FAF4A9]/90 hover:text-[#FFFDF0] transition-colors group flex items-center cursor-default">
+          <a th:href="@{/business}"
+             href="/business"
+             th:classappend="${activePage == 'business'} ? 'text-[#FAF4A9] hover:text-[#FFFDF0]' : 'text-[#FAF4A9]/90 hover:text-[#FFFDF0]'"
+             class="relative py-2 transition-colors group flex items-center">
             <span>Doanh Nghiệp</span>
-            <span class="absolute -bottom-1.5 left-0 w-0 group-hover:w-full h-[2px] bg-[#FAF4A9]/80 rounded-full transition-all duration-300"></span>
+            <span th:if="${activePage == 'business'}" class="absolute -bottom-1.5 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FAF4A9] via-[#FAF4A9] to-[#E7D97F] rounded-full shadow-[0_0_8px_rgba(250,244,169,0.55)]"></span>
+            <span th:unless="${activePage == 'business'}" class="absolute -bottom-1.5 left-0 w-0 group-hover:w-full h-[2px] bg-[#FAF4A9]/80 rounded-full transition-all duration-300"></span>
           </a>
           <a th:href="@{/#footer}" href="#footer" class="relative py-2 text-[#FAF4A9]/90 hover:text-[#FFFDF0] transition-colors group flex items-center">
             <span>Liên Hệ</span>
@@ -108,7 +112,8 @@
             </form>
           </div>
 
-          <a th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
+          <a th:if="${!loggedIn or customerLoggedIn}"
+             th:href="@{/cart}" class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#162842]/70 border border-[#FAF4A9]/35 text-[#FAF4A9] hover:bg-[#162842] hover:border-[#FAF4A9]/60 transition-colors shadow-sm cursor-pointer group">
             <div class="relative flex items-center justify-center">
               <svg class="w-6 h-6 text-[#FAF4A9] group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

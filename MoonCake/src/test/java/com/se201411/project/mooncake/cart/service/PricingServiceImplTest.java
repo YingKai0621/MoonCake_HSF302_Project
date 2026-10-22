@@ -100,7 +100,7 @@ class PricingServiceImplTest {
             cartVariant(20L, "CAKE-20", ProductType.MOONCAKE, 100_000)
         ));
 
-        VolumeDiscountTier giftTier = tier(DiscountGroup.GIFT_BOX, 5);
+        VolumeDiscountTier giftTier = tier(DiscountGroup.GIFT_BOX, 10);
         VolumeDiscountTier cakeTier = tier(DiscountGroup.MOONCAKE, 10);
         when(tierRepository.findApplicableTiers(eq(DiscountGroup.GIFT_BOX), eq(55), any()))
             .thenReturn(List.of(giftTier));
@@ -120,7 +120,7 @@ class PricingServiceImplTest {
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
 
         assertThat(quote.lines().get(0).unitDiscount())
-            .isEqualByComparingTo("29501");
+            .isEqualByComparingTo("59001");
         assertThat(quote.lines().get(1).discountPercent())
             .isEqualByComparingTo("10");
         assertThat(quote.lines().get(2).discountPercent())

@@ -6,7 +6,8 @@
     <div class="grid"><label>Tên danh mục<input type="text" name="name" th:value="${f != null ? f.name : ''}" required
                                                 maxlength="160"></label><label>Slug (chữ thường, số và dấu -)<input
             type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="160"></label><label>Hoạt
-        động<input type="checkbox" name="active" th:checked="${f != null and f.active}"></label></div>
+        động<input type="hidden" name="_active" value="on"><input type="checkbox" name="active" value="true"
+                                                                    th:checked="${f != null and f.active}"></label></div>
     <div class="actions">
         <button>Lưu</button>
     </div>
@@ -35,8 +36,11 @@
                                                                                             th:value="${f != null ? f.shelfLifeInfo : ''}"
                                                                                             maxlength="350"></label><label>Hướng
         dẫn bảo quản<textarea name="storageGuidance" th:text="${f != null ? f.storageGuidance : ''}"
-                              maxlength="600"></textarea></label><label>Hoạt động<input type="checkbox" name="active"
-                                                                                        th:checked="${f != null and f.active}"></label>
+                              maxlength="600"></textarea></label><label>Hoạt động<input type="hidden" name="_active"
+                                                                                          value="on"><input type="checkbox"
+                                                                                                            name="active"
+                                                                                                            value="true"
+                                                                                                            th:checked="${f != null and f.active}"></label>
     </div>
     <div class="actions">
         <button>Lưu</button>
@@ -59,8 +63,8 @@
                                                                      th:value="${f != null ? f.weightGrams : ''}"
                                                                      min="1"></label><label>Nhãn nhân bánh<input
             type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}"
-            maxlength="180"></label><label>Mở bán<input type="checkbox" name="active"
-                                                        th:checked="${f != null and f.active}"></label></div>
+            maxlength="180"></label><label>Mở bán<input type="hidden" name="_active" value="on"><input
+            type="checkbox" name="active" value="true" th:checked="${f != null and f.active}"></label></div>
     <div class="actions">
         <button>Lưu</button>
     </div>
@@ -77,7 +81,8 @@
                                                                                             th:value="${f != null ? f.material : ''}"
                                                                                             maxlength="180"></label><label>Ghi
         chú<textarea name="notes" th:text="${f != null ? f.notes : ''}" maxlength="500"></textarea></label><label>Hoạt
-        động<input type="checkbox" name="active" th:checked="${f != null and f.active}"></label></div>
+        động<input type="hidden" name="_active" value="on"><input type="checkbox" name="active" value="true"
+                                                                    th:checked="${f != null and f.active}"></label></div>
     <div class="actions">
         <button>Lưu</button>
     </div>
@@ -93,8 +98,8 @@
                                                                          required maxlength="1000"></label><label>Mô tả
         ảnh<input type="text" name="altText" th:value="${f != null ? f.altText : ''}" maxlength="250"></label><label>Thứ
         tự<input type="number" name="sortOrder" th:value="${f != null ? f.sortOrder : ''}" required
-                 min="0"></label><label>Ảnh chính<input type="checkbox" name="primary"
-                                                        th:checked="${f != null and f.primary}"></label></div>
+                 min="0"></label><label>Ảnh chính<input type="hidden" name="_primary" value="on"><input
+            type="checkbox" name="primary" value="true" th:checked="${f != null and f.primary}"></label></div>
     <div class="actions">
         <button>Lưu</button>
     </div>

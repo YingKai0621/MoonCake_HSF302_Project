@@ -48,131 +48,154 @@
 
   <main>
     <section class="business-hero" aria-labelledby="business-title">
-      <div class="business-shell business-hero-grid">
+      <div class="business-hero-media" aria-hidden="true">
+        <img th:src="@{/images/business/luxe_mid_autumn_mooncake_tea_still_life.png}"
+             src="/images/business/luxe_mid_autumn_mooncake_tea_still_life.png"
+             alt="" width="1672" height="941" fetchpriority="high" />
+      </div>
+      <div class="business-shell business-hero-content">
         <div class="business-hero-copy">
-          <p class="business-eyebrow">Quà tặng mùa trăng</p>
+          <p class="business-eyebrow">Quà tặng Trung Thu</p>
           <h1 id="business-title">Quà Trung Thu dành cho doanh nghiệp</h1>
           <p class="business-lead">
-            Chọn hộp quà có sẵn, tự phối vị bánh hoặc đặt bánh lẻ số lượng lớn cho khách hàng,
-            đối tác và đội ngũ của bạn.
+            Hộp quà chỉn chu cho khách hàng, đối tác và đội ngũ của bạn — linh hoạt từ lựa chọn có sẵn
+            đến tự phối từng vị bánh.
           </p>
           <div class="business-actions">
-            <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="business-button business-button-primary">
-              Xem hộp quà
-            </a>
-            <a th:href="@{/custom-boxes}" href="/custom-boxes" class="business-button business-button-secondary">
-              Tự chọn hộp quà
-            </a>
+            <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes"
+               class="business-button business-button-primary">Khám phá hộp quà</a>
+            <a th:href="@{/custom-boxes}" href="/custom-boxes"
+               class="business-button business-button-secondary">Tự chọn hộp quà</a>
           </div>
-          <p class="business-login-note">
-            Bạn có thể xem sản phẩm mà không cần đăng nhập. Đăng nhập khi bắt đầu chọn hộp hoặc đặt hàng.
-          </p>
+          <a class="business-text-link" href="#business-discounts">Xem chính sách chiết khấu</a>
         </div>
-
-        <aside class="business-hero-note" aria-label="Thông tin đặt hàng doanh nghiệp">
-          <span class="business-note-number">5+</span>
-          <p class="business-note-title">Hộp quà trong nhóm GIFT_BOX</p>
-          <p class="business-note-text">Bắt đầu nhận chiết khấu số lượng tự động tại checkout.</p>
-          <div class="business-note-divider"></div>
-          <p class="business-note-small">Thanh toán COD · Không cần duyệt doanh nghiệp</p>
-        </aside>
       </div>
     </section>
 
-    <section class="business-section" aria-labelledby="solutions-title">
+    <section class="business-section business-shopping-section" aria-labelledby="solutions-title">
       <div class="business-shell">
         <div class="business-section-heading">
-          <p class="business-eyebrow">Lựa chọn linh hoạt</p>
-          <h2 id="solutions-title">Ba cách chuẩn bị quà tặng</h2>
-          <p>Chọn phương án phù hợp với số lượng, ngân sách và cách trao tặng của doanh nghiệp.</p>
+          <p class="business-eyebrow">Lựa chọn theo nhu cầu</p>
+          <h2 id="solutions-title">Ba hình thức mua hàng</h2>
+          <p>Chọn nhanh một bộ quà hoàn chỉnh, tự phối theo ý muốn hoặc đặt bánh lẻ cho sự kiện đông người.</p>
         </div>
 
-        <div class="business-solution-grid">
-          <article class="business-card">
-            <span class="business-card-index">01</span>
-            <h3>Hộp quà có sẵn</h3>
-            <p>Các bộ quà PRESET đã định sẵn thành phần, phù hợp khi cần lựa chọn nhanh và đồng nhất.</p>
-            <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes">Khám phá hộp quà</a>
+        <div class="business-product-grid">
+          <article class="business-product-card">
+            <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="business-product-image"
+               aria-label="Xem hộp quà có sẵn">
+              <img th:src="@{/images/business/mid_autumn_moonlit_mooncake_gift_set.png}"
+                   src="/images/business/mid_autumn_moonlit_mooncake_gift_set.png"
+                   alt="Hộp quà Trung Thu màu đen đã xếp sẵn bốn bánh"
+                   width="1448" height="1086" loading="lazy" decoding="async" />
+            </a>
+            <div class="business-product-content">
+              <h3>Hộp quà có sẵn</h3>
+              <p>Thành phần được phối sẵn, hình thức đồng nhất và sẵn sàng cho những đơn quà tặng cần triển khai nhanh.</p>
+              <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes">Khám phá hộp quà</a>
+            </div>
           </article>
 
-          <article class="business-card">
-            <span class="business-card-index">02</span>
-            <h3>Hộp quà tự chọn</h3>
-            <p>Chọn mẫu hộp và phối đủ số bánh theo sức chứa để tạo bộ quà phù hợp nhu cầu.</p>
-            <a th:href="@{/custom-boxes}" href="/custom-boxes">Bắt đầu tự chọn</a>
+          <article class="business-product-card">
+            <a th:href="@{/custom-boxes}" href="/custom-boxes" class="business-product-image"
+               aria-label="Bắt đầu tự chọn hộp quà">
+              <img th:src="@{/images/business/moonlit_mid_autumn_mooncake_gift_box.png}"
+                   src="/images/business/moonlit_mid_autumn_mooncake_gift_box.png"
+                   alt="Vỏ hộp Trung Thu màu đen sáu ngăn để tự chọn bánh"
+                   width="1448" height="1086" loading="lazy" decoding="async" />
+            </a>
+            <div class="business-product-content">
+              <h3>Hộp quà tự chọn</h3>
+              <p>Chọn mẫu hộp rồi phối đủ số bánh theo sức chứa, phù hợp khi bạn muốn cá nhân hóa hương vị cho người nhận.</p>
+              <a th:href="@{/custom-boxes}" href="/custom-boxes">Bắt đầu tự chọn</a>
+            </div>
           </article>
 
-          <article class="business-card">
-            <span class="business-card-index">03</span>
-            <h3>Bánh lẻ số lượng lớn</h3>
-            <p>Kết hợp nhiều vị bánh trong cùng đơn; hệ thống tự cộng số lượng bánh lẻ đủ điều kiện.</p>
-            <a th:href="@{/products/mooncakes}" href="/products/mooncakes">Xem các vị bánh</a>
+          <article class="business-product-card">
+            <a th:href="@{/products/mooncakes}" href="/products/mooncakes" class="business-product-image"
+               aria-label="Xem bánh Trung Thu mua lẻ">
+              <img th:src="@{/images/business/moonlit_mid_autumn_mooncake_feast.png}"
+                   src="/images/business/moonlit_mid_autumn_mooncake_feast.png"
+                   alt="Nhiều vị bánh Trung Thu được bày cho tiệc và đơn hàng số lượng lớn"
+                   width="1448" height="1086" loading="lazy" decoding="async" />
+            </a>
+            <div class="business-product-content">
+              <h3>Bánh lẻ số lượng lớn</h3>
+              <p>Linh hoạt kết hợp nhiều hương vị cho sự kiện, tiệc nội bộ hoặc những phần quà được chuẩn bị riêng.</p>
+              <a th:href="@{/products/mooncakes}" href="/products/mooncakes">Xem các vị bánh</a>
+            </div>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="business-section business-discount-section" aria-labelledby="discount-title">
+    <section id="business-discounts" class="business-section business-discount-section"
+             aria-labelledby="discount-title">
       <div class="business-shell">
         <div class="business-section-heading business-section-heading-wide">
-          <p class="business-eyebrow">Chính sách số lượng lớn</p>
-          <h2 id="discount-title">Chiết khấu được tính tự động</h2>
+          <p class="business-eyebrow">Ưu đãi theo số lượng</p>
+          <h2 id="discount-title">Chiết khấu hộp quà được áp dụng tự động</h2>
           <p>
-            Chính sách áp dụng cho mọi khách hàng đã đăng nhập. Không cần tạo loại tài khoản doanh nghiệp riêng
-            và không cần chờ duyệt báo giá.
+            Khi hoàn tất đặt hàng, hệ thống chọn đúng một mức chiết khấu cao nhất mà tổng số hộp quà
+            trong đơn đạt điều kiện.
           </p>
         </div>
 
         <figure class="business-discount-visual">
           <img th:src="@{/images/business/volume-discount-banner.png}"
                src="/images/business/volume-discount-banner.png"
-               alt="Sáu bậc chiết khấu hộp quà: 5% từ 5 hộp, 8% từ 20 hộp, 10% từ 50 hộp, 12% từ 100 hộp, 15% từ 200 hộp và 18% từ 500 hộp" />
+               alt="Chính sách chiết khấu hộp quà: 5% từ 5 hộp, 8% từ 20 hộp, 10% từ 50 hộp, 12% từ 100 hộp, 15% từ 200 hộp và 18% từ 500 hộp"
+               width="5136" height="1003" loading="lazy" decoding="async" />
         </figure>
 
-        <div class="business-tier-grid" aria-label="Các bậc chiết khấu hộp quà">
-          <article class="business-tier"><strong>5%</strong><span>Từ 5 hộp</span></article>
-          <article class="business-tier"><strong>8%</strong><span>Từ 20 hộp</span></article>
-          <article class="business-tier"><strong>10%</strong><span>Từ 50 hộp</span></article>
-          <article class="business-tier"><strong>12%</strong><span>Từ 100 hộp</span></article>
-          <article class="business-tier"><strong>15%</strong><span>Từ 200 hộp</span></article>
-          <article class="business-tier"><strong>18%</strong><span>Từ 500 hộp</span></article>
+        <div class="business-tier-grid" aria-label="Sáu bậc chiết khấu hộp quà">
+          <article class="business-tier"><strong>5%</strong><span>Khi mua từ 5 hộp</span></article>
+          <article class="business-tier"><strong>8%</strong><span>Khi mua từ 20 hộp</span></article>
+          <article class="business-tier"><strong>10%</strong><span>Khi mua từ 50 hộp</span></article>
+          <article class="business-tier"><strong>12%</strong><span>Khi mua từ 100 hộp</span></article>
+          <article class="business-tier"><strong>15%</strong><span>Khi mua từ 200 hộp</span></article>
+          <article class="business-tier"><strong>18%</strong><span>Khi mua từ 500 hộp</span></article>
         </div>
 
-        <div class="business-discount-notes">
-          <p><strong>Nhóm hộp quà:</strong> cộng số hộp PRESET và CUSTOM trong cùng đơn.</p>
-          <p><strong>Nhóm bánh lẻ:</strong> cộng riêng các SKU bánh Trung Thu mua lẻ.</p>
-          <p><strong>Hộp rỗng:</strong> không thuộc hai nhóm chiết khấu.</p>
+        <div class="business-policy-grid">
+          <p>Hộp quà có sẵn và hộp tự chọn được cộng chung số lượng trong cùng đơn.</p>
+          <p>Bánh mua lẻ được tính theo chính sách số lượng riêng, độc lập với hộp quà.</p>
+          <p>Vỏ hộp mua riêng không được tính vào nhóm sản phẩm hưởng chiết khấu.</p>
         </div>
+        <p class="business-policy-footnote">
+          Áp dụng cho tài khoản khách hàng, không cần tài khoản doanh nghiệp riêng hoặc chờ phê duyệt.
+        </p>
       </div>
     </section>
 
-    <section class="business-section" aria-labelledby="process-title">
+    <section class="business-process-section" aria-labelledby="process-title">
       <div class="business-shell">
-        <div class="business-section-heading">
-          <p class="business-eyebrow">Quy trình rõ ràng</p>
-          <h2 id="process-title">Đặt hàng trong bốn bước</h2>
+        <div class="business-section-heading business-process-heading">
+          <p class="business-eyebrow">Quy trình đặt hàng</p>
+          <h2 id="process-title">Từ lựa chọn đến xác nhận trong ba bước</h2>
         </div>
 
-        <ol class="business-process-grid">
+        <ol class="business-process-list">
           <li>
-            <span>1</span>
-            <h3>Chọn sản phẩm</h3>
-            <p>Xem hộp quà, bánh lẻ hoặc bắt đầu tạo hộp tự chọn.</p>
+            <span class="business-process-number">01</span>
+            <div>
+              <h3>Chọn hình thức quà tặng</h3>
+              <p>Chọn hộp quà có sẵn, tự phối hộp hoặc mua bánh lẻ theo nhu cầu.</p>
+            </div>
           </li>
           <li>
-            <span>2</span>
-            <h3>Đăng nhập</h3>
-            <p>Dùng tài khoản khách hàng để lưu giỏ và thực hiện đặt hàng.</p>
+            <span class="business-process-number">02</span>
+            <div>
+              <h3>Kiểm tra giỏ hàng</h3>
+              <p>Xem lại số lượng, thành phần và mức chiết khấu được hệ thống tính tự động.</p>
+            </div>
           </li>
           <li>
-            <span>3</span>
-            <h3>Xác nhận đơn COD</h3>
-            <p>Hệ thống tính lại giá, chiết khấu và phí giao hàng trên server.</p>
-          </li>
-          <li>
-            <span>4</span>
-            <h3>Theo dõi đơn</h3>
-            <p>Xem trạng thái và chi tiết đơn trong mục Đơn hàng của tài khoản.</p>
+            <span class="business-process-number">03</span>
+            <div>
+              <h3>Xác nhận đơn COD</h3>
+              <p>Hoàn tất thông tin giao hàng và theo dõi trạng thái trong mục Đơn hàng của bạn.</p>
+            </div>
           </li>
         </ol>
       </div>
@@ -181,13 +204,16 @@
     <section class="business-cta" aria-labelledby="business-cta-title">
       <div class="business-shell business-cta-inner">
         <div>
-          <p class="business-eyebrow">Bắt đầu lựa chọn</p>
-          <h2 id="business-cta-title">Chuẩn bị quà tặng cho mùa trăng này</h2>
-          <p>Khám phá các sản phẩm đang bán và chọn phương án phù hợp với doanh nghiệp của bạn.</p>
+          <p class="business-eyebrow">Mùa trăng trọn vẹn</p>
+          <h2 id="business-cta-title">Chọn món quà xứng đáng với người nhận</h2>
+          <p>Khám phá bộ sưu tập có sẵn hoặc tự phối một hộp quà mang dấu ấn riêng của doanh nghiệp.</p>
         </div>
-        <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="business-button business-button-primary">
-          Xem sản phẩm
-        </a>
+        <div class="business-actions business-cta-actions">
+          <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes"
+             class="business-button business-button-primary">Xem hộp quà</a>
+          <a th:href="@{/custom-boxes}" href="/custom-boxes"
+             class="business-button business-button-secondary">Tự chọn hộp quà</a>
+        </div>
       </div>
     </section>
   </main>

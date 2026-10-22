@@ -9,6 +9,8 @@ public record CustomBoxOptionView(
     String sku,
     int capacityCakes,
     BigDecimal unitPrice,
-    String formattedPrice
+    String formattedPrice,
+    String imageUrl,
+    String imageAlt
 ) {
 }

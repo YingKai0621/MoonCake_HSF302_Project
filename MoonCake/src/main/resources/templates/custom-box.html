@@ -32,6 +32,7 @@
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/pages/custom-box.css}" href="/css/pages/custom-box.css">
 </head>
 <body class="min-h-screen flex flex-col bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('custom-box')}"></header>
@@ -71,18 +72,25 @@
           <h2 class="font-serif text-2xl font-semibold mb-5">1. Chọn mẫu hộp</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label th:each="box : ${builder.boxes}"
-                   class="block border border-gold/25 bg-control/40 p-5 cursor-pointer hover:border-gold/70 transition-colors">
-              <div class="flex items-start gap-3">
+                   class="box-option-card">
+              <div class="box-option-card__image-frame">
+                <img th:src="${box.imageUrl}"
+                     th:alt="${box.imageAlt}"
+                     class="box-option-card__image"
+                     decoding="async">
+              </div>
+              <div class="box-option-card__content">
                 <input type="radio"
                        th:field="*{boxId}"
                        th:value="${box.boxId}"
                        th:attr="data-box-capacity=${box.capacityCakes},data-box-price=${box.unitPrice}"
-                       class="mt-1 accent-[#D1A85A]"
+                       class="box-option-card__radio"
                        required>
                 <div>
                   <h3 class="font-semibold" th:text="${box.name}">Vỏ hộp 4 bánh</h3>
                   <p class="text-sm text-sand mt-1" th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</p>
                   <p class="text-gold font-semibold mt-3" th:text="${box.formattedPrice}">0đ</p>
+                  <p class="box-option-card__caption">Ảnh minh họa mẫu hộp và số ngăn bánh.</p>
                 </div>
               </div>
             </label>

@@ -83,9 +83,16 @@ public class CustomBoxServiceImpl implements CustomBoxService {
     @Override
     public CustomBoxPageView getBuilderView() {
         List<Box> boxes = customBoxRepository.findSellableBoxes(ProductType.EMPTY_BOX);
+        Map<Long, CatalogVariantView> boxCatalogVariants = loadCatalogVariants(
+            ProductType.EMPTY_BOX
+        );
         List<CustomBoxOptionView> boxViews = new ArrayList<>();
         for (Box box : boxes) {
             ProductVariant variant = box.getEmptyBoxVariant();
+            CatalogVariantView catalogVariant = boxCatalogVariants.get(variant.getId());
+            if (catalogVariant == null) {
+                throw new ResourceNotFoundException("Không tìm thấy ảnh của mẫu hộp đang bán");
+            }
             boxViews.add(new CustomBoxOptionView(
                 box.getId(),
                 variant.getId(),
@@ -93,7 +100,9 @@ public class CustomBoxServiceImpl implements CustomBoxService {
                 variant.getSku(),
                 box.getCapacityCakes(),
                 variant.getUnitPrice(),
-                formatVnd(variant.getUnitPrice())
+                formatVnd(variant.getUnitPrice()),
+                catalogVariant.imageUrl(),
+                catalogVariant.imageAlt()
             ));
         }
 
@@ -115,6 +124,17 @@ public class CustomBoxServiceImpl implements CustomBoxService {
             }
         }
         return new CustomBoxPageView(boxViews, cakeViews);
+    }
+
+    private Map<Long, CatalogVariantView> loadCatalogVariants(ProductType productType) {
+        List<CatalogProductView> products = productQueryService.findActiveCatalog(productType);
+        Map<Long, CatalogVariantView> variants = new LinkedHashMap<>();
+        for (CatalogProductView product : products) {
+            for (CatalogVariantView variant : product.getVariants()) {
+                variants.put(variant.id(), variant);
+            }
+        }
+        return variants;
     }
 
     @Override

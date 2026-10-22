@@ -1,10 +1,10 @@
 # MoonCake MVP — Architecture and Coding Conventions
 
-**Version:** 1.4.1
+**Version:** 1.5
 
 **Date:** 21/10/2026
 
-**Status:** Approved baseline; authenticated-customer purchase flow added after Foundation
+**Status:** Approved baseline; authenticated-customer purchase and self-cancellation rules added after Foundation
 **Applies to:** Java, Spring Boot MVC, Thymeleaf, JPA, SQL Server, and Flyway code in `MoonCake/`
 
 ## 1. Architecture style
@@ -147,7 +147,14 @@ If a uniqueness/concurrency exception still occurs, roll back the whole transact
 
 ### Cancellation
 
-One order-management transaction conditionally changes `PLACED`/`PROCESSING -> CANCELLED` and requires one affected row before restoring stock. It restores the original inventory source once and writes idempotent CANCEL_RETURN movements in the same transaction. Competing transitions such as `PROCESSING -> SHIPPING` must also be conditional on the expected current state.
+Use one shared `OrderCancellationService` transaction coordinator for every cancellation entry point; Customer and Admin controllers must not reproduce state-change or stock-restoration logic. Expose separate intent-specific Customer and Admin service methods instead of accepting a role or permission flag from a web form.
+
+- Customer self-cancellation verifies ownership from the authenticated `CUSTOMER` principal and accepts only `PLACED -> CANCELLED`.
+- Admin cancellation accepts `PLACED -> CANCELLED` or `PROCESSING -> CANCELLED`.
+- The transaction conditionally changes the expected current state to `CANCELLED` and requires one affected row before restoring stock.
+- It restores the original inventory source once and writes idempotent `CANCEL_RETURN` movements in the same transaction.
+- A cancelled COD payment remains `UNPAID` with null `paid_at`; `SALES_ORDER.CANCELLED` records the cancellation outcome.
+- Competing transitions such as `PLACED -> PROCESSING` and `PROCESSING -> SHIPPING` must also be conditional on the expected current state. Repeated or losing requests return an already-processed/conflict result without inventory effects.
 
 ### Delivery and COD collection
 
@@ -181,6 +188,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Do not create REST APIs for every screen unless a real JavaScript interaction requires one.
 - Separate customer and Admin routes/controllers when authorization or layout differs.
 - Use Post/Redirect/Get after successful form mutations.
+- Customer self-cancellation is a CSRF-protected POST followed by redirect; never implement cancellation as a GET link.
 - Display validation errors without trusting prices, roles, IDs, or ownership claims from hidden frontend fields.
 - Keep reusable header/footer fragments and existing CSS/JS assets unless the feature requires a reviewed change.
 
@@ -190,7 +198,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Use a small application exception hierarchy for not-found, validation/business conflict, authorization, concurrency, and insufficient-stock cases.
 - Provide a shared MVC exception handler/error mapping rather than repeated try/catch blocks in controllers.
 - Resolve the current `ACCOUNT` and `CUSTOMER` from the authenticated Spring Security principal. Never accept a submitted account ID, customer ID, cart ID, or configuration ID as proof of ownership.
-- Catalog and product-detail pages remain public. Adding to cart, building a CUSTOM box, viewing or changing a cart, checkout, and customer order history require an authenticated ACTIVE account with role `CUSTOMER`.
+- Catalog and product-detail pages remain public. Adding to cart, building a CUSTOM box, viewing or changing a cart, checkout, customer order history/detail, and customer self-cancellation require an authenticated ACTIVE account with role `CUSTOMER`.
 - An unauthenticated purchase action redirects to `/login` with a validated local return URL. Do not mutate a cart and do not automatically replay the original POST after login; return to a safe GET page so the customer can confirm the action again.
 - Protect Admin routes and service operations, not only Admin navigation links.
 - Use one application `SecurityConfig`. The Customer Sales owner owns the Spring Security baseline, login/logout, customer registration, and `CurrentCustomerService`; the Admin owner consumes that configuration and must not create a second filter chain or authentication implementation without review.
@@ -203,7 +211,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - A successfully registered account is `ACTIVE` immediately because email verification and account approval are outside this MVP.
 - Password reset, social login, MFA, email verification, and account approval remain outside scope.
 - Store only a strong one-way password hash supported by Spring Security; never store or log raw passwords.
-- The shared V1 schema retains nullable guest-related columns for migration-checksum compatibility, but the v1.2 application does not create or operate guest carts. New MVP carts use `customer_id` and leave `guest_token` null.
+- The shared V1 schema retains nullable guest-related columns for migration-checksum compatibility, but the current application does not create or operate guest carts. New MVP carts use `customer_id` and leave `guest_token` null.
 
 ### Initial Admin bootstrap
 
@@ -227,7 +235,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Repository/integration tests cover conditional updates, constraints, and important queries against SQL Server-compatible behavior.
 - Service tests cover transaction outcomes and failure rollback.
 - MVC tests cover validation, authorization, view names, and redirects for important routes.
-- Critical integration scenarios include registration with a duplicate email, unauthenticated purchase redirects, cross-customer ownership rejection, duplicate cart additions, concurrent checkout, insufficient stock, repeated cancellation, repeated delivery confirmation, and immutable PRESET composition.
+- Critical integration scenarios include registration with a duplicate email, unauthenticated purchase redirects, cross-customer ownership rejection, duplicate cart additions, concurrent checkout, insufficient stock, Customer cancellation of an owned `PLACED` order, rejection for another customer's or `PROCESSING` order, repeated/concurrent cancellation, Admin cancellation of `PROCESSING`, repeated delivery confirmation, and immutable PRESET composition.
 - Every PR reports the exact tests run and does not claim database verification when only mocks were used.
 
 ### Test database isolation

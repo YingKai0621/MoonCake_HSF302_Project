@@ -85,6 +85,14 @@ class AdminPagesTest {
     }
 
     @Test
+    void catalogRendersMarkersForUncheckedCheckboxes() throws Exception {
+        mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("name=\"_active\"")))
+            .andExpect(content().string(containsString("name=\"_primary\"")));
+    }
+
+    @Test
     void anonymousAndCustomerCannotReadAdminPages() throws Exception {
         mvc.perform(get("/admin/catalog")).andExpect(status().is3xxRedirection());
         mvc.perform(get("/admin/catalog").with(user("customer").roles("CUSTOMER"))).andExpect(status().isForbidden());
@@ -120,6 +128,93 @@ class AdminPagesTest {
         mvc.perform(post("/admin/categories").with(user("admin").roles("ADMIN")).with(csrf())
                 .param("name", "").param("slug", "bad slug")).andExpect(status().isBadRequest());
         verifyNoMoreInteractions(catalog);
+    }
+
+    @Test
+    void uncheckedCatalogCheckboxesBindAsFalse() throws Exception {
+        mvc.perform(post("/admin/categories")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("name", "Inactive Category")
+                .param("slug", "inactive-category")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection());
+        verify(catalog).saveCategory(new CategoryForm(
+            null,
+            "Inactive Category",
+            "inactive-category",
+            false
+        ));
+
+        mvc.perform(post("/admin/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "MOONCAKE")
+                .param("name", "Inactive Product")
+                .param("slug", "inactive-product")
+                .param("shortDescription", "Description")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection());
+        verify(catalog).saveProduct(new ProductForm(
+            null,
+            1,
+            ProductType.MOONCAKE,
+            "Inactive Product",
+            "inactive-product",
+            "Description",
+            null,
+            null,
+            null,
+            null,
+            false
+        ));
+
+        mvc.perform(post("/admin/variants")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("productId", "1")
+                .param("sku", "INACTIVE-SKU")
+                .param("name", "Inactive Variant")
+                .param("unitPrice", "100000")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection());
+        verify(catalog).saveVariant(new VariantForm(
+            null,
+            1,
+            "INACTIVE-SKU",
+            "Inactive Variant",
+            null,
+            null,
+            BigDecimal.valueOf(100_000),
+            false
+        ));
+
+        mvc.perform(post("/admin/boxes")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "1")
+                .param("capacityCakes", "4")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection());
+        verify(catalog).saveBox(new BoxForm(null, 1, 4, null, null, false));
+
+        mvc.perform(post("/admin/images")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "1")
+                .param("imageUrl", "/images/cake.png")
+                .param("sortOrder", "0")
+                .param("_primary", "on"))
+            .andExpect(status().is3xxRedirection());
+        verify(catalog).saveImage(new ImageForm(
+            null,
+            1,
+            "/images/cake.png",
+            null,
+            0,
+            false
+        ));
     }
 
     @Test

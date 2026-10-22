@@ -110,6 +110,35 @@ class CatalogSeedIT {
             JOIN dbo.PRODUCT AS product ON product.product_id = variant.product_id
             """);
 
+        Integer primaryImageCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*)
+            FROM dbo.PRODUCT_IMAGE AS image
+            JOIN dbo.PRODUCT_VARIANT AS variant ON variant.variant_id = image.variant_id
+            WHERE variant.sku IN (
+                N'MC-KSPM-080', N'MC-PBMHA-080', N'MC-CBTN-080', N'MC-TCGQ-080',
+                N'MC-CBBB-080', N'MC-LSTT-080', N'MC-TXHN-120', N'MC-HSMC-120',
+                N'MC-SCDHDC-120', N'MC-LXGQXO-150', N'MC-THRV-150', N'MC-SDHK-150',
+                N'BOX-KIM-PHUC-4', N'BOX-LAM-PHUC-6',
+                N'GIFT-KIM-PHUC-4', N'GIFT-LAM-PHUC-6'
+            )
+              AND image.is_primary = 1
+              AND image.image_url LIKE N'/images/%'
+            """, Integer.class);
+
+        Integer customBoxImageCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*)
+            FROM dbo.PRODUCT_IMAGE AS image
+            JOIN dbo.PRODUCT_VARIANT AS variant ON variant.variant_id = image.variant_id
+            WHERE image.is_primary = 1
+              AND (
+                  (variant.sku = N'BOX-KIM-PHUC-4'
+                   AND image.image_url = N'/images/boxes/box-kim-phuc-4.png')
+                  OR
+                  (variant.sku = N'BOX-LAM-PHUC-6'
+                   AND image.image_url = N'/images/boxes/box-lam-phuc-6.png')
+              )
+            """, Integer.class);
+
         assertThat(categoryCount).isEqualTo(2);
         assertThat(((Number) productCounts.get("mooncakes")).intValue()).isEqualTo(12);
         assertThat(((Number) productCounts.get("empty_boxes")).intValue()).isEqualTo(2);
@@ -121,5 +150,7 @@ class CatalogSeedIT {
         assertThat(lamPhucPrice).isEqualByComparingTo("930000");
         assertThat(((Number) emptyBoxData.get("four_cake_box")).intValue()).isEqualTo(1);
         assertThat(((Number) emptyBoxData.get("six_cake_box")).intValue()).isEqualTo(1);
+        assertThat(primaryImageCount).isEqualTo(16);
+        assertThat(customBoxImageCount).isEqualTo(2);
     }
 }

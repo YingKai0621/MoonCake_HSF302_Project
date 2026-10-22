@@ -13,7 +13,11 @@ public class CheckoutForm {
     private Long cartId;
 
     @NotBlank(message = "Vui lòng nhập tên người nhận")
-    @Size(max = 160, message = "Tên người nhận không được vượt quá 160 ký tự")
+    @Size(max = 40, message = "Tên người nhận không được vượt quá 40 ký tự")
+    @Pattern(
+        regexp = "^[\\p{L}\\s]+$",
+        message = "Tên người nhận chỉ được chứa chữ cái và khoảng trắng"
+    )
     private String recipientName;
 
     @NotBlank(message = "Vui lòng nhập số điện thoại người nhận")
@@ -32,10 +36,10 @@ public class CheckoutForm {
     private String wardCode;
 
     @NotBlank(message = "Vui lòng nhập số nhà và tên đường")
-    @Size(max = 255, message = "Số nhà và tên đường không được vượt quá 255 ký tự")
+    @Size(max = 120, message = "Số nhà và tên đường không được vượt quá 120 ký tự")
     private String streetAddress;
 
-    @Size(max = 1000, message = "Ghi chú không được vượt quá 1000 ký tự")
+    @Size(max = 200, message = "Ghi chú không được vượt quá 200 ký tự")
     private String orderNote;
 
     public Long getCartId() {

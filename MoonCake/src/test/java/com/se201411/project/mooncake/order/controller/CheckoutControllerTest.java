@@ -153,4 +153,43 @@ class CheckoutControllerTest {
 
         verify(checkoutService, never()).placeOrder(any(), any());
     }
+
+    @Test
+    void invalidRecipientNameRendersFormWithoutPlacingOrder() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(checkoutService.prepareCheckout(9L, CUSTOMER)).thenReturn(preparation);
+
+        mockMvc.perform(post("/checkout")
+                .param("cartId", "9")
+                .param("recipientName", "Người nhận 123 #")
+                .param("recipientPhone", "0901234567")
+                .param("provinceCode", "79")
+                .param("wardCode", "26740")
+                .param("streetAddress", "123 Đường Trung Thu"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("checkout"))
+            .andExpect(model().attributeHasFieldErrors("checkoutForm", "recipientName"));
+
+        verify(checkoutService, never()).placeOrder(any(), any());
+    }
+
+    @Test
+    void rejectsStreetAddressAndOrderNoteExceedingLimits() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(checkoutService.prepareCheckout(9L, CUSTOMER)).thenReturn(preparation);
+
+        mockMvc.perform(post("/checkout")
+                .param("cartId", "9")
+                .param("recipientName", "Người nhận")
+                .param("recipientPhone", "0901234567")
+                .param("provinceCode", "79")
+                .param("wardCode", "26740")
+                .param("streetAddress", "a".repeat(121))
+                .param("orderNote", "b".repeat(201)))
+            .andExpect(status().isOk())
+            .andExpect(view().name("checkout"))
+            .andExpect(model().attributeHasFieldErrors("checkoutForm", "streetAddress", "orderNote"));
+
+        verify(checkoutService, never()).placeOrder(any(), any());
+    }
 }

@@ -135,6 +135,29 @@ class SecurityConfigTest {
     }
 
     @Test
+    void requiresCustomerRoleAndCsrfForOrderCancellation() throws Exception {
+        mockMvc.perform(post("/orders/MC-TEST/cancel"))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/cancel")
+                .with(user("customer").roles("CUSTOMER"))
+        ).andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/cancel")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+        ).andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/cancel")
+                .with(user("customer").roles("CUSTOMER"))
+                .with(csrf())
+        ).andExpect(status().isOk());
+    }
+
+    @Test
     void authenticatesWithEmailAndPassword() throws Exception {
         mockMvc.perform(
             formLogin()
@@ -246,6 +269,11 @@ class SecurityConfigTest {
         @PostMapping("/cart/items")
         String addCartItem() {
             return "added";
+        }
+
+        @PostMapping("/orders/{orderCode}/cancel")
+        String cancelOrder() {
+            return "cancelled";
         }
 
         @PostMapping("/register")

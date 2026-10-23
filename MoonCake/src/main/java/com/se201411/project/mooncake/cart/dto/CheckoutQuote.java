@@ -9,6 +9,7 @@ public record CheckoutQuote(
     BigDecimal subtotal,
     BigDecimal discount,
     BigDecimal shippingFee,
+    BigDecimal roundingAdjustment,
     BigDecimal total
 ) {
     public CheckoutQuote {

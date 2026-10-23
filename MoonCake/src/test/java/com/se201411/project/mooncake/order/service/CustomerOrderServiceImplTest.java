@@ -100,9 +100,10 @@ class CustomerOrderServiceImplTest {
         order.setRecipientName("Người nhận");
         order.setRecipientPhone("0901234567");
         order.setShippingAddressSnapshot("123 Đường Trung Thu, Sài Gòn, Hồ Chí Minh");
-        order.setSubtotalAmount(BigDecimal.valueOf(590_000));
+        order.setSubtotalAmount(BigDecimal.valueOf(590_100));
         order.setDiscountAmount(BigDecimal.ZERO);
         order.setShippingFee(BigDecimal.valueOf(30_000));
+        order.setRoundingAdjustment(BigDecimal.valueOf(-100));
 
         Payment payment = new Payment();
         payment.setMethod(PaymentMethod.COD);
@@ -141,6 +142,7 @@ class CustomerOrderServiceImplTest {
         assertThat(view.cancellable()).isTrue();
         assertThat(view.paymentStatusLabel()).isEqualTo("Chưa thanh toán");
         assertThat(view.totalQuantity()).isEqualTo(1);
+        assertThat(view.formattedRoundingAdjustment()).isEqualTo("- 100đ");
         assertThat(view.items()).hasSize(1);
         assertThat(view.items().get(0).components()).hasSize(1);
         assertThat(view.items().get(0).components().get(0).roleLabel())

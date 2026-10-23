@@ -78,6 +78,9 @@ public class SalesOrder {
     @Column(name = "shipping_fee", nullable = false, precision = 18, scale = 0)
     private BigDecimal shippingFee = BigDecimal.ZERO;
 
+    @Column(name = "rounding_adjustment", nullable = false, precision = 18, scale = 0)
+    private BigDecimal roundingAdjustment = BigDecimal.ZERO;
+
     @Column(name = "total_amount", nullable = false, precision = 18, scale = 0)
     private BigDecimal totalAmount;
 
@@ -123,6 +126,8 @@ public class SalesOrder {
     public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
     public BigDecimal getShippingFee() { return shippingFee; }
     public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
+    public BigDecimal getRoundingAdjustment() { return roundingAdjustment; }
+    public void setRoundingAdjustment(BigDecimal value) { this.roundingAdjustment = value; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     public OrderStatus getStatus() { return status; }

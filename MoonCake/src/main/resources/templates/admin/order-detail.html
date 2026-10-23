@@ -64,6 +64,9 @@
         </table>
         <p>Tạm tính: <span th:text="${order.subtotal}"></span> VND · Giảm giá: <span th:text="${order.discount}"></span>
             VND · Phí giao: <span th:text="${order.shipping}"></span> VND</p>
+        <p th:if="${order.roundingAdjustment.signum() != 0}">
+            Điều chỉnh làm tròn: <span th:text="${order.roundingAdjustment}"></span> VND
+        </p>
         <h2>Tổng thu: <span th:text="${order.total}"></span> VND</h2>
         <p th:each="p : ${order.payments}">COD: <strong th:text="${p.status}"></strong> · <span
                 th:text="${p.amount}"></span> VND <span th:if="${p.paidAt}"

@@ -69,6 +69,7 @@ class CheckoutControllerTest {
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.valueOf(30_000),
+                BigDecimal.ZERO,
                 BigDecimal.valueOf(30_000)
             )
         );

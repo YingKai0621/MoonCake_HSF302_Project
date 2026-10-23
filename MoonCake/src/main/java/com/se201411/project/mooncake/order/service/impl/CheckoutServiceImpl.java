@@ -210,6 +210,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             formatVnd(order.getSubtotalAmount()),
             formatVnd(order.getDiscountAmount()),
             formatVnd(order.getShippingFee()),
+            formatSignedVnd(order.getRoundingAdjustment()),
             formatVnd(order.getTotalAmount())
         );
     }
@@ -235,6 +236,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         order.setSubtotalAmount(quote.subtotal());
         order.setDiscountAmount(quote.discount());
         order.setShippingFee(quote.shippingFee());
+        order.setRoundingAdjustment(quote.roundingAdjustment());
         order.setTotalAmount(quote.total());
         order.setStatus(OrderStatus.PLACED);
         order.setCreatedAt(now);
@@ -394,5 +396,15 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     private String formatVnd(BigDecimal amount) {
         return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
+    }
+
+    private String formatSignedVnd(BigDecimal amount) {
+        if (amount.signum() == 0) {
+            return null;
+        }
+        if (amount.signum() > 0) {
+            return "+ " + formatVnd(amount);
+        }
+        return "- " + formatVnd(amount.abs());
     }
 }

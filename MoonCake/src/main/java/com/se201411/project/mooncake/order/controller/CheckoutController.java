@@ -183,6 +183,7 @@ public class CheckoutController {
             formatVnd(quote.subtotal()),
             formatVnd(quote.discount()),
             formatVnd(quote.shippingFee()),
+            formatSignedVnd(quote.roundingAdjustment()),
             formatVnd(quote.total())
         );
     }
@@ -203,5 +204,15 @@ public class CheckoutController {
 
     private String formatVnd(BigDecimal amount) {
         return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
+    }
+
+    private String formatSignedVnd(BigDecimal amount) {
+        if (amount.signum() == 0) {
+            return null;
+        }
+        if (amount.signum() > 0) {
+            return "+ " + formatVnd(amount);
+        }
+        return "- " + formatVnd(amount.abs());
     }
 }

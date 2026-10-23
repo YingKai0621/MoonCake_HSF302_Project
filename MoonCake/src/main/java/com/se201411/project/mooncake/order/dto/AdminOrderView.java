@@ -8,7 +8,8 @@ import com.se201411.project.mooncake.enums.*;
 
 public record AdminOrderView(long id, String code, OrderStatus status, String recipient, String phone,
                              String address, String note, BigDecimal subtotal, BigDecimal discount, BigDecimal shipping,
-                             BigDecimal total, LocalDateTime createdAt, List<Item> items, List<Cod> payments) {
+                             BigDecimal roundingAdjustment, BigDecimal total, LocalDateTime createdAt,
+                             List<Item> items, List<Cod> payments) {
     public AdminOrderView {
         items = List.copyOf(items);
         payments = List.copyOf(payments);

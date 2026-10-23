@@ -126,6 +126,8 @@ class PricingServiceImplTest {
         assertThat(quote.lines().get(2).discountPercent())
             .isEqualByComparingTo("0");
         assertThat(quote.shippingFee()).isEqualByComparingTo("150000");
+        assertThat(quote.roundingAdjustment()).isEqualByComparingTo("-495");
+        assertThat(quote.total()).isEqualByComparingTo("39255000");
         assertThat(quote.groupSummaries()).hasSize(2);
     }
 

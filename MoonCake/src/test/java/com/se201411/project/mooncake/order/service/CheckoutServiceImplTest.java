@@ -117,9 +117,10 @@ class CheckoutServiceImplTest {
                     InventorySource.STOCKED_SKU, DiscountGroup.MOONCAKE)
             ),
             List.of(),
-            BigDecimal.valueOf(1_000_000),
+            BigDecimal.valueOf(1_000_100),
             BigDecimal.ZERO,
             BigDecimal.valueOf(30_000),
+            BigDecimal.valueOf(-100),
             BigDecimal.valueOf(1_030_000)
         );
 
@@ -185,6 +186,12 @@ class CheckoutServiceImplTest {
         org.mockito.Mockito.verify(orderRepository).save(salesOrderCaptor.capture());
         assertThat(salesOrderCaptor.getValue().getShippingAddressSnapshot())
             .isEqualTo("123 Đường Trung Thu, Sài Gòn, Hồ Chí Minh");
+        assertThat(salesOrderCaptor.getValue().getRoundingAdjustment())
+            .isEqualByComparingTo("-100");
+
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        org.mockito.Mockito.verify(paymentRepository).save(paymentCaptor.capture());
+        assertThat(paymentCaptor.getValue().getAmount()).isEqualByComparingTo("1030000");
     }
 
     private CheckoutLineQuote line(

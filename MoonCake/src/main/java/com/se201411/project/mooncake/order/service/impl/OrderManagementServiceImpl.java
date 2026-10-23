@@ -154,6 +154,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             order.getSubtotalAmount(),
             order.getDiscountAmount(),
             order.getShippingFee(),
+            order.getRoundingAdjustment(),
             order.getTotalAmount(),
             order.getCreatedAt(),
             lines,

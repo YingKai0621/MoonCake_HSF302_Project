@@ -9,6 +9,7 @@ import com.se201411.project.mooncake.cart.dto.DiscountGroupSummary;
 import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationItemRepository;
 import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
 import com.se201411.project.mooncake.cart.repository.VolumeDiscountTierRepository;
+import com.se201411.project.mooncake.cart.service.CashRoundingPolicy;
 import com.se201411.project.mooncake.cart.service.PricingService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -146,7 +147,9 @@ public class PricingServiceImpl implements PricingService {
         BigDecimal shippingFee = giftBoxQuantity >= LARGE_SHIPMENT_BOX_COUNT
             ? SHIPPING_FEE_LARGE
             : SHIPPING_FEE_SMALL;
-        BigDecimal total = subtotal.subtract(discount).add(shippingFee);
+        BigDecimal totalBeforeRounding = subtotal.subtract(discount).add(shippingFee);
+        BigDecimal total = CashRoundingPolicy.roundToNearestThousand(totalBeforeRounding);
+        BigDecimal roundingAdjustment = total.subtract(totalBeforeRounding);
 
         List<DiscountGroupSummary> summaries = buildSummaries(
             groupQuantities,
@@ -159,6 +162,7 @@ public class PricingServiceImpl implements PricingService {
             subtotal,
             discount,
             shippingFee,
+            roundingAdjustment,
             total
         );
     }

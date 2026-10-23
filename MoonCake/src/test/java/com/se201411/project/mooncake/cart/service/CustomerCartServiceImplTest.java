@@ -10,8 +10,14 @@ import com.se201411.project.mooncake.common.exception.BusinessRuleViolationExcep
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Cart;
 import com.se201411.project.mooncake.entity.CartItem;
+import com.se201411.project.mooncake.entity.Box;
+import com.se201411.project.mooncake.entity.BoxConfiguration;
+import com.se201411.project.mooncake.entity.Category;
+import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.CartStatus;
+import com.se201411.project.mooncake.enums.ConfigurationStatus;
+import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
@@ -186,6 +192,53 @@ class CustomerCartServiceImplTest {
     }
 
     @Test
+    void customCartItemsUseImagesOfBothSelectedBoxVariants() {
+        Cart cart = cart(100L);
+        CartItem kimPhucItem = customItem(
+            501L,
+            cart,
+            configuration(701L, box(401L, "BOX-KIM-PHUC-4", "Vỏ hộp Kim Phúc 4 bánh", 4))
+        );
+        CartItem lamPhucItem = customItem(
+            502L,
+            cart,
+            configuration(702L, box(601L, "BOX-LAM-PHUC-6", "Vỏ hộp Lam Phúc 6 bánh", 6))
+        );
+
+        when(cartRepository.findByCustomerIdAndStatus(10L, CartStatus.ACTIVE))
+            .thenReturn(Optional.of(cart));
+        when(cartItemRepository.findVariantItemsByCartId(100L)).thenReturn(List.of());
+        when(cartItemRepository.findCustomItemsByCartId(100L))
+            .thenReturn(List.of(kimPhucItem, lamPhucItem));
+        when(productQueryService.findVariantsForCart(List.of(401L, 601L)))
+            .thenReturn(List.of(
+                boxSnapshot(
+                    401L,
+                    "BOX-KIM-PHUC-4",
+                    "Vỏ hộp Kim Phúc 4 bánh",
+                    "/images/boxes/box-kim-phuc-4.png"
+                ),
+                boxSnapshot(
+                    601L,
+                    "BOX-LAM-PHUC-6",
+                    "Vỏ hộp Lam Phúc 6 bánh",
+                    "/images/boxes/box-lam-phuc-6.png"
+                )
+            ));
+        when(configurationItemRepository.findByConfigurationIds(List.of(701L, 702L)))
+            .thenReturn(List.of());
+
+        CustomerCartView result = service.getCurrentCart(CUSTOMER);
+
+        assertThat(result.items())
+            .extracting(item -> item.imageUrl())
+            .containsExactly(
+                "/images/boxes/box-kim-phuc-4.png",
+                "/images/boxes/box-lam-phuc-6.png"
+            );
+    }
+
+    @Test
     void customerCannotUpdateAnItemOutsideTheirActiveCart() {
         Cart cart = cart(100L);
         when(cartRepository.findByCustomerIdAndStatusForUpdate(10L, CartStatus.ACTIVE))
@@ -252,6 +305,82 @@ class CustomerCartServiceImplTest {
         ProductVariant variant = new ProductVariant();
         setId(variant, id);
         return variant;
+    }
+
+    private ProductVariant box(
+        long id,
+        String sku,
+        String productName,
+        int capacity
+    ) {
+        Category category = new Category();
+        category.setActive(true);
+
+        Product product = new Product();
+        product.setName(productName);
+        product.setSlug(sku.toLowerCase());
+        product.setProductType(ProductType.EMPTY_BOX);
+        product.setCategory(category);
+        product.setActive(true);
+
+        ProductVariant variant = variant(id);
+        variant.setProduct(product);
+        variant.setSku(sku);
+        variant.setName(productName);
+        variant.setUnitPrice(capacity == 4
+            ? BigDecimal.valueOf(495_000)
+            : BigDecimal.valueOf(590_000));
+        variant.setActive(true);
+        return variant;
+    }
+
+    private BoxConfiguration configuration(long id, ProductVariant boxVariant) {
+        Box box = new Box();
+        box.setEmptyBoxVariant(boxVariant);
+        box.setCapacityCakes(boxVariant.getSku().endsWith("-4") ? 4 : 6);
+        box.setActive(true);
+
+        BoxConfiguration configuration = new BoxConfiguration();
+        setId(configuration, id);
+        configuration.setBox(box);
+        configuration.setType(ConfigurationType.CUSTOM);
+        configuration.setStatus(ConfigurationStatus.READY);
+        return configuration;
+    }
+
+    private CartItem customItem(
+        long id,
+        Cart cart,
+        BoxConfiguration configuration
+    ) {
+        CartItem item = new CartItem();
+        setId(item, id);
+        item.setCart(cart);
+        item.setConfiguration(configuration);
+        item.setQuantity(1);
+        return item;
+    }
+
+    private CartVariantSnapshot boxSnapshot(
+        long id,
+        String sku,
+        String productName,
+        String imageUrl
+    ) {
+        return new CartVariantSnapshot(
+            id,
+            sku.toLowerCase(),
+            productName,
+            productName,
+            sku,
+            ProductType.EMPTY_BOX,
+            sku.endsWith("-4")
+                ? BigDecimal.valueOf(495_000)
+                : BigDecimal.valueOf(590_000),
+            imageUrl,
+            productName,
+            true
+        );
     }
 
     private CartItem item(

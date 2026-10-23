@@ -43,8 +43,6 @@ import java.util.Optional;
 public class CustomerCartServiceImpl implements CustomerCartService {
 
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-    private static final String FALLBACK_IMAGE = "/images/branding/mooncake_luxury_emblem_v4.png";
-
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CustomBoxConfigurationRepository configurationRepository;
@@ -216,6 +214,11 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         for (CartItem item : variantItems) {
             variantIds.add(item.getVariant().getId());
         }
+        for (CartItem item : customItems) {
+            variantIds.add(
+                item.getConfiguration().getBox().getEmptyBoxVariant().getId()
+            );
+        }
 
         List<CartVariantSnapshot> variantSnapshots = productQueryService
             .findVariantsForCart(variantIds);
@@ -297,14 +300,21 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             }
 
             ProductVariant boxVariant = configuration.getBox().getEmptyBoxVariant();
+            CartVariantSnapshot boxSnapshot = variantsById.get(boxVariant.getId());
+            if (boxSnapshot == null) {
+                throw new ResourceNotFoundException(
+                    "Không tìm thấy thông tin SKU vỏ hộp trong giỏ: "
+                        + boxVariant.getId()
+                );
+            }
             CartItemView customView = CartItemView.custom(
                 item.getId(),
                 configuration.getId(),
                 "Hộp quà tự chọn",
                 boxVariant.getProduct().getName(),
                 boxVariant.getSku(),
-                FALLBACK_IMAGE,
-                boxVariant.getProduct().getName(),
+                boxSnapshot.imageUrl(),
+                boxSnapshot.imageAlt(),
                 item.getQuantity(),
                 unitPrice,
                 formatVnd(unitPrice),

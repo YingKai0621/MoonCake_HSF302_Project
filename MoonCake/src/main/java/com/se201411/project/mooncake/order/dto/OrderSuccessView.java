@@ -13,6 +13,7 @@ public record OrderSuccessView(
     String formattedSubtotal,
     String formattedDiscount,
     String formattedShippingFee,
+    String formattedRoundingAdjustment,
     String formattedTotal
 ) {
     public OrderSuccessView {

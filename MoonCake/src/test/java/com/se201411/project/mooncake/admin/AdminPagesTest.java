@@ -227,7 +227,8 @@ class AdminPagesTest {
 
     static AdminOrderView order(OrderStatus status) {
         return new AdminOrderView(1, "ORDER", status, "Recipient", "0901234567", "Address", null,
-                BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.TEN, LocalDateTime.now(),
+                BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.TEN, LocalDateTime.now(),
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
                 List.of(new AdminOrderView.Cod(PaymentStatus.UNPAID, BigDecimal.TEN, null)));
     }

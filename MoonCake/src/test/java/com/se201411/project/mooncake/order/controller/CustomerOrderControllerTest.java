@@ -91,6 +91,7 @@ class CustomerOrderControllerTest {
             "590.000đ",
             "0đ",
             "30.000đ",
+            null,
             "620.000đ"
         );
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);

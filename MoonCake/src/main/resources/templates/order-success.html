@@ -82,6 +82,10 @@
           <div class="flex justify-between"><span class="text-sand">Tạm tính</span><span th:text="${order.formattedSubtotal}">0đ</span></div>
           <div class="flex justify-between"><span class="text-sand">Chiết khấu</span><span class="text-gold" th:text="${'- ' + order.formattedDiscount}">- 0đ</span></div>
           <div class="flex justify-between"><span class="text-sand">Phí giao hàng</span><span th:text="${order.formattedShippingFee}">0đ</span></div>
+          <div th:if="${order.formattedRoundingAdjustment}" class="flex justify-between">
+            <span class="text-sand">Điều chỉnh làm tròn</span>
+            <span th:text="${order.formattedRoundingAdjustment}">+ 0đ</span>
+          </div>
           <div class="flex justify-between items-baseline pt-3 border-t border-gold/15">
             <span class="font-medium">Tổng cộng</span>
             <span class="text-2xl font-bold text-gold" th:text="${order.formattedTotal}">0đ</span>

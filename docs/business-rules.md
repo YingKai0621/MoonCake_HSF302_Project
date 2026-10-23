@@ -1,14 +1,21 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.4 — 22/10/2026
+**Phiên bản tài liệu:** 1.5 — 23/10/2026
 
-**Trạng thái:** Quy tắc nghiệp vụ MVP đã cập nhật chính sách chiết khấu hộp quà sáu bậc; schema 19 bảng hiện tại vẫn đủ, dữ liệu tier được cập nhật bằng Flyway V5 và ảnh catalog nội bộ được hoàn thiện qua V6/V7
+**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt làm tròn tổng tiền COD đến 1.000 VND gần nhất; Flyway V8 bổ sung snapshot chênh lệch làm tròn và schema vẫn giữ 19 bảng
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.5
+
+- Tổng tiền phải thu COD được làm tròn đến 1.000 VND gần nhất theo `HALF_UP`: phần lẻ dưới 500 VND làm tròn xuống, từ 500 VND làm tròn lên.
+- Chỉ làm tròn một lần trên tổng cuối sau chiết khấu và phí giao hàng; không làm tròn lại từng dòng hàng.
+- `SALES_ORDER.rounding_adjustment` lưu chênh lệch làm tròn; `total_amount` và `PAYMENT.amount` đều dùng số tiền sau làm tròn.
+- Đơn lịch sử nhận `rounding_adjustment = 0` và giữ nguyên tổng tiền cũ. Flyway V8 không thêm bảng mới.
 
 ### Thay đổi chính trong phiên bản 1.4
 
@@ -148,12 +155,13 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Chưa hỗ trợ hoàn tiền, đổi trả sau giao, chỉnh sửa đơn đã đặt, nhiều kiện giao hàng hoặc nhiều địa chỉ giao cho cùng một đơn trong MVP.
 - `SALES_ORDER` lưu **snapshot**: người mua, người nhận, địa chỉ, phí vận chuyển, tổng tiền và trạng thái. `ORDER_ITEM` lưu snapshot SKU/tên/giá/phần trăm giảm/thành tiền; `ORDER_ITEM_COMPONENT` lưu chi tiết hộp. Đơn cũ không thay đổi khi sản phẩm hoặc chính sách giảm giá được cập nhật.
 - `subtotal_amount` là tổng giá gốc của tất cả dòng trước giảm; `discount_amount` là tổng giảm thực tế của các dòng đủ điều kiện; phí giao hàng không tham gia giảm giá.
-- Kiểm tra tổng tiền: **`total_amount = subtotal_amount - discount_amount + shipping_fee`**. Tổng tiền và chiết khấu tính trên server; **không tin số tiền frontend gửi lên**.
+- Tổng trước làm tròn là `subtotal_amount - discount_amount + shipping_fee`. Chỉ sau bước này mới làm tròn đến 1.000 VND gần nhất theo `HALF_UP`.
+- Kiểm tra tổng tiền lưu: **`total_amount = subtotal_amount - discount_amount + shipping_fee + rounding_adjustment`**; `rounding_adjustment` nằm trong khoảng `-499..500` VND. Tổng tiền, chiết khấu và làm tròn đều tính trên server; **không tin số tiền frontend gửi lên**.
 - Mọi bước tạo đơn, snapshot, payment, trừ kho, ghi movement và chuyển giỏ sang `CHECKED_OUT` phải commit cùng nhau. Nếu bất kỳ bước nào thất bại thì rollback toàn bộ và không hiển thị thành công.
 
 ## 6. Thanh toán — MVP chỉ COD
 
-- Chỉ cho phép `PAYMENT.payment_method = COD` ở MVP; khi tạo đơn, tạo bản ghi `PAYMENT` ở trạng thái `UNPAID`, số tiền phải thu bằng tổng tiền đơn.
+- Chỉ cho phép `PAYMENT.payment_method = COD` ở MVP; khi tạo đơn, tạo bản ghi `PAYMENT` ở trạng thái `UNPAID`, số tiền phải thu bằng `SALES_ORDER.total_amount` đã làm tròn.
 - Chỉ chuyển sang `PAID` và ghi `paid_at` **khi có xác nhận hàng đã giao và tiền COD thực sự được thu**. Không ghi `PAID` tại checkout.
 - Xác nhận giao thành công và thu COD là một thao tác nghiệp vụ nguyên tử: chuyển đơn `SHIPPING → COMPLETED`, chuyển payment `UNPAID → PAID` và ghi `paid_at` trong cùng transaction. Nếu một bước thất bại thì không cập nhật bước còn lại.
 - Gọi lặp thao tác xác nhận giao/thu COD không được tạo payment mới, ghi đè `paid_at` hoặc thực hiện lại tác động khác; lần sau phải trả về kết quả đã xử lý hoặc bị từ chối an toàn.
@@ -246,7 +254,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ và V7 cập nhật ảnh vỏ hộp CUSTOM. Flyway hiện ở version 7; V3–V7 không đổi cấu trúc 19 bảng. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM và V8 thêm snapshot chênh lệch làm tròn COD. Flyway hiện ở version 8; số bảng vẫn là 19. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 

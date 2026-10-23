@@ -1,6 +1,6 @@
 ﻿-- MoonCake MVP — SQL Server physical schema (DESIGN DDL; NOT executed).
--- Based on approved Business Rules v1.1 and Logical V5, 19 tables. Target: Microsoft SQL Server 2019+.
--- Implemented by Flyway V1__initial_schema.sql and validated on SQL Server 2019 Developer.
+-- Based on approved Business Rules v1.5 and Logical V5, 19 tables. Target: Microsoft SQL Server 2019+.
+-- Implemented by Flyway V1__initial_schema.sql plus subsequent V2-V8 migrations.
 -- Do not run this reference file on a database already managed by Flyway.
 -- Currency: VND as DECIMAL(18,0). Timestamps: UTC DATETIME2(3).
 -- Future payOS/VietQR: add fields/statuses/attempts in a NEW migration; not included here.
@@ -151,6 +151,7 @@ CREATE TABLE dbo.SALES_ORDER (
     subtotal_amount DECIMAL(18,0) NOT NULL,
     discount_amount DECIMAL(18,0) NOT NULL DEFAULT (0),
     shipping_fee DECIMAL(18,0) NOT NULL DEFAULT (0),
+    rounding_adjustment DECIMAL(18,0) NOT NULL DEFAULT (0),
     total_amount DECIMAL(18,0) NOT NULL,
     order_status VARCHAR(16) NOT NULL DEFAULT ('PLACED'),
     created_at DATETIME2(3) NOT NULL DEFAULT (SYSUTCDATETIME()),
@@ -287,7 +288,7 @@ ALTER TABLE dbo.CART_ITEM ADD CONSTRAINT CK_CART_ITEM_target CHECK ((variant_id 
 ALTER TABLE dbo.CART_ITEM ADD CONSTRAINT CK_CART_ITEM_qty CHECK (quantity > 0);
 ALTER TABLE dbo.SALES_ORDER ADD CONSTRAINT CK_SALES_ORDER_kind CHECK ((order_type = 'RETAIL' AND business_id IS NULL) OR (order_type = 'BUSINESS' AND business_id IS NOT NULL));
 ALTER TABLE dbo.SALES_ORDER ADD CONSTRAINT CK_SALES_ORDER_status CHECK (order_status IN ('PLACED','PROCESSING','SHIPPING','COMPLETED','CANCELLED'));
-ALTER TABLE dbo.SALES_ORDER ADD CONSTRAINT CK_SALES_ORDER_totals CHECK (subtotal_amount >= 0 AND discount_amount >= 0 AND discount_amount <= subtotal_amount AND shipping_fee >= 0 AND total_amount = subtotal_amount - discount_amount + shipping_fee);
+ALTER TABLE dbo.SALES_ORDER ADD CONSTRAINT CK_SALES_ORDER_totals CHECK (subtotal_amount >= 0 AND discount_amount >= 0 AND discount_amount <= subtotal_amount AND shipping_fee >= 0 AND rounding_adjustment >= -499 AND rounding_adjustment <= 500 AND total_amount >= 0 AND (rounding_adjustment = 0 OR total_amount % 1000 = 0) AND total_amount = subtotal_amount - discount_amount + shipping_fee + rounding_adjustment);
 ALTER TABLE dbo.VOLUME_DISCOUNT_TIER ADD CONSTRAINT CK_VOLUME_DISCOUNT_TIER_group CHECK (discount_group IN ('GIFT_BOX','MOONCAKE'));
 ALTER TABLE dbo.VOLUME_DISCOUNT_TIER ADD CONSTRAINT CK_VOLUME_DISCOUNT_TIER_bounds CHECK (min_quantity >= 1 AND (max_quantity IS NULL OR max_quantity >= min_quantity));
 ALTER TABLE dbo.VOLUME_DISCOUNT_TIER ADD CONSTRAINT CK_VOLUME_DISCOUNT_TIER_percent CHECK (discount_percent >= 0 AND discount_percent <= 100);

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake;
 
+import com.se201411.project.mooncake.cart.service.CashRoundingPolicy;
 import com.se201411.project.mooncake.cart.service.CustomerCartService;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
@@ -49,6 +50,11 @@ class CheckoutIT {
             FROM dbo.PRODUCT_VARIANT
             WHERE sku = N'MC-KSPM-080'
             """);
+        jdbcTemplate.update("""
+            UPDATE dbo.PRODUCT_VARIANT
+            SET unit_price = unit_price + 251
+            WHERE variant_id = ?
+            """, variantId);
         BigDecimal unitPrice = jdbcTemplate.queryForObject("""
             SELECT unit_price
             FROM dbo.PRODUCT_VARIANT
@@ -101,6 +107,14 @@ class CheckoutIT {
             WHERE sales_order.order_code = ?
               AND payment.payment_method = 'COD'
             """, String.class, result.orderCode());
+        BigDecimal paymentAmount = jdbcTemplate.queryForObject("""
+            SELECT payment.amount
+            FROM dbo.PAYMENT AS payment
+            JOIN dbo.SALES_ORDER AS sales_order
+                ON sales_order.order_id = payment.order_id
+            WHERE sales_order.order_code = ?
+              AND payment.payment_method = 'COD'
+            """, BigDecimal.class, result.orderCode());
         Integer stockAfter = jdbcTemplate.queryForObject("""
             SELECT available_quantity
             FROM dbo.INVENTORY_BALANCE
@@ -121,15 +135,27 @@ class CheckoutIT {
             FROM dbo.SALES_ORDER
             WHERE order_code = ?
             """, BigDecimal.class, result.orderCode());
+        BigDecimal roundingAdjustment = jdbcTemplate.queryForObject("""
+            SELECT rounding_adjustment
+            FROM dbo.SALES_ORDER
+            WHERE order_code = ?
+            """, BigDecimal.class, result.orderCode());
+
+        BigDecimal totalBeforeRounding = unitPrice.multiply(BigDecimal.valueOf(2))
+            .add(BigDecimal.valueOf(30_000));
+        BigDecimal expectedTotal = CashRoundingPolicy.roundToNearestThousand(
+            totalBeforeRounding
+        );
 
         assertThat(checkedOutCartCount).isEqualTo(1);
         assertThat(orderCount).isEqualTo(1);
         assertThat(paymentStatus).isEqualTo("UNPAID");
+        assertThat(paymentAmount).isEqualByComparingTo(expectedTotal);
         assertThat(stockAfter).isEqualTo(8);
         assertThat(saleMovementCount).isEqualTo(1);
-        assertThat(total).isEqualByComparingTo(
-            unitPrice.multiply(BigDecimal.valueOf(2)).add(BigDecimal.valueOf(30_000))
-        );
+        assertThat(roundingAdjustment)
+            .isEqualByComparingTo(expectedTotal.subtract(totalBeforeRounding));
+        assertThat(total).isEqualByComparingTo(expectedTotal);
 
         assertThatThrownBy(() -> checkoutService.placeOrder(customer, form))
             .isInstanceOf(ConcurrentOperationException.class);

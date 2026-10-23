@@ -9,6 +9,7 @@ public record CheckoutPageView(
     String formattedSubtotal,
     String formattedDiscount,
     String formattedShippingFee,
+    String formattedRoundingAdjustment,
     String formattedTotal
 ) {
     public CheckoutPageView {

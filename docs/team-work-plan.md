@@ -1,10 +1,10 @@
 # MoonCake MVP — Team Work Plan
 
-**Version:** 1.4
+**Version:** 1.5
 
-**Date:** 21/10/2026
+**Date:** 23/10/2026
 
-**Status:** Approved current ownership after Foundation; shared cancellation ownership clarified
+**Status:** Approved current ownership after Foundation; shared cancellation and COD cash-rounding contracts clarified
 **Scope:** Four-member HSF302 team, Spring Boot MVC + Thymeleaf SSR, SQL Server, COD-only MVP
 
 ## 1. Purpose
@@ -147,7 +147,7 @@ Foundation-owned artifacts are:
 
 Changing a shared entity, enum, contract, or configuration after Foundation requires review from every affected owner.
 
-Applied Flyway V1/V2/V3/V4/V5/V6/V7 files are immutable. A genuine schema change requires a written Business Rules/ERD comparison, team approval, and a new migration version. Never let Hibernate create or update schema.
+Applied Flyway V1/V2/V3/V4/V5/V6/V7/V8 files are immutable. A genuine schema change requires a written Business Rules/ERD comparison, team approval, and a new migration version. Never let Hibernate create or update schema.
 
 The authenticated-customer decision does not require a migration: new carts use `customer_id`, leave `guest_token` null, and new retail orders have `customer_id` at the application boundary.
 
@@ -155,7 +155,7 @@ The authenticated-customer decision does not require a migration: new carts use 
 
 ### Phase 0 — Documentation and shared-contract alignment
 
-- Approve Business Rules v1.4 and this ownership plan.
+- Approve Business Rules v1.5 and this ownership plan.
 - Narrow `ShopperIdentity`/`CurrentCustomerService` to authenticated customers.
 - Confirm no applied migration was changed.
 

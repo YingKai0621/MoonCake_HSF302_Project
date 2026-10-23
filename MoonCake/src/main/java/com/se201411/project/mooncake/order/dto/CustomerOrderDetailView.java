@@ -17,6 +17,7 @@ public record CustomerOrderDetailView(
     String formattedSubtotal,
     String formattedDiscount,
     String formattedShippingFee,
+    String formattedRoundingAdjustment,
     String formattedTotal
 ) {
     public CustomerOrderDetailView {

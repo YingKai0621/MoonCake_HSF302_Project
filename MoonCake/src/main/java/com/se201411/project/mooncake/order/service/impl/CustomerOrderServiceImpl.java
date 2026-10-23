@@ -141,6 +141,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             formatVnd(order.getSubtotalAmount()),
             formatVnd(order.getDiscountAmount()),
             formatVnd(order.getShippingFee()),
+            formatSignedVnd(order.getRoundingAdjustment()),
             formatVnd(order.getTotalAmount())
         );
     }
@@ -237,5 +238,15 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
 
     private String formatVnd(BigDecimal amount) {
         return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
+    }
+
+    private String formatSignedVnd(BigDecimal amount) {
+        if (amount.signum() == 0) {
+            return null;
+        }
+        if (amount.signum() > 0) {
+            return "+ " + formatVnd(amount);
+        }
+        return "- " + formatVnd(amount.abs());
     }
 }

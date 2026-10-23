@@ -4,7 +4,7 @@ Date: 22/10/2026. Status: implemented in the working tree; SQL Server acceptance
 
 ## Context reviewed
 
-The implementation was checked against the current approved sources: Business Rules 1.4, architecture conventions 1.5, team ownership 1.4, Foundation 1.4, Physical SQL, Physical ERD notes, and the Conceptual, Logical V5 and Physical draw.io diagrams. All applied Flyway migrations V1–V7 were also inspected.
+The implementation was checked against the current approved sources: Business Rules 1.5, architecture conventions 1.5, team ownership 1.5, Foundation 1.4, Physical SQL, Physical ERD notes, and the Conceptual, Logical V5 and Physical draw.io diagrams. Applied Flyway migrations V1–V8 are immutable after sharing.
 
 The Conceptual diagram retains the earlier `WHOLESALE_TIER` name and exploratory payment wording. Its own note identifies it as a proposal. The approved Business Rules and Logical/Physical models establish `VOLUME_DISCOUNT_TIER` and COD-only behavior; this implementation follows those current sources. Foundation's version-2 verification is historical: V3–V7 are already present and remain unchanged.
 

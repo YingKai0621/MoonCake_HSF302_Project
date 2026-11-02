@@ -12,7 +12,7 @@
         <p th:text="${order.address}"></p>
         <p th:text="${order.note}"></p>
         <div class="actions">
-            <form th:if="${order.status.name() == 'PLACED'}" th:action="@{/admin/orders/{id}/status(id=${order.id})}"
+            <form th:if="${order.status.name() == 'PLACED' and !#lists.isEmpty(order.payments) and (order.payments[0].method.name() == 'COD' or order.payments[0].status.name() == 'PAID')}" th:action="@{/admin/orders/{id}/status(id=${order.id})}"
                   method="post"><input type="hidden" name="target" value="PROCESSING">
                 <button>Bắt đầu xử lý</button>
             </form>
@@ -25,11 +25,11 @@
             <form th:if="${order.status.name() == 'SHIPPING'}" th:action="@{/admin/orders/{id}/status(id=${order.id})}"
                   method="post"><input type="hidden" name="target" value="COMPLETED"><label><input type="checkbox"
                                                                                                    required>Đã giao
-                thành công và thu đủ COD</label>
-                <button>Xác nhận hoàn thành &amp; đã thu tiền</button>
+                thành công và xác nhận đã thanh toán đủ</label>
+                <button>Xác nhận hoàn thành</button>
             </form>
         </div>
-        <details th:if="${order.status.name() == 'PLACED' or order.status.name() == 'PROCESSING'}">
+        <details th:if="${(order.status.name() == 'PLACED' or order.status.name() == 'PROCESSING') and !#lists.isEmpty(order.payments) and order.payments[0].method.name() == 'COD'}">
             <summary>Hủy đơn và hoàn kho</summary>
             <p>Đơn sẽ kết thúc và hoàn lại các SKU đã trừ khi đặt hàng.</p>
             <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"><input type="hidden"
@@ -68,7 +68,7 @@
             Điều chỉnh làm tròn: <span th:text="${order.roundingAdjustment}"></span> VND
         </p>
         <h2>Tổng thu: <span th:text="${order.total}"></span> VND</h2>
-        <p th:each="p : ${order.payments}">COD: <strong th:text="${p.status}"></strong> · <span
+        <p th:each="p : ${order.payments}">Thanh toán <span th:text="${p.method}"></span>: <strong th:text="${p.status}"></strong> · <span
                 th:text="${p.amount}"></span> VND <span th:if="${p.paidAt}"
                                                         th:text="${' · Thu lúc (UTC): ' + p.paidAt}"></span></p>
     </section>

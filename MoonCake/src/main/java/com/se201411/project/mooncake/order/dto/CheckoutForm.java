@@ -7,6 +7,15 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class CheckoutForm {
+    private String paymentIp = "127.0.0.1";
+    public String getPaymentIp() { return paymentIp; }
+    public void setPaymentIp(String value) { paymentIp=value; }
+
+    @NotNull
+    private com.se201411.project.mooncake.enums.PaymentMethod paymentMethod = com.se201411.project.mooncake.enums.PaymentMethod.COD;
+    public com.se201411.project.mooncake.enums.PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(com.se201411.project.mooncake.enums.PaymentMethod value) { paymentMethod=value; }
+
 
     @NotNull(message = "Không tìm thấy giỏ hàng")
     @Positive(message = "Giỏ hàng không hợp lệ")

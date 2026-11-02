@@ -75,6 +75,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final PaymentRepository paymentRepository;
     private final EntityManager entityManager;
     private final Clock clock;
+    private final com.se201411.project.mooncake.order.service.VnpayPaymentService vnpay;
 
     public CheckoutServiceImpl(
         CartService cartService,
@@ -87,7 +88,8 @@ public class CheckoutServiceImpl implements CheckoutService {
         OrderItemComponentRepository componentRepository,
         PaymentRepository paymentRepository,
         EntityManager entityManager,
-        Clock clock
+        Clock clock,
+        com.se201411.project.mooncake.order.service.VnpayPaymentService vnpay
     ) {
         this.cartService = cartService;
         this.pricingService = pricingService;
@@ -100,6 +102,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         this.paymentRepository = paymentRepository;
         this.entityManager = entityManager;
         this.clock = clock;
+        this.vnpay = vnpay;
     }
 
     @Override
@@ -151,7 +154,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         orderRepository.save(order);
 
         saveOrderItems(order, quote);
-        savePayment(order, quote.total(), now);
+        savePayment(order, quote.total(), now, form.getPaymentMethod());
 
         List<InventoryDemand> demands = buildInventoryDemands(quote);
         inventoryService.deductForSale(new SaleInventoryCommand(
@@ -160,7 +163,9 @@ public class CheckoutServiceImpl implements CheckoutService {
             demands
         ));
 
-        return new CheckoutResult(order.getOrderCode());
+        String paymentUrl = form.getPaymentMethod() == PaymentMethod.VNPAY
+            ? vnpay.start(order.getOrderCode(), form.getPaymentIp()) : null;
+        return new CheckoutResult(order.getOrderCode(), paymentUrl);
     }
 
     @Override
@@ -306,11 +311,11 @@ public class CheckoutServiceImpl implements CheckoutService {
     private void savePayment(
         SalesOrder order,
         BigDecimal total,
-        LocalDateTime now
+        LocalDateTime now, PaymentMethod method
     ) {
         Payment payment = new Payment();
         payment.setOrder(order);
-        payment.setMethod(PaymentMethod.COD);
+        payment.setMethod(method);
         payment.setStatus(PaymentStatus.UNPAID);
         payment.setAmount(total);
         payment.setCreatedAt(now);
@@ -389,9 +394,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         String randomPart = UUID.randomUUID()
             .toString()
             .replace("-", "")
-            .substring(0, 8)
+            .substring(0, 12)
             .toUpperCase(Locale.ROOT);
-        return "MC-" + date + "-" + randomPart;
+        return "MC-" + randomPart;
     }
 
     private String formatVnd(BigDecimal amount) {

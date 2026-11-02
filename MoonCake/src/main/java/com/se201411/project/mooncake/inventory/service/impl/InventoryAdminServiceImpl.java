@@ -18,6 +18,9 @@ import java.util.*;
 @Service
 @Transactional
 public class InventoryAdminServiceImpl implements InventoryAdminService, PackingService {
+    private com.se201411.project.mooncake.inventory.service.BatchStockService batchStock;
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setBatchStock(com.se201411.project.mooncake.inventory.service.BatchStockService value) { this.batchStock=value; }
     private final InventoryAdminRepository repo;
     private final PresetConfigurationQueryService presets;
     private final AdminAccessService access;
@@ -98,6 +101,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
             String direction = entry.getValue() > 0 ? "IN" : "OUT";
             apply(entry.getKey(), admin, entry.getValue(), StockMovementType.PACK, f.reason(), group, group + ":" + entry.getKey() + ":" + direction);
         }
+        if (batchStock != null) batchStock.finishPack(group, f.variantId());
     }
 
     private void requireNew(String group) {
@@ -109,6 +113,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     private void apply(long variant, long admin, int delta, StockMovementType type, String reason, String group, String key) {
         if (repo.change(variant, delta) != 1)
             throw new BusinessRuleViolationException("Thiếu tồn, thiếu số dư hoặc số lượng vượt giới hạn cho SKU #" + variant);
+        if (batchStock != null) batchStock.apply(variant, delta, key, null, type);
         repo.movement(variant, admin, delta, type, reason, group, key, LocalDateTime.now(clock));
     }
 }

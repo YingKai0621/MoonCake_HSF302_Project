@@ -100,6 +100,8 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
     }
 
     private void cancelOrder(SalesOrder order, OrderStatus expectedStatus) {
+        if (orderRepository.onlinePayments(order.getId()) > 0)
+            throw new BusinessRuleViolationException("Đơn đã mở thanh toán VNPay cần liên hệ cửa hàng để đối soát/hoàn tiền; không thể tự hủy.");
         LocalDateTime now = LocalDateTime.now(clock);
         int changedRows = orderRepository.cancelFromStatus(
             order.getId(),

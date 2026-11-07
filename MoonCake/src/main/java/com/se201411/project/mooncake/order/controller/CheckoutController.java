@@ -71,8 +71,10 @@ public class CheckoutController {
         @Valid @ModelAttribute("checkoutForm") CheckoutForm form,
         BindingResult bindingResult,
         Model model,
-        RedirectAttributes redirectAttributes
+        RedirectAttributes redirectAttributes,
+        jakarta.servlet.http.HttpServletRequest request
     ) {
+        form.setPaymentIp(request.getRemoteAddr());
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
             return showInvalidForm(customer, form, bindingResult, model, redirectAttributes);
@@ -95,6 +97,7 @@ public class CheckoutController {
 
         try {
             CheckoutResult result = checkoutService.placeOrder(customer, form);
+            if (result.paymentUrl() != null) return "redirect:" + result.paymentUrl();
             return "redirect:/orders/" + result.orderCode() + "/success";
         } catch (MoonCakeException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());

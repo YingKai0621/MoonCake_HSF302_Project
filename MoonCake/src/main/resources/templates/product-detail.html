@@ -86,6 +86,8 @@
             <span class="material-symbols-outlined text-lg">fullscreen</span>
           </button>
         </div>
+        <div class="flex gap-3 overflow-x-auto py-2" aria-label="Ảnh sản phẩm"><button th:each="photo:${galleryImages}" type="button" class="shrink-0 border border-gold/30 rounded p-1" th:attr="data-gallery-src=${photo[0]},data-gallery-alt=${photo[1]}" aria-label="Xem ảnh này"><img th:src="${photo[0]}" th:alt="${photo[1]}" loading="lazy" class="w-20 h-20 object-contain"></button></div>
+        <figure th:each="video:${galleryVideos}" class="border border-gold/30 rounded p-3"><video controls preload="none" playsinline class="w-full rounded" th:src="${video[1]}"></video><figcaption class="text-sand mt-2" th:text="${video[2]}"></figcaption></figure>
       </div>
 
       <!-- CỘT PHẢI: Product Information & Purchase Area (col-span-6 / 50%) -->
@@ -478,5 +480,5 @@
   <!-- Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/product-detail.js}" src="/js/pages/product-detail.js"></script>
-</body>
+<script th:src="@{/js/pages/product-gallery.js}" defer></script></body>
 </html>

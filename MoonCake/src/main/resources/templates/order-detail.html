@@ -38,6 +38,13 @@
       Quay lại danh sách đơn hàng
     </a>
 
+    <details th:if="${order.cancellable}" class="mb-6 border border-gold/30 p-4"><summary class="text-gold cursor-pointer">Sửa địa chỉ giao hàng</summary><form th:action="@{/orders/{code}/address(code=${order.orderCode})}" method="post" class="mt-3"><label>Địa chỉ đầy đủ<input class="w-full p-3 bg-midnight border border-gold/30" name="address" th:value="${order.shippingAddress}" required maxlength="500"></label><button class="bg-gold text-midnight p-3 mt-3">Lưu địa chỉ</button></form></details>
+    <div th:if="${errorMessage}" role="alert" class="mb-4 text-red-300" th:text="${errorMessage}"></div>
+    <form th:if="${vnpayEnabled and order.paymentStatusLabel == 'Chưa thanh toán'}" th:action="@{/orders/{code}/payment-check(code=${order.orderCode})}" method="post" class="mb-4"><button class="border border-gold text-gold px-5 py-3 rounded">Kiểm tra thanh toán VNPay</button></form>
+    <form th:if="${vnpayEnabled and order.cancellable and order.paymentStatusLabel == 'Chưa thanh toán'}" th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post" class="mb-6">
+      <button class="bg-gold text-midnight px-5 py-3 rounded font-semibold">Thanh toán qua VNPay Sandbox</button>
+      <p class="text-sm text-sand mt-2">Sau khi mở VNPay, vui lòng liên hệ cửa hàng nếu cần hủy hoặc đối soát giao dịch.</p>
+    </form>
     <div th:if="${successMessage}"
          class="mb-6 border border-emerald-500/40 bg-emerald-950/30 px-5 py-4 text-emerald-200"
          role="status"

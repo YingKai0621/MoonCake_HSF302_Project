@@ -88,7 +88,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             codPayments.add(new AdminOrderView.Cod(
                 payment.getStatus(),
                 payment.getAmount(),
-                payment.getPaidAt()
+                payment.getPaidAt(), payment.getMethod()
             ));
         }
         return view(order, List.copyOf(lines), List.copyOf(codPayments));
@@ -102,11 +102,18 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         if (!allowed(source, target)) {
             throw new BusinessRuleViolationException("Không thể chuyển trạng thái " + source + " → " + target);
         }
+        var paymentRows = payments.findByOrderId(id);
+        if (paymentRows.size() == 1 && paymentRows.get(0).getMethod() == com.se201411.project.mooncake.enums.PaymentMethod.VNPAY
+                && paymentRows.get(0).getStatus() != com.se201411.project.mooncake.enums.PaymentStatus.PAID)
+            throw new BusinessRuleViolationException("VNPay chưa xác nhận thanh toán, chưa thể xử lý đơn.");
         LocalDateTime now = LocalDateTime.now(clock);
         if (orders.transition(id, source, target, now) != 1) {
             throw new BusinessRuleViolationException("Đơn vừa được xử lý bởi yêu cầu khác. Hãy tải lại.");
         }
-        if (target == OrderStatus.COMPLETED && orders.collectCod(id, now) != 1) {
+        if (target == OrderStatus.COMPLETED
+                && !(paymentRows.size() == 1 && paymentRows.get(0).getMethod() == com.se201411.project.mooncake.enums.PaymentMethod.VNPAY
+                     && paymentRows.get(0).getStatus() == com.se201411.project.mooncake.enums.PaymentStatus.PAID)
+                && orders.collectCod(id, now) != 1) {
             throw new BusinessRuleViolationException("Không thể xác nhận COD. Đơn phải có đúng một thanh toán COD chưa thu, đúng số tiền.");
         }
     }

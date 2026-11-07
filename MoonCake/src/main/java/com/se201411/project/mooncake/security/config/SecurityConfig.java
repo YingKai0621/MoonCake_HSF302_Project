@@ -42,8 +42,10 @@ public class SecurityConfig {
                 "/products/**"
             ).permitAll()
             .requestMatchers("/login", "/register", "/error").permitAll()
+            .requestMatchers(HttpMethod.GET, "/payments/vnpay/ipn", "/payments/vnpay/return").permitAll()
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers(
+                "/feedback",
                 "/cart/**",
                 "/checkout/**",
                 "/orders/**",

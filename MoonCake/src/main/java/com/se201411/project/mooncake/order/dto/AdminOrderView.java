@@ -25,6 +25,7 @@ public record AdminOrderView(long id, String code, OrderStatus status, String re
     public record Component(String name, int quantity, ComponentRole role) {
     }
 
-    public record Cod(PaymentStatus status, BigDecimal amount, LocalDateTime paidAt) {
+    public record Cod(PaymentStatus status, BigDecimal amount, LocalDateTime paidAt, PaymentMethod method) {
+        public Cod(PaymentStatus status, BigDecimal amount, LocalDateTime paidAt) { this(status, amount, paidAt, PaymentMethod.COD); }
     }
 }

@@ -91,7 +91,8 @@ class CheckoutServiceImplTest {
             componentRepository,
             paymentRepository,
             entityManager,
-            clock
+            clock,
+            org.mockito.Mockito.mock(com.se201411.project.mooncake.order.service.VnpayPaymentService.class)
         );
     }
 

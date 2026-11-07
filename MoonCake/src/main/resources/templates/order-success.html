@@ -38,7 +38,7 @@
         <span class="material-symbols-outlined text-3xl">check</span>
       </div>
       <h1 class="font-serif text-3xl md:text-4xl font-bold mb-2">Đặt hàng thành công</h1>
-      <p class="text-sm text-sand mb-4">Đơn hàng COD của bạn đã được tiếp nhận.</p>
+      <p class="text-sm text-sand mb-4">Đơn hàng của bạn đã được tiếp nhận.</p>
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-control border border-gold/30 text-xs">
         <span class="text-sand">Mã đơn hàng:</span>
         <span class="font-mono font-semibold text-gold" th:text="${order.orderCode}">MC-00000000-00000000</span>
@@ -58,7 +58,7 @@
           <div th:if="${order.orderNote}" class="grid grid-cols-3 gap-3"><dt class="text-sand">Ghi chú</dt><dd class="col-span-2" th:text="${order.orderNote}">Ghi chú</dd></div>
           <div class="grid grid-cols-3 gap-3 pt-3 border-t border-gold/15">
             <dt class="text-sand">Thanh toán</dt>
-            <dd class="col-span-2"><strong>COD</strong><p class="text-xs text-sand mt-1">Thanh toán khi nhận hàng</p></dd>
+            <dd class="col-span-2"><strong>Thanh toán</strong><p class="text-xs text-sand mt-1">Mở chi tiết đơn để xem và thanh toán VNPay, hoặc thanh toán COD khi nhận hàng.</p></dd>
           </div>
         </dl>
       </section>
@@ -103,6 +103,7 @@
         Tiếp tục mua sắm
       </a>
     </div>
+  <div class="max-w-3xl mx-auto mt-6"><a th:href="@{/orders/{code}(code=${order.orderCode})}" class="text-gold underline">Mở đơn hàng để thanh toán VNPay →</a></div>
   </main>
 
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>

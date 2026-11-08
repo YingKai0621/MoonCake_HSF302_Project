@@ -134,13 +134,16 @@
                 <p class="font-semibold whitespace-nowrap" th:text="${item.formattedLineTotal}">0đ</p>
               </div>
 
-              <div th:unless="${#lists.isEmpty(item.components)}" class="mt-4 pl-4 border-l border-gold/25 space-y-2">
-                <p class="text-xs uppercase tracking-wider text-gold">Thành phần mỗi hộp</p>
-                <div th:each="component : ${item.components}" class="flex justify-between gap-4 text-xs text-sand">
-                  <span th:text="${component.roleLabel + ': ' + component.name}">Bánh: Thành phần</span>
-                  <span th:text="${'× ' + component.quantityPerSet}">× 1</span>
+              <details th:unless="${#lists.isEmpty(item.components)}" class="collapsible mt-3">
+                <summary class="collapsible__toggle text-sm text-gold"
+                         th:text="${'Xem thành phần mỗi hộp (' + #lists.size(item.components) + ')'}">Xem thành phần mỗi hộp</summary>
+                <div class="mt-3 pl-4 border-l border-gold/25 space-y-2">
+                  <div th:each="component : ${item.components}" class="flex justify-between gap-4 text-xs text-sand">
+                    <span th:text="${component.roleLabel + ': ' + component.name}">Bánh: Thành phần</span>
+                    <span th:text="${'× ' + component.quantityPerSet}">× 1</span>
+                  </div>
                 </div>
-              </div>
+              </details>
             </article>
           </div>
         </section>

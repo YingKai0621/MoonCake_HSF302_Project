@@ -123,11 +123,16 @@
                 <p class="text-xs text-sand"
                    th:text="${item.custom ? 'SKU vỏ hộp: ' + item.sku : 'SKU: ' + item.sku}">SKU</p>
                 <div th:if="${item.custom}" class="pt-2 text-xs text-sand space-y-1">
-                  <p class="text-ivory font-medium" th:text="${item.capacityCakes + ' bánh trong mỗi hộp'}">Thành phần</p>
-                  <p th:each="component : ${item.components}"
-                     th:text="${component.name + ' (' + component.variantName + ') × ' + component.quantityPerBox}">
-                    Bánh × 1
-                  </p>
+                  <details class="collapsible">
+                    <summary class="collapsible__toggle text-ivory font-medium"
+                             th:text="${item.capacityCakes + ' bánh trong mỗi hộp · Xem chi tiết'}">Thành phần</summary>
+                    <div class="mt-2 space-y-1">
+                      <p th:each="component : ${item.components}"
+                         th:text="${component.name + ' (' + component.variantName + ') × ' + component.quantityPerBox}">
+                        Bánh × 1
+                      </p>
+                    </div>
+                  </details>
                   <a th:href="@{/custom-boxes/{id}/edit(id=${item.configurationId})}"
                      class="inline-block text-gold hover:text-goldHover pt-1">
                     Chỉnh thành phần

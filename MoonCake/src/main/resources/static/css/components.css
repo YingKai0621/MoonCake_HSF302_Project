@@ -93,3 +93,40 @@ select option {
   margin: 0;
   -webkit-appearance: none;
 }
+
+.collapsible__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.collapsible__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible__toggle::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 150ms ease;
+}
+
+.collapsible[open] > .collapsible__toggle::after {
+  transform: rotate(-135deg) translateY(-1px);
+}
+
+.collapsible__toggle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.collapsible__toggle:focus-visible {
+  outline: 2px solid #E5C37E;
+  outline-offset: 2px;
+}

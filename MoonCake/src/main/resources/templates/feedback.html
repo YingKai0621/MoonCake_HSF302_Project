@@ -1,1 +1,110 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Góp ý | MoonCake</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" th:href="@{/css/pages/admin.css}"><link rel="stylesheet" th:href="@{/css/header.css}"><link rel="stylesheet" th:href="@{/css/global.css}"></head><body><header th:replace="~{fragments/header :: header('feedback')}"></header><main><div class="page-heading"><h1>Góp ý cho MoonCake</h1><p>Chia sẻ trải nghiệm hoặc điều bạn muốn cửa hàng cải thiện.</p></div><p class="notice" th:if="${successMessage}" th:text="${successMessage}"></p><p th:if="${errorMessage}" class="error" role="alert" th:text="${errorMessage}"></p><section><form th:action="@{/feedback}" method="post"><label>Nội dung góp ý<textarea name="content" th:text="${content}" required maxlength="2000" rows="6" placeholder="Nhập góp ý của bạn…"></textarea></label><div class="actions"><button>Gửi góp ý</button></div></form></section></main></body></html>
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Góp ý và đánh giá</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#EDC565',
+            goldHover: '#F5D68E',
+            ivory: '#F8F4EB',
+            sand: '#D3CABB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
+  <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-midnight text-ivory font-sans">
+  <header th:replace="~{fragments/header :: header('feedback')}"></header>
+
+  <main class="flex-grow max-w-[720px] w-full mx-auto px-4 sm:px-6 py-10 md:py-14">
+    <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Góp ý và đánh giá</p>
+    <h1 class="font-serif text-3xl md:text-4xl font-bold mb-3">Bạn thấy MoonCake thế nào?</h1>
+    <p class="text-sand mb-8">
+      Chia sẻ trải nghiệm hoặc điều bạn muốn cửa hàng cải thiện.
+      Đánh giá được cửa hàng duyệt có thể hiển thị trên trang chủ kèm tên của bạn.
+    </p>
+
+    <div th:if="${successMessage}"
+         class="flash-message mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3"
+         data-flash-message
+         role="status"
+         th:text="${successMessage}">
+      Cảm ơn bạn đã góp ý!
+    </div>
+    <div th:if="${errorMessage}"
+         class="flash-message mb-6 border border-red-400/40 bg-red-950/30 text-red-200 px-4 py-3"
+         data-flash-message
+         role="alert"
+         th:text="${errorMessage}">
+      Không thể gửi góp ý.
+    </div>
+
+    <form th:action="@{/feedback}"
+          th:object="${feedbackForm}"
+          method="post"
+          class="bg-surface border border-gold/20 p-6 sm:p-8 space-y-6">
+      <fieldset>
+        <legend class="font-medium mb-3">Đánh giá của bạn</legend>
+        <div class="star-rating">
+          <input type="radio" id="rating-5" th:field="*{rating}" value="5">
+          <label for="rating-5" title="5 sao">★<span class="sr-only">5 sao</span></label>
+          <input type="radio" id="rating-4" th:field="*{rating}" value="4">
+          <label for="rating-4" title="4 sao">★<span class="sr-only">4 sao</span></label>
+          <input type="radio" id="rating-3" th:field="*{rating}" value="3">
+          <label for="rating-3" title="3 sao">★<span class="sr-only">3 sao</span></label>
+          <input type="radio" id="rating-2" th:field="*{rating}" value="2">
+          <label for="rating-2" title="2 sao">★<span class="sr-only">2 sao</span></label>
+          <input type="radio" id="rating-1" th:field="*{rating}" value="1">
+          <label for="rating-1" title="1 sao">★<span class="sr-only">1 sao</span></label>
+        </div>
+        <p th:if="${#fields.hasErrors('rating')}"
+           th:errors="*{rating}"
+           class="mt-2 text-sm text-red-300">Vui lòng chọn số sao.</p>
+      </fieldset>
+
+      <div>
+        <label for="content" class="block font-medium mb-2">Nội dung góp ý</label>
+        <textarea id="content"
+                  th:field="*{content}"
+                  rows="6"
+                  maxlength="2000"
+                  required
+                  placeholder="Ví dụ: bánh ngon, hộp đẹp, giao hàng nhanh…"
+                  class="w-full bg-control border border-gold/30 focus:border-gold focus:outline-none text-ivory p-4"></textarea>
+        <p th:if="${#fields.hasErrors('content')}"
+           th:errors="*{content}"
+           class="mt-2 text-sm text-red-300">Vui lòng nhập nội dung góp ý.</p>
+      </div>
+
+      <button type="submit"
+              class="w-full sm:w-auto bg-gold hover:bg-goldHover text-surface font-bold py-3 px-8 transition-colors">
+        Gửi đánh giá
+      </button>
+    </form>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

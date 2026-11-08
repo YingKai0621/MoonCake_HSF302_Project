@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
+import com.se201411.project.mooncake.feedback.dto.AdminFeedbackView;
+import com.se201411.project.mooncake.feedback.service.FeedbackService;
 import com.se201411.project.mooncake.product.controller.AdminCatalogController;
 import com.se201411.project.mooncake.inventory.controller.AdminInventoryController;
 import com.se201411.project.mooncake.order.controller.AdminOrderController;
@@ -250,14 +253,31 @@ class AdminPagesTest {
     }
 
     @Test
-    void overviewRendersStatisticsBusinessAndEscapedFeedback() throws Exception {
+    void overviewRendersStatisticsAndBusiness() throws Exception {
         var operations=context.getBean(com.se201411.project.mooncake.order.service.OperationsService.class);
         when(operations.statistics()).thenReturn(new Object[]{12,3,new BigDecimal("100000"),2});
         when(operations.businesses()).thenReturn(java.util.Collections.singletonList(new Object[]{1,"Business","Contact","a@example.test","000",2,100000}));
-        when(operations.feedbacks()).thenReturn(java.util.Collections.singletonList(new Object[]{1,"Customer","<script>alert(1)</script>","2026-11-02"}));
         mvc.perform(get("/admin/overview").with(user("admin").roles("ADMIN")))
-          .andExpect(status().isOk()).andExpect(content().string(containsString("Business")))
-          .andExpect(content().string(containsString("&lt;script&gt;")));
+          .andExpect(status().isOk()).andExpect(content().string(containsString("Business")));
+    }
+
+    @Test
+    void feedbackPageEscapesContentAndOffersPublish() throws Exception {
+        FeedbackService feedbackService = context.getBean(FeedbackService.class);
+        AdminFeedbackView view = new AdminFeedbackView(
+            5L,
+            "Customer",
+            5,
+            "<script>alert(1)</script>",
+            "02/11/2026 10:00",
+            false
+        );
+        when(feedbackService.findForAdmin()).thenReturn(List.of(view));
+
+        mvc.perform(get("/admin/feedback").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("&lt;script&gt;")))
+            .andExpect(content().string(containsString("/admin/feedback/5/publish")));
     }
 
     static AdminOrderView order(OrderStatus status) {
@@ -270,8 +290,9 @@ class AdminPagesTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
     static class Config {
+        @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
         @Bean BatchStockService batches(){return mock(BatchStockService.class);}
         @Bean com.se201411.project.mooncake.order.service.OperationsService operations() {

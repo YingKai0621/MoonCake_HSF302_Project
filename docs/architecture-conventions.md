@@ -1,15 +1,30 @@
 # MoonCake MVP — Architecture and Coding Conventions
 
-**Version:** 1.5
+**Version:** 1.6
 
-**Date:** 21/10/2026
+**Date:** 08/11/2026
 
-**Status:** Approved baseline; authenticated-customer purchase and self-cancellation rules added after Foundation
+**Status:** Approved baseline; v1.6 adds the instructor's mandatory n-layer rules (graded) and the payment Strategy design for COD/VNPay
 **Applies to:** Java, Spring Boot MVC, Thymeleaf, JPA, SQL Server, and Flyway code in `MoonCake/`
 
 ## 1. Architecture style
 
-Use feature-first packages with shared database domain classes. This keeps each member's feature work together while ensuring the 19-table mapping has one definition.
+Use feature-first packages with shared database domain classes. This keeps each member's feature work together while ensuring every table mapping has one definition.
+
+### Mandatory n-layer rules (graded by the instructor)
+
+The course instructor grades the project 1-on-1 and deducts points when these rules are broken. They override any looser rule elsewhere in this document.
+
+| Layer | Package | Rule |
+|---|---|---|
+| Controller | `feature.controller` | Receives the request, validates forms, calls **services only**, returns a view. Never injects a repository, `EntityManager`, gateway, or other infrastructure class. |
+| Service | `feature.service` | **Always an interface** that declares the use cases. |
+| Service implementation | `feature.service.impl` | `XxxServiceImpl implements XxxService`. Holds business logic and `@Transactional`. |
+| Repository | `feature.repository` | Interface. Prefer Spring Data JPA (`extends JpaRepository`/`Repository`); put hand-written queries in `repository.impl` behind the interface. |
+| DTO | `feature.dto` | Forms going in and view models going out. **Views receive DTOs only** — no entities, no `Object[]`, no `Map` rows. Prefer Java `record` for read-only views. |
+| Entity | `entity` | Every table has a JPA entity. Do not reach a table only through native SQL. |
+
+Payment methods follow the Strategy pattern in section 7 (Payment). Business code must not branch on `if (method == VNPAY)`.
 
 ```text
 com.se201411.project.mooncake
@@ -86,11 +101,15 @@ Rules:
 - Prefer ordinary `for`, `if`, and `switch` statements over Java Stream/lambda chains when the loop is easier to follow.
 - In JavaScript, prefer named functions and ordinary loops over arrow functions and chained `map`/`filter`/`some` expressions. Keep unavoidable callbacks short.
 - Avoid clever one-liners and nested ternary expressions for business behavior; readability for the student team takes priority over brevity.
+- One statement per line. Never compress a Java class, Thymeleaf template, CSS, or JavaScript file into one or a few very long lines; format with the IDE before committing.
+- Use `import` statements; do not write fully-qualified class names such as `com.se201411.project.mooncake.enums.PaymentMethod` inside code.
+- Read configuration through a small `@ConfigurationProperties` class instead of calling `Environment.getProperty` throughout the code.
+- Simple is not an excuse for incorrect: keep ownership checks, conditional state transitions, transactions, and tests.
 - The former `com.se201411.project.mooncake.model.Product` is a legacy UI model, not a JPA entity. Keep its renamed form as `product.dto.CatalogProductView` while adding `entity.Product`, preserving existing rendered pages during the transition.
 
 ## 4. Entity and enum conventions
 
-- The 19 approved table mappings live under `entity` and are created in the Foundation PR.
+- All table mappings live under `entity`. The original 19 were created in the Foundation PR; tables added by V9–V12 (`VNPAY_ATTEMPT`, `FEEDBACK`, `PRODUCT_VIDEO`, `STOCK_BATCH`, `BATCH_ALLOCATION`) must also get entities.
 - Database enums live under `enums` and use exact SQL values with `EnumType.STRING`.
 - Use these exact enum class names: `ProductType`, `AccountRole`, `AccountStatus`, `CartStatus`, `ConfigurationType`, `ConfigurationStatus`, `OrderType`, `OrderStatus`, `DiscountGroup`, `OrderItemKind`, `InventorySource`, `ComponentRole`, `PaymentMethod`, `PaymentStatus`, and `StockMovementType`.
 - IDs use `Long`; SQL `IDENTITY` keys use identity generation.
@@ -107,8 +126,9 @@ The database retains final responsibility for PK, FK, unique, filtered unique, a
 
 ## 5. DTO, form, and view-model conventions
 
-- Web inputs use dedicated form/request classes with Bean Validation.
-- Thymeleaf outputs use DTOs/view models when an entity contains internal fields, lazy relationships, or data from multiple tables.
+- Web inputs use dedicated form/request classes with Bean Validation. Do not read many loose `@RequestParam` values for a form; bind one form DTO.
+- Thymeleaf outputs always use DTOs/view models. Never pass an entity, `Object[]`, or raw query row to a template.
+- Map entities to DTOs inside the service implementation (or a small mapper it owns), never in a controller.
 - Do not bind complex JPA entities directly to create/update forms.
 - Cross-module service contracts exchange IDs and immutable DTOs/results rather than managed entities.
 - Name types by purpose, such as `CreateProductForm`, `ProductDetailView`, `CartSummary`, and `CheckoutCommand`.
@@ -118,8 +138,8 @@ The database retains final responsibility for PK, FK, unique, filtered unique, a
 
 - Put public cross-module contracts in `feature.service`.
 - Put implementations in `feature.service.impl`.
-- Use an interface when another module consumes the service, when the behavior is a major test boundary, or when multiple implementations are plausible.
-- A small internal service that has no external consumer may be a concrete class; do not create empty interfaces mechanically.
+- Every service is an interface in `feature.service` with exactly one `XxxServiceImpl` in `feature.service.impl` (instructor rule). The only exceptions are Spring configuration classes and pure static helpers in `common.util`.
+- Depend on the interface type in constructors, never on the implementation class.
 - Put `@Transactional` on public service-implementation use cases, not on controllers.
 - Use read-only transactions for multi-query read use cases when useful.
 - Convert persistence/concurrency failures into meaningful application exceptions at the service boundary.
@@ -132,7 +152,7 @@ One `CheckoutService` transaction must:
 
 1. Conditionally claim the cart from `ACTIVE` to `CHECKED_OUT` and require one affected row.
 2. Revalidate SKU/configuration status and calculate server-side prices.
-3. Create order, item, component, and COD `UNPAID` snapshots.
+3. Create order, item, and component snapshots plus one `UNPAID` payment for the chosen method, then let that method's `PaymentProcessor` start payment (VNPay creates its attempt and redirect URL inside the same transaction).
 4. Aggregate inventory demand and call `InventoryService` atomic deductions.
 5. Write idempotent SALE movements.
 6. Commit everything or roll everything back.
@@ -153,7 +173,8 @@ Use one shared `OrderCancellationService` transaction coordinator for every canc
 - Admin cancellation accepts `PLACED -> CANCELLED` or `PROCESSING -> CANCELLED`.
 - The transaction conditionally changes the expected current state to `CANCELLED` and requires one affected row before restoring stock.
 - It restores the original inventory source once and writes idempotent `CANCEL_RETURN` movements in the same transaction.
-- A cancelled COD payment remains `UNPAID` with null `paid_at`; `SALES_ORDER.CANCELLED` records the cancellation outcome.
+- Before the conditional transition, the coordinator calls the order's `PaymentProcessor.prepareCancellation`; VNPay may reject or reconcile through `querydr` there. Customers may cancel only `UNPAID` orders.
+- A cancelled unpaid payment remains `UNPAID` with null `paid_at`; a cancelled paid VNPay payment stays `PAID` for manual refund. `SALES_ORDER.CANCELLED` records the cancellation outcome.
 - Competing transitions such as `PLACED -> PROCESSING` and `PROCESSING -> SHIPPING` must also be conditional on the expected current state. Repeated or losing requests return an already-processed/conflict result without inventory effects.
 
 ### Customer delivery updates
@@ -165,7 +186,36 @@ Use one shared `OrderCancellationService` transaction coordinator for every canc
 
 ### Delivery and COD collection
 
-One transaction conditionally changes `SHIPPING -> COMPLETED` and requires one affected row, then conditionally changes the existing COD payment `UNPAID -> PAID` and writes `paid_at`. Both updates commit or roll back together. Repeated confirmation must return already-processed/conflict without creating or rewriting payment data.
+One transaction conditionally changes `SHIPPING -> COMPLETED` and requires one affected row, then asks the order's `PaymentProcessor` to finish delivery: COD conditionally changes `UNPAID -> PAID` and writes `paid_at`; VNPay changes nothing because it is already `PAID`. Both updates commit or roll back together. Repeated confirmation must return already-processed/conflict without creating or rewriting payment data.
+
+### Payment (Strategy pattern)
+
+Each payment method is one class behind a shared interface, so checkout, cancellation, and order management never branch on the method. Adding a new gateway means adding one new implementation class.
+
+```text
+order.service
+├── PaymentProcessor              (interface — one per payment method)
+├── PaymentProcessorRegistry      (interface — finds the processor for a PaymentMethod)
+└── impl
+    ├── CodPaymentProcessor       implements PaymentProcessor
+    ├── VnpayPaymentProcessor     implements PaymentProcessor
+    └── PaymentProcessorRegistryImpl
+```
+
+`PaymentProcessor` declares the decisions that differ by method (names may be refined during implementation):
+
+- `PaymentMethod method()` — which enum value it handles.
+- `start(...)` — after checkout: COD returns no redirect; VNPay creates an attempt and returns the gateway URL.
+- `prepareCancellation(...)` — COD always allows; VNPay applies the reconciliation rule from Business Rules 6.3.
+- `canStartProcessing(...)` — COD always true; VNPay only when `PAID`.
+- `completeDelivery(...)` — COD collects cash; VNPay does nothing.
+
+Rules:
+
+- The registry builds a `Map<PaymentMethod, PaymentProcessor>` from all Spring beans, so services ask `registry.get(payment.getMethod())`.
+- VNPay HTTP/signing details stay in a gateway client used only by `VnpayPaymentProcessor` and the VNPay service implementation; controllers call services, not the gateway.
+- IPN and `querydr` results lock the order row, then update the attempt and payment conditionally on `PENDING`/`UNPAID`, so duplicate callbacks change nothing.
+- Payment processors run inside the caller's transaction (`REQUIRED`); they do not open their own.
 
 ### PACK
 
@@ -180,7 +230,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 ## 8. Repository conventions
 
 - Repositories belong to the feature that owns the aggregate/use case.
-- Start with Spring Data derived queries for simple reads.
+- Repositories are interfaces. Start with Spring Data derived queries for simple reads; return entities or projection DTOs, never `Object[]`.
 - Use explicit JPQL/native queries for conditional updates, locking, aggregation, or performance-sensitive projections.
 - Keep atomic inventory/cart claim updates in clearly named repository methods that return affected-row counts.
 - Do not hide a complete business workflow inside a repository default method.
@@ -209,7 +259,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - An unauthenticated purchase action redirects to `/login` with a validated local return URL. Do not mutate a cart and do not automatically replay the original POST after login; return to a safe GET page so the customer can confirm the action again.
 - Protect Admin routes and service operations, not only Admin navigation links.
 - Use one application `SecurityConfig`. The Customer Sales owner owns the Spring Security baseline, login/logout, customer registration, and `CurrentCustomerService`; the Admin owner consumes that configuration and must not create a second filter chain or authentication implementation without review.
-- Public endpoints are limited to catalog/product reads, `/login`, `/register`, required static assets, and shared error pages. `/admin/**` requires role `ADMIN`; customer purchase routes require role `CUSTOMER`.
+- Public endpoints are limited to catalog/product reads, `/login`, `/register`, required static assets, shared error pages, and the VNPay callbacks `/payments/vnpay/ipn` and `/payments/vnpay/return` (trusted only after signature verification). `/admin/**` requires role `ADMIN`; customer purchase routes require role `CUSTOMER`.
 - Keep CSRF enabled for state-changing SSR requests. Use Spring Security form login and server-side session authentication.
 - Customer registration creates one `ACCOUNT` with forced role `CUSTOMER` and one linked `CUSTOMER` in the same transaction. Use the normalized email as the login name; trim it and lowercase it with `Locale.ROOT`. Reject an existing email, hash the password through `PasswordEncoder`, and never bind role/status from the registration form.
 - Registration accepts a password of 8–64 characters plus a matching confirmation. On success, redirect to the login page instead of automatically authenticating the new account.

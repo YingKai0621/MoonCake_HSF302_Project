@@ -180,7 +180,8 @@ select option {
 
 .order-progress__steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -236,10 +237,32 @@ select option {
   color: #F8F4EB;
 }
 
-.order-progress__step.is-current .order-progress__marker {
+.order-progress__step.is-current .order-progress__marker,
+.order-progress__step.is-waiting .order-progress__marker {
   border-color: #D1A85A;
-  color: #D1A85A;
   box-shadow: 0 0 0 4px rgba(209, 168, 90, 0.15);
+}
+
+.order-progress__step.is-current .order-progress__marker::before,
+.order-progress__step.is-waiting .order-progress__marker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #D1A85A;
+}
+
+.order-progress__step.is-waiting .order-progress__marker {
+  border-color: #FBBF24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.18);
+}
+
+.order-progress__step.is-waiting .order-progress__marker::before {
+  background: #FBBF24;
+}
+
+.order-progress__step.is-waiting .order-progress__label {
+  color: #FCD34D;
+  font-weight: 600;
 }
 
 .order-progress__step.is-current .order-progress__label {
@@ -282,6 +305,7 @@ select option {
 .order-progress__step:nth-child(2) { animation-delay: 80ms; }
 .order-progress__step:nth-child(3) { animation-delay: 160ms; }
 .order-progress__step:nth-child(4) { animation-delay: 240ms; }
+.order-progress__step:nth-child(5) { animation-delay: 300ms; }
 
 .order-progress__step.is-done + .order-progress__step::after {
   content: "";

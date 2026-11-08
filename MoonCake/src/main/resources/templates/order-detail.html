@@ -97,19 +97,37 @@
     <section th:unless="${order.statusLabel == 'Đã hủy'}"
              class="order-progress mb-8"
              aria-label="Tiến trình đơn hàng"
-             th:with="currentStep=${order.statusLabel == 'Hoàn thành' ? 5
-                                 : order.statusLabel == 'Đang giao hàng' ? 3
-                                 : order.statusLabel == 'Đang xử lý' ? 2
-                                 : 1}">
+             th:with="stage=${order.statusLabel == 'Hoàn thành' ? 4
+                           : order.statusLabel == 'Đang giao hàng' ? 3
+                           : order.statusLabel == 'Đang xử lý' ? 2
+                           : 1},
+                      vnpay=${order.paymentMethodLabel == 'VNPay'},
+                      paid=${order.paymentStatusLabel == 'Đã thanh toán'}">
       <ol class="order-progress__steps">
-        <li th:each="stepName, step : ${ {'Đã tiếp nhận', 'Đang xử lý', 'Đang giao hàng', 'Hoàn thành'} }"
+        <li class="order-progress__step is-done">
+          <span class="order-progress__marker">✓</span>
+          <span class="order-progress__label">Đặt hàng</span>
+        </li>
+        <li th:if="${vnpay}"
             class="order-progress__step"
-            th:classappend="${step.count < currentStep} ? 'is-done' : (${step.count == currentStep} ? 'is-current' : '')"
-            th:attr="aria-current=${step.count == currentStep ? 'step' : null}">
-          <span class="order-progress__marker"
-                th:text="${step.count < currentStep ? '✓' : step.count}">1</span>
-          <span class="order-progress__label"
-                th:text="${step.first and order.awaitingOnlinePayment ? 'Chờ thanh toán' : stepName}">Đã tiếp nhận</span>
+            th:classappend="${paid} ? 'is-done' : 'is-waiting'">
+          <span class="order-progress__marker" th:text="${paid ? '✓' : ''}"></span>
+          <span class="order-progress__label" th:text="${paid ? 'Đã thanh toán' : 'Chờ thanh toán'}">Thanh toán</span>
+        </li>
+        <li class="order-progress__step"
+            th:classappend="${stage > 2} ? 'is-done' : (${stage == 2} ? 'is-current' : '')">
+          <span class="order-progress__marker" th:text="${stage > 2 ? '✓' : ''}"></span>
+          <span class="order-progress__label">Đang xử lý</span>
+        </li>
+        <li class="order-progress__step"
+            th:classappend="${stage > 3} ? 'is-done' : (${stage == 3} ? 'is-current' : '')">
+          <span class="order-progress__marker" th:text="${stage > 3 ? '✓' : ''}"></span>
+          <span class="order-progress__label">Đang giao hàng</span>
+        </li>
+        <li class="order-progress__step"
+            th:classappend="${stage == 4} ? 'is-done'">
+          <span class="order-progress__marker" th:text="${stage == 4 ? '✓' : ''}"></span>
+          <span class="order-progress__label">Hoàn thành</span>
         </li>
       </ol>
     </section>

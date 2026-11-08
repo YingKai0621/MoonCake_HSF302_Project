@@ -227,8 +227,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 
 - Khách (khi `PLACED`) hoặc Admin (khi `PLACED`/`PROCESSING`) bấm hủy một lần. Nếu đơn có attempt `PENDING`, hệ thống tự hỏi VNPay (`querydr`) trước khi hủy:
   - VNPay báo **đã thanh toán** → từ chối hủy, báo đơn đã được thanh toán.
-  - VNPay báo **chưa thanh toán** (không có giao dịch, chưa hoàn tất hoặc thất bại) → attempt `FAILED`, đơn được hủy ngay, hoàn tồn đúng một lần; payment giữ `UNPAID`.
-  - VNPay **không trả lời hoặc chưa có kết quả** → từ chối, giữ nguyên dữ liệu, báo thử lại sau.
+  - Mọi trường hợp còn lại (VNPay báo chưa thanh toán, trả mã lỗi như `91`/`99`, hoặc không kết nối được) → attempt `FAILED`, đơn được hủy ngay, hoàn tồn đúng một lần; payment giữ `UNPAID`. Nếu tiền vẫn về sau đó, áp dụng quy tắc tiền về muộn bên dưới.
 - Đơn VNPay **đã trả tiền**: khách không tự hủy mà liên hệ cửa hàng. Admin được hủy khi `PLACED`/`PROCESSING`; payment giữ `PAID` và Admin **hoàn tiền thủ công** trên cổng merchant VNPay. MVP không gọi API hoàn tiền.
 - **Tiền về muộn:** nếu khách vẫn trả trên trang VNPay cũ sau khi đơn đã hủy, IPN hợp lệ vẫn được ghi nhận: attempt và payment chuyển `PAID`, đơn giữ `CANCELLED`. Trang Admin hiển thị "Cần hoàn tiền" để Admin hoàn tiền thủ công; không mở lại đơn.
 
@@ -402,7 +401,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-50 | Khách hủy đơn VNPay có attempt mở, `querydr` báo chưa thanh toán | Attempt `FAILED`; đơn `CANCELLED` ngay, hoàn tồn một lần, payment giữ `UNPAID` |
 | BR-51 | Đơn VNPay đã hủy, sau đó IPN thành công hợp lệ đến | Payment `PAID`, đơn giữ `CANCELLED`; Admin thấy "Cần hoàn tiền" |
 | BR-52 | Attempt hết hạn, `querydr` xác nhận đã thanh toán; khách hủy | Ghi `PAID`; từ chối hủy |
-| BR-53 | Hủy đơn VNPay khi `querydr` lỗi kết nối hoặc chưa có kết quả | Từ chối hủy; không thay đổi dữ liệu |
+| BR-53 | Hủy đơn VNPay khi `querydr` lỗi kết nối hoặc trả mã lỗi | Vẫn hủy ngay; attempt `FAILED`; tiền về muộn (nếu có) được ghi nhận để hoàn |
 | BR-54 | Khách thanh toán lại khi attempt cũ đã hết hạn và chưa trả | Attempt cũ `FAILED`, tạo attempt mới; vẫn chỉ một payment cho đơn |
 | BR-55 | Admin chuyển đơn VNPay chưa `PAID` sang `PROCESSING` | Từ chối |
 | BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |

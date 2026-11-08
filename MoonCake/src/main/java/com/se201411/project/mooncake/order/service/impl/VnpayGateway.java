@@ -90,12 +90,26 @@ public class VnpayGateway {
                 .post().uri("https://sandbox.vnpayment.vn/merchant_webapi/api/transaction")
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON).body(p).retrieve()
                 .body(new org.springframework.core.ParameterizedTypeReference<Map<String,String>>(){});
-            if(!validQuery(response,ref)) throw new BusinessRuleViolationException("Không xác minh được phản hồi VNPay. Trạng thái đơn được giữ nguyên.");
+            if (isUnsignedError(response)) {
+                return response;
+            }
+            if (!validQuery(response, ref)) {
+                throw new BusinessRuleViolationException("Không xác minh được phản hồi VNPay. Trạng thái đơn được giữ nguyên.");
+            }
             return response;
         } catch(org.springframework.web.client.RestClientException ex) {
             throw new BusinessRuleViolationException("Chưa kết nối được VNPay. Vui lòng kiểm tra lại sau; không cần đặt đơn mới.");
         }
     }
+    private boolean isUnsignedError(Map<String, String> response) {
+        if (response == null) {
+            return false;
+        }
+        String hash = response.get("vnp_SecureHash");
+        boolean unsigned = hash == null || hash.isBlank();
+        return unsigned && !"00".equals(response.get("vnp_ResponseCode"));
+    }
+
     boolean validQuery(Map<String,String> p,String ref) {
         if(p==null || !"querydr".equals(p.get("vnp_Command")) || !ref.equals(p.get("vnp_TxnRef"))
             || !env.getRequiredProperty("VNPAY_TMN_CODE").equals(p.get("vnp_TmnCode")))return false;

@@ -198,19 +198,21 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     private void closeUnpaidAttempt(VnpayRepository.Attempt pending) {
-        Map<String, String> result = queryVnpay(pending);
-        QueryOutcome outcome = outcomeOf(result);
-        if (outcome == QueryOutcome.PAID) {
+        if (isPaidAtVnpay(pending)) {
             throw new BusinessRuleViolationException(
                 "Đơn đã được thanh toán qua VNPay. Vui lòng tải lại trang hoặc liên hệ cửa hàng để được hỗ trợ."
             );
         }
-        if (outcome == QueryOutcome.UNKNOWN) {
-            throw new BusinessRuleViolationException(
-                "VNPay chưa trả về kết quả giao dịch. Vui lòng thử lại sau ít phút."
-            );
-        }
         vnpayRepository.markFailed(pending.transactionRef());
+    }
+
+    private boolean isPaidAtVnpay(VnpayRepository.Attempt pending) {
+        try {
+            Map<String, String> result = queryVnpay(pending);
+            return outcomeOf(result) == QueryOutcome.PAID;
+        } catch (BusinessRuleViolationException exception) {
+            return false;
+        }
     }
 
     private Map<String, String> queryVnpay(VnpayRepository.Attempt pending) {

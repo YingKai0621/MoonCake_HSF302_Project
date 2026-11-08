@@ -70,7 +70,12 @@ public class CustomerOrderController {
         @PathVariable String orderCode,
         RedirectAttributes redirectAttributes
     ) {
-        orderCancellationService.cancelCurrentCustomerOrder(orderCode);
+        try {
+            orderCancellationService.cancelCurrentCustomerOrder(orderCode);
+        } catch (MoonCakeException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+            return "redirect:/orders/" + orderCode;
+        }
         redirectAttributes.addFlashAttribute(
             "successMessage",
             "Đã hủy đơn hàng thành công."

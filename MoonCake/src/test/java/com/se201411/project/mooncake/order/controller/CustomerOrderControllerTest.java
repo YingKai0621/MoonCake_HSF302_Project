@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderSummaryView;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.List;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -158,6 +160,17 @@ class CustomerOrderControllerTest {
             org.mockito.ArgumentMatchers.any(OrderDeliveryUpdateForm.class),
             org.mockito.ArgumentMatchers.eq(CUSTOMER)
         );
+    }
+
+    @Test
+    void failedCancellationShowsMessageInsteadOfErrorPage() throws Exception {
+        doThrow(new BusinessRuleViolationException("Đơn đã được thanh toán qua VNPay."))
+            .when(orderCancellationService).cancelCurrentCustomerOrder("MC-20261021-TEST");
+
+        mockMvc.perform(post("/orders/MC-20261021-TEST/cancel"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/orders/MC-20261021-TEST"))
+            .andExpect(flash().attribute("errorMessage", "Đơn đã được thanh toán qua VNPay."));
     }
 
     @Test

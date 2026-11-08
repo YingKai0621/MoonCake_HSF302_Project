@@ -270,13 +270,24 @@ class VnpayPaymentProcessorTest {
     }
 
     @Test
-    void cancelIsRefusedWhenVnpayHasNoFinalResult() {
+    void cancelGoesAheadWhenVnpayGivesNoClearAnswer() {
         when(vnpayRepository.findPendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 58));
         givenVnpayAnswers(queryResult("99", "", ""));
 
-        assertThatThrownBy(() -> processor.checkCanCancel(7L, payment(PaymentStatus.UNPAID)))
-            .isInstanceOf(BusinessRuleViolationException.class);
-        verify(vnpayRepository, never()).markFailed(anyString());
+        processor.checkCanCancel(7L, payment(PaymentStatus.UNPAID));
+
+        verify(vnpayRepository).markFailed("ref");
+    }
+
+    @Test
+    void cancelGoesAheadWhenVnpayIsUnreachable() {
+        when(vnpayRepository.findPendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 58));
+        doThrow(new BusinessRuleViolationException("offline"))
+            .when(gateway).query(anyString(), any(), anyString(), any());
+
+        processor.checkCanCancel(7L, payment(PaymentStatus.UNPAID));
+
+        verify(vnpayRepository).markFailed("ref");
     }
 
     @Test

@@ -120,8 +120,6 @@
                   Tên sản phẩm
                 </a>
                 <p class="text-sm text-sand" th:text="${item.variantName}">Phiên bản</p>
-                <p class="text-xs text-sand"
-                   th:text="${item.custom ? 'SKU vỏ hộp: ' + item.sku : 'SKU: ' + item.sku}">SKU</p>
                 <div th:if="${item.custom}" class="pt-2 text-xs text-sand space-y-1">
                   <details class="collapsible">
                     <summary class="collapsible__toggle text-ivory font-medium"

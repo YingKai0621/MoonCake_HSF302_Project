@@ -127,7 +127,7 @@
               <div class="flex justify-between gap-4">
                 <div>
                   <h3 class="font-semibold" th:text="${item.productName}">Sản phẩm</h3>
-                  <p class="text-xs text-sand mt-1" th:text="${'SKU: ' + item.sku + ' · SL: ' + item.quantity}">SKU</p>
+                  <p class="text-xs text-sand mt-1" th:text="${'SL: ' + item.quantity}">SL</p>
                   <p class="text-xs text-sand mt-1" th:text="${item.formattedUnitFinalPrice + ' / sản phẩm'}">0đ / sản phẩm</p>
                   <p th:if="${item.discountLabel}" class="text-xs text-gold mt-1" th:text="${item.discountLabel}">Giảm 5%</p>
                 </div>

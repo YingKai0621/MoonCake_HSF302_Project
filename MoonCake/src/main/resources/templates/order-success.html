@@ -72,7 +72,7 @@
           <article th:each="item : ${order.items}" class="flex justify-between gap-3">
             <div>
               <p class="text-sm font-semibold" th:text="${item.productName}">Sản phẩm</p>
-              <p class="text-xs text-sand mt-1" th:text="${'SKU: ' + item.sku + ' · SL: ' + item.quantity}">SKU</p>
+              <p class="text-xs text-sand mt-1" th:text="${'SL: ' + item.quantity}">SL</p>
               <p class="text-xs text-sand mt-1" th:text="${item.formattedUnitPrice + ' / sản phẩm'}">0đ</p>
             </div>
             <p class="text-sm font-semibold whitespace-nowrap" th:text="${item.formattedLineTotal}">0đ</p>

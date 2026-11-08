@@ -28,6 +28,7 @@
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/pages/checkout.css}" href="/css/pages/checkout.css">
 </head>
 <body class="min-h-screen flex flex-col justify-between">
   <header th:replace="~{fragments/header :: header('checkout')}"></header>
@@ -137,17 +138,35 @@
 
           <div class="border-t border-gold/15"></div>
 
-          <section class="space-y-3">
-            <h2 class="text-xs font-semibold tracking-wider text-gold uppercase">Phương thức thanh toán</h2>
-            <div class="flex items-start gap-3 p-4 rounded border border-gold bg-control">
-              <span class="material-symbols-outlined text-gold">payments</span>
-              <div>
-                <label for="paymentMethod" class="text-sm font-semibold">Chọn phương thức thanh toán</label>
-                  <select id="paymentMethod" th:field="*{paymentMethod}" class="w-full mt-2 p-3 bg-control border border-gold/30 rounded"><option value="COD">Thanh toán khi nhận hàng (COD)</option><option th:if="${vnpayEnabled}" value="VNPAY">Thanh toán trực tuyến VNPay Sandbox</option></select>
-                <p class="text-xs text-sand mt-1">COD: trả khi nhận hàng. VNPay: chuyển đến cổng thanh toán sau khi đặt đơn.</p>
-              </div>
-            </div>
-          </section>
+          <fieldset class="space-y-3">
+            <legend class="text-xs font-semibold tracking-wider text-gold uppercase mb-3">Phương thức thanh toán</legend>
+
+            <label class="payment-option">
+              <input type="radio" th:field="*{paymentMethod}" value="COD"
+                     class="payment-option__radio" data-submit-label="Đặt hàng">
+              <span class="material-symbols-outlined payment-option__icon" aria-hidden="true">local_shipping</span>
+              <span class="payment-option__text">
+                <span class="payment-option__title">Thanh toán khi nhận hàng (COD)</span>
+                <span class="payment-option__hint">Trả tiền mặt cho nhân viên giao hàng.</span>
+              </span>
+            </label>
+
+            <label th:if="${vnpayEnabled}" class="payment-option">
+              <input type="radio" th:field="*{paymentMethod}" value="VNPAY"
+                     class="payment-option__radio" data-submit-label="Thanh toán qua VNPay">
+              <span class="material-symbols-outlined payment-option__icon" aria-hidden="true">credit_card</span>
+              <span class="payment-option__text">
+                <span class="payment-option__title">
+                  Thanh toán online qua VNPay
+                  <span class="payment-option__badge">Sandbox</span>
+                </span>
+                <span class="payment-option__hint">Thẻ ATM, thẻ quốc tế hoặc QR ngân hàng. Bạn sẽ được chuyển sang cổng VNPay sau khi bấm thanh toán.</span>
+              </span>
+            </label>
+
+            <p th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}"
+               class="text-xs text-red-300">Vui lòng chọn phương thức thanh toán</p>
+          </fieldset>
         </form>
       </section>
 
@@ -187,7 +206,7 @@
             <span class="text-2xl font-bold text-gold" th:text="${checkout.formattedTotal}">0đ</span>
           </div>
 
-          <button type="submit" form="checkoutForm"
+          <button id="checkoutSubmit" type="submit" form="checkoutForm"
                   class="w-full bg-gold hover:bg-goldHover text-surface font-bold py-3.5 px-4 transition-colors">
             Đặt hàng
           </button>
@@ -200,5 +219,6 @@
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/checkout-address.js}" src="/js/pages/checkout-address.js"></script>
+  <script th:src="@{/js/pages/checkout-payment.js}" src="/js/pages/checkout-payment.js"></script>
 </body>
 </html>

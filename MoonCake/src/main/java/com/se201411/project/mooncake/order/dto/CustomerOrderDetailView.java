@@ -13,6 +13,8 @@ public record CustomerOrderDetailView(
     String shippingAddress,
     String orderNote,
     String paymentStatusLabel,
+    String paymentMethodLabel,
+    boolean awaitingOnlinePayment,
     List<CustomerOrderItemView> items,
     int totalQuantity,
     String formattedSubtotal,

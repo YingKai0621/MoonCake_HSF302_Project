@@ -83,6 +83,14 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
                 "Chỉ thanh toán online cho đơn chờ xử lý, chưa trả tiền."
             );
         }
+        // Business Rules v1.7: the payment method is fixed at checkout.
+        Payment payment = payments.get(0);
+        if (payment.getMethod() != PaymentMethod.VNPAY) {
+            throw new BusinessRuleViolationException(
+                "Đơn này thanh toán khi nhận hàng (COD) nên không thể chuyển sang VNPay. "
+                    + "Muốn thanh toán online, vui lòng hủy đơn và đặt lại."
+            );
+        }
 
         VnpayRepository.Pending pending = vnpayRepository.pendingAttempt(order.getId());
         if (pending != null) {
@@ -97,19 +105,17 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
             );
         }
 
-        Payment payment = payments.get(0);
-        payment.setMethod(PaymentMethod.VNPAY);
-        payment.setUpdatedAt(LocalDateTime.now(clock));
-        paymentRepository.save(payment);
-
+        // One timestamp for both the stored attempt and the VNPay create date,
+        // so a later querydr sends exactly the same vnp_TransactionDate.
+        Instant now = clock.instant();
         String transactionRef = UUID.randomUUID().toString().replace("-", "");
         vnpayRepository.create(
             transactionRef,
             order.getId(),
             payment.getAmount(),
-            LocalDateTime.now(clock)
+            LocalDateTime.ofInstant(now, ZoneOffset.UTC)
         );
-        return gateway.url(transactionRef, payment.getAmount(), clientIp, clock.instant());
+        return gateway.url(transactionRef, payment.getAmount(), clientIp, now);
     }
 
     @Override

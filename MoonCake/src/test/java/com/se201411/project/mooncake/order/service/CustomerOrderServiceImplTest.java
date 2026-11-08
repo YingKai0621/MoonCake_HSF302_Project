@@ -197,6 +197,71 @@ class CustomerOrderServiceImplTest {
     }
 
     @Test
+    void unpaidVnpayOrderShowsOnlinePaymentActions() {
+        CustomerOrderDetailView view = placedOrderView(
+            PaymentMethod.VNPAY,
+            PaymentStatus.UNPAID
+        );
+
+        assertThat(view.paymentMethodLabel()).isEqualTo("VNPay");
+        assertThat(view.awaitingOnlinePayment()).isTrue();
+        assertThat(view.cancellable()).isTrue();
+        assertThat(view.deliveryEditable()).isTrue();
+    }
+
+    @Test
+    void paidVnpayOrderCannotBeCancelledByCustomerButDeliveryIsEditable() {
+        CustomerOrderDetailView view = placedOrderView(
+            PaymentMethod.VNPAY,
+            PaymentStatus.PAID
+        );
+
+        assertThat(view.awaitingOnlinePayment()).isFalse();
+        assertThat(view.cancellable()).isFalse();
+        assertThat(view.deliveryEditable()).isTrue();
+        assertThat(view.paymentStatusLabel()).isEqualTo("Đã thanh toán");
+    }
+
+    @Test
+    void codOrderNeverShowsOnlinePaymentActions() {
+        CustomerOrderDetailView view = placedOrderView(
+            PaymentMethod.COD,
+            PaymentStatus.UNPAID
+        );
+
+        assertThat(view.paymentMethodLabel()).isEqualTo("COD");
+        assertThat(view.awaitingOnlinePayment()).isFalse();
+        assertThat(view.cancellable()).isTrue();
+    }
+
+    private CustomerOrderDetailView placedOrderView(
+        PaymentMethod method,
+        PaymentStatus status
+    ) {
+        SalesOrder order = order(
+            12L,
+            "MC-PLACED",
+            OrderStatus.PLACED,
+            LocalDateTime.of(2026, 11, 8, 4, 0),
+            620_000
+        );
+        order.setSubtotalAmount(BigDecimal.valueOf(590_000));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.valueOf(30_000));
+
+        Payment payment = new Payment();
+        payment.setMethod(method);
+        payment.setStatus(status);
+
+        when(orderRepository.findOwnedByOrderCode("MC-PLACED", 7L))
+            .thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(12L)).thenReturn(List.of(payment));
+        when(itemRepository.findByOrderId(12L)).thenReturn(List.of());
+
+        return customerOrderService.requireOrder("MC-PLACED", CUSTOMER);
+    }
+
+    @Test
     void preparesCurrentDeliveryInformationForEditing() {
         SalesOrder order = order(
             11L,

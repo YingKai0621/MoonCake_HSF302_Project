@@ -9,6 +9,7 @@ import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import com.se201411.project.mooncake.order.service.VnpayPaymentService;
+import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
@@ -16,6 +17,8 @@ import org.springframework.mock.env.MockEnvironment;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +26,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,13 +44,76 @@ class VnpayPaymentServiceImplTest {
         .withProperty("VNPAY_ENABLED", "true")
         .withProperty("VNPAY_TMN_CODE", "TESTCODE")
         .withProperty("VNPAY_HASH_SECRET", "test-only-secret"));
+    private final CurrentCustomerService currentCustomerService = mock(CurrentCustomerService.class);
+    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-11-08T03:00:00Z"), ZoneOffset.UTC);
     private final VnpayPaymentService service = new VnpayPaymentServiceImpl(
         vnpayRepository,
         paymentRepository,
-        mock(CurrentCustomerService.class),
+        currentCustomerService,
         gateway,
-        Clock.systemUTC()
+        fixedClock
     );
+
+    @Test
+    void codOrderCannotSwitchToVnpay() {
+        givenCustomerOrderSeven(PaymentMethod.COD);
+
+        assertThatThrownBy(() -> service.startPayment("MC-7", "127.0.0.1"))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("COD");
+
+        verify(paymentRepository, never()).save(any());
+        verify(vnpayRepository, never()).create(anyString(), anyLong(), any(), any());
+    }
+
+    @Test
+    void newAttemptUsesTheSameTimestampForStorageAndGateway() {
+        givenCustomerOrderSeven(PaymentMethod.VNPAY);
+
+        String url = service.startPayment("MC-7", "127.0.0.1");
+
+        verify(vnpayRepository).create(
+            anyString(),
+            eq(7L),
+            eq(new BigDecimal("100000")),
+            eq(LocalDateTime.of(2026, 11, 8, 3, 0))
+        );
+        // 03:00 UTC is 10:00 in Vietnam; expires 15 minutes later.
+        assertThat(url).contains("vnp_CreateDate=20261108100000", "vnp_ExpireDate=20261108101500");
+        verify(paymentRepository, never()).save(any());
+    }
+
+    @Test
+    void validPendingAttemptIsReusedInsteadOfOpeningANewOne() {
+        givenCustomerOrderSeven(PaymentMethod.VNPAY);
+        when(vnpayRepository.pendingAttempt(7L)).thenReturn(new VnpayRepository.Pending(
+            "old-ref",
+            new BigDecimal("100000"),
+            LocalDateTime.of(2026, 11, 8, 2, 50)
+        ));
+
+        String url = service.startPayment("MC-7", "127.0.0.1");
+
+        assertThat(url).contains("vnp_TxnRef=old-ref");
+        verify(vnpayRepository, never()).create(anyString(), anyLong(), any(), any());
+    }
+
+    /** Order 7 of customer 3: PLACED, 100.000đ, one UNPAID payment. */
+    private void givenCustomerOrderSeven(PaymentMethod method) {
+        when(currentCustomerService.requireCurrentCustomer())
+            .thenReturn(ShopperIdentity.forCustomer(3L));
+        SalesOrder order = mock(SalesOrder.class);
+        when(order.getId()).thenReturn(7L);
+        when(order.getStatus()).thenReturn(OrderStatus.PLACED);
+        when(order.getTotalAmount()).thenReturn(new BigDecimal("100000"));
+        when(vnpayRepository.lockOwned("MC-7", 3L)).thenReturn(order);
+
+        Payment payment = new Payment();
+        payment.setMethod(method);
+        payment.setStatus(PaymentStatus.UNPAID);
+        payment.setAmount(new BigDecimal("100000"));
+        when(paymentRepository.findByOrderId(7L)).thenReturn(List.of(payment));
+    }
 
     @Test
     void publicUrlBuildsReturnUrl() {

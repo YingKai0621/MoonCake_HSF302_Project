@@ -125,17 +125,27 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             ));
         }
 
+        boolean placed = order.getStatus() == OrderStatus.PLACED;
+        boolean unpaid = payment.getStatus() == PaymentStatus.UNPAID;
+        // Business Rules v1.7: a customer may only cancel an order that is not paid yet.
+        boolean cancellable = placed && unpaid;
+        boolean awaitingOnlinePayment = placed
+            && unpaid
+            && payment.getMethod() == PaymentMethod.VNPAY;
+
         return new CustomerOrderDetailView(
             order.getOrderCode(),
             orderStatusLabel(order.getStatus()),
-            order.getStatus() == OrderStatus.PLACED,
-            order.getStatus() == OrderStatus.PLACED,
+            cancellable,
+            placed,
             formatDateTime(order.getCreatedAt()),
             order.getRecipientName(),
             order.getRecipientPhone(),
             order.getShippingAddressSnapshot(),
             order.getOrderNote(),
             paymentStatusLabel(payment.getStatus()),
+            paymentMethodLabel(payment.getMethod()),
+            awaitingOnlinePayment,
             itemViews,
             totalQuantity,
             formatVnd(order.getSubtotalAmount()),
@@ -299,6 +309,13 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             return "Hoàn thành";
         }
         return "Đã hủy";
+    }
+
+    private String paymentMethodLabel(PaymentMethod method) {
+        if (method == PaymentMethod.VNPAY) {
+            return "VNPay";
+        }
+        return "COD";
     }
 
     private String paymentStatusLabel(PaymentStatus status) {

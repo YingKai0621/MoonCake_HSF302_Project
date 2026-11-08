@@ -23,6 +23,8 @@ import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.CustomerOrderService;
 import com.se201411.project.mooncake.order.service.DeliveryAddressService;
+import com.se201411.project.mooncake.order.service.PaymentProcessor;
+import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +46,6 @@ import java.util.Optional;
 @Service
 @Transactional(readOnly = true)
 public class CustomerOrderServiceImpl implements CustomerOrderService {
-
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
     private static final ZoneId VIETNAM_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_TIME_FORMAT =
@@ -55,6 +56,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     private final OrderItemComponentRepository componentRepository;
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressService deliveryAddressService;
+    private final PaymentProcessorRegistry paymentProcessorRegistry;
     private final Clock clock;
 
     public CustomerOrderServiceImpl(
@@ -63,6 +65,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         OrderItemComponentRepository componentRepository,
         PaymentRepository paymentRepository,
         DeliveryAddressService deliveryAddressService,
+        PaymentProcessorRegistry paymentProcessorRegistry,
         Clock clock
     ) {
         this.orderRepository = orderRepository;
@@ -70,6 +73,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         this.componentRepository = componentRepository;
         this.paymentRepository = paymentRepository;
         this.deliveryAddressService = deliveryAddressService;
+        this.paymentProcessorRegistry = paymentProcessorRegistry;
         this.clock = clock;
     }
 
@@ -125,17 +129,26 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             ));
         }
 
+        boolean placed = order.getStatus() == OrderStatus.PLACED;
+        boolean unpaid = payment.getStatus() == PaymentStatus.UNPAID;
+        boolean cancellable = placed && unpaid;
+        boolean awaitingOnlinePayment = placed
+            && unpaid
+            && payment.getMethod() == PaymentMethod.VNPAY;
+
         return new CustomerOrderDetailView(
             order.getOrderCode(),
             orderStatusLabel(order.getStatus()),
-            order.getStatus() == OrderStatus.PLACED,
-            order.getStatus() == OrderStatus.PLACED,
+            cancellable,
+            placed,
             formatDateTime(order.getCreatedAt()),
             order.getRecipientName(),
             order.getRecipientPhone(),
             order.getShippingAddressSnapshot(),
             order.getOrderNote(),
             paymentStatusLabel(payment.getStatus()),
+            paymentMethodLabel(payment.getMethod()),
+            awaitingOnlinePayment,
             itemViews,
             totalQuantity,
             formatVnd(order.getSubtotalAmount()),
@@ -207,6 +220,27 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                 "Đơn hàng vừa được chuyển sang xử lý nên không thể sửa thông tin nhận hàng"
             );
         }
+    }
+
+    @Override
+    @Transactional
+    public String startOnlinePayment(
+        String orderCode,
+        ShopperIdentity customerIdentity,
+        String clientIp
+    ) {
+        requireIdentity(customerIdentity);
+        SalesOrder ownedOrder = requireOwnedOrder(orderCode, customerIdentity.customerId());
+        SalesOrder order = orderRepository.findByIdForUpdate(ownedOrder.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng của bạn"));
+        Payment payment = requirePayment(order.getId());
+
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        Optional<String> paymentUrl = paymentProcessor.startPayment(order, clientIp);
+        if (paymentUrl.isEmpty()) {
+            throw new BusinessRuleViolationException("Đơn này không thanh toán online.");
+        }
+        return paymentUrl.get();
     }
 
     private SalesOrder requireOwnedOrder(String orderCode, long customerId) {
@@ -299,6 +333,13 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             return "Hoàn thành";
         }
         return "Đã hủy";
+    }
+
+    private String paymentMethodLabel(PaymentMethod method) {
+        if (method == PaymentMethod.VNPAY) {
+            return "VNPay";
+        }
+        return "COD";
     }
 
     private String paymentStatusLabel(PaymentStatus status) {

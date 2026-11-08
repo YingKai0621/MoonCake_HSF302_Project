@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PaymentRepository extends Repository<Payment, Long> {
-
     Payment save(Payment payment);
 
     @Query("""
@@ -21,11 +20,6 @@ public interface PaymentRepository extends Repository<Payment, Long> {
         """)
     List<Payment> findByOrderId(@Param("orderId") long orderId);
 
-    /**
-     * Marks the order's single COD payment as PAID when the cash is collected.
-     * Returns 1 only when the order has exactly one UNPAID COD payment whose
-     * amount equals the order total; repeated calls return 0.
-     */
     @Modifying(flushAutomatically = true)
     @Query(nativeQuery = true, value = """
         UPDATE dbo.PAYMENT

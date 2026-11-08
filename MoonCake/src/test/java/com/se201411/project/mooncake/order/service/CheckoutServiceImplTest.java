@@ -32,7 +32,6 @@ import com.se201411.project.mooncake.order.service.impl.CheckoutServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.DeliveryAddressServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
-import com.se201411.project.mooncake.order.service.impl.VnpayPaymentProcessor;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -53,17 +52,16 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CheckoutServiceImplTest {
-
     @Mock
     private CartService cartService;
     @Mock
@@ -83,7 +81,7 @@ class CheckoutServiceImplTest {
     @Mock
     private EntityManager entityManager;
     @Mock
-    private VnpayPaymentService vnpayPaymentService;
+    private PaymentProcessor vnpayProcessor;
 
     private CheckoutService checkoutService;
 
@@ -102,10 +100,7 @@ class CheckoutServiceImplTest {
             paymentRepository,
             entityManager,
             clock,
-            new PaymentProcessorRegistryImpl(List.of(
-                new CodPaymentProcessor(paymentRepository),
-                new VnpayPaymentProcessor(vnpayPaymentService)
-            ))
+            registry()
         );
     }
 
@@ -144,8 +139,8 @@ class CheckoutServiceImplTest {
             .thenAnswer(invocation -> invocation.getArgument(0));
         when(paymentRepository.save(any(Payment.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(vnpayPaymentService.startPayment(any(), eq("10.0.0.1")))
-            .thenReturn("https://sandbox.vnpayment.vn/pay?ref=1");
+        when(vnpayProcessor.startPayment(any(), eq("10.0.0.1")))
+            .thenReturn(Optional.of("https://sandbox.vnpayment.vn/pay?ref=1"));
 
         CheckoutForm form = validForm();
         form.setPaymentMethod(PaymentMethod.VNPAY);
@@ -159,9 +154,17 @@ class CheckoutServiceImplTest {
         assertThat(paymentCaptor.getValue().getMethod()).isEqualTo(PaymentMethod.VNPAY);
         assertThat(paymentCaptor.getValue().getStatus()).isEqualTo(PaymentStatus.UNPAID);
 
-        InOrder order = inOrder(inventoryService, vnpayPaymentService);
+        InOrder order = inOrder(inventoryService, vnpayProcessor);
         order.verify(inventoryService).deductForSale(any(SaleInventoryCommand.class));
-        order.verify(vnpayPaymentService).startPayment(any(), eq("10.0.0.1"));
+        order.verify(vnpayProcessor).startPayment(any(), eq("10.0.0.1"));
+    }
+
+    private PaymentProcessorRegistryImpl registry() {
+        when(vnpayProcessor.method()).thenReturn(PaymentMethod.VNPAY);
+        return new PaymentProcessorRegistryImpl(List.of(
+            new CodPaymentProcessor(paymentRepository),
+            vnpayProcessor
+        ));
     }
 
     private CheckoutForm validForm() {
@@ -237,9 +240,8 @@ class CheckoutServiceImplTest {
 
         CheckoutResult result = checkoutService.placeOrder(customerIdentity, form);
 
-        // COD: no redirect to a payment gateway.
         assertThat(result.paymentUrl()).isNull();
-        verifyNoInteractions(vnpayPaymentService);
+        org.mockito.Mockito.verify(vnpayProcessor, org.mockito.Mockito.never()).startPayment(any(), any());
 
         ArgumentCaptor<SaleInventoryCommand> commandCaptor = ArgumentCaptor.forClass(
             SaleInventoryCommand.class

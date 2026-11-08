@@ -11,4 +11,6 @@ public interface OrderManagementService {
     AdminOrderView detail(long id);
 
     void transition(long id, OrderStatus target);
+
+    void refreshPaymentStatus(long id);
 }

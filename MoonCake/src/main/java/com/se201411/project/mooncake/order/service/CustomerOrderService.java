@@ -8,7 +8,6 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import java.util.List;
 
 public interface CustomerOrderService {
-
     List<CustomerOrderSummaryView> findOrders(ShopperIdentity customerIdentity);
 
     CustomerOrderDetailView requireOrder(
@@ -25,5 +24,11 @@ public interface CustomerOrderService {
         String orderCode,
         OrderDeliveryUpdateForm form,
         ShopperIdentity customerIdentity
+    );
+
+    String startOnlinePayment(
+        String orderCode,
+        ShopperIdentity customerIdentity,
+        String clientIp
     );
 }

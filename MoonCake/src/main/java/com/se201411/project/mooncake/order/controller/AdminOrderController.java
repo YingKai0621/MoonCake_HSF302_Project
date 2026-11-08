@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.order.service.OrderManagementService;
 import com.se201411.project.mooncake.order.service.OrderCancellationService;
+import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,6 +45,17 @@ public class AdminOrderController {
             orders.transition(id, target);
         }
         flash.addFlashAttribute("success", "Đã cập nhật đơn hàng.");
+        return "redirect:/admin/orders/" + id;
+    }
+
+    @PostMapping("/{id}/payment-check")
+    public String refreshPaymentStatus(@PathVariable long id, RedirectAttributes flash) {
+        try {
+            orders.refreshPaymentStatus(id);
+            flash.addFlashAttribute("success", "Đã đối soát thanh toán với VNPay.");
+        } catch (MoonCakeException exception) {
+            flash.addFlashAttribute("success", exception.getMessage());
+        }
         return "redirect:/admin/orders/" + id;
     }
 }

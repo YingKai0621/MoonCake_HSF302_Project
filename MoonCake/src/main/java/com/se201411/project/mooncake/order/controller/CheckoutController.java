@@ -33,7 +33,6 @@ import java.util.Locale;
 
 @Controller
 public class CheckoutController {
-
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CheckoutService checkoutService;
@@ -75,7 +74,6 @@ public class CheckoutController {
         RedirectAttributes redirectAttributes,
         HttpServletRequest request
     ) {
-        // Never trust an IP posted by the browser; use the real request address.
         form.setPaymentIp(request.getRemoteAddr());
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {

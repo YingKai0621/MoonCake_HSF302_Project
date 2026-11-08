@@ -14,15 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
-
     SalesOrder save(SalesOrder order);
 
     Optional<SalesOrder> findById(Long orderId);
 
-    /**
-     * Locks the order row until the transaction ends, so cancellation and an
-     * online payment for the same order cannot run at the same time.
-     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select salesOrder from SalesOrder salesOrder where salesOrder.id = :orderId")
     Optional<SalesOrder> findByIdForUpdate(@Param("orderId") long orderId);

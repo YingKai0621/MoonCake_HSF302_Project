@@ -60,7 +60,6 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
-
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CartService cartService;
@@ -165,7 +164,6 @@ public class CheckoutServiceImpl implements CheckoutService {
             demands
         ));
 
-        // COD needs no redirect; VNPay returns the payment page URL.
         Optional<String> paymentUrl = paymentProcessor.startPayment(order, form.getPaymentIp());
         return new CheckoutResult(order.getOrderCode(), paymentUrl.orElse(null));
     }

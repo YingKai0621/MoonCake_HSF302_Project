@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.service;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -25,5 +26,5 @@ public interface PaymentProcessor {
 
     Map<String, String> handleNotification(Map<String, String> params);
 
-    boolean verifyReturn(Map<String, String> params);
+    PaymentReturnResult handleReturn(Map<String, String> params);
 }

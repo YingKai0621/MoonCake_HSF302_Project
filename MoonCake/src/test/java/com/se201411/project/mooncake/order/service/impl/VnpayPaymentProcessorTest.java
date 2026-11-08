@@ -6,6 +6,7 @@ import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -139,9 +141,54 @@ class VnpayPaymentProcessorTest {
     }
 
     @Test
-    void returnUrlOnlyChecksSignature() {
-        assertThat(processor.verifyReturn(signedIpn())).isTrue();
+    void returnWithBadSignatureIsNotTrusted() {
+        Map<String, String> params = signedIpn();
+        params.put("vnp_Amount", "1");
+
+        assertThat(processor.handleReturn(params).verified()).isFalse();
         verifyNoInteractions(vnpayRepository, paymentRepository);
+    }
+
+    @Test
+    void returnAfterPaymentAsksVnpayAndShowsPaid() {
+        Payment payment = givenOrderOne(OrderStatus.PLACED, "PENDING", PaymentMethod.VNPAY);
+        Map<String, String> paidResult = queryResult("00", "01", "00");
+        paidResult.put("vnp_TransactionNo", "12345");
+        givenVnpayAnswers(paidResult);
+
+        PaymentReturnResult result = processor.handleReturn(signedIpn());
+
+        assertThat(result.verified()).isTrue();
+        assertThat(result.orderCode()).isEqualTo("MC-1");
+        assertThat(result.paid()).isTrue();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+    }
+
+    @Test
+    void returnAfterCustomerCancelledOnVnpayDoesNotAskVnpay() {
+        givenOrderOne(OrderStatus.PLACED, "PENDING", PaymentMethod.VNPAY);
+        Map<String, String> params = signedIpn();
+        params.put("vnp_ResponseCode", "24");
+        resign(params);
+
+        PaymentReturnResult result = processor.handleReturn(params);
+
+        assertThat(result.completedOnGateway()).isFalse();
+        assertThat(result.paid()).isFalse();
+        verify(gateway, never()).query(anyString(), any(), anyString(), any());
+    }
+
+    @Test
+    void returnWhenVnpayIsUnreachableStillLeadsToTheOrder() {
+        givenOrderOne(OrderStatus.PLACED, "PENDING", PaymentMethod.VNPAY);
+        doThrow(new BusinessRuleViolationException("offline"))
+            .when(gateway).query(anyString(), any(), anyString(), any());
+
+        PaymentReturnResult result = processor.handleReturn(signedIpn());
+
+        assertThat(result.verified()).isTrue();
+        assertThat(result.completedOnGateway()).isTrue();
+        assertThat(result.paid()).isFalse();
     }
 
     @Test
@@ -364,6 +411,7 @@ class VnpayPaymentProcessorTest {
         when(order.getId()).thenReturn(1L);
         when(order.getTotalAmount()).thenReturn(AMOUNT);
         when(order.getStatus()).thenReturn(orderStatus);
+        when(order.getOrderCode()).thenReturn("MC-1");
         when(vnpayRepository.findAttempt("ref")).thenReturn(new VnpayRepository.Attempt(
             "ref",
             1L,

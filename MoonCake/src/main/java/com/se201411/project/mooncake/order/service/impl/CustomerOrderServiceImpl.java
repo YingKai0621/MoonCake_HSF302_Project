@@ -38,6 +38,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,11 +87,15 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             customerIdentity.customerId()
         );
 
+        Map<Long, Payment> paymentByOrderId = loadPayments(orders);
         List<CustomerOrderSummaryView> views = new ArrayList<>();
         for (SalesOrder order : orders) {
+            Payment payment = paymentByOrderId.get(order.getId());
+            boolean awaitingPayment = isAwaitingOnlinePayment(order, payment);
             views.add(new CustomerOrderSummaryView(
                 order.getOrderCode(),
-                orderStatusLabel(order.getStatus()),
+                statusLabel(order, awaitingPayment),
+                awaitingPayment,
                 formatDateTime(order.getCreatedAt()),
                 formatVnd(order.getTotalAmount())
             ));
@@ -132,13 +137,11 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         boolean placed = order.getStatus() == OrderStatus.PLACED;
         boolean unpaid = payment.getStatus() == PaymentStatus.UNPAID;
         boolean cancellable = placed && unpaid;
-        boolean awaitingOnlinePayment = placed
-            && unpaid
-            && payment.getMethod() == PaymentMethod.VNPAY;
+        boolean awaitingOnlinePayment = isAwaitingOnlinePayment(order, payment);
 
         return new CustomerOrderDetailView(
             order.getOrderCode(),
-            orderStatusLabel(order.getStatus()),
+            statusLabel(order, awaitingOnlinePayment),
             cancellable,
             placed,
             formatDateTime(order.getCreatedAt()),
@@ -317,6 +320,35 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         if (customerIdentity == null) {
             throw new ResourceNotFoundException("Không tìm thấy khách hàng hiện tại");
         }
+    }
+
+    private Map<Long, Payment> loadPayments(List<SalesOrder> orders) {
+        Map<Long, Payment> paymentByOrderId = new HashMap<>();
+        if (orders.isEmpty()) {
+            return paymentByOrderId;
+        }
+        List<Long> orderIds = new ArrayList<>();
+        for (SalesOrder order : orders) {
+            orderIds.add(order.getId());
+        }
+        for (Payment payment : paymentRepository.findByOrderIds(orderIds)) {
+            paymentByOrderId.put(payment.getOrder().getId(), payment);
+        }
+        return paymentByOrderId;
+    }
+
+    private boolean isAwaitingOnlinePayment(SalesOrder order, Payment payment) {
+        return order.getStatus() == OrderStatus.PLACED
+            && payment != null
+            && payment.getMethod() == PaymentMethod.VNPAY
+            && payment.getStatus() == PaymentStatus.UNPAID;
+    }
+
+    private String statusLabel(SalesOrder order, boolean awaitingPayment) {
+        if (awaitingPayment) {
+            return "Chờ thanh toán";
+        }
+        return orderStatusLabel(order.getStatus());
     }
 
     private String orderStatusLabel(OrderStatus status) {

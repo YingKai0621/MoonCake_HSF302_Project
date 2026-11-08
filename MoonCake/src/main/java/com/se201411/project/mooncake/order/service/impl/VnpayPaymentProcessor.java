@@ -6,6 +6,7 @@ import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
@@ -146,6 +147,10 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (pending == null) {
             return;
         }
+        refreshFromVnpay(pending);
+    }
+
+    private void refreshFromVnpay(VnpayRepository.Attempt pending) {
         Map<String, String> result = queryVnpay(pending);
         QueryOutcome outcome = outcomeOf(result);
         if (outcome == QueryOutcome.PAID) {
@@ -167,8 +172,29 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
-    public boolean verifyReturn(Map<String, String> params) {
-        return gateway.valid(params);
+    @Transactional
+    public PaymentReturnResult handleReturn(Map<String, String> params) {
+        if (!gateway.valid(params)) {
+            return PaymentReturnResult.unverified();
+        }
+        VnpayRepository.Attempt attempt = vnpayRepository.findAttempt(params.get("vnp_TxnRef"));
+        if (attempt == null) {
+            return PaymentReturnResult.unverified();
+        }
+
+        String orderCode = vnpayRepository.lockOrder(attempt.orderId()).getOrderCode();
+        boolean completedOnGateway = VNPAY_SUCCESS.equals(params.get("vnp_ResponseCode"));
+        if (completedOnGateway && "PENDING".equals(attempt.status())) {
+            try {
+                refreshFromVnpay(attempt);
+            } catch (BusinessRuleViolationException exception) {
+                return new PaymentReturnResult(true, orderCode, true, false);
+            }
+        }
+
+        Payment payment = requireSinglePayment(attempt.orderId());
+        boolean paid = payment.getStatus() == PaymentStatus.PAID;
+        return new PaymentReturnResult(true, orderCode, completedOnGateway, paid);
     }
 
     private void closeUnpaidAttempt(VnpayRepository.Attempt pending) {

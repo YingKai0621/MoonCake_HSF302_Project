@@ -199,12 +199,36 @@ class CustomerOrderServiceImplTest {
     }
 
     @Test
+    void unpaidVnpayOrderInListShowsAwaitingPayment() {
+        SalesOrder waiting = order(3L, "MC-WAIT", OrderStatus.PLACED, LocalDateTime.of(2026, 11, 8, 13, 0), 135_000);
+        SalesOrder cod = order(4L, "MC-COD", OrderStatus.PLACED, LocalDateTime.of(2026, 11, 8, 12, 0), 620_000);
+        Payment vnpayPayment = new Payment();
+        vnpayPayment.setOrder(waiting);
+        vnpayPayment.setMethod(PaymentMethod.VNPAY);
+        vnpayPayment.setStatus(PaymentStatus.UNPAID);
+        Payment codPayment = new Payment();
+        codPayment.setOrder(cod);
+        codPayment.setMethod(PaymentMethod.COD);
+        codPayment.setStatus(PaymentStatus.UNPAID);
+        when(orderRepository.findAllOwnedByCustomerId(7L)).thenReturn(List.of(waiting, cod));
+        when(paymentRepository.findByOrderIds(List.of(3L, 4L))).thenReturn(List.of(vnpayPayment, codPayment));
+
+        List<CustomerOrderSummaryView> views = customerOrderService.findOrders(CUSTOMER);
+
+        assertThat(views.get(0).statusLabel()).isEqualTo("Chờ thanh toán");
+        assertThat(views.get(0).awaitingPayment()).isTrue();
+        assertThat(views.get(1).statusLabel()).isEqualTo("Đã tiếp nhận");
+        assertThat(views.get(1).awaitingPayment()).isFalse();
+    }
+
+    @Test
     void unpaidVnpayOrderShowsOnlinePaymentActions() {
         CustomerOrderDetailView view = placedOrderView(
             PaymentMethod.VNPAY,
             PaymentStatus.UNPAID
         );
 
+        assertThat(view.statusLabel()).isEqualTo("Chờ thanh toán");
         assertThat(view.paymentMethodLabel()).isEqualTo("VNPay");
         assertThat(view.awaitingOnlinePayment()).isTrue();
         assertThat(view.cancellable()).isTrue();

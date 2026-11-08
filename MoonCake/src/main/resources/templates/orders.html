@@ -62,7 +62,8 @@
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3">
             <h2 class="font-mono font-semibold text-gold" th:text="${order.orderCode}">MC-00000000-00000000</h2>
-            <span class="px-3 py-1 text-xs text-gold bg-gold/10 border border-gold/30 rounded"
+            <span class="px-3 py-1 text-xs rounded border"
+                  th:classappend="${order.awaitingPayment} ? 'text-amber-200 bg-amber-400/15 border-amber-400/50' : 'text-gold bg-gold/10 border-gold/30'"
                   th:text="${order.statusLabel}">Đã tiếp nhận</span>
           </div>
           <p class="text-sm text-sand" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc 21/10/2026 20:00</p>
@@ -73,10 +74,18 @@
             <p class="text-xs text-sand mb-1">Tổng cộng</p>
             <p class="text-lg font-bold text-gold" th:text="${order.formattedTotal}">0đ</p>
           </div>
-          <a th:href="@{/orders/{orderCode}(orderCode=${order.orderCode})}"
-             class="px-5 py-2.5 border border-gold/40 text-gold hover:border-gold transition-colors text-sm font-semibold">
-            Xem chi tiết
-          </a>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <form th:if="${order.awaitingPayment and vnpayEnabled}"
+                  th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post">
+              <button class="w-full px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-midnight text-sm font-bold transition-colors">
+                Thanh toán ngay
+              </button>
+            </form>
+            <a th:href="@{/orders/{orderCode}(orderCode=${order.orderCode})}"
+               class="px-5 py-2.5 border border-gold/40 text-gold hover:border-gold transition-colors text-sm font-semibold text-center">
+              Xem chi tiết
+            </a>
+          </div>
         </div>
       </article>
     </section>

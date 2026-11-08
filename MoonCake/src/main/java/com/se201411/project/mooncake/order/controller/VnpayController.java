@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.service.CustomerOrderService;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
@@ -73,15 +74,19 @@ public class VnpayController {
         @RequestParam Map<String, String> params,
         RedirectAttributes flash
     ) {
-        if (vnpay().verifyReturn(params)) {
-            flash.addFlashAttribute(
-                "successMessage",
-                "Đã trở về từ VNPay. Trạng thái thanh toán được cập nhật sau xác nhận của VNPay; hãy tải lại đơn hàng."
-            );
-        } else {
-            flash.addFlashAttribute("successMessage", "Không xác minh được kết quả VNPay.");
+        PaymentReturnResult result = vnpay().handleReturn(params);
+        if (!result.verified()) {
+            flash.addFlashAttribute("errorMessage", "Không xác minh được kết quả thanh toán. Vui lòng kiểm tra lại đơn hàng.");
+            return "redirect:/orders";
         }
-        return "redirect:/orders";
+        if (result.paid()) {
+            flash.addFlashAttribute("successMessage", "Thanh toán thành công. Cửa hàng sẽ sớm chuẩn bị đơn hàng của bạn.");
+        } else if (result.completedOnGateway()) {
+            flash.addFlashAttribute("successMessage", "Đang chờ VNPay xác nhận thanh toán. Vui lòng tải lại trang sau ít phút.");
+        } else {
+            flash.addFlashAttribute("errorMessage", "Bạn chưa hoàn tất thanh toán. Bạn có thể thanh toán lại hoặc hủy đơn hàng.");
+        }
+        return "redirect:/orders/" + result.orderCode();
     }
 
     private PaymentProcessor vnpay() {

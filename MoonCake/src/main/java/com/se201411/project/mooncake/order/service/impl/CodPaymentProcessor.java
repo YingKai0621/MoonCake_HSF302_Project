@@ -4,6 +4,7 @@ import com.se201411.project.mooncake.common.exception.BusinessRuleViolationExcep
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,7 @@ public class CodPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
-    public boolean verifyReturn(Map<String, String> params) {
-        return false;
+    public PaymentReturnResult handleReturn(Map<String, String> params) {
+        return PaymentReturnResult.unverified();
     }
 }

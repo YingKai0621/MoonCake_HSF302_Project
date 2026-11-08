@@ -66,6 +66,7 @@ class CustomerOrderControllerTest {
         List<CustomerOrderSummaryView> orders = List.of(new CustomerOrderSummaryView(
             "MC-20261021-TEST",
             "Đã tiếp nhận",
+            false,
             "21/10/2026 10:00",
             "620.000đ"
         ));

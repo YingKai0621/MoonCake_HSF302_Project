@@ -20,6 +20,13 @@ public interface PaymentRepository extends Repository<Payment, Long> {
         """)
     List<Payment> findByOrderId(@Param("orderId") long orderId);
 
+    @Query("""
+        select payment
+        from Payment payment
+        where payment.order.id in :orderIds
+        """)
+    List<Payment> findByOrderIds(@Param("orderIds") List<Long> orderIds);
+
     @Modifying(flushAutomatically = true)
     @Query(nativeQuery = true, value = """
         UPDATE dbo.PAYMENT

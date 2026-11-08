@@ -164,7 +164,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         ));
 
         String paymentUrl = form.getPaymentMethod() == PaymentMethod.VNPAY
-            ? vnpay.start(order.getOrderCode(), form.getPaymentIp()) : null;
+            ? vnpay.startPayment(order.getOrderCode(), form.getPaymentIp()) : null;
         return new CheckoutResult(order.getOrderCode(), paymentUrl);
     }
 

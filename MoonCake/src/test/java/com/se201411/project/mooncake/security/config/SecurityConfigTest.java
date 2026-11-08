@@ -86,6 +86,10 @@ class SecurityConfigTest {
         mockMvc.perform(get("/orders/MC-TEST"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/login"));
+
+        mockMvc.perform(get("/orders/MC-TEST/delivery/edit"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -101,6 +105,10 @@ class SecurityConfigTest {
             .andExpect(status().isOk());
 
         mockMvc.perform(get("/orders/MC-TEST").with(user("customer").roles("CUSTOMER")))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(get("/orders/MC-TEST/delivery/edit")
+                .with(user("customer").roles("CUSTOMER")))
             .andExpect(status().isOk());
 
         mockMvc.perform(get("/admin/dashboard").with(user("customer").roles("CUSTOMER")))
@@ -152,6 +160,29 @@ class SecurityConfigTest {
 
         mockMvc.perform(
             post("/orders/MC-TEST/cancel")
+                .with(user("customer").roles("CUSTOMER"))
+                .with(csrf())
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    void requiresCustomerRoleAndCsrfForDeliveryUpdate() throws Exception {
+        mockMvc.perform(post("/orders/MC-TEST/delivery"))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/delivery")
+                .with(user("customer").roles("CUSTOMER"))
+        ).andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/delivery")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+        ).andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/orders/MC-TEST/delivery")
                 .with(user("customer").roles("CUSTOMER"))
                 .with(csrf())
         ).andExpect(status().isOk());
@@ -266,6 +297,11 @@ class SecurityConfigTest {
             return "order-detail";
         }
 
+        @GetMapping("/orders/{orderCode}/delivery/edit")
+        String editOrderDelivery() {
+            return "order-delivery-edit";
+        }
+
         @PostMapping("/cart/items")
         String addCartItem() {
             return "added";
@@ -274,6 +310,11 @@ class SecurityConfigTest {
         @PostMapping("/orders/{orderCode}/cancel")
         String cancelOrder() {
             return "cancelled";
+        }
+
+        @PostMapping("/orders/{orderCode}/delivery")
+        String updateOrderDelivery() {
+            return "updated";
         }
 
         @PostMapping("/register")

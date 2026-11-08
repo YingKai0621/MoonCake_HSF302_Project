@@ -3,7 +3,9 @@ package com.se201411.project.mooncake.order.controller;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderSummaryView;
+import com.se201411.project.mooncake.order.dto.OrderDeliveryUpdateForm;
 import com.se201411.project.mooncake.order.service.CustomerOrderService;
+import com.se201411.project.mooncake.order.service.DeliveryAddressService;
 import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
@@ -39,6 +41,8 @@ class CustomerOrderControllerTest {
     private CurrentCustomerService currentCustomerService;
     @Mock
     private OrderCancellationService orderCancellationService;
+    @Mock
+    private DeliveryAddressService deliveryAddressService;
 
     private MockMvc mockMvc;
 
@@ -47,7 +51,8 @@ class CustomerOrderControllerTest {
         CustomerOrderController controller = new CustomerOrderController(
             customerOrderService,
             currentCustomerService,
-            orderCancellationService
+            orderCancellationService,
+            deliveryAddressService
         );
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         viewResolver.setPrefix("/WEB-INF/views/");
@@ -80,6 +85,7 @@ class CustomerOrderControllerTest {
             "MC-20261021-TEST",
             "Đã tiếp nhận",
             true,
+            true,
             "21/10/2026 10:00",
             "Người nhận",
             "0901234567",
@@ -105,6 +111,54 @@ class CustomerOrderControllerTest {
     }
 
     @Test
+    void rendersDeliveryEditFormForOwnedPlacedOrder() throws Exception {
+        OrderDeliveryUpdateForm form = deliveryForm();
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(customerOrderService.requireDeliveryUpdateForm(
+            "MC-20261021-TEST",
+            CUSTOMER
+        )).thenReturn(form);
+        when(deliveryAddressService.getProvinces()).thenReturn(List.of());
+        when(deliveryAddressService.getWards()).thenReturn(List.of());
+
+        mockMvc.perform(get("/orders/MC-20261021-TEST/delivery/edit"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("order-delivery-edit"))
+            .andExpect(model().attribute("deliveryForm", form))
+            .andExpect(model().attribute("orderCode", "MC-20261021-TEST"));
+    }
+
+    @Test
+    void updatesDeliveryInformationAndRedirectsToOrderDetail() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(deliveryAddressService.buildShippingAddress(
+            "25 Nguyễn Huệ",
+            "ward-2",
+            "province-2"
+        )).thenReturn("25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng");
+
+        mockMvc.perform(post("/orders/MC-20261021-TEST/delivery")
+                .param("recipientName", "Người nhận mới")
+                .param("recipientPhone", "0912345678")
+                .param("provinceCode", "province-2")
+                .param("wardCode", "ward-2")
+                .param("streetAddress", "25 Nguyễn Huệ")
+                .param("orderNote", "Giao buổi sáng"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/orders/MC-20261021-TEST"))
+            .andExpect(flash().attribute(
+                "successMessage",
+                "Đã cập nhật thông tin nhận hàng."
+            ));
+
+        verify(customerOrderService).updateDeliveryInformation(
+            org.mockito.ArgumentMatchers.eq("MC-20261021-TEST"),
+            org.mockito.ArgumentMatchers.any(OrderDeliveryUpdateForm.class),
+            org.mockito.ArgumentMatchers.eq(CUSTOMER)
+        );
+    }
+
+    @Test
     void cancelsOwnedPlacedOrderAndRedirectsToDetail() throws Exception {
         mockMvc.perform(post("/orders/MC-20261021-TEST/cancel"))
             .andExpect(status().is3xxRedirection())
@@ -126,5 +180,16 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders/MC-OTHER"))
             .andExpect(status().isNotFound());
+    }
+
+    private OrderDeliveryUpdateForm deliveryForm() {
+        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
+        form.setRecipientName("Người nhận");
+        form.setRecipientPhone("0901234567");
+        form.setProvinceCode("province-1");
+        form.setWardCode("ward-1");
+        form.setStreetAddress("12 Lê Lợi");
+        form.setCurrentShippingAddress("12 Lê Lợi, Phường A, Thành phố B");
+        return form;
     }
 }

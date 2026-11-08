@@ -11,7 +11,9 @@
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/pages/auth.css}" href="/css/pages/auth.css">
+  <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
   <script th:src="@{/js/auth.js}" src="/js/auth.js" defer></script>
+  <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
 </head>
 <body class="auth-page">
   <header th:replace="~{fragments/header :: header('login')}"></header>
@@ -25,17 +27,24 @@
       </div>
 
       <div th:if="${param.registered}"
-           class="auth-message auth-message--success"
+           class="flash-message auth-message auth-message--success"
+           data-flash-message
+           data-flash-timeout="5000"
+           data-flash-query-param="registered"
            role="status">
         Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.
       </div>
       <div th:if="${param.error}"
-           class="auth-message auth-message--error"
+           class="flash-message auth-message auth-message--error"
+           data-flash-message
            role="alert">
         Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị vô hiệu hóa.
       </div>
       <div th:if="${param.logout}"
-           class="auth-message auth-message--success"
+           class="flash-message auth-message auth-message--success"
+           data-flash-message
+           data-flash-timeout="5000"
+           data-flash-query-param="logout"
            role="status">
         Bạn đã đăng xuất thành công.
       </div>

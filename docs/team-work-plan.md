@@ -42,7 +42,7 @@ Develop vertically by feature: persistence, service, MVC controller, Thymeleaf v
 - CUSTOM gift-box creation/editing, exact-capacity validation, and ownership checks.
 - Server-side pricing and volume discounts.
 - COD checkout, immutable order/payment/component snapshots, and atomic sale inventory deduction.
-- Customer order history/detail and self-cancellation while an owned order is `PLACED`.
+- Customer order history/detail, delivery-information updates, and self-cancellation while an owned order is `PLACED`.
 - Customer-facing controllers, forms/DTOs, templates, authorization checks, and tests for those flows.
 
 ### Authentication behavior
@@ -128,7 +128,7 @@ Develop vertically by feature: persistence, service, MVC controller, Thymeleaf v
 - Product query and Product Admin implementations use separate service methods. Admin mutations must not leak into public query controllers.
 - Customer Sales owns checkout orchestration. Admin state transitions call order/inventory contracts and do not reproduce checkout logic.
 - Sale inventory deduction and Admin inventory operations may share repositories, but each operation has one service owner and one transaction coordinator. Any public `InventoryService` signature change requires both owners to review it.
-- Customer Sales owns customer order history/detail and the shared `OrderCancellationService` transaction implementation. The service exposes separate intent-specific Customer/Admin methods, derives Customer ownership from server-side identity, performs one conditional transition, and restores inventory once; it does not accept a role/permission flag from form input.
+- Customer Sales owns customer order history/detail, delivery-information updates, and the shared `OrderCancellationService` transaction implementation. Delivery updates derive Customer ownership from server-side identity and conditionally update only an owned `PLACED` order. Cancellation exposes separate intent-specific Customer/Admin methods, performs one conditional transition, and restores inventory once; it does not accept a role/permission flag from form input.
 - Admin owns Admin order views and the remaining order-management transitions. Its cancellation controller calls the shared `OrderCancellationService`; it must not copy cancellation queries, transaction logic, or inventory restoration.
 - Shared repository queries should be added through the owning service, not copied into another module. Any change to the shared cancellation contract requires both Customer Sales and Admin owners to review it.
 - Product owns PRESET repositories; Cart owns CUSTOM configuration repositories. Do not create a general repository that freely mutates both types.
@@ -169,8 +169,8 @@ The authenticated-customer decision does not require a migration: new carts use 
 
 - Integrate database-backed catalog.
 - Implement cart and CUSTOM gift boxes.
-- Implement pricing, COD checkout, inventory sale deduction, customer order history/detail, and Customer self-cancellation for owned `PLACED` orders.
-- Test duplicate additions, insufficient stock, repeated/concurrent checkout, cancellation ownership/state/idempotency, and transaction rollback.
+- Implement pricing, COD checkout, inventory sale deduction, customer order history/detail, delivery-information updates, and Customer self-cancellation for owned `PLACED` orders.
+- Test duplicate additions, insufficient stock, repeated/concurrent checkout, delivery-update ownership/state conflicts, cancellation ownership/state/idempotency, and transaction rollback.
 
 ### Phase 3 — Admin flow
 

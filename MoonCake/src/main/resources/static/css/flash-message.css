@@ -1,0 +1,52 @@
+.flash-message {
+  position: relative;
+  overflow: hidden;
+  padding-right: 3.25rem !important;
+  transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease,
+    margin 220ms ease, padding 220ms ease, border-width 220ms ease;
+}
+
+.flash-message__dismiss {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: currentColor;
+  font: 400 1.5rem/1 system-ui, sans-serif;
+  cursor: pointer;
+  opacity: 0.72;
+  transform: translateY(-50%);
+}
+
+.flash-message__dismiss:hover {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 1;
+}
+
+.flash-message__dismiss:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.flash-message--leaving {
+  max-height: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-top-width: 0 !important;
+  border-bottom-width: 0 !important;
+  opacity: 0;
+  transform: translateY(-0.35rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-message {
+    transition: none;
+  }
+}

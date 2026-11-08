@@ -1,6 +1,7 @@
 package com.se201411.project.mooncake.order.service.impl;
 
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
@@ -14,17 +15,21 @@ import com.se201411.project.mooncake.order.dto.CustomerOrderComponentView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderItemView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderSummaryView;
+import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
+import com.se201411.project.mooncake.order.dto.OrderDeliveryUpdateForm;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.CustomerOrderService;
+import com.se201411.project.mooncake.order.service.DeliveryAddressService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -49,17 +54,23 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     private final OrderItemRepository itemRepository;
     private final OrderItemComponentRepository componentRepository;
     private final PaymentRepository paymentRepository;
+    private final DeliveryAddressService deliveryAddressService;
+    private final Clock clock;
 
     public CustomerOrderServiceImpl(
         SalesOrderRepository orderRepository,
         OrderItemRepository itemRepository,
         OrderItemComponentRepository componentRepository,
-        PaymentRepository paymentRepository
+        PaymentRepository paymentRepository,
+        DeliveryAddressService deliveryAddressService,
+        Clock clock
     ) {
         this.orderRepository = orderRepository;
         this.itemRepository = itemRepository;
         this.componentRepository = componentRepository;
         this.paymentRepository = paymentRepository;
+        this.deliveryAddressService = deliveryAddressService;
+        this.clock = clock;
     }
 
     @Override
@@ -89,19 +100,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         ShopperIdentity customerIdentity
     ) {
         requireIdentity(customerIdentity);
-        if (orderCode == null || orderCode.isBlank()) {
-            throw new ResourceNotFoundException("Không tìm thấy đơn hàng của bạn");
-        }
-
-        Optional<SalesOrder> result = orderRepository.findOwnedByOrderCode(
-            orderCode.trim(),
-            customerIdentity.customerId()
-        );
-        if (result.isEmpty()) {
-            throw new ResourceNotFoundException("Không tìm thấy đơn hàng của bạn");
-        }
-
-        SalesOrder order = result.get();
+        SalesOrder order = requireOwnedOrder(orderCode, customerIdentity.customerId());
         Payment payment = requirePayment(order.getId());
         List<OrderItem> items = itemRepository.findByOrderId(order.getId());
         Map<Long, List<CustomerOrderComponentView>> components = loadComponents(items);
@@ -130,6 +129,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             order.getOrderCode(),
             orderStatusLabel(order.getStatus()),
             order.getStatus() == OrderStatus.PLACED,
+            order.getStatus() == OrderStatus.PLACED,
             formatDateTime(order.getCreatedAt()),
             order.getRecipientName(),
             order.getRecipientPhone(),
@@ -144,6 +144,99 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             formatSignedVnd(order.getRoundingAdjustment()),
             formatVnd(order.getTotalAmount())
         );
+    }
+
+    @Override
+    public OrderDeliveryUpdateForm requireDeliveryUpdateForm(
+        String orderCode,
+        ShopperIdentity customerIdentity
+    ) {
+        requireIdentity(customerIdentity);
+        SalesOrder order = requireOwnedOrder(orderCode, customerIdentity.customerId());
+        requireDeliveryEditable(order);
+
+        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
+        form.setRecipientName(order.getRecipientName());
+        form.setRecipientPhone(order.getRecipientPhone());
+        form.setOrderNote(order.getOrderNote());
+        form.setCurrentShippingAddress(order.getShippingAddressSnapshot());
+
+        Optional<DeliveryAddressParts> addressParts = deliveryAddressService
+            .parseShippingAddress(order.getShippingAddressSnapshot());
+        if (addressParts.isPresent()) {
+            DeliveryAddressParts address = addressParts.get();
+            form.setStreetAddress(address.streetAddress());
+            form.setWardCode(address.wardCode());
+            form.setProvinceCode(address.provinceCode());
+        }
+        return form;
+    }
+
+    @Override
+    @Transactional
+    public void updateDeliveryInformation(
+        String orderCode,
+        OrderDeliveryUpdateForm form,
+        ShopperIdentity customerIdentity
+    ) {
+        requireIdentity(customerIdentity);
+        if (form == null) {
+            throw new IllegalArgumentException("Delivery update form must not be null");
+        }
+
+        SalesOrder order = requireOwnedOrder(orderCode, customerIdentity.customerId());
+        requireDeliveryEditable(order);
+        String shippingAddress = deliveryAddressService.buildShippingAddress(
+            form.getStreetAddress(),
+            form.getWardCode(),
+            form.getProvinceCode()
+        );
+
+        int updated = orderRepository.updateDeliveryIfStatus(
+            order.getId(),
+            customerIdentity.customerId(),
+            OrderStatus.PLACED,
+            form.getRecipientName().trim(),
+            form.getRecipientPhone().trim(),
+            shippingAddress,
+            normalizeOptional(form.getOrderNote()),
+            LocalDateTime.now(clock)
+        );
+        if (updated != 1) {
+            throw new ConcurrentOperationException(
+                "Đơn hàng vừa được chuyển sang xử lý nên không thể sửa thông tin nhận hàng"
+            );
+        }
+    }
+
+    private SalesOrder requireOwnedOrder(String orderCode, long customerId) {
+        if (orderCode == null || orderCode.isBlank()) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng của bạn");
+        }
+
+        Optional<SalesOrder> result = orderRepository.findOwnedByOrderCode(
+            orderCode.trim(),
+            customerId
+        );
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng của bạn");
+        }
+        return result.get();
+    }
+
+    private void requireDeliveryEditable(SalesOrder order) {
+        if (order.getStatus() != OrderStatus.PLACED) {
+            throw new BusinessRuleViolationException(
+                "Chỉ có thể sửa thông tin nhận hàng khi đơn chưa bắt đầu xử lý"
+            );
+        }
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private Payment requirePayment(long orderId) {

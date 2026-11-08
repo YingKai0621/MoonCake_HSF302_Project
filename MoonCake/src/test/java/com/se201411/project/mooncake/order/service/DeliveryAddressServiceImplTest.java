@@ -1,9 +1,13 @@
 package com.se201411.project.mooncake.order.service;
 
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.order.dto.AddressOption;
+import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
 import com.se201411.project.mooncake.order.service.impl.DeliveryAddressServiceImpl;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,5 +45,35 @@ class DeliveryAddressServiceImplTest {
     void loadsTheCurrentTwoLevelAdministrativeDataset() {
         assertThat(service.getProvinces()).hasSize(34);
         assertThat(service.getWards()).hasSize(3321);
+    }
+
+    @Test
+    void parsesAnAddressCreatedByTheSameService() {
+        AddressOption province = service.getProvinces().getFirst();
+        AddressOption ward = service.getWards().stream()
+            .filter(option -> province.code().equals(option.parentCode()))
+            .findFirst()
+            .orElseThrow();
+        String shippingAddress = service.buildShippingAddress(
+            "25 Nguyễn Huệ",
+            ward.code(),
+            province.code()
+        );
+
+        Optional<DeliveryAddressParts> result = service.parseShippingAddress(
+            shippingAddress
+        );
+
+        assertThat(result).contains(new DeliveryAddressParts(
+            "25 Nguyễn Huệ",
+            ward.code(),
+            province.code()
+        ));
+    }
+
+    @Test
+    void leavesAnOldFreeTextAddressUnparsed() {
+        assertThat(service.parseShippingAddress("Địa chỉ cũ không theo cấu trúc"))
+            .isEmpty();
     }
 }

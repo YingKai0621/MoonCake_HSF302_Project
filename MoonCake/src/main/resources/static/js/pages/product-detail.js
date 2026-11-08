@@ -102,7 +102,6 @@ function initVariantSelector() {
       mainImage.alt = option.dataset.imageAlt || mainImage.alt;
     }
 
-    updateText('.selected-sku', option.dataset.sku || '');
     updateOptionalRows(
       '.variant-filling-row',
       '.selected-filling',
@@ -120,20 +119,13 @@ function initVariantSelector() {
     );
 
     let boxCountText = '';
-    let packageText = '';
     if (option.dataset.boxCount) {
       boxCountText = option.dataset.boxCount + ' bánh';
-      packageText = 'Hộp ' + option.dataset.boxCount + ' bánh';
     }
     updateOptionalRows(
       '.variant-box-count-row',
       '.selected-box-count',
       boxCountText
-    );
-    updateOptionalRows(
-      '.variant-package-row',
-      '.selected-package',
-      packageText
     );
 
     for (let index = 0; index < presetCards.length; index++) {

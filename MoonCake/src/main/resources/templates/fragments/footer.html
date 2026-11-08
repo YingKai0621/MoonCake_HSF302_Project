@@ -42,12 +42,35 @@
         </div>
       </div>
 
-      <div class="py-8">
-        <h4 class="font-serif text-xl text-[#F1C76B] mb-3">Bản đồ Đại học FPT</h4>
-        <iframe title="Bản đồ Đại học FPT" src="https://www.google.com/maps?q=Đại+học+FPT&amp;output=embed" width="100%" height="260" style="border:1px solid #EDC56566;border-radius:12px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-        <a href="https://www.google.com/maps/search/?api=1&amp;query=Đại+học+FPT" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 text-[#F1C76B]">Mở trên Google Maps ↗</a>
-      </div>
-      <a th:href="@{/feedback}" class="text-[#F1C76B]">Gửi góp ý cho MoonCake →</a>
+      <section class="store-location" aria-labelledby="store-location-title">
+        <div class="store-location__info">
+          <p class="store-location__eyebrow">Ghé cửa hàng</p>
+          <h4 id="store-location-title" class="store-location__title">Điểm nhận hàng MoonCake</h4>
+          <address class="store-location__address">
+            Lô E2a-7, Đường D1, Khu Công nghệ cao<br>
+            Phường Long Thạnh Mỹ, TP. Thủ Đức<br>
+            TP. Hồ Chí Minh
+          </address>
+          <div class="store-location__actions">
+            <a class="store-location__button"
+               href="https://www.google.com/maps/dir/?api=1&amp;destination=Lô+E2a-7,+Đường+D1,+Khu+Công+nghệ+cao,+Long+Thạnh+Mỹ,+Thủ+Đức,+TP.+Hồ+Chí+Minh"
+               target="_blank"
+               rel="noopener noreferrer">
+              Chỉ đường
+            </a>
+            <a class="store-location__link" th:href="@{/feedback}" href="/feedback">
+              Gửi góp ý cho MoonCake
+            </a>
+          </div>
+        </div>
+        <div class="store-location__map">
+          <iframe title="Bản đồ điểm nhận hàng MoonCake"
+                  src="https://www.google.com/maps?q=Lô+E2a-7,+Đường+D1,+Khu+Công+nghệ+cao,+Long+Thạnh+Mỹ,+Thủ+Đức,+TP.+Hồ+Chí+Minh&amp;z=16&amp;output=embed"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  allowfullscreen></iframe>
+        </div>
+      </section>
       <!-- Copyright -->
       <div class="pt-8 text-center sm:text-left text-base text-[#D3CABB]">
         <p>© MoonCake — Dự án học tập HSF302</p>

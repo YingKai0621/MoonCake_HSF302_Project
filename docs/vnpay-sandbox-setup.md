@@ -18,6 +18,16 @@ Dùng URL HTTPS công khai hoặc tunnel trỏ về port ứng dụng. Đăng k�
 
 Working directory là `MoonCake`, Spring import `.env` qua `application.properties`. Khởi động ứng dụng để Flyway chạy V9 (giao dịch VNPay), V10 (góp ý), V11 (video), V12 (lô hàng). Không sửa migration đã áp dụng. Không commit `.env`.
 
+## Đưa backend ra internet bằng Cloudflare Tunnel
+
+VNPay chỉ gọi được IPN tới địa chỉ HTTPS công khai.
+
+1. Cài `cloudflared`, chạy ứng dụng ở cổng 8080.
+2. Chạy nhanh: `cloudflared tunnel --url http://localhost:8080`, lấy địa chỉ `https://xxxx.trycloudflare.com`. Địa chỉ này **đổi mỗi lần chạy**.
+3. Đặt `APP_PUBLIC_URL=https://xxxx.trycloudflare.com` trong `MoonCake/.env`, khởi động lại ứng dụng.
+4. Khai báo IPN URL `https://xxxx.trycloudflare.com/payments/vnpay/ipn` trong trang merchant VNPay Sandbox.
+5. Khi demo nên dùng named tunnel với domain riêng để địa chỉ không đổi.
+
 ## Luồng sử dụng
 
 1. Customer chọn COD hoặc VNPAY tại checkout; hệ thống trừ kho một lần và tạo đơn PLACED. Chọn VNPAY sẽ chuyển thẳng đến Sandbox; lỗi cấu hình sẽ rollback cả checkout.
@@ -26,7 +36,7 @@ Working directory là `MoonCake`, Spring import `.env` qua `application.properti
 4. Return URL chỉ hiển thị thông báo. IPN hoặc kết quả querydr hợp lệ mới cập nhật PAID sau khi kiểm tra merchant, HMAC-SHA512, mã tham chiếu, tổng tiền và trạng thái giao dịch.
 5. Admin xử lý/giao đơn online sau khi nhận PAID. Hoàn tất đơn online không thu COD lần nữa.
 
-Không tạo giao dịch thứ hai khi giao dịch trước đang PENDING. Callback lặp trả mã 02. Giao dịch thất bại đã xác nhận có thể thử lại. Khi đóng trình duyệt hoặc mất IPN, bấm **Kiểm tra thanh toán VNPay** trong chi tiết đơn để truy vấn querydr. Phiên còn hạn dùng lại mã giao dịch cũ. Trạng thái chưa rõ kết quả vẫn giữ PENDING; chưa có hoàn tiền tự động. Đơn VNPay chưa trả tiền được hủy sau khi giao dịch đang chờ hết hạn và `querydr` xác nhận chưa thu tiền (Business Rules 6.3); đơn đã trả tiền chỉ Admin hủy và hoàn tiền thủ công trên cổng merchant.
+Không tạo giao dịch thứ hai khi giao dịch trước đang PENDING. Callback lặp trả mã 02. Khách bấm Hủy đơn VNPay chưa trả tiền thì hệ thống tự hỏi VNPay (querydr): chưa trả thì hủy ngay, đã trả thì từ chối. Tiền về sau khi đơn đã hủy vẫn được ghi PAID và Admin thấy "Cần hoàn tiền". Admin có nút **Kiểm tra thanh toán VNPay** khi IPN bị lỡ. Chưa có hoàn tiền tự động.
 
 ## Các màn hình mới
 

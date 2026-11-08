@@ -190,32 +190,28 @@ One transaction conditionally changes `SHIPPING -> COMPLETED` and requires one a
 
 ### Payment (Strategy pattern)
 
-Each payment method is one class behind a shared interface, so checkout, cancellation, and order management never branch on the method. Adding a new gateway means adding one new implementation class.
+`PaymentProcessor` is the only payment interface. Each payment method is one implementation, so checkout, cancellation, order management and the VNPay callbacks never branch on the method. Adding a gateway means adding one implementation class.
 
 ```text
 order.service
-├── PaymentProcessor              (interface — one per payment method)
-├── PaymentProcessorRegistry      (interface — finds the processor for a PaymentMethod)
+├── PaymentProcessor              (interface)
+├── PaymentProcessorRegistry      (interface: PaymentMethod -> PaymentProcessor)
 └── impl
-    ├── CodPaymentProcessor       implements PaymentProcessor
-    ├── VnpayPaymentProcessor     implements PaymentProcessor
+    ├── CodPaymentProcessor
+    ├── VnpayPaymentProcessor     (all VNPay rules)
+    ├── VnpayGateway              (HMAC signing + HTTP only, no business rules)
     └── PaymentProcessorRegistryImpl
 ```
 
-`PaymentProcessor` declares the decisions that differ by method (names may be refined during implementation):
-
-- `PaymentMethod method()` — which enum value it handles.
-- `start(...)` — after checkout: COD returns no redirect; VNPay creates an attempt and returns the gateway URL.
-- `prepareCancellation(...)` — COD always allows; VNPay applies the reconciliation rule from Business Rules 6.3.
-- `canStartProcessing(...)` — COD always true; VNPay only when `PAID`.
-- `completeDelivery(...)` — COD collects cash; VNPay does nothing.
+`PaymentProcessor` methods: `method`, `isAvailable`, `startPayment`, `checkCanCancel`, `checkCanFulfil`, `completeDelivery`, `refreshPaymentStatus`, `handleNotification`, `verifyReturn`. COD has no online notification, so its `handleNotification` is unsupported.
 
 Rules:
 
-- The registry builds a `Map<PaymentMethod, PaymentProcessor>` from all Spring beans, so services ask `registry.get(payment.getMethod())`.
-- VNPay HTTP/signing details stay in a gateway client used only by `VnpayPaymentProcessor` and the VNPay service implementation; controllers call services, not the gateway.
-- IPN and `querydr` results lock the order row, then update the attempt and payment conditionally on `PENDING`/`UNPAID`, so duplicate callbacks change nothing.
-- Payment processors run inside the caller's transaction (`REQUIRED`); they do not open their own.
+- Controllers still call services: "pay again" goes through `CustomerOrderService.startOnlinePayment`, the Admin check through `OrderManagementService.refreshPaymentStatus`, the IPN/return URL through `PaymentProcessorRegistry`.
+- The order row is locked before any payment change (checkout, cancel, Admin transition, pay again, IPN), so concurrent requests are processed one by one.
+- IPN updates the attempt and payment conditionally, so duplicate callbacks change nothing.
+- Processors run inside the caller's transaction, except `handleNotification`, which has its own.
+- No comments in code: names must explain the code (instructor rule).
 
 ### PACK
 

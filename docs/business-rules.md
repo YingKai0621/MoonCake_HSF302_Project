@@ -14,7 +14,8 @@
 
 - Khách chọn **COD** hoặc **VNPay Sandbox** khi checkout. Phương thức được **cố định từ lúc đặt**; không còn nút chuyển đơn COD sang VNPay.
 - Đơn VNPay chưa trả tiền ở trạng thái "chờ thanh toán" (`PLACED` + `UNPAID`). Mỗi lần thanh toán là một giao dịch 15 phút; khách được **thanh toán lại** khi không còn giao dịch đang chờ.
-- Đơn VNPay chưa trả tiền **được hủy** (khách hoặc Admin) sau khi giao dịch đang chờ đã hết hạn và hệ thống **đối soát với VNPay** xác nhận chưa thu tiền. Sửa lỗi đơn bị kẹt mãi ở `PLACED`.
+- Đơn VNPay chưa trả tiền **được hủy ngay** (khách hoặc Admin). Khi bấm hủy, hệ thống tự hỏi VNPay một lần: đã trả thì từ chối, chưa trả thì đóng giao dịch và hủy. Sửa lỗi đơn bị kẹt mãi ở `PLACED`.
+- Tiền VNPay về **sau khi đơn đã hủy** được ghi nhận `PAID` và hiển thị "cần hoàn tiền" cho Admin.
 - Đơn VNPay đã `PAID`: khách không tự hủy; Admin được hủy khi `PLACED`/`PROCESSING` và **hoàn tiền thủ công** qua cổng merchant VNPay (MVP chưa tự động hoàn tiền).
 - Admin chỉ chuyển đơn VNPay sang `PROCESSING` khi đã `PAID`; hoàn tất đơn VNPay không thu COD lần nữa.
 - Sửa thông tin nhận hàng áp dụng cho mọi đơn `PLACED` thuộc khách, **không phụ thuộc phương thức thanh toán**, vì không làm đổi số tiền.
@@ -212,30 +213,24 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 
 - Sau khi đặt đơn VNPay, hệ thống tạo một `VNPAY_ATTEMPT` (`PENDING`, hết hạn sau **15 phút**) và chuyển khách sang cổng Sandbox. Số tiền luôn lấy từ `SALES_ORDER.total_amount` trong database.
 - Nếu cấu hình VNPay lỗi tại thời điểm checkout, toàn bộ checkout rollback; giỏ vẫn `ACTIVE`.
-- Mỗi đơn có tối đa **một** attempt `PENDING` còn hiệu lực. Bấm thanh toán lại khi attempt cũ còn hạn thì dùng lại attempt đó; khi attempt cũ đã hết hạn thì phải đối soát (bên dưới) trước khi tạo attempt mới.
-- Khách được **thanh toán lại** đơn của mình khi đơn còn `PLACED`, payment `UNPAID` và không có attempt `PENDING` còn hiệu lực.
+- Mỗi đơn có tối đa **một** attempt `PENDING`. Bấm thanh toán lại khi attempt cũ còn hạn thì dùng lại attempt đó; khi attempt cũ đã hết hạn thì hệ thống tự hỏi VNPay, đóng attempt cũ (nếu chưa trả) rồi tạo attempt mới.
+- Khách được **thanh toán lại** đơn VNPay của mình khi đơn còn `PLACED` và payment `UNPAID`.
 
 **Xác nhận đã trả tiền**
 
 - Chỉ chuyển payment `UNPAID → PAID` (và attempt `PENDING → PAID`) khi nhận **IPN** hoặc kết quả **truy vấn `querydr`** hợp lệ: đúng chữ ký HMAC-SHA512, đúng `TmnCode`, đúng mã giao dịch, đúng số tiền và trạng thái giao dịch thành công.
 - **Return URL chỉ hiển thị thông báo**, không bao giờ tự cập nhật `PAID`.
 - IPN/kết quả lặp cho attempt đã xử lý không thay đổi dữ liệu lần hai.
-- Khi chạy localhost, VNPay không gọi được IPN; khách hoặc Admin bấm **Kiểm tra thanh toán** để hệ thống gọi `querydr`.
-
-**Đối soát trước khi hủy hoặc thanh toán lại** — quy tắc chống "khách đã trả tiền nhưng đơn bị hủy":
-
-1. Nếu không có attempt `PENDING`: được hủy/thanh toán lại ngay.
-2. Nếu attempt `PENDING` **còn hạn**: từ chối, báo khách hoàn tất hoặc đợi giao dịch hết hạn.
-3. Nếu attempt `PENDING` **đã hết hạn**: hệ thống gọi `querydr`:
-   - VNPay xác nhận **đã thanh toán** → ghi `PAID`, **từ chối hủy** và báo đơn đã được thanh toán.
-   - VNPay xác nhận **không có giao dịch thành công** → attempt chuyển `FAILED`, được hủy/thanh toán lại.
-   - VNPay **chưa có kết quả cuối cùng hoặc không kết nối được** → từ chối, giữ nguyên dữ liệu, báo thử lại sau.
+- Backend phải có địa chỉ HTTPS công khai (ví dụ Cloudflare Tunnel) để VNPay gọi được IPN. Admin có nút **Kiểm tra thanh toán VNPay** để hệ thống gọi `querydr` khi IPN bị lỡ.
 
 **Hủy đơn VNPay**
 
-- Đơn VNPay **chưa trả tiền**: khách (khi `PLACED`) hoặc Admin (khi `PLACED`) được hủy sau khi qua bước đối soát. Hủy dùng chung `OrderCancellationService`, hoàn tồn đúng một lần; payment giữ `UNPAID`.
-- Đơn VNPay **đã trả tiền**: khách không tự hủy mà liên hệ cửa hàng. Admin được hủy khi `PLACED`/`PROCESSING`; payment giữ `PAID` và Admin **hoàn tiền thủ công** trên cổng merchant VNPay. MVP không gọi API hoàn tiền và không lưu trạng thái hoàn tiền.
-- Nếu IPN thành công đến sau khi đơn đã hủy (trường hợp hiếm vì giao dịch hết hạn không thanh toán được): ghi nhận attempt `PAID` để Admin thấy và hoàn tiền thủ công; không mở lại đơn.
+- Khách (khi `PLACED`) hoặc Admin (khi `PLACED`/`PROCESSING`) bấm hủy một lần. Nếu đơn có attempt `PENDING`, hệ thống tự hỏi VNPay (`querydr`) trước khi hủy:
+  - VNPay báo **đã thanh toán** → từ chối hủy, báo đơn đã được thanh toán.
+  - VNPay báo **chưa thanh toán** (không có giao dịch, chưa hoàn tất hoặc thất bại) → attempt `FAILED`, đơn được hủy ngay, hoàn tồn đúng một lần; payment giữ `UNPAID`.
+  - VNPay **không trả lời hoặc chưa có kết quả** → từ chối, giữ nguyên dữ liệu, báo thử lại sau.
+- Đơn VNPay **đã trả tiền**: khách không tự hủy mà liên hệ cửa hàng. Admin được hủy khi `PLACED`/`PROCESSING`; payment giữ `PAID` và Admin **hoàn tiền thủ công** trên cổng merchant VNPay. MVP không gọi API hoàn tiền.
+- **Tiền về muộn:** nếu khách vẫn trả trên trang VNPay cũ sau khi đơn đã hủy, IPN hợp lệ vẫn được ghi nhận: attempt và payment chuyển `PAID`, đơn giữ `CANCELLED`. Trang Admin hiển thị "Cần hoàn tiền" để Admin hoàn tiền thủ công; không mở lại đơn.
 
 **Xử lý và hoàn tất**
 
@@ -404,11 +399,11 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-47 | IPN thành công hợp lệ, sau đó IPN lặp | Lần đầu payment `PAID` + `paid_at`; lần lặp không thay đổi dữ liệu |
 | BR-48 | IPN sai chữ ký, sai số tiền hoặc sai `TmnCode` | Từ chối; payment vẫn `UNPAID` |
 | BR-49 | Khách quay về từ Return URL nhưng chưa có IPN | Chỉ hiển thị thông báo; payment không đổi |
-| BR-50 | Khách hủy đơn VNPay khi attempt còn hạn | Từ chối; đơn và tồn không đổi |
-| BR-51 | Attempt hết hạn, `querydr` xác nhận chưa thanh toán; khách hủy | Attempt `FAILED`; đơn `CANCELLED`, hoàn tồn một lần, payment giữ `UNPAID` |
+| BR-50 | Khách hủy đơn VNPay có attempt mở, `querydr` báo chưa thanh toán | Attempt `FAILED`; đơn `CANCELLED` ngay, hoàn tồn một lần, payment giữ `UNPAID` |
+| BR-51 | Đơn VNPay đã hủy, sau đó IPN thành công hợp lệ đến | Payment `PAID`, đơn giữ `CANCELLED`; Admin thấy "Cần hoàn tiền" |
 | BR-52 | Attempt hết hạn, `querydr` xác nhận đã thanh toán; khách hủy | Ghi `PAID`; từ chối hủy |
-| BR-53 | Attempt hết hạn, `querydr` lỗi kết nối hoặc chưa có kết quả | Từ chối hủy/thanh toán lại; không thay đổi dữ liệu |
-| BR-54 | Khách thanh toán lại sau khi attempt cũ được xác nhận `FAILED` | Tạo attempt mới; vẫn chỉ một payment cho đơn |
+| BR-53 | Hủy đơn VNPay khi `querydr` lỗi kết nối hoặc chưa có kết quả | Từ chối hủy; không thay đổi dữ liệu |
+| BR-54 | Khách thanh toán lại khi attempt cũ đã hết hạn và chưa trả | Attempt cũ `FAILED`, tạo attempt mới; vẫn chỉ một payment cho đơn |
 | BR-55 | Admin chuyển đơn VNPay chưa `PAID` sang `PROCESSING` | Từ chối |
 | BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |
 | BR-57 | Đơn COD | Không có nút thanh toán VNPay; không thể đổi sang VNPay |

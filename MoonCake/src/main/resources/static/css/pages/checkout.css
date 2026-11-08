@@ -48,10 +48,6 @@
 }
 
 .payment-option__title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
   font-size: 15px;
   font-weight: 600;
   color: #F8F4EB;
@@ -61,14 +57,4 @@
   font-size: 14px;
   line-height: 1.5;
   color: #C2BAAB;
-}
-
-.payment-option__badge {
-  padding: 1px 8px;
-  border: 1px solid rgba(209, 168, 90, 0.4);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: #D1A85A;
 }

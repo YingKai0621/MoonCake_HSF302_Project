@@ -82,7 +82,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
 
         if (order.getStatus() != OrderStatus.PLACED) {
             throw new BusinessRuleViolationException(
-                "Khách hàng chỉ có thể tự hủy đơn đang ở trạng thái PLACED."
+                "Đơn hàng đã được cửa hàng xử lý nên không thể tự hủy. Vui lòng liên hệ cửa hàng để được hỗ trợ."
             );
         }
 

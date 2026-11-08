@@ -73,12 +73,12 @@ class FeedbackServiceImplTest {
 
     @Test
     void publishedReviewsShowCustomerNameRatingAndContent() {
-        Feedback feedback = feedback(5, true, "Lan");
+        Feedback feedback = feedback(5, true, "Trần Thị Lan");
         when(feedbackRepository.findTop20ByPublishedTrueOrderByCreatedAtDesc()).thenReturn(List.of(feedback));
 
         List<PublicReviewView> reviews = service.findPublishedReviews();
 
-        assertThat(reviews).containsExactly(new PublicReviewView("Lan", 5, "Bánh ngon"));
+        assertThat(reviews).containsExactly(new PublicReviewView("Trần Thị Lan", "L", 5, "Bánh ngon"));
     }
 
     @Test

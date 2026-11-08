@@ -304,7 +304,6 @@ main a.bg-gold:active {
   width: 100%;
   height: 280px;
   border: 0;
-  filter: invert(0.9) hue-rotate(180deg) saturate(0.6) brightness(0.95);
 }
 
 @media (min-width: 768px) {

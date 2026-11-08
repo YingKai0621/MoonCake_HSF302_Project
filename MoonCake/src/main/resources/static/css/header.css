@@ -1,11 +1,11 @@
 :root {
   --header-navy: #0c1626;
   --header-navy-light: #132844;
-  --header-gold: #d1a85a;
-  --header-gold-light: #f0d69f;
+  --header-gold: #edc565;
+  --header-gold-light: #f5d68e;
   --header-ivory: #f8f4eb;
-  --header-muted: #c2baab;
-  --header-border: rgba(209, 168, 90, 0.28);
+  --header-muted: #d3cabb;
+  --header-border: rgba(237, 197, 101, 0.36);
 }
 
 .site-header,
@@ -57,9 +57,10 @@
 .site-header__brand-name {
   color: var(--header-gold-light);
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+  text-shadow: 0 2px 12px rgba(237, 197, 101, 0.2);
 }
 
 .site-header__panel {
@@ -85,7 +86,7 @@
 .site-header__user-trigger {
   position: relative;
   color: var(--header-muted);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
@@ -97,13 +98,14 @@
   align-items: center;
   gap: 6px;
   padding: 13px 15px;
+  color: #dcc58f;
   border-radius: 6px;
 }
 
 .site-header__nav-link:hover,
 .site-header__nav-link--active {
-  color: var(--header-ivory);
-  background: rgba(209, 168, 90, 0.08);
+  color: var(--header-gold-light);
+  background: rgba(237, 197, 101, 0.1);
 }
 
 .site-header__nav-link--active::after {
@@ -179,7 +181,7 @@
   background: transparent;
   border: 0;
   border-radius: 5px;
-  font: 500 13px/1.5 'Be Vietnam Pro', system-ui, sans-serif;
+  font: 500 14px/1.5 'Be Vietnam Pro', system-ui, sans-serif;
   text-align: left;
   cursor: pointer;
   transition: color 160ms ease, background-color 160ms ease;
@@ -266,7 +268,7 @@
   overflow: hidden;
   color: var(--header-ivory);
   border-bottom: 1px solid var(--header-border);
-  font-size: 12px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -291,7 +293,7 @@
   color: var(--header-gold-light);
   border: 1px solid var(--header-border);
   border-radius: 24px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
@@ -331,7 +333,7 @@
   background: var(--header-gold-light);
   border: 1px solid var(--header-navy);
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
 }

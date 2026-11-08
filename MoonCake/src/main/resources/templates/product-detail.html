@@ -22,10 +22,10 @@
             midnight: '#10233D',
             'dark-navy': '#0C1626',
             'deep-indigo': '#162842',
-            gold: '#D1A85A',
-            'gold-hover': '#E5C37E',
+            gold: '#EDC565',
+            'gold-hover': '#F5D68E',
             ivory: '#F8F4EB',
-            sand: '#C2BAAB',
+            sand: '#D3CABB',
           },
           fontFamily: {
             serif: ['"Playfair Display"', 'Georgia', 'serif'],
@@ -99,7 +99,7 @@
           Hộp Quà Dạ Nguyệt Đoàn Viên
         </h1>
 
-        <!-- Selling Price Block (Be Vietnam Pro, 30-34px, 700 weight, gold accent #D1A85A) -->
+        <!-- Selling Price Block (Be Vietnam Pro, 30-34px, 700 weight, gold accent #EDC565) -->
         <div class="border-y border-gold/20 py-4">
           <span class="text-xs uppercase tracking-wider text-sand block mb-1"
                 th:text="${product.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
@@ -429,7 +429,7 @@
         <div class="px-5 pb-5 pt-0 mt-auto">
           <!-- Price Block -->
           <div class="pt-3 border-t border-gold/15 mb-3">
-            <span class="text-[11px] text-sand block uppercase tracking-wider font-sans mb-0.5">Giá niêm yết</span>
+            <span class="text-[13px] text-sand block uppercase tracking-wider font-sans mb-0.5">Giá niêm yết</span>
             <span class="text-[20px] sm:text-[22px] font-bold text-gold font-sans leading-none block"
                   th:text="${rp.formattedPrice}">
               880.000đ
@@ -438,7 +438,7 @@
 
           <!-- Canonical Product Detail Link -->
           <a th:href="@{/products/{slug}(slug=${rp.slug})}"
-             class="related-cta-btn w-full min-h-[44px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[14px] font-semibold px-4 py-2 transition-colors duration-200 uppercase tracking-wider rounded-none cursor-pointer text-center">
+             class="related-cta-btn w-full min-h-[44px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[15px] font-semibold px-4 py-2 transition-colors duration-200 uppercase tracking-wider rounded-none cursor-pointer text-center">
             Xem chi tiết
           </a>
         </div>

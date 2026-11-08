@@ -4,15 +4,15 @@
 <body>
 
   <!-- ================= 1. STOREFRONT FOOTER (HOMEPAGE, CATALOG, DETAIL) ================= -->
-  <footer th:fragment="footer" id="footer" class="bg-[#0C1626] border-t border-[#D1A85A]/25 pt-12 md:pt-14 pb-8 text-[#C2BAAB]" style="font-family: 'Be Vietnam Pro', system-ui, sans-serif;">
+  <footer th:fragment="footer" id="footer" class="bg-[#0C1626] border-t border-[#EDC565]/35 pt-12 md:pt-14 pb-8 text-[#D3CABB]" style="font-family: 'Be Vietnam Pro', system-ui, sans-serif;">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-[#D1A85A]/20">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-[#EDC565]/30">
         <!-- Col 1: Brand Info -->
         <div class="md:col-span-7 lg:col-span-8 space-y-3">
           <div class="flex items-center gap-3">
             <span class="font-serif text-xl sm:text-2xl font-bold tracking-widest text-[#F8F4EB]">MOONCAKE</span>
           </div>
-          <p class="text-sm sm:text-[15px] leading-relaxed text-[#C2BAAB] max-w-xl">
+          <p class="text-base leading-relaxed text-[#D3CABB] max-w-xl">
             Bánh Trung Thu và hộp quà dành cho những dịp sum họp và trao tặng.
           </p>
         </div>
@@ -24,17 +24,17 @@
           </h4>
           <ul class="space-y-2.5 text-sm sm:text-[15px]">
             <li>
-              <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="text-[#C2BAAB] hover:text-[#D1A85A] transition-colors inline-block py-0.5">
+              <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="text-[#D3CABB] hover:text-[#EDC565] transition-colors inline-block py-0.5">
                 Hộp quà Trung Thu
               </a>
             </li>
             <li>
-              <a th:href="@{/products/mooncakes}" href="/products/mooncakes" class="text-[#C2BAAB] hover:text-[#D1A85A] transition-colors inline-block py-0.5">
+              <a th:href="@{/products/mooncakes}" href="/products/mooncakes" class="text-[#D3CABB] hover:text-[#EDC565] transition-colors inline-block py-0.5">
                 Bánh Trung Thu
               </a>
             </li>
             <li>
-              <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="text-[#C2BAAB] hover:text-[#D1A85A] transition-colors inline-block py-0.5">
+              <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes" class="text-[#D3CABB] hover:text-[#EDC565] transition-colors inline-block py-0.5">
                 Tất cả sản phẩm
               </a>
             </li>
@@ -44,20 +44,20 @@
 
       <div class="py-8">
         <h4 class="font-serif text-xl text-[#F1C76B] mb-3">Bản đồ Đại học FPT</h4>
-        <iframe title="Bản đồ Đại học FPT" src="https://www.google.com/maps?q=Đại+học+FPT&amp;output=embed" width="100%" height="260" style="border:1px solid #D1A85A55;border-radius:12px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <iframe title="Bản đồ Đại học FPT" src="https://www.google.com/maps?q=Đại+học+FPT&amp;output=embed" width="100%" height="260" style="border:1px solid #EDC56566;border-radius:12px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         <a href="https://www.google.com/maps/search/?api=1&amp;query=Đại+học+FPT" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 text-[#F1C76B]">Mở trên Google Maps ↗</a>
       </div>
       <a th:href="@{/feedback}" class="text-[#F1C76B]">Gửi góp ý cho MoonCake →</a>
       <!-- Copyright -->
-      <div class="pt-8 text-center sm:text-left text-sm text-[#C2BAAB]">
+      <div class="pt-8 text-center sm:text-left text-base text-[#D3CABB]">
         <p>© MoonCake — Dự án học tập HSF302</p>
       </div>
     </div>
   </footer>
 
   <!-- ================= 2. FOCUSED CHECKOUT FOOTER (CART, CHECKOUT, SUCCESS) ================= -->
-  <div th:fragment="checkoutFooter" id="checkout-footer" role="contentinfo" class="w-full bg-[#0C1626] border-t border-[#D1A85A]/20 mt-16 py-8">
-    <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#C2BAAB]">
+  <div th:fragment="checkoutFooter" id="checkout-footer" role="contentinfo" class="w-full bg-[#0C1626] border-t border-[#EDC565]/30 mt-16 py-8">
+    <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[14px] text-[#D3CABB]">
       <div class="flex items-center gap-2">
         <span class="font-serif font-semibold tracking-wider text-[#F8F4EB]">MOONCAKE</span>
         <span>— Haute Pâtisserie</span>
@@ -66,9 +66,9 @@
         <p>&copy; 2026 MOONCAKE Haute Pâtisserie. All rights reserved. (Dữ liệu học thuật HSF302 FPTU).</p>
       </div>
       <div class="flex items-center space-x-6">
-        <a href="#" class="hover:text-[#D1A85A] transition-colors">Chính sách bảo mật</a>
-        <a href="#" class="hover:text-[#D1A85A] transition-colors">Điều khoản dịch vụ</a>
-        <a th:href="@{/#footer}" class="hover:text-[#D1A85A] transition-colors">Hỗ trợ</a>
+        <a href="#" class="hover:text-[#EDC565] transition-colors">Chính sách bảo mật</a>
+        <a href="#" class="hover:text-[#EDC565] transition-colors">Điều khoản dịch vụ</a>
+        <a th:href="@{/#footer}" class="hover:text-[#EDC565] transition-colors">Hỗ trợ</a>
       </div>
     </div>
   </div>

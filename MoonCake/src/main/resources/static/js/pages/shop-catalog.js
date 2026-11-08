@@ -161,6 +161,13 @@ function initializeCatalogPage() {
   }
 
   function filterAndSortProducts() {
+    const activeElement = document.activeElement;
+    const viewportAnchor = activeElement && catalogMain.contains(activeElement)
+      ? activeElement
+      : null;
+    const anchorTop = viewportAnchor
+      ? viewportAnchor.getBoundingClientRect().top
+      : 0;
     const priceRange = getSelectedPriceRange();
     const selectedBoxCounts = getSelectedCheckboxes('box_count');
     const selectedFillings = getSelectedCheckboxes('filling_filter');
@@ -207,6 +214,17 @@ function initializeCatalogPage() {
       } else {
         noProductsMsg.classList.add('hidden');
       }
+    }
+
+    if (viewportAnchor) {
+      window.requestAnimationFrame(function () {
+        const currentAnchorTop = viewportAnchor.getBoundingClientRect().top;
+        const scrollCorrection = currentAnchorTop - anchorTop;
+
+        if (Math.abs(scrollCorrection) > 1) {
+          window.scrollBy(0, scrollCorrection);
+        }
+      });
     }
   }
 

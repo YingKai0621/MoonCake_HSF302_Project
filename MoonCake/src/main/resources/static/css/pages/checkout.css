@@ -3,7 +3,7 @@
   align-items: flex-start;
   gap: 14px;
   padding: 16px 18px;
-  border: 1px solid rgba(209, 168, 90, 0.25);
+  border: 1px solid var(--mc-gold-border);
   border-radius: 8px;
   background: #162842;
   cursor: pointer;
@@ -11,16 +11,16 @@
 }
 
 .payment-option:hover {
-  border-color: rgba(209, 168, 90, 0.6);
+  border-color: rgba(237, 197, 101, 0.72);
 }
 
 .payment-option:has(.payment-option__radio:checked) {
-  border-color: #D1A85A;
-  background: rgba(209, 168, 90, 0.08);
+  border-color: var(--mc-gold);
+  background: rgba(237, 197, 101, 0.1);
 }
 
 .payment-option:has(.payment-option__radio:focus-visible) {
-  outline: 2px solid #E5C37E;
+  outline: 2px solid var(--mc-gold-light);
   outline-offset: 2px;
 }
 
@@ -29,13 +29,13 @@
   width: 18px;
   height: 18px;
   margin-top: 3px;
-  accent-color: #D1A85A;
+  accent-color: var(--mc-gold);
   cursor: pointer;
 }
 
 .payment-option__icon {
   flex-shrink: 0;
-  color: #D1A85A;
+  color: var(--mc-gold);
   font-size: 24px;
   line-height: 1;
 }
@@ -48,13 +48,13 @@
 }
 
 .payment-option__title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #F8F4EB;
 }
 
 .payment-option__hint {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
-  color: #C2BAAB;
+  color: var(--mc-sand);
 }

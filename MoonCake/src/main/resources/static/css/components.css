@@ -10,7 +10,7 @@ form input[type="tel"],
 form select,
 form textarea {
   background-color: #162842;
-  border: 1px solid rgba(209, 168, 90, 0.25);
+  border: 1px solid var(--mc-gold-border);
   color: #F8F4EB;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -21,8 +21,8 @@ form input[type="tel"]:focus,
 form select:focus,
 form textarea:focus {
   outline: none;
-  border-color: #D1A85A;
-  box-shadow: 0 0 0 1px rgba(209, 168, 90, 0.4);
+  border-color: var(--mc-gold);
+  box-shadow: 0 0 0 1px rgba(237, 197, 101, 0.45);
 }
 
 /* Custom Select Dropdown Options */
@@ -41,7 +41,7 @@ select option {
 .quantity-stepper {
   display: inline-flex;
   align-items: stretch;
-  border: 1px solid rgba(209, 168, 90, 0.35);
+  border: 1px solid var(--mc-gold-border);
   background-color: #162842;
 }
 
@@ -50,7 +50,7 @@ select option {
   min-height: 44px;
   border: 0;
   background-color: #0C1626;
-  color: #D1A85A;
+  color: var(--mc-gold);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
@@ -58,7 +58,7 @@ select option {
 }
 
 .quantity-stepper__button:hover:not(:disabled) {
-  background-color: #D1A85A;
+  background-color: var(--mc-gold);
   color: #0C1626;
 }
 
@@ -85,7 +85,7 @@ select option {
 
 .quantity-stepper .quantity-stepper__input:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px #D1A85A;
+  box-shadow: inset 0 0 0 1px var(--mc-gold);
 }
 
 .quantity-stepper .quantity-stepper__input::-webkit-outer-spin-button,
@@ -127,16 +127,16 @@ select option {
 }
 
 .collapsible__toggle:focus-visible {
-  outline: 2px solid #E5C37E;
+  outline: 2px solid var(--mc-gold-light);
   outline-offset: 2px;
 }
 
 .status-badge {
   display: inline-block;
   padding: 7px 14px;
-  border: 1px solid rgba(209, 168, 90, 0.55);
-  color: #E5C37E;
-  font-size: 12px;
+  border: 1px solid rgba(237, 197, 101, 0.6);
+  color: var(--mc-gold-light);
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -160,7 +160,7 @@ select option {
 }
 
 .payment-status {
-  color: #C2BAAB;
+  color: var(--mc-sand);
 }
 
 .payment-status[data-status="Đã thanh toán"] {
@@ -174,7 +174,7 @@ select option {
 
 .order-progress {
   padding: 24px 20px;
-  border: 1px solid rgba(209, 168, 90, 0.2);
+  border: 1px solid rgba(237, 197, 101, 0.3);
   background: #0C1626;
 }
 
@@ -203,7 +203,7 @@ select option {
   right: 50%;
   left: -50%;
   height: 1px;
-  background: rgba(209, 168, 90, 0.2);
+  background: rgba(237, 197, 101, 0.3);
 }
 
 
@@ -217,19 +217,19 @@ select option {
   height: 28px;
   border: 1px solid rgba(194, 186, 171, 0.35);
   background: #0C1626;
-  color: #C2BAAB;
-  font-size: 13px;
+  color: var(--mc-sand);
+  font-size: 14px;
   font-weight: 600;
 }
 
 .order-progress__label {
-  color: #C2BAAB;
-  font-size: 13px;
+  color: var(--mc-sand);
+  font-size: 14px;
 }
 
 .order-progress__step.is-done .order-progress__marker {
-  border-color: #D1A85A;
-  background: #D1A85A;
+  border-color: var(--mc-gold);
+  background: var(--mc-gold);
   color: #0C1626;
 }
 
@@ -239,8 +239,8 @@ select option {
 
 .order-progress__step.is-current .order-progress__marker,
 .order-progress__step.is-waiting .order-progress__marker {
-  border-color: #D1A85A;
-  box-shadow: 0 0 0 4px rgba(209, 168, 90, 0.15);
+  border-color: var(--mc-gold);
+  box-shadow: 0 0 0 4px rgba(237, 197, 101, 0.18);
 }
 
 .order-progress__step.is-current .order-progress__marker::before,
@@ -248,7 +248,7 @@ select option {
   content: "";
   width: 8px;
   height: 8px;
-  background: #D1A85A;
+  background: var(--mc-gold);
 }
 
 .order-progress__step.is-waiting .order-progress__marker {
@@ -266,7 +266,7 @@ select option {
 }
 
 .order-progress__step.is-current .order-progress__label {
-  color: #E5C37E;
+  color: var(--mc-gold-light);
   font-weight: 600;
 }
 
@@ -284,8 +284,8 @@ select option {
 
 .order-cancelled__text {
   margin-top: 4px;
-  color: #C2BAAB;
-  font-size: 14px;
+  color: var(--mc-sand);
+  font-size: 15px;
 }
 
 @media (min-width: 640px) {
@@ -294,7 +294,7 @@ select option {
   }
 
   .order-progress__label {
-    font-size: 14px;
+    font-size: 15px;
   }
 }
 
@@ -314,7 +314,7 @@ select option {
   right: 50%;
   left: -50%;
   height: 1px;
-  background: #D1A85A;
+  background: var(--mc-gold);
   transform-origin: left center;
   animation: mc-line-fill var(--motion-300) var(--ease-out) backwards;
   animation-delay: inherit;

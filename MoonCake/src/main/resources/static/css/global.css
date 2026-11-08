@@ -5,8 +5,8 @@
 
 /* Base Typography & Body */
 body {
-  background-color: #10233D;
-  color: #F8F4EB;
+  background-color: var(--mc-midnight);
+  color: var(--mc-ivory);
   font-family: 'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -28,17 +28,17 @@ body {
 
 /* Luxury Gold Borders & Micro-Glow */
 .gold-border {
-  border: 1px solid rgba(209, 168, 90, 0.25);
+  border: 1px solid var(--mc-gold-border);
 }
 
 .gold-border-glow:hover {
-  border-color: rgba(209, 168, 90, 0.7);
-  box-shadow: 0 0 25px rgba(209, 168, 90, 0.25);
+  border-color: rgba(237, 197, 101, 0.72);
+  box-shadow: 0 0 25px rgba(237, 197, 101, 0.28);
 }
 
 /* Gold Gradient Text */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #FDF9EE 0%, #D1A85A 50%, #B88E3E 100%);
+  background: linear-gradient(135deg, #fdf9ee 0%, #edc565 50%, #c89a42 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -68,24 +68,77 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb,
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: rgba(209, 168, 90, 0.3);
+  background: rgba(237, 197, 101, 0.36);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(209, 168, 90, 0.6);
+  background: rgba(237, 197, 101, 0.66);
 }
 
-/* Readable storefront density and warmer gold accents. */
-:root { --mooncake-gold: #edc565; }
-body { font-size: 16px; line-height: 1.65; }
-main .text-xs { font-size: .875rem; line-height: 1.55; }
-main .text-sm { font-size: 1rem; line-height: 1.65; }
-.text-gold { color: #edc565; }
-.bg-gold { background-color: #edc565; }
-main input[type="search"] { min-height: 46px; font-size: 16px; }
-main table th, main table td { padding: 12px 16px; }
+:root {
+  --mc-midnight: #10233d;
+  --mc-surface: #0c1626;
+  --mc-control: #162842;
+  --mc-gold: #edc565;
+  --mc-gold-light: #f5d68e;
+  --mc-ivory: #f8f4eb;
+  --mc-sand: #d3cabb;
+  --mc-gold-border: rgba(237, 197, 101, 0.36);
+}
+
+body {
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+main .text-xs {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+main .text-sm {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+main .text-base {
+  font-size: 1.0625rem;
+}
+
+.text-gold {
+  color: var(--mc-gold);
+}
+
+.text-sand {
+  color: var(--mc-sand);
+}
+
+.bg-gold {
+  background-color: var(--mc-gold);
+}
+
+main input,
+main select,
+main textarea,
+main button {
+  font-size: 1rem;
+}
+
+main input[type="search"] {
+  min-height: 46px;
+  font-size: 1rem;
+}
+
+main table th,
+main table td {
+  padding: 12px 16px;
+}
+
+#product-grid {
+  overflow-anchor: none;
+}
 
 :root {
   --motion-100: 100ms;

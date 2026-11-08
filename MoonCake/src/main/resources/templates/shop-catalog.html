@@ -22,10 +22,10 @@
             midnight: '#10233D',
             'dark-navy': '#0C1626',
             'deep-indigo': '#162842',
-            gold: '#D1A85A',
-            'gold-hover': '#E5C37E',
+            gold: '#EDC565',
+            'gold-hover': '#F5D68E',
             ivory: '#F8F4EB',
-            sand: '#C2BAAB',
+            sand: '#D3CABB',
           },
           fontFamily: {
             serif: ['"Playfair Display"', 'Georgia', 'serif'],
@@ -256,7 +256,7 @@
                 </h3>
 
                 <!-- 3. Concise Factual Description -->
-                <p class="font-sans text-[14px] sm:text-[14.5px] text-sand font-normal leading-[1.6] line-clamp-2"
+                <p class="font-sans text-[15px] sm:text-base text-sand font-normal leading-[1.6] line-clamp-2"
                    th:text="${p.description}">
                   Mô tả sản phẩm
                 </p>
@@ -267,7 +267,7 @@
             <div class="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 mt-auto">
               <!-- 4. Price Block (Label above, bold gold price below) -->
               <div class="pt-4 border-t border-gold/15 mb-4">
-                <span class="text-[11px] text-sand block uppercase tracking-wider font-sans mb-1"
+                <span class="text-[13px] text-sand block uppercase tracking-wider font-sans mb-1"
                       th:text="${p.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
                 <span class="text-[23px] sm:text-[25px] font-bold text-gold font-sans leading-none block"
                       th:text="${p.formattedPrice}">

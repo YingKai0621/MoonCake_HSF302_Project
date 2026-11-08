@@ -2,11 +2,11 @@
   --business-navy: #0c1626;
   --business-blue: #10233d;
   --business-blue-soft: #162842;
-  --business-gold: #d1a85a;
-  --business-gold-light: #e5c37e;
+  --business-gold: #edc565;
+  --business-gold-light: #f5d68e;
   --business-ivory: #f8f4eb;
-  --business-sand: #c2baab;
-  --business-line: rgba(209, 168, 90, 0.32);
+  --business-sand: #d3cabb;
+  --business-line: rgba(237, 197, 101, 0.38);
 }
 
 html {
@@ -21,7 +21,7 @@ html {
 .business-eyebrow {
   margin: 0 0 1rem;
   color: var(--business-gold);
-  font-size: 0.76rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -101,7 +101,7 @@ html {
   padding: 0.82rem 1.55rem;
   border: 1px solid var(--business-gold);
   border-radius: 0;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
   transition: background-color 180ms ease, color 180ms ease;
@@ -138,7 +138,7 @@ html {
   margin-top: 1.4rem;
   color: var(--business-gold-light);
   border-bottom: 1px solid rgba(229, 195, 126, 0.55);
-  font-size: 0.84rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.7;
   text-decoration: none;
@@ -181,7 +181,7 @@ html {
 .business-cta-inner > div > p:last-child {
   margin: 1.15rem 0 0;
   color: var(--business-sand);
-  font-size: 0.98rem;
+  font-size: 1.0625rem;
   line-height: 1.8;
 }
 
@@ -237,7 +237,7 @@ html {
 .business-product-content p {
   margin: 1rem 0 1.6rem;
   color: var(--business-sand);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.75;
 }
 
@@ -246,7 +246,7 @@ html {
   margin-top: auto;
   color: var(--business-gold-light);
   border-bottom: 1px solid rgba(229, 195, 126, 0.45);
-  font-size: 0.84rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.8;
   text-decoration: none;
@@ -307,7 +307,7 @@ html {
   padding-top: 1rem;
   color: var(--business-ivory);
   border-top: 1px solid rgba(229, 195, 126, 0.58);
-  font-size: 0.76rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -326,14 +326,14 @@ html {
   padding-left: 1rem;
   color: var(--business-sand);
   border-left: 1px solid var(--business-gold);
-  font-size: 0.84rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
 }
 
 .business-policy-footnote {
   margin: 1.5rem 0 0;
   color: #ddd4c4;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 
@@ -391,7 +391,7 @@ html {
 .business-process-list p {
   margin: 0.75rem 0 0;
   color: #5f5a52;
-  font-size: 0.86rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
 }
 

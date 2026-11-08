@@ -117,7 +117,7 @@
                    class="w-16 h-16 sm:w-[72px] sm:h-[72px] object-cover border border-gold/20">
               <div class="min-w-0">
                 <h3 class="font-medium" th:text="${cake.productName}">Tên bánh</h3>
-                <p class="text-xs text-sand mt-1" th:text="${cake.variantName + ' · ' + cake.sku}">Phiên bản</p>
+                <p class="text-xs text-sand mt-1" th:text="${cake.variantName}">Phiên bản</p>
                 <p class="text-sm text-gold mt-1" th:text="${cake.formattedPrice}">0đ</p>
               </div>
               <div>
@@ -181,7 +181,7 @@
           </div>
 
           <p class="text-xs text-sand leading-relaxed">
-            Tồn kho sẽ được kiểm tra và trừ khi checkout, không phải khi thêm vào giỏ.
+            Số lượng bánh còn hàng sẽ được xác nhận khi bạn đặt hàng.
           </p>
 
           <button type="submit"

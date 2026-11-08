@@ -123,23 +123,17 @@
                   class="w-full bg-deep-indigo text-ivory border border-gold/35 py-3 px-4 rounded-none focus:ring-0 focus:border-gold cursor-pointer">
             <option th:each="variant : ${product.variants}"
                     th:value="${variant.id}"
-                    th:text="${variant.name + ' (' + variant.sku + ') — ' + variant.formattedPrice}"
+                    th:text="${variant.name + ' — ' + variant.formattedPrice}"
                     th:data-price="${variant.unitPrice}"
                     th:data-formatted-price="${variant.formattedPrice}"
                     th:data-image-url="${variant.imageUrl}"
                     th:data-image-alt="${variant.imageAlt}"
-                    th:data-sku="${variant.sku}"
                     th:data-weight="${variant.weightGrams}"
                     th:data-filling="${variant.fillingLabel}"
                     th:data-box-count="${variant.presetRecipe == null ? null : variant.presetRecipe.capacityCakes}">
               Phiên bản sản phẩm
             </option>
           </select>
-        </div>
-
-        <div class="flex items-baseline justify-between gap-4 text-[15px]">
-          <span class="text-sand/80">Mã SKU:</span>
-          <span class="selected-sku text-ivory font-medium" th:text="${product.primaryVariant.sku}">SKU</span>
         </div>
 
         <!-- QUICK PRODUCT SPECIFICATIONS (PART A) -->

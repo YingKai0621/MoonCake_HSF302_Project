@@ -102,7 +102,6 @@ function initVariantSelector() {
       mainImage.alt = option.dataset.imageAlt || mainImage.alt;
     }
 
-    updateText('.selected-sku', option.dataset.sku || '');
     updateOptionalRows(
       '.variant-filling-row',
       '.selected-filling',

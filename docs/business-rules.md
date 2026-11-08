@@ -1,16 +1,25 @@
-> Cập nhật phạm vi theo yêu cầu người dùng ngày 02/11/2026: bổ sung VNPay Sandbox bên cạnh COD, góp ý chung và sửa địa chỉ khi đơn còn PLACED. Phần COD-only bên dưới mô tả MVP cũ. Không cho đặt vượt tồn; báo số lượng còn lại. V9/V10 bổ sung giao dịch VNPay và góp ý. VNPay chỉ đánh dấu PAID qua IPN hợp lệ; đơn online chưa trả tiền không chuyển xử lý/giao. Đơn đã khởi tạo VNPay không tự hủy để tránh xung đột giao dịch đang xử lý; cần đối soát và hoàn tiền qua merchant. Chưa tự động hóa refund/querydr.
-
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.6 — 23/10/2026
+**Phiên bản tài liệu:** 1.7 — 08/11/2026
 
-**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt làm tròn tổng tiền COD và cho khách sửa thông tin nhận hàng của đơn `PLACED`; schema vẫn giữ 19 bảng
+**Trạng thái:** Bổ sung thanh toán VNPay Sandbox bên cạnh COD và chốt vòng đời đơn thanh toán online; Flyway V9–V12 nâng schema lên 24 bảng
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.7
+
+- Khách chọn **COD** hoặc **VNPay Sandbox** khi checkout. Phương thức được **cố định từ lúc đặt**; không còn nút chuyển đơn COD sang VNPay.
+- Đơn VNPay chưa trả tiền ở trạng thái "chờ thanh toán" (`PLACED` + `UNPAID`). Mỗi lần thanh toán là một giao dịch 15 phút; khách được **thanh toán lại** khi không còn giao dịch đang chờ.
+- Đơn VNPay chưa trả tiền **được hủy ngay** (khách hoặc Admin). Khi bấm hủy, hệ thống tự hỏi VNPay một lần: đã trả thì từ chối, chưa trả thì đóng giao dịch và hủy. Sửa lỗi đơn bị kẹt mãi ở `PLACED`.
+- Tiền VNPay về **sau khi đơn đã hủy** được ghi nhận `PAID` và hiển thị "cần hoàn tiền" cho Admin.
+- Đơn VNPay đã `PAID`: khách không tự hủy; Admin được hủy khi `PLACED`/`PROCESSING` và **hoàn tiền thủ công** qua cổng merchant VNPay (MVP chưa tự động hoàn tiền).
+- Admin chỉ chuyển đơn VNPay sang `PROCESSING` khi đã `PAID`; hoàn tất đơn VNPay không thu COD lần nữa.
+- Sửa thông tin nhận hàng áp dụng cho mọi đơn `PLACED` thuộc khách, **không phụ thuộc phương thức thanh toán**, vì không làm đổi số tiền.
+- Flyway V9 thêm `VNPAY_ATTEMPT` và cho phép `PAYMENT.payment_method = VNPAY`. V10 (`FEEDBACK`), V11 (`PRODUCT_VIDEO`) và V12 (`STOCK_BATCH`, `BATCH_ALLOCATION`) thuộc các tính năng góp ý, video sản phẩm và lô hàng; schema hiện có **24 bảng**.
 
 ### Thay đổi chính trong phiên bản 1.6
 
@@ -82,7 +91,7 @@
 
 ## 1. Phạm vi MVP
 
-MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đăng ký/đăng nhập khách hàng, giỏ hàng, checkout, đặt hàng, COD, chiết khấu theo số lượng và trang Admin quản lý sản phẩm/đơn hàng/tồn kho. Khách chưa đăng nhập được xem catalog; khách **phải đăng nhập bằng tài khoản CUSTOMER đang ACTIVE** trước khi thêm vào giỏ, tạo hộp CUSTOM hoặc đặt hàng.
+MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đăng ký/đăng nhập khách hàng, giỏ hàng, checkout, đặt hàng, thanh toán COD hoặc VNPay Sandbox, chiết khấu theo số lượng và trang Admin quản lý sản phẩm/đơn hàng/tồn kho. Khách chưa đăng nhập được xem catalog; khách **phải đăng nhập bằng tài khoản CUSTOMER đang ACTIVE** trước khi thêm vào giỏ, tạo hộp CUSTOM hoặc đặt hàng.
 
 **Bốn cách mua hàng:**
 
@@ -149,38 +158,88 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 
 ## 5. Checkout, đơn hàng và trạng thái
 
-- Khi khách `CUSTOMER` đã đăng nhập nhấn **Đặt hàng (COD)**, backend tự kiểm tra quyền sở hữu giỏ, SKU/cấu hình đang hợp lệ, đủ tồn kho, tính giá, chiết khấu, phí giao hàng và thông tin người nhận.
-- Nếu hợp lệ, hệ thống tự động tạo `SALES_ORDER`, `ORDER_ITEM`, `ORDER_ITEM_COMPONENT`, `PAYMENT` và cập nhật kho **trong cùng một giao dịch nhất quán**; sau đó hiển thị đặt hàng thành công.
+- Khi khách `CUSTOMER` đã đăng nhập chọn phương thức thanh toán (**COD** hoặc **VNPay**) và nhấn **Đặt hàng**, backend tự kiểm tra quyền sở hữu giỏ, SKU/cấu hình đang hợp lệ, đủ tồn kho, tính giá, chiết khấu, phí giao hàng và thông tin người nhận.
+- Nếu hợp lệ, hệ thống tự động tạo `SALES_ORDER`, `ORDER_ITEM`, `ORDER_ITEM_COMPONENT`, `PAYMENT` và cập nhật kho **trong cùng một giao dịch nhất quán**. Đơn COD hiển thị đặt hàng thành công; đơn VNPay chuyển khách sang cổng VNPay Sandbox (mục 6.2).
 - **Không cần Admin duyệt đơn.** Admin không online thì khách vẫn đặt hàng bình thường.
 - Chuyển trạng thái đơn hợp lệ trong MVP:
   - `PLACED` → `PROCESSING` hoặc `CANCELLED`.
   - `PROCESSING` → `SHIPPING` hoặc `CANCELLED`.
   - `SHIPPING` → `COMPLETED`.
   - `COMPLETED` và `CANCELLED` là trạng thái kết thúc; không chuyển ngược hoặc chuyển sang trạng thái khác.
-- Khách chỉ được tự hủy đơn **của chính mình** khi trạng thái còn `PLACED`. Quyền sở hữu phải lấy từ principal `CUSTOMER` phía server; mã đơn hoặc `customer_id` do trình duyệt gửi không chứng minh quyền sở hữu.
+- Khách chỉ được tự hủy đơn **của chính mình** khi trạng thái còn `PLACED` và **chưa thanh toán** (`PAYMENT.UNPAID`). Quyền sở hữu phải lấy từ principal `CUSTOMER` phía server; mã đơn hoặc `customer_id` do trình duyệt gửi không chứng minh quyền sở hữu.
 - Admin được hủy đơn khi trạng thái còn `PLACED` hoặc `PROCESSING`. Khi đơn đã sang `PROCESSING`, khách không còn nút tự hủy và phải liên hệ cửa hàng nếu cần; Admin quyết định xử lý theo trạng thái thực tế.
+- Hủy đơn VNPay còn tuân theo điều kiện đối soát ở mục 6.3.
 - Yêu cầu hủy từ `SHIPPING`, `COMPLETED` hoặc `CANCELLED` bị từ chối và không tự hoàn tồn. Đổi/trả sau khi giao nằm ngoài phạm vi MVP.
 - Chuyển sang `CANCELLED` phải là conditional update theo đúng trạng thái hiện tại và yêu cầu cập nhật đúng một dòng. Request hủy lặp/đồng thời hoặc cạnh tranh với chuyển trạng thái khác không được hoàn kho hay ghi movement lần hai.
 - Đơn `COMPLETED` là giao thành công theo xác nhận vận hành. Không tự chuyển `COMPLETED` khi khách chỉ nhấn đặt hàng.
-- Khách được sửa snapshot tên người nhận, số điện thoại, địa chỉ và ghi chú của đơn thuộc mình khi còn `PLACED`. Không hỗ trợ sửa sản phẩm, số lượng, giá, phí, payment hoặc các snapshot khác của đơn đã đặt.
-- Chưa hỗ trợ hoàn tiền, đổi trả sau giao, nhiều kiện giao hàng hoặc nhiều địa chỉ giao cho cùng một đơn trong MVP.
+- Khách được sửa snapshot tên người nhận, số điện thoại, địa chỉ và ghi chú của đơn thuộc mình khi còn `PLACED`, với **mọi phương thức thanh toán** (phí giao hàng không phụ thuộc địa chỉ nên số tiền không đổi). Không hỗ trợ sửa sản phẩm, số lượng, giá, phí, payment hoặc các snapshot khác của đơn đã đặt.
+- Chưa hỗ trợ hoàn tiền tự động, đổi trả sau giao, nhiều kiện giao hàng hoặc nhiều địa chỉ giao cho cùng một đơn trong MVP.
 - `SALES_ORDER` lưu **snapshot**: người mua, người nhận, địa chỉ, phí vận chuyển, tổng tiền và trạng thái. `ORDER_ITEM` lưu snapshot SKU/tên/giá/phần trăm giảm/thành tiền; `ORDER_ITEM_COMPONENT` lưu chi tiết hộp. Đơn cũ không thay đổi khi sản phẩm hoặc chính sách giảm giá được cập nhật.
 - `subtotal_amount` là tổng giá gốc của tất cả dòng trước giảm; `discount_amount` là tổng giảm thực tế của các dòng đủ điều kiện; phí giao hàng không tham gia giảm giá.
 - Tổng trước làm tròn là `subtotal_amount - discount_amount + shipping_fee`. Chỉ sau bước này mới làm tròn đến 1.000 VND gần nhất theo `HALF_UP`.
 - Kiểm tra tổng tiền lưu: **`total_amount = subtotal_amount - discount_amount + shipping_fee + rounding_adjustment`**; `rounding_adjustment` nằm trong khoảng `-499..500` VND. Tổng tiền, chiết khấu và làm tròn đều tính trên server; **không tin số tiền frontend gửi lên**.
 - Mọi bước tạo đơn, snapshot, payment, trừ kho, ghi movement và chuyển giỏ sang `CHECKED_OUT` phải commit cùng nhau. Nếu bất kỳ bước nào thất bại thì rollback toàn bộ và không hiển thị thành công.
 
-## 6. Thanh toán — MVP chỉ COD
+## 6. Thanh toán — COD và VNPay Sandbox
 
-- Chỉ cho phép `PAYMENT.payment_method = COD` ở MVP; khi tạo đơn, tạo bản ghi `PAYMENT` ở trạng thái `UNPAID`, số tiền phải thu bằng `SALES_ORDER.total_amount` đã làm tròn.
-- Chỉ chuyển sang `PAID` và ghi `paid_at` **khi có xác nhận hàng đã giao và tiền COD thực sự được thu**. Không ghi `PAID` tại checkout.
+### 6.1. Quy tắc chung
+
+- MVP hỗ trợ hai phương thức `PAYMENT.payment_method`: `COD` và `VNPAY`. Khách chọn tại checkout; mặc định là COD. VNPay chỉ hiển thị khi cấu hình `VNPAY_ENABLED=true` và đủ thông tin merchant.
+- Khi tạo đơn, tạo **đúng một** bản ghi `PAYMENT` ở trạng thái `UNPAID`, số tiền bằng `SALES_ORDER.total_amount` đã làm tròn. Không ghi `PAID` tại checkout.
+- **Phương thức thanh toán cố định từ lúc đặt hàng.** Không có thao tác đổi COD ↔ VNPay sau checkout. Khách muốn đổi phương thức thì hủy đơn (khi còn được hủy) rồi đặt lại.
+- Mỗi đơn có tối đa một khoản `PAID`. Không tạo `PAYMENT` mới cho các lần thử thanh toán; các lần thử VNPay được lưu trong `VNPAY_ATTEMPT`.
+- Tồn kho được trừ khi checkout thành công với **cả hai** phương thức; đơn VNPay chưa trả tiền vẫn giữ hàng cho đến khi được thanh toán hoặc bị hủy.
+- Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
+- Không chuyển khoản thủ công, không upload biên lai và không tự động hủy theo lịch (scheduler) trong MVP.
+
+### 6.2. COD
+
+- Chỉ chuyển sang `PAID` và ghi `paid_at` **khi có xác nhận hàng đã giao và tiền COD thực sự được thu**.
 - Xác nhận giao thành công và thu COD là một thao tác nghiệp vụ nguyên tử: chuyển đơn `SHIPPING → COMPLETED`, chuyển payment `UNPAID → PAID` và ghi `paid_at` trong cùng transaction. Nếu một bước thất bại thì không cập nhật bước còn lại.
 - Gọi lặp thao tác xác nhận giao/thu COD không được tạo payment mới, ghi đè `paid_at` hoặc thực hiện lại tác động khác; lần sau phải trả về kết quả đã xử lý hoặc bị từ chối an toàn.
-- Khi đơn COD bị hủy hợp lệ trước giao, bản ghi `PAYMENT` giữ `UNPAID` và `paid_at` giữ null; trạng thái `SALES_ORDER.CANCELLED` thể hiện đơn đã hủy. MVP không thêm trạng thái payment `CANCELLED` và không có hoàn tiền vì chưa thu tiền.
-- Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
-- Không chuyển khoản thủ công, không upload biên lai, không giữ hàng chờ chuyển khoản, không timeout 24 giờ và không tích hợp gateway trong MVP.
-- Thiết kế quan hệ cho phép `SALES_ORDER` → nhiều `PAYMENT` về sau (các lần thử thanh toán), nhưng MVP thông thường có **một bản ghi COD/đơn**; cấm ghi nhận nhiều khoản `PAID` cho cùng một đơn.
-- **Tương lai, không triển khai hiện tại:** payOS/VietQR, QR code, thông tin giao dịch nhà cung cấp, webhook, kiểm tra chữ ký, các trạng thái giao dịch online — thêm bằng migration mới khi thật sự triển khai.
+- Khi đơn COD bị hủy hợp lệ trước giao, `PAYMENT` giữ `UNPAID` và `paid_at` giữ null; `SALES_ORDER.CANCELLED` thể hiện đơn đã hủy. Không có trạng thái payment `CANCELLED` và không hoàn tiền vì chưa thu tiền.
+
+### 6.3. VNPay Sandbox
+
+**Trạng thái hiển thị cho khách** (suy ra từ dữ liệu, không thêm cột):
+
+| Trạng thái hiển thị | Điều kiện |
+|---|---|
+| Chờ thanh toán | Đơn `PLACED`, payment `UNPAID` |
+| Đang thanh toán | Có `VNPAY_ATTEMPT` `PENDING` chưa hết hạn |
+| Đã thanh toán | Payment `PAID` |
+
+**Thanh toán và thanh toán lại**
+
+- Sau khi đặt đơn VNPay, hệ thống tạo một `VNPAY_ATTEMPT` (`PENDING`, hết hạn sau **15 phút**) và chuyển khách sang cổng Sandbox. Số tiền luôn lấy từ `SALES_ORDER.total_amount` trong database.
+- Nếu cấu hình VNPay lỗi tại thời điểm checkout, toàn bộ checkout rollback; giỏ vẫn `ACTIVE`.
+- Mỗi đơn có tối đa **một** attempt `PENDING`. Bấm thanh toán lại khi attempt cũ còn hạn thì dùng lại attempt đó; khi attempt cũ đã hết hạn thì hệ thống tự hỏi VNPay, đóng attempt cũ (nếu chưa trả) rồi tạo attempt mới.
+- Khách được **thanh toán lại** đơn VNPay của mình khi đơn còn `PLACED` và payment `UNPAID`.
+
+**Xác nhận đã trả tiền**
+
+- Chỉ chuyển payment `UNPAID → PAID` (và attempt `PENDING → PAID`) khi nhận **IPN** hoặc kết quả **truy vấn `querydr`** hợp lệ: đúng chữ ký HMAC-SHA512, đúng `TmnCode`, đúng mã giao dịch, đúng số tiền và trạng thái giao dịch thành công.
+- **Return URL chỉ hiển thị thông báo**, không bao giờ tự cập nhật `PAID`.
+- IPN/kết quả lặp cho attempt đã xử lý không thay đổi dữ liệu lần hai.
+- Backend phải có địa chỉ HTTPS công khai (ví dụ Cloudflare Tunnel) để VNPay gọi được IPN. Admin có nút **Kiểm tra thanh toán VNPay** để hệ thống gọi `querydr` khi IPN bị lỡ.
+
+**Hủy đơn VNPay**
+
+- Khách (khi `PLACED`) hoặc Admin (khi `PLACED`/`PROCESSING`) bấm hủy một lần. Nếu đơn có attempt `PENDING`, hệ thống tự hỏi VNPay (`querydr`) trước khi hủy:
+  - VNPay báo **đã thanh toán** → từ chối hủy, báo đơn đã được thanh toán.
+  - VNPay báo **chưa thanh toán** (không có giao dịch, chưa hoàn tất hoặc thất bại) → attempt `FAILED`, đơn được hủy ngay, hoàn tồn đúng một lần; payment giữ `UNPAID`.
+  - VNPay **không trả lời hoặc chưa có kết quả** → từ chối, giữ nguyên dữ liệu, báo thử lại sau.
+- Đơn VNPay **đã trả tiền**: khách không tự hủy mà liên hệ cửa hàng. Admin được hủy khi `PLACED`/`PROCESSING`; payment giữ `PAID` và Admin **hoàn tiền thủ công** trên cổng merchant VNPay. MVP không gọi API hoàn tiền.
+- **Tiền về muộn:** nếu khách vẫn trả trên trang VNPay cũ sau khi đơn đã hủy, IPN hợp lệ vẫn được ghi nhận: attempt và payment chuyển `PAID`, đơn giữ `CANCELLED`. Trang Admin hiển thị "Cần hoàn tiền" để Admin hoàn tiền thủ công; không mở lại đơn.
+
+**Xử lý và hoàn tất**
+
+- Admin chỉ chuyển đơn VNPay `PLACED → PROCESSING` khi payment đã `PAID`.
+- `SHIPPING → COMPLETED` của đơn VNPay không thu COD và không đổi payment.
+
+### 6.4. Tương lai, không triển khai hiện tại
+
+- payOS/VietQR hoặc cổng thanh toán khác, hoàn tiền tự động qua API, tự động hủy đơn chưa thanh toán theo lịch, nhiều lần `PAID` một phần — thêm bằng migration và phiên bản tài liệu mới khi thật sự triển khai.
 
 ## 7. Chiết khấu số lượng — hai nhóm tách biệt
 
@@ -255,7 +314,8 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Admin **không phải online để khách đặt hàng**. Một đơn mới tự tạo trong hệ thống và được nhân viên xử lý sau.
 - Không xóa cứng sản phẩm, cấu hình, khách hàng, đơn hàng, bản ghi thanh toán, biến động kho khi chúng đã được dữ liệu lịch sử tham chiếu; sử dụng `is_active` hoặc trạng thái phù hợp.
 - Doanh nghiệp có thể cung cấp thông tin trong `BUSINESS` và `SALES_ORDER.business_id`; chiết khấu số lượng **không phụ thuộc** vào có `BUSINESS` hay không.
-- Chưa có các module kế toán, nhà cung cấp, kho đa địa điểm, lô sản xuất, hóa đơn VAT, vận chuyển qua API, đổi trả sau giao hay sản xuất theo công đoạn.
+- Chưa có các module kế toán, nhà cung cấp, kho đa địa điểm, hóa đơn VAT, vận chuyển qua API, đổi trả sau giao hay sản xuất theo công đoạn.
+- Flyway V10–V12 đã thêm góp ý khách hàng, video sản phẩm và theo dõi tồn theo lô (`STOCK_BATCH`, `BATCH_ALLOCATION`). Quy tắc nghiệp vụ chi tiết của lô hàng do Admin owner bổ sung ở phiên bản sau; cho đến khi được chốt, tổng tồn có thể bán vẫn lấy theo `INVENTORY_BALANCE.available_quantity`.
 
 ## 11. Ranh giới Flyway / Backend
 
@@ -265,7 +325,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM và V8 thêm snapshot chênh lệch làm tròn COD. Flyway hiện ở version 8; số bảng vẫn là 19. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`. Flyway hiện ở version 12; schema có 24 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V12. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -281,6 +341,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Kiểm tra tier active không chồng khoảng; áp dụng công thức làm tròn v1.1 nhất quán trên từng đơn vị và tổng đơn.
 - Customer cancellation phải dùng POST có CSRF, xác minh đơn thuộc khách hiện tại và chỉ nhận `PLACED`; Admin cancellation nhận `PLACED`/`PROCESSING`. Cả hai gọi cùng một service/transaction hủy, không sao chép logic hoàn kho.
 - Customer delivery update phải dùng POST có CSRF, lấy ownership từ principal và conditional update `WHERE order_status = 'PLACED'`; không được nhận `customer_id` từ form hoặc thay đổi các snapshot tài chính/sản phẩm.
+- VNPay: chỉ ghi `PAID` từ IPN/`querydr` đã kiểm chữ ký và số tiền; đối soát attempt hết hạn trước khi hủy hoặc thanh toán lại; xử lý IPN lặp idempotent; không bao giờ tin Return URL.
 - Idempotency cho hủy đơn/hoàn kho, ghi nhận COD đúng một lần, thao tác Admin PACK đồng bộ, quản lý chuyển trạng thái đơn hợp lệ.
 - Tạo/activate SKU có tồn phải đồng thời bảo đảm tồn tại `INVENTORY_BALANCE`; không cho mở bán SKU thiếu balance.
 - Mọi snapshot đơn hàng không được thay đổi khi dữ liệu sản phẩm/cấu hình gốc cập nhật.
@@ -334,6 +395,19 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-43 | Khách sửa thông tin nhận hàng của đơn `PLACED` thuộc chính mình | Cập nhật tên, điện thoại, địa chỉ, ghi chú; sản phẩm, tiền, payment và tồn kho giữ nguyên |
 | BR-44 | Khách A sửa thông tin nhận hàng của đơn khách B | Từ chối; không tiết lộ và không cập nhật đơn |
 | BR-45 | Đơn đồng thời chuyển `PLACED → PROCESSING` khi khách lưu địa chỉ | Chỉ một thao tác thắng; update địa chỉ thất bại nếu trạng thái không còn `PLACED` |
+| BR-46 | Checkout chọn VNPay | Tạo đơn `PLACED`, payment `VNPAY`/`UNPAID`, một attempt `PENDING` 15 phút, trừ tồn một lần, chuyển sang cổng Sandbox |
+| BR-47 | IPN thành công hợp lệ, sau đó IPN lặp | Lần đầu payment `PAID` + `paid_at`; lần lặp không thay đổi dữ liệu |
+| BR-48 | IPN sai chữ ký, sai số tiền hoặc sai `TmnCode` | Từ chối; payment vẫn `UNPAID` |
+| BR-49 | Khách quay về từ Return URL nhưng chưa có IPN | Chỉ hiển thị thông báo; payment không đổi |
+| BR-50 | Khách hủy đơn VNPay có attempt mở, `querydr` báo chưa thanh toán | Attempt `FAILED`; đơn `CANCELLED` ngay, hoàn tồn một lần, payment giữ `UNPAID` |
+| BR-51 | Đơn VNPay đã hủy, sau đó IPN thành công hợp lệ đến | Payment `PAID`, đơn giữ `CANCELLED`; Admin thấy "Cần hoàn tiền" |
+| BR-52 | Attempt hết hạn, `querydr` xác nhận đã thanh toán; khách hủy | Ghi `PAID`; từ chối hủy |
+| BR-53 | Hủy đơn VNPay khi `querydr` lỗi kết nối hoặc chưa có kết quả | Từ chối hủy; không thay đổi dữ liệu |
+| BR-54 | Khách thanh toán lại khi attempt cũ đã hết hạn và chưa trả | Attempt cũ `FAILED`, tạo attempt mới; vẫn chỉ một payment cho đơn |
+| BR-55 | Admin chuyển đơn VNPay chưa `PAID` sang `PROCESSING` | Từ chối |
+| BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |
+| BR-57 | Đơn COD | Không có nút thanh toán VNPay; không thể đổi sang VNPay |
+| BR-58 | Hoàn tất đơn VNPay đã `PAID` | `SHIPPING → COMPLETED`; không thu COD, payment không đổi |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 
@@ -347,8 +421,8 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 8. Không đưa payOS/VietQR, webhook, reservation, duyệt đơn, quản lý lô hay nghiệp vụ ngoài MVP vào migration đầu tiên.
 9. Khi phát hiện khác biệt giữa Physical DDL và quy tắc ở đây: **liệt kê điểm mâu thuẫn và đề xuất cách xử lý, chờ xác nhận rồi mới sửa schema/migration**.
 10. Kết thúc phải báo cáo: file đã tạo/sửa, lệnh test đã chạy, bảng/FK/index tạo thành công hay chưa, lỗi còn tồn tại. Không khẳng định thành công nếu chưa chạy SQL Server thật.
-11. Xác nhận các quyết định v1.6 đã được thể hiện nhất quán: đăng nhập trước khi mua, đăng ký ACCOUNT + CUSTOMER nguyên tử, một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic, checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện, khách chỉ sửa thông tin nhận hàng của đơn `PLACED` thuộc mình, quyền hủy đơn phân biệt giữa Customer/Admin và sáu bậc `GIFT_BOX` độc lập với hai bậc `MOONCAKE`.
+11. Xác nhận các quyết định v1.7 đã được thể hiện nhất quán: đăng nhập trước khi mua, đăng ký ACCOUNT + CUSTOMER nguyên tử, một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic, phương thức thanh toán cố định từ checkout, VNPay chỉ `PAID` qua IPN/`querydr` hợp lệ và đối soát trước khi hủy, checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện, khách chỉ sửa thông tin nhận hàng của đơn `PLACED` thuộc mình, quyền hủy đơn phân biệt giữa Customer/Admin và sáu bậc `GIFT_BOX` độc lập với hai bậc `MOONCAKE`.
 
 ---
 
-**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: catalog công khai nhưng khách phải đăng ký/đăng nhập trước khi mua; giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động COD; checkout trừ tồn một lần; khách chỉ sửa thông tin nhận hàng hoặc tự hủy đơn `PLACED` của mình, Admin có thể hủy `PLACED`/`PROCESSING`, và mọi hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Các chức năng online payment được để cho giai đoạn sau.
+**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: catalog công khai nhưng khách phải đăng ký/đăng nhập trước khi mua; giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động với COD hoặc VNPay, phương thức cố định từ lúc đặt; checkout trừ tồn một lần; VNPay chỉ được coi là đã trả khi VNPay xác nhận hợp lệ, và luôn đối soát trước khi hủy; khách chỉ sửa thông tin nhận hàng hoặc tự hủy đơn `PLACED` chưa thanh toán của mình, Admin có thể hủy `PLACED`/`PROCESSING`, và mọi hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Hoàn tiền tự động và các cổng thanh toán khác để cho giai đoạn sau.

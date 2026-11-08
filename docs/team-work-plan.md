@@ -1,10 +1,10 @@
 # MoonCake MVP — Team Work Plan
 
-**Version:** 1.5
+**Version:** 1.6
 
-**Date:** 23/10/2026
+**Date:** 08/11/2026
 
-**Status:** Approved current ownership after Foundation; shared cancellation and COD cash-rounding contracts clarified
+**Status:** Approved current ownership after Foundation; v1.6 assigns COD/VNPay payment processing to Customer Sales and adds the instructor-graded n-layer rules
 **Scope:** Four-member HSF302 team, Spring Boot MVC + Thymeleaf SSR, SQL Server, COD-only MVP
 
 ## 1. Purpose
@@ -41,7 +41,8 @@ Develop vertically by feature: persistence, service, MVC controller, Thymeleaf v
 - Authenticated customer cart and cart-line operations.
 - CUSTOM gift-box creation/editing, exact-capacity validation, and ownership checks.
 - Server-side pricing and volume discounts.
-- COD checkout, immutable order/payment/component snapshots, and atomic sale inventory deduction.
+- COD/VNPay checkout, immutable order/payment/component snapshots, and atomic sale inventory deduction.
+- Payment processing: `PaymentProcessor` Strategy (COD, VNPay), VNPay attempts, IPN/`querydr` reconciliation.
 - Customer order history/detail, delivery-information updates, and self-cancellation while an owned order is `PLACED`.
 - Customer-facing controllers, forms/DTOs, templates, authorization checks, and tests for those flows.
 
@@ -75,6 +76,7 @@ Develop vertically by feature: persistence, service, MVC controller, Thymeleaf v
 - Customer-facing methods of `OrderQueryService`
 - Shared `OrderCancellationService` and its single transaction implementation
 - Sale-deduction methods of `InventoryService`
+- `PaymentProcessor`, `PaymentProcessorRegistry`, and the VNPay payment service contract
 
 ### Required behavior
 
@@ -147,7 +149,7 @@ Foundation-owned artifacts are:
 
 Changing a shared entity, enum, contract, or configuration after Foundation requires review from every affected owner.
 
-Applied Flyway V1/V2/V3/V4/V5/V6/V7/V8 files are immutable. A genuine schema change requires a written Business Rules/ERD comparison, team approval, and a new migration version. Never let Hibernate create or update schema.
+Applied Flyway V1 through V12 files are immutable. A genuine schema change requires a written Business Rules/ERD comparison, team approval, and a new migration version. Never let Hibernate create or update schema.
 
 The authenticated-customer decision does not require a migration: new carts use `customer_id`, leave `guest_token` null, and new retail orders have `customer_id` at the application boundary.
 

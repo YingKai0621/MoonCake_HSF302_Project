@@ -225,7 +225,7 @@
         </div>
 
         <!-- Product Grid (Responsive: 1 col mobile, 2 col tablet, 3 col desktop) -->
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+        <div id="product-grid" class="motion-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
           <!-- Thymeleaf Iteration over Category Products -->
           <article th:each="p : ${products}"
                    th:data-id="${p.id}"

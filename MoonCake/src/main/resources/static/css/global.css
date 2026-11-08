@@ -86,3 +86,94 @@ main .text-sm { font-size: 1rem; line-height: 1.65; }
 .bg-gold { background-color: #edc565; }
 main input[type="search"] { min-height: 46px; font-size: 16px; }
 main table th, main table td { padding: 12px 16px; }
+
+:root {
+  --motion-100: 100ms;
+  --motion-200: 200ms;
+  --motion-300: 300ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mc-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mc-fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mc-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+main button:not(:disabled),
+main a.bg-gold {
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: var(--motion-200), var(--motion-200), var(--motion-200), var(--motion-100);
+}
+
+main button:not(:disabled):active,
+main a.bg-gold:active {
+  transform: scale(0.97);
+}
+
+.site-header__dropdown[open] .site-header__dropdown-menu {
+  transform-origin: top left;
+  animation: mc-pop-in var(--motion-200) var(--ease-out);
+}
+
+.collapsible[open] > :not(summary) {
+  animation: mc-fade-down var(--motion-200) var(--ease-out);
+}
+
+.motion-stagger > * {
+  animation: mc-fade-up var(--motion-300) var(--ease-out) backwards;
+}
+
+.motion-stagger > :nth-child(2) { animation-delay: 30ms; }
+.motion-stagger > :nth-child(3) { animation-delay: 60ms; }
+.motion-stagger > :nth-child(4) { animation-delay: 90ms; }
+.motion-stagger > :nth-child(5) { animation-delay: 120ms; }
+.motion-stagger > :nth-child(6) { animation-delay: 150ms; }
+.motion-stagger > :nth-child(n + 7) { animation-delay: 180ms; }
+
+.flash-message {
+  animation: mc-fade-down var(--motion-300) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main button:not(:disabled):active,
+  main a.bg-gold:active {
+    transform: none;
+  }
+
+  .site-header__dropdown[open] .site-header__dropdown-menu,
+  .collapsible[open] > :not(summary),
+  .motion-stagger > *,
+  .flash-message,
+  .order-progress__step,
+  .order-progress__step + .order-progress__step::after {
+    animation: none;
+  }
+}

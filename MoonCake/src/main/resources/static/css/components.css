@@ -205,9 +205,6 @@ select option {
   background: rgba(209, 168, 90, 0.2);
 }
 
-.order-progress__step.is-done + .order-progress__step::before {
-  background: #D1A85A;
-}
 
 .order-progress__marker {
   position: relative;
@@ -275,5 +272,35 @@ select option {
 
   .order-progress__label {
     font-size: 14px;
+  }
+}
+
+.order-progress__step {
+  animation: mc-fade-up var(--motion-300) var(--ease-out) backwards;
+}
+
+.order-progress__step:nth-child(2) { animation-delay: 80ms; }
+.order-progress__step:nth-child(3) { animation-delay: 160ms; }
+.order-progress__step:nth-child(4) { animation-delay: 240ms; }
+
+.order-progress__step.is-done + .order-progress__step::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  right: 50%;
+  left: -50%;
+  height: 1px;
+  background: #D1A85A;
+  transform-origin: left center;
+  animation: mc-line-fill var(--motion-300) var(--ease-out) backwards;
+  animation-delay: inherit;
+}
+
+@keyframes mc-line-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }

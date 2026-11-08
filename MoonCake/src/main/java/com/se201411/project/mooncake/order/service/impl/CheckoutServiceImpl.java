@@ -36,6 +36,8 @@ import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.CheckoutService;
 import com.se201411.project.mooncake.order.service.DeliveryAddressService;
+import com.se201411.project.mooncake.order.service.PaymentProcessor;
+import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -46,9 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.Clock;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,9 +60,7 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
-
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-    private static final DateTimeFormatter ORDER_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final CartService cartService;
     private final PricingService pricingService;
@@ -75,7 +73,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final PaymentRepository paymentRepository;
     private final EntityManager entityManager;
     private final Clock clock;
-    private final com.se201411.project.mooncake.order.service.VnpayPaymentService vnpay;
+    private final PaymentProcessorRegistry paymentProcessorRegistry;
 
     public CheckoutServiceImpl(
         CartService cartService,
@@ -89,7 +87,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         PaymentRepository paymentRepository,
         EntityManager entityManager,
         Clock clock,
-        com.se201411.project.mooncake.order.service.VnpayPaymentService vnpay
+        PaymentProcessorRegistry paymentProcessorRegistry
     ) {
         this.cartService = cartService;
         this.pricingService = pricingService;
@@ -102,7 +100,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         this.paymentRepository = paymentRepository;
         this.entityManager = entityManager;
         this.clock = clock;
-        this.vnpay = vnpay;
+        this.paymentProcessorRegistry = paymentProcessorRegistry;
     }
 
     @Override
@@ -136,6 +134,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         CheckoutForm form
     ) {
         validateForm(form);
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
+            form.getPaymentMethod()
+        );
         String shippingAddress = deliveryAddressService.buildShippingAddress(
             form.getStreetAddress(),
             form.getWardCode(),
@@ -163,9 +164,8 @@ public class CheckoutServiceImpl implements CheckoutService {
             demands
         ));
 
-        String paymentUrl = form.getPaymentMethod() == PaymentMethod.VNPAY
-            ? vnpay.start(order.getOrderCode(), form.getPaymentIp()) : null;
-        return new CheckoutResult(order.getOrderCode(), paymentUrl);
+        Optional<String> paymentUrl = paymentProcessor.startPayment(order, form.getPaymentIp());
+        return new CheckoutResult(order.getOrderCode(), paymentUrl.orElse(null));
     }
 
     @Override
@@ -311,7 +311,8 @@ public class CheckoutServiceImpl implements CheckoutService {
     private void savePayment(
         SalesOrder order,
         BigDecimal total,
-        LocalDateTime now, PaymentMethod method
+        LocalDateTime now,
+        PaymentMethod method
     ) {
         Payment payment = new Payment();
         payment.setOrder(order);
@@ -362,6 +363,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         if (form == null || form.getCartId() == null || form.getCartId() <= 0) {
             throw new BusinessRuleViolationException("Giỏ hàng không hợp lệ");
         }
+        if (form.getPaymentMethod() == null) {
+            throw new BusinessRuleViolationException("Vui lòng chọn phương thức thanh toán");
+        }
         if (isBlank(form.getRecipientName())) {
             throw new BusinessRuleViolationException("Vui lòng nhập tên người nhận");
         }
@@ -390,7 +394,6 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     private String generateOrderCode() {
-        String date = LocalDate.now(clock).format(ORDER_DATE);
         String randomPart = UUID.randomUUID()
             .toString()
             .replace("-", "")

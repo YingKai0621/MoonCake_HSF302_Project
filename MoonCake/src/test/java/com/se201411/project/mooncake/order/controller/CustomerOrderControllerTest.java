@@ -32,7 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class CustomerOrderControllerTest {
-
     private static final ShopperIdentity CUSTOMER = ShopperIdentity.forCustomer(7L);
 
     @Mock
@@ -92,6 +91,8 @@ class CustomerOrderControllerTest {
             "Địa chỉ",
             null,
             "Chưa thanh toán",
+            "COD",
+            false,
             List.of(),
             0,
             "590.000đ",

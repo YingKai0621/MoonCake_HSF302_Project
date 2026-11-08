@@ -14,6 +14,7 @@ import com.se201411.project.mooncake.order.service.DeliveryAddressService;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,7 +33,6 @@ import java.util.Locale;
 
 @Controller
 public class CheckoutController {
-
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CheckoutService checkoutService;
@@ -72,7 +72,7 @@ public class CheckoutController {
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes,
-        jakarta.servlet.http.HttpServletRequest request
+        HttpServletRequest request
     ) {
         form.setPaymentIp(request.getRemoteAddr());
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
@@ -97,7 +97,9 @@ public class CheckoutController {
 
         try {
             CheckoutResult result = checkoutService.placeOrder(customer, form);
-            if (result.paymentUrl() != null) return "redirect:" + result.paymentUrl();
+            if (result.needsPaymentRedirect()) {
+                return "redirect:" + result.paymentUrl();
+            }
             return "redirect:/orders/" + result.orderCode() + "/success";
         } catch (MoonCakeException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());

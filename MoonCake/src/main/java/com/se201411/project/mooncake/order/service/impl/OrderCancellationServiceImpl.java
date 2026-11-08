@@ -4,16 +4,21 @@ import com.se201411.project.mooncake.common.exception.BusinessRuleViolationExcep
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
+import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.inventory.dto.InventoryDemand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
+import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.OrderCancellationService;
+import com.se201411.project.mooncake.order.service.PaymentProcessor;
+import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
@@ -30,10 +35,11 @@ import java.util.TreeMap;
 
 @Service
 public class OrderCancellationServiceImpl implements OrderCancellationService {
-
     private final SalesOrderRepository orderRepository;
     private final OrderItemRepository itemRepository;
     private final OrderItemComponentRepository componentRepository;
+    private final PaymentRepository paymentRepository;
+    private final PaymentProcessorRegistry paymentProcessorRegistry;
     private final InventoryService inventoryService;
     private final CurrentCustomerService currentCustomerService;
     private final AdminAccessService adminAccessService;
@@ -43,6 +49,8 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         SalesOrderRepository orderRepository,
         OrderItemRepository itemRepository,
         OrderItemComponentRepository componentRepository,
+        PaymentRepository paymentRepository,
+        PaymentProcessorRegistry paymentProcessorRegistry,
         InventoryService inventoryService,
         CurrentCustomerService currentCustomerService,
         AdminAccessService adminAccessService,
@@ -51,6 +59,8 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         this.orderRepository = orderRepository;
         this.itemRepository = itemRepository;
         this.componentRepository = componentRepository;
+        this.paymentRepository = paymentRepository;
+        this.paymentProcessorRegistry = paymentProcessorRegistry;
         this.inventoryService = inventoryService;
         this.currentCustomerService = currentCustomerService;
         this.adminAccessService = adminAccessService;
@@ -76,7 +86,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, OrderStatus.PLACED);
+        cancelOrder(order, OrderStatus.PLACED, true);
     }
 
     @Override
@@ -96,12 +106,28 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, currentStatus);
+        cancelOrder(order, currentStatus, false);
     }
 
-    private void cancelOrder(SalesOrder order, OrderStatus expectedStatus) {
-        if (orderRepository.onlinePayments(order.getId()) > 0)
-            throw new BusinessRuleViolationException("Đơn đã mở thanh toán VNPay cần liên hệ cửa hàng để đối soát/hoàn tiền; không thể tự hủy.");
+    private void cancelOrder(
+        SalesOrder order,
+        OrderStatus expectedStatus,
+        boolean requestedByCustomer
+    ) {
+        orderRepository.findByIdForUpdate(order.getId());
+        Payment payment = requireSinglePayment(order.getId());
+
+        if (requestedByCustomer && payment.getStatus() == PaymentStatus.PAID) {
+            throw new BusinessRuleViolationException(
+                "Đơn đã thanh toán. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền."
+            );
+        }
+
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
+            payment.getMethod()
+        );
+        paymentProcessor.checkCanCancel(order.getId(), payment);
+
         LocalDateTime now = LocalDateTime.now(clock);
         int changedRows = orderRepository.cancelFromStatus(
             order.getId(),
@@ -122,6 +148,16 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             demands
         );
         inventoryService.restoreForCancellation(command);
+    }
+
+    private Payment requireSinglePayment(long orderId) {
+        List<Payment> payments = paymentRepository.findByOrderId(orderId);
+        if (payments.size() != 1) {
+            throw new BusinessRuleViolationException(
+                "Đơn phải có đúng một bản ghi thanh toán; không thể hủy."
+            );
+        }
+        return payments.get(0);
     }
 
     private List<InventoryDemand> calculateRestoration(long orderId) {

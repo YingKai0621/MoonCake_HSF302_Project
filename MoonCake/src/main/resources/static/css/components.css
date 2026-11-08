@@ -328,3 +328,138 @@ select option {
     transform: scaleX(1);
   }
 }
+
+.reviews-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.reviews-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: reviews-scroll 60s linear infinite;
+}
+
+.reviews-marquee:hover .reviews-marquee__track,
+.reviews-marquee:focus-within .reviews-marquee__track {
+  animation-play-state: paused;
+}
+
+.reviews-marquee__list {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  padding: 28px;
+  border: 1px solid rgba(237, 197, 101, 0.25);
+  background: #0C1626;
+}
+
+.review-card__stars {
+  margin-bottom: 16px;
+  color: rgba(211, 202, 187, 0.3);
+  font-size: 18px;
+  letter-spacing: 4px;
+}
+
+.review-card__stars .is-filled {
+  color: #EDC565;
+}
+
+.review-card__content {
+  flex-grow: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  margin-bottom: 20px;
+  color: #F8F4EB;
+  line-height: 1.7;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.review-card__name {
+  padding-top: 16px;
+  border-top: 1px solid rgba(237, 197, 101, 0.2);
+  color: #EDC565;
+  font-weight: 600;
+}
+
+.reviews-marquee--static {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.reviews-marquee--static .reviews-marquee__track {
+  width: auto;
+  justify-content: center;
+  animation: none;
+}
+
+.reviews-marquee--static .reviews-marquee__list {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@keyframes reviews-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .review-card {
+    width: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviews-marquee {
+    overflow-x: auto;
+  }
+
+  .reviews-marquee__track {
+    animation: none;
+  }
+}
+
+.star-rating {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  gap: 6px;
+}
+
+.star-rating input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.star-rating label {
+  color: rgba(211, 202, 187, 0.35);
+  font-size: 36px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--motion-100, 100ms) ease-out;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #EDC565;
+}
+
+.star-rating input:focus-visible + label {
+  outline: 2px solid #EDC565;
+  outline-offset: 2px;
+}

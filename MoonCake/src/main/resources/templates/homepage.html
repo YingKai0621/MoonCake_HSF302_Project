@@ -611,6 +611,52 @@
     </div>
   </section>
 
+  <section th:unless="${#lists.isEmpty(reviews)}"
+           class="reviews-section py-16 lg:py-20 bg-midnight border-b border-gold/20"
+           aria-labelledby="reviews-title">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 mb-10 text-center">
+      <p class="text-xs uppercase tracking-[0.2em] text-gold mb-3">Khách hàng nói gì</p>
+      <h2 id="reviews-title" class="font-serif text-3xl md:text-4xl font-semibold text-ivory">
+        Những lời nhận xét từ khách hàng
+      </h2>
+    </div>
+
+    <div class="reviews-marquee" th:classappend="${#lists.size(reviews) < 4} ? 'reviews-marquee--static'">
+      <div class="reviews-marquee__track">
+        <ul class="reviews-marquee__list">
+          <li th:each="review : ${reviews}" class="review-card">
+            <p class="review-card__stars"
+               th:attr="aria-label=${review.rating + ' trên 5 sao'}">
+              <span th:each="star : ${#numbers.sequence(1, 5)}"
+                    th:classappend="${star <= review.rating} ? 'is-filled'">★</span>
+            </p>
+            <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
+            <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
+          </li>
+        </ul>
+        <ul th:if="${#lists.size(reviews) >= 4}"
+            class="reviews-marquee__list"
+            aria-hidden="true">
+          <li th:each="review : ${reviews}" class="review-card">
+            <p class="review-card__stars">
+              <span th:each="star : ${#numbers.sequence(1, 5)}"
+                    th:classappend="${star <= review.rating} ? 'is-filled'">★</span>
+            </p>
+            <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
+            <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="text-center mt-10 px-4">
+      <a th:href="@{/feedback}" href="/feedback"
+         class="inline-block border border-gold text-gold hover:bg-gold hover:text-surface font-semibold py-3 px-6 transition-colors">
+        Viết đánh giá của bạn
+      </a>
+    </div>
+  </section>
+
   <!-- 6. BANNER LỜI CẢM ƠN (APPROVED THANK-YOU BANNER) -->
   <section class="py-12 bg-midnight relative border-b border-gold/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">

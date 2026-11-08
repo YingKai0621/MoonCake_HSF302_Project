@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Đánh giá khách hàng')}"></head>
+<body>
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div class="page-heading">
+        <span class="eyebrow">LẮNG NGHE KHÁCH HÀNG</span>
+        <h1>Đánh giá khách hàng</h1>
+        <p>Chỉ đánh giá đã được hiển thị mới xuất hiện trên trang chủ. Góp ý cũ chưa chấm sao không thể hiển thị.</p>
+    </div>
+
+    <p th:if="${#lists.isEmpty(feedbacks)}" class="muted">Chưa có góp ý nào.</p>
+
+    <section th:unless="${#lists.isEmpty(feedbacks)}" class="table-scroll">
+        <table data-search-table>
+            <thead>
+            <tr>
+                <th>Khách hàng</th>
+                <th>Số sao</th>
+                <th>Nội dung</th>
+                <th>Thời gian</th>
+                <th>Trang chủ</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="feedback : ${feedbacks}">
+                <td th:text="${feedback.customerName}">Khách hàng</td>
+                <td th:text="${feedback.rating == null ? '—' : feedback.rating + ' ★'}">5 ★</td>
+                <td style="white-space: pre-wrap" th:text="${feedback.content}">Nội dung</td>
+                <td th:text="${feedback.formattedCreatedAt}">02/11/2026 10:00</td>
+                <td th:text="${feedback.published ? 'Đang hiển thị' : 'Ẩn'}">Ẩn</td>
+                <td>
+                    <form th:if="${!feedback.published and feedback.rating != null}"
+                          th:action="@{/admin/feedback/{id}/publish(id=${feedback.id})}"
+                          method="post">
+                        <button type="submit">Hiển thị</button>
+                    </form>
+                    <form th:if="${feedback.published}"
+                          th:action="@{/admin/feedback/{id}/hide(id=${feedback.id})}"
+                          method="post">
+                        <button type="submit" class="secondary">Ẩn</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

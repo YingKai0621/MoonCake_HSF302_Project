@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.common.exception;
 
+import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
 import com.se201411.project.mooncake.product.controller.AdminCatalogController;
 import com.se201411.project.mooncake.inventory.controller.AdminInventoryController;
 import com.se201411.project.mooncake.order.controller.AdminOrderController;
@@ -9,7 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-@ControllerAdvice(assignableTypes = {AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class})
+@ControllerAdvice(assignableTypes = {AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, AdminFeedbackController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class})
 public class AdminExceptionAdvice {
     @ExceptionHandler({BusinessRuleViolationException.class, ConcurrentOperationException.class, InsufficientStockException.class})
     @ResponseStatus(HttpStatus.CONFLICT)

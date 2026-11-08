@@ -1,0 +1,7 @@
+SET XACT_ABORT ON;
+
+ALTER TABLE dbo.FEEDBACK ADD
+    rating INT NULL
+        CONSTRAINT CK_FEEDBACK_rating CHECK (rating BETWEEN 1 AND 5),
+    is_published BIT NOT NULL
+        CONSTRAINT DF_FEEDBACK_is_published DEFAULT 0;

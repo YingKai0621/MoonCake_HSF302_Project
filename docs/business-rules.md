@@ -1,14 +1,21 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.7 — 08/11/2026
+**Phiên bản tài liệu:** 1.8 — 08/11/2026
 
-**Trạng thái:** Bổ sung thanh toán VNPay Sandbox bên cạnh COD và chốt vòng đời đơn thanh toán online; Flyway V9–V12 nâng schema lên 24 bảng
+**Trạng thái:** Bổ sung đánh giá có số sao và Admin duyệt trước khi hiển thị; Flyway V13 thêm cột cho `FEEDBACK`, schema vẫn 24 bảng
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.8
+
+- Góp ý của khách kèm **số sao từ 1 đến 5**. Khách phải đăng nhập để gửi; hệ thống lấy khách từ tài khoản đang đăng nhập, không nhận `customer_id` từ form.
+- Góp ý mới luôn ở trạng thái **ẩn**. Chỉ Admin được bấm **Hiển thị** hoặc **Ẩn**; góp ý cũ chưa có số sao không thể hiển thị.
+- Trang chủ hiển thị tối đa 20 đánh giá đã được duyệt, mới nhất trước, gồm số sao, nội dung và tên khách. Form góp ý báo trước cho khách rằng đánh giá được duyệt có thể hiển thị kèm tên.
+- Flyway V13 thêm `FEEDBACK.rating` (`INT NULL`, kiểm tra 1–5) và `FEEDBACK.is_published` (`BIT NOT NULL`, mặc định 0). Không thêm bảng; schema vẫn **24 bảng**.
 
 ### Thay đổi chính trong phiên bản 1.7
 
@@ -324,7 +331,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`. Flyway hiện ở version 12; schema có 24 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V12. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`. Flyway hiện ở version 13; schema có 24 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V13. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 

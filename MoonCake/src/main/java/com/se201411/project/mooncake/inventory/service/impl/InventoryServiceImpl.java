@@ -25,6 +25,9 @@ import java.util.List;
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
+    private com.se201411.project.mooncake.inventory.service.BatchStockService batchStock;
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setBatchStock(com.se201411.project.mooncake.inventory.service.BatchStockService value) { this.batchStock=value; }
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
     private final EntityManager entityManager;
@@ -72,7 +75,8 @@ public class InventoryServiceImpl implements InventoryService {
             );
             if (updatedRows != 1) {
                 throw new InsufficientStockException(
-                    "Không đủ tồn kho cho " + describeVariant(demand.variantId())
+                    "Chỉ còn " + java.util.Objects.requireNonNullElse(balanceRepository.available(demand.variantId()), 0)
+                        + " sản phẩm " + describeVariant(demand.variantId()) + ". Vui lòng điều chỉnh số lượng và đặt lại."
                 );
             }
 
@@ -124,6 +128,7 @@ public class InventoryServiceImpl implements InventoryService {
         int quantityDelta,
         String operationGroupKey
     ) {
+        if (batchStock != null) batchStock.apply(demand.variantId(), quantityDelta, operationGroupKey + ":" + demand.variantId(), orderId, movementType);
         StockMovement movement = new StockMovement();
         movement.setVariant(entityManager.getReference(
             ProductVariant.class,
@@ -141,7 +146,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private String buildReason(StockMovementType movementType) {
         if (movementType == StockMovementType.SALE) {
-            return "Trừ tồn khi khách đặt hàng COD";
+            return "Trừ tồn khi khách đặt hàng";
         }
         return "Hoàn tồn do hủy đơn hàng";
     }

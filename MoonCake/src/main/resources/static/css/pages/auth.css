@@ -323,3 +323,6 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Shared storefront tone and comfortable form sizes. */
+:root{--auth-gold:#edc565;--auth-gold-light:#f5d68e}.auth-page{font-size:16px}.auth-field label{font-size:15px}.auth-field input{font-size:16px;min-height:48px}.auth-main{padding-top:24px;padding-bottom:24px}.auth-submit{font-size:16px;min-height:48px}.auth-switch{font-size:15px}

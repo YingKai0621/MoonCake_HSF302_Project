@@ -56,11 +56,17 @@ class AdminPagesTest {
     OrderManagementService orders;
     @Autowired
     OrderCancellationService cancellations;
+    @Autowired com.se201411.project.mooncake.order.service.OperationsService operations;
+    @Autowired ProductMediaService media;
+    @Autowired BatchStockService batches;
     MockMvc mvc;
 
     @BeforeEach
     void setup() {
         reset(catalog, presets, inventory, orders, cancellations);
+        when(operations.statistics()).thenReturn(new Object[]{1,1,BigDecimal.TEN,0});
+        when(batches.list()).thenReturn(java.util.Collections.singletonList(new Object[]{1L,"SKU","LOT",null,null,3,"Chưa có hạn dùng"}));
+        when(media.all()).thenReturn(java.util.Collections.singletonList(new Object[]{1L,"Cake","https://example.test/cake.mp4","Video"}));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         when(catalog.catalog()).thenReturn(new AdminCatalogView(
                 List.of(new CategoryForm(1L, "Category", "category", true)),
@@ -82,6 +88,13 @@ class AdminPagesTest {
         for (String path : List.of("/admin/catalog", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
             mvc.perform(get(path).with(user("admin").roles("ADMIN")))
                     .andExpect(status().isOk()).andExpect(content().string(containsString("_csrf")));
+    }
+
+    @Test void newAdminPagesRenderAndDenyCustomerAccess() throws Exception {
+        for(String path:List.of("/admin/overview","/admin/media","/admin/batches")){
+            mvc.perform(get(path).with(user("admin").roles("ADMIN"))).andExpect(status().isOk());
+            mvc.perform(get(path).with(user("customer").roles("CUSTOMER"))).andExpect(status().isForbidden());
+        }
     }
 
     @Test
@@ -236,6 +249,17 @@ class AdminPagesTest {
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("value=\"CANCELLED\""))));
     }
 
+    @Test
+    void overviewRendersStatisticsBusinessAndEscapedFeedback() throws Exception {
+        var operations=context.getBean(com.se201411.project.mooncake.order.service.OperationsService.class);
+        when(operations.statistics()).thenReturn(new Object[]{12,3,new BigDecimal("100000"),2});
+        when(operations.businesses()).thenReturn(java.util.Collections.singletonList(new Object[]{1,"Business","Contact","a@example.test","000",2,100000}));
+        when(operations.feedbacks()).thenReturn(java.util.Collections.singletonList(new Object[]{1,"Customer","<script>alert(1)</script>","2026-11-02"}));
+        mvc.perform(get("/admin/overview").with(user("admin").roles("ADMIN")))
+          .andExpect(status().isOk()).andExpect(content().string(containsString("Business")))
+          .andExpect(content().string(containsString("&lt;script&gt;")));
+    }
+
     static AdminOrderView order(OrderStatus status) {
         return new AdminOrderView(1, "ORDER", status, "Recipient", "0901234567", "Address", null,
                 BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
@@ -246,8 +270,14 @@ class AdminPagesTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminExceptionAdvice.class})
     static class Config {
+        @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
+        @Bean BatchStockService batches(){return mock(BatchStockService.class);}
+        @Bean com.se201411.project.mooncake.order.service.OperationsService operations() {
+            return mock(com.se201411.project.mooncake.order.service.OperationsService.class);
+        }
+
         @Bean
         ProductAdminService catalog() {
             return mock(ProductAdminService.class);

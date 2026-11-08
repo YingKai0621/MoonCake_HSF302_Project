@@ -29,7 +29,7 @@ public class OrderAdminRepository {
     }
 
     public int transition(long id, OrderStatus from, OrderStatus to, LocalDateTime now) {
-        int changed = em.createQuery("update SalesOrder o set o.status=:to,o.updatedAt=:now where o.id=:id and o.status=:from")
+        int changed = em.createQuery("update SalesOrder o set o.status=:to,o.updatedAt=:now where o.id=:id and o.status=:from and not exists (select p.id from Payment p where p.order.id=o.id and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY and p.status=com.se201411.project.mooncake.enums.PaymentStatus.UNPAID)")
                 .setParameter("id", id).setParameter("from", from).setParameter("to", to).setParameter("now", now).executeUpdate();
         em.clear();
         return changed;

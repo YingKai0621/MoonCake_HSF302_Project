@@ -15,6 +15,10 @@ public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
 
     SalesOrder save(SalesOrder order);
 
+    @Query("select count(p) from Payment p where p.order.id=:id and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY")
+    long onlinePayments(@Param("id") long id);
+
+
     Optional<SalesOrder> findById(Long orderId);
 
     @Query("""
@@ -45,6 +49,8 @@ public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
             salesOrder.updatedAt = :updatedAt
         where salesOrder.id = :orderId
           and salesOrder.status = :expectedStatus
+          and not exists (select p.id from Payment p where p.order.id=salesOrder.id
+              and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY)
         """)
     int cancelFromStatus(
         @Param("orderId") long orderId,

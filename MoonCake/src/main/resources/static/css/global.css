@@ -76,3 +76,13 @@ body {
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(209, 168, 90, 0.6);
 }
+
+/* Readable storefront density and warmer gold accents. */
+:root { --mooncake-gold: #edc565; }
+body { font-size: 16px; line-height: 1.65; }
+main .text-xs { font-size: .875rem; line-height: 1.55; }
+main .text-sm { font-size: 1rem; line-height: 1.65; }
+.text-gold { color: #edc565; }
+.bg-gold { background-color: #edc565; }
+main input[type="search"] { min-height: 46px; font-size: 16px; }
+main table th, main table td { padding: 12px 16px; }

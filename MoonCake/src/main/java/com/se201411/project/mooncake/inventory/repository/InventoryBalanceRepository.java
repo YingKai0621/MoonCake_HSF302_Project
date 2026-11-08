@@ -11,6 +11,10 @@ public interface InventoryBalanceRepository
 
     boolean existsById(Long variantId);
 
+    @Query("select b.availableQuantity from InventoryBalance b where b.variantId=:id")
+    Integer available(@Param("id") long id);
+
+
     @Modifying
     @Query(value = """
         INSERT INTO dbo.INVENTORY_BALANCE

@@ -62,8 +62,8 @@
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3">
             <h2 class="font-mono font-semibold text-gold" th:text="${order.orderCode}">MC-00000000-00000000</h2>
-            <span class="px-3 py-1 text-xs rounded border"
-                  th:classappend="${order.awaitingPayment} ? 'text-amber-200 bg-amber-400/15 border-amber-400/50' : 'text-gold bg-gold/10 border-gold/30'"
+            <span class="status-badge text-xs"
+                  th:data-status="${order.statusLabel}"
                   th:text="${order.statusLabel}">Đã tiếp nhận</span>
           </div>
           <p class="text-sm text-sand" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc 21/10/2026 20:00</p>

@@ -82,16 +82,37 @@
       Không thể thực hiện thao tác.
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-      <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Chi tiết đơn hàng</p>
-        <h1 class="font-mono text-2xl md:text-3xl font-bold" th:text="${order.orderCode}">MC-00000000-00000000</h1>
-        <p class="text-sm text-sand mt-2" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc 21/10/2026 20:00</p>
-      </div>
-      <span class="status-badge self-start sm:self-auto"
-            th:data-status="${order.statusLabel}"
-            th:text="${order.statusLabel}">Đã tiếp nhận</span>
+    <div class="mb-6">
+      <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Chi tiết đơn hàng</p>
+      <h1 class="font-mono text-2xl md:text-3xl font-bold" th:text="${order.orderCode}">MC-00000000-00000000</h1>
+      <p class="text-sm text-sand mt-2" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc 21/10/2026 20:00</p>
     </div>
+
+    <section th:if="${order.statusLabel == 'Đã hủy'}"
+             class="order-cancelled mb-8">
+      <p class="order-cancelled__title">Đơn hàng đã hủy</p>
+      <p class="order-cancelled__text">Đơn hàng này không còn được xử lý.</p>
+    </section>
+
+    <section th:unless="${order.statusLabel == 'Đã hủy'}"
+             class="order-progress mb-8"
+             aria-label="Tiến trình đơn hàng"
+             th:with="currentStep=${order.statusLabel == 'Hoàn thành' ? 5
+                                 : order.statusLabel == 'Đang giao hàng' ? 3
+                                 : order.statusLabel == 'Đang xử lý' ? 2
+                                 : 1}">
+      <ol class="order-progress__steps">
+        <li th:each="stepName, step : ${ {'Đã tiếp nhận', 'Đang xử lý', 'Đang giao hàng', 'Hoàn thành'} }"
+            class="order-progress__step"
+            th:classappend="${step.count < currentStep} ? 'is-done' : (${step.count == currentStep} ? 'is-current' : '')"
+            th:attr="aria-current=${step.count == currentStep ? 'step' : null}">
+          <span class="order-progress__marker"
+                th:text="${step.count < currentStep ? '✓' : step.count}">1</span>
+          <span class="order-progress__label"
+                th:text="${step.first and order.awaitingOnlinePayment ? 'Chờ thanh toán' : stepName}">Đã tiếp nhận</span>
+        </li>
+      </ol>
+    </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <div class="lg:col-span-8 space-y-6">

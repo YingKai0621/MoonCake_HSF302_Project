@@ -62,7 +62,7 @@
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3">
             <h2 class="font-mono font-semibold text-gold" th:text="${order.orderCode}">MC-00000000-00000000</h2>
-            <span class="status-badge text-xs"
+            <span class="status-badge"
                   th:data-status="${order.statusLabel}"
                   th:text="${order.statusLabel}">Đã tiếp nhận</span>
           </div>

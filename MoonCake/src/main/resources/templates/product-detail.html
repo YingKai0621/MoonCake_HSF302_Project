@@ -123,17 +123,23 @@
                   class="w-full bg-deep-indigo text-ivory border border-gold/35 py-3 px-4 rounded-none focus:ring-0 focus:border-gold cursor-pointer">
             <option th:each="variant : ${product.variants}"
                     th:value="${variant.id}"
-                    th:text="${variant.name + ' — ' + variant.formattedPrice}"
+                    th:text="${variant.name + ' (' + variant.sku + ') — ' + variant.formattedPrice}"
                     th:data-price="${variant.unitPrice}"
                     th:data-formatted-price="${variant.formattedPrice}"
                     th:data-image-url="${variant.imageUrl}"
                     th:data-image-alt="${variant.imageAlt}"
+                    th:data-sku="${variant.sku}"
                     th:data-weight="${variant.weightGrams}"
                     th:data-filling="${variant.fillingLabel}"
                     th:data-box-count="${variant.presetRecipe == null ? null : variant.presetRecipe.capacityCakes}">
               Phiên bản sản phẩm
             </option>
           </select>
+        </div>
+
+        <div class="flex items-baseline justify-between gap-4 text-[15px]">
+          <span class="text-sand/80">Mã SKU:</span>
+          <span class="selected-sku text-ivory font-medium" th:text="${product.primaryVariant.sku}">SKU</span>
         </div>
 
         <!-- QUICK PRODUCT SPECIFICATIONS (PART A) -->
@@ -171,6 +177,10 @@
             <div class="variant-box-count-row flex items-baseline justify-between gap-4" th:if="${product.boxCountAvailable}">
               <span class="quick-spec-label text-sand/80 shrink-0">Số lượng bánh:</span>
               <span class="selected-box-count quick-spec-value text-ivory font-medium text-right" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+            </div>
+            <div class="variant-package-row flex items-baseline justify-between gap-4" th:if="${product.boxCountAvailable}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Quy cách:</span>
+              <span class="selected-package quick-spec-value text-ivory font-medium text-right" th:text="${product.packageSpecification}">Hộp 4 bánh</span>
             </div>
             <div class="flex items-baseline justify-between gap-4" th:if="${product.weight != null}">
               <span class="quick-spec-label text-sand/80 shrink-0">Trọng lượng:</span>
@@ -315,6 +325,11 @@
                  th:if="${product.boxCountAvailable}">
               <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Số lượng bánh:</span>
               <span class="selected-box-count spec-value text-ivory font-medium text-[15px]" th:text="${product.boxCount + ' bánh'}">4 bánh</span>
+            </div>
+            <div class="variant-package-row spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
+                 th:if="${product.boxCountAvailable}">
+              <span class="spec-label text-sand/80 min-w-[140px] text-[15px]">Quy cách:</span>
+              <span class="selected-package spec-value text-ivory font-medium text-[15px]" th:text="${product.packageSpecification}">Hộp 4 bánh</span>
             </div>
             <div class="spec-row flex items-baseline justify-between sm:justify-start gap-4 py-2 border-b border-gold/10"
                  th:if="${product.weight != null}">

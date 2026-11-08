@@ -48,9 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.Clock;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,7 +62,6 @@ import java.util.UUID;
 public class CheckoutServiceImpl implements CheckoutService {
 
     private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-    private static final DateTimeFormatter ORDER_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final CartService cartService;
     private final PricingService pricingService;
@@ -399,7 +396,6 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     private String generateOrderCode() {
-        String date = LocalDate.now(clock).format(ORDER_DATE);
         String randomPart = UUID.randomUUID()
             .toString()
             .replace("-", "")

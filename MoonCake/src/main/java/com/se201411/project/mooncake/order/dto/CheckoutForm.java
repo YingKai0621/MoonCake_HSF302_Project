@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.enums.PaymentMethod;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -7,15 +8,15 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class CheckoutForm {
+
+    /**
+     * Customer IP sent to VNPay. The controller always overwrites it with the
+     * real request address, so a value posted by the browser is never used.
+     */
     private String paymentIp = "127.0.0.1";
-    public String getPaymentIp() { return paymentIp; }
-    public void setPaymentIp(String value) { paymentIp=value; }
 
-    @NotNull
-    private com.se201411.project.mooncake.enums.PaymentMethod paymentMethod = com.se201411.project.mooncake.enums.PaymentMethod.COD;
-    public com.se201411.project.mooncake.enums.PaymentMethod getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(com.se201411.project.mooncake.enums.PaymentMethod value) { paymentMethod=value; }
-
+    @NotNull(message = "Vui lòng chọn phương thức thanh toán")
+    private PaymentMethod paymentMethod = PaymentMethod.COD;
 
     @NotNull(message = "Không tìm thấy giỏ hàng")
     @Positive(message = "Giỏ hàng không hợp lệ")
@@ -50,6 +51,22 @@ public class CheckoutForm {
 
     @Size(max = 200, message = "Ghi chú không được vượt quá 200 ký tự")
     private String orderNote;
+
+    public String getPaymentIp() {
+        return paymentIp;
+    }
+
+    public void setPaymentIp(String paymentIp) {
+        this.paymentIp = paymentIp;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
 
     public Long getCartId() {
         return cartId;

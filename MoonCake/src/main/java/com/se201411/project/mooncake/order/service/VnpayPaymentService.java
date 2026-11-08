@@ -31,6 +31,23 @@ public interface VnpayPaymentService {
     /** Returns the pending attempt of the current customer's order, or null. */
     VnpayPendingAttempt findPendingAttempt(String orderCode);
 
-    /** Applies a verified querydr (reconciliation) result. */
+    /**
+     * Returns the pending attempt of any order, or null. Callers must have
+     * authorized the request already (used for Admin reconciliation).
+     */
+    VnpayPendingAttempt findPendingAttemptForOrder(long orderId);
+
+    /**
+     * Applies a verified querydr (reconciliation) result. An attempt whose
+     * payment window has passed and that VNPay reports as not found or not
+     * completed is closed as FAILED.
+     */
     Map<String, String> applyQueryResult(Map<String, String> params);
+
+    /**
+     * Throws a business exception while a VNPay attempt of the order is still
+     * open: either inside its 15-minute window, or expired but not yet
+     * reconciled with VNPay.
+     */
+    void requireNoOpenAttempt(long orderId);
 }

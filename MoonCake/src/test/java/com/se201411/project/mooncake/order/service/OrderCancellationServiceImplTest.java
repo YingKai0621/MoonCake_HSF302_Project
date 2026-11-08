@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -111,11 +112,13 @@ class OrderCancellationServiceImplTest {
     }
 
     @Test
-    void vnpayOrderIsRejectedWithoutChangingStatusOrStock() {
+    void vnpayOrderWithOpenAttemptIsRejectedWithoutChangingStatusOrStock() {
         SalesOrder order = order(6L, OrderStatus.PLACED);
         when(orderRepository.findById(6L)).thenReturn(Optional.of(order));
         when(paymentRepository.findByOrderId(6L))
             .thenReturn(List.of(payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID)));
+        doThrow(new BusinessRuleViolationException("Đơn đang có giao dịch VNPay chưa kết thúc."))
+            .when(vnpayPaymentService).requireNoOpenAttempt(6L);
 
         assertThatThrownBy(() -> service.cancelForAdmin(6L))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -123,6 +126,64 @@ class OrderCancellationServiceImplTest {
 
         verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
         verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void customerCancelsUnpaidVnpayOrderOnceNoAttemptIsOpen() {
+        ShopperIdentity customer = ShopperIdentity.forCustomer(8L);
+        SalesOrder order = order(13L, OrderStatus.PLACED);
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(customer);
+        when(orderRepository.findOwnedByOrderCode("MC-13", 8L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(13L))
+            .thenReturn(List.of(payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID)));
+        when(orderRepository.cancelFromStatus(
+            eq(13L), eq(OrderStatus.PLACED), eq(OrderStatus.CANCELLED), any()
+        )).thenReturn(1);
+        OrderItem standard = item(131L, InventorySource.STOCKED_SKU, 2);
+        standard.setVariant(variant(30L));
+        when(itemRepository.findByOrderId(13L)).thenReturn(List.of(standard));
+
+        service.cancelCurrentCustomerOrder("MC-13");
+
+        verify(vnpayPaymentService).requireNoOpenAttempt(13L);
+        verify(inventoryService).restoreForCancellation(any());
+    }
+
+    @Test
+    void customerCannotCancelPaidVnpayOrder() {
+        ShopperIdentity customer = ShopperIdentity.forCustomer(8L);
+        SalesOrder order = order(14L, OrderStatus.PLACED);
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(customer);
+        when(orderRepository.findOwnedByOrderCode("MC-14", 8L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(14L))
+            .thenReturn(List.of(payment(PaymentMethod.VNPAY, PaymentStatus.PAID)));
+
+        assertThatThrownBy(() -> service.cancelCurrentCustomerOrder("MC-14"))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("hoàn tiền");
+
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+        verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void adminCancelsPaidVnpayProcessingOrderAndPaymentStaysPaid() {
+        SalesOrder order = order(15L, OrderStatus.PROCESSING);
+        Payment paid = payment(PaymentMethod.VNPAY, PaymentStatus.PAID);
+        when(orderRepository.findById(15L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(15L)).thenReturn(List.of(paid));
+        when(orderRepository.cancelFromStatus(
+            eq(15L), eq(OrderStatus.PROCESSING), eq(OrderStatus.CANCELLED), any()
+        )).thenReturn(1);
+        OrderItem standard = item(151L, InventorySource.STOCKED_SKU, 1);
+        standard.setVariant(variant(30L));
+        when(itemRepository.findByOrderId(15L)).thenReturn(List.of(standard));
+
+        service.cancelForAdmin(15L);
+
+        verify(inventoryService).restoreForCancellation(any());
+        verify(vnpayPaymentService, never()).requireNoOpenAttempt(anyLong());
+        assertThat(paid.getStatus()).isEqualTo(PaymentStatus.PAID);
     }
 
     @Test

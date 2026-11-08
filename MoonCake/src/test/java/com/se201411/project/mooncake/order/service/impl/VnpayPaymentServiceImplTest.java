@@ -98,6 +98,102 @@ class VnpayPaymentServiceImplTest {
         verify(vnpayRepository, never()).create(anyString(), anyLong(), any(), any());
     }
 
+    @Test
+    void noPendingAttemptAllowsCancellation() {
+        when(vnpayRepository.pendingAttempt(7L)).thenReturn(null);
+
+        service.requireNoOpenAttempt(7L);
+    }
+
+    @Test
+    void attemptInsideItsWindowBlocksCancellation() {
+        // Created 02:50 UTC, clock is 03:00 -> still inside the 15 minutes.
+        when(vnpayRepository.pendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 50));
+
+        assertThatThrownBy(() -> service.requireNoOpenAttempt(7L))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa kết thúc");
+    }
+
+    @Test
+    void expiredButUnreconciledAttemptAsksForPaymentCheck() {
+        when(vnpayRepository.pendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 30));
+
+        assertThatThrownBy(() -> service.requireNoOpenAttempt(7L))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Kiểm tra thanh toán");
+    }
+
+    @Test
+    void notFoundQueryClosesAttemptOnlyAfterExpiryMargin() {
+        // Created 02:30 -> 30 minutes ago, past 15 minutes + 5 minutes margin.
+        givenAttemptRefCreatedAt(2, 30);
+
+        Map<String, String> result = service.applyQueryResult(signedQuery("91", "", ""));
+
+        assertThat(result.get("RspCode")).isEqualTo("00");
+        verify(vnpayRepository).finish("ref", "FAILED", null);
+        verify(paymentRepository, never()).save(any());
+    }
+
+    @Test
+    void notFoundQueryInsideMarginKeepsAttemptPending() {
+        // Created 02:50 -> only 10 minutes ago, VNPay may still accept payment.
+        givenAttemptRefCreatedAt(2, 50);
+
+        Map<String, String> result = service.applyQueryResult(signedQuery("91", "", ""));
+
+        assertThat(result.get("RspCode")).isEqualTo("99");
+        verify(vnpayRepository, never()).finish(anyString(), anyString(), any());
+    }
+
+    @Test
+    void unfinishedPaymentQueryClosesExpiredAttempt() {
+        givenAttemptRefCreatedAt(2, 30);
+
+        Map<String, String> result = service.applyQueryResult(signedQuery("00", "01", "01"));
+
+        assertThat(result.get("RspCode")).isEqualTo("00");
+        verify(vnpayRepository).finish("ref", "FAILED", null);
+    }
+
+    private void givenAttemptRefCreatedAt(int hour, int minute) {
+        when(vnpayRepository.attempt("ref"))
+            .thenReturn(new Object[] {7L, new BigDecimal("100000"), "PENDING"});
+        when(vnpayRepository.pendingAttempt(7L)).thenReturn(pendingCreatedAt(hour, minute));
+    }
+
+    private VnpayRepository.Pending pendingCreatedAt(int hour, int minute) {
+        return new VnpayRepository.Pending(
+            "ref",
+            new BigDecimal("100000"),
+            LocalDateTime.of(2026, 11, 8, hour, minute)
+        );
+    }
+
+    /** A signed querydr response for attempt "ref". */
+    private Map<String, String> signedQuery(
+        String responseCode,
+        String transactionType,
+        String transactionStatus
+    ) {
+        Map<String, String> params = new HashMap<>();
+        params.put("vnp_ResponseId", "response");
+        params.put("vnp_Command", "querydr");
+        params.put("vnp_ResponseCode", responseCode);
+        params.put("vnp_Message", "msg");
+        params.put("vnp_TmnCode", "TESTCODE");
+        params.put("vnp_TxnRef", "ref");
+        params.put("vnp_Amount", "10000000");
+        params.put("vnp_TransactionType", transactionType);
+        params.put("vnp_TransactionStatus", transactionStatus);
+        String data = String.join("|",
+            "response", "querydr", responseCode, "msg", "TESTCODE", "ref", "10000000",
+            "", "", "", transactionType, transactionStatus, "", "", "");
+        params.put("vnp_SecureHash", gateway.sign(data));
+        return params;
+    }
+
     /** Order 7 of customer 3: PLACED, 100.000đ, one UNPAID payment. */
     private void givenCustomerOrderSeven(PaymentMethod method) {
         when(currentCustomerService.requireCurrentCustomer())

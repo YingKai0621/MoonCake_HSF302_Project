@@ -32,7 +32,7 @@ public class CodPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
-    public void checkCanCancel(Payment payment) {
+    public void checkCanCancel(long orderId, Payment payment) {
         // Nothing has been paid yet, so a COD order can always be cancelled
         // (the order status rules are checked by the cancellation service).
     }

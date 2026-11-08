@@ -8,6 +8,7 @@ import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.inventory.dto.InventoryDemand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
@@ -86,7 +87,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, OrderStatus.PLACED);
+        cancelOrder(order, OrderStatus.PLACED, true);
     }
 
     @Override
@@ -106,17 +107,33 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, currentStatus);
+        cancelOrder(order, currentStatus, false);
     }
 
-    private void cancelOrder(SalesOrder order, OrderStatus expectedStatus) {
+    /**
+     * @param requestedByCustomer true for the customer's own cancellation.
+     *                            Set by the service method, never by form input.
+     */
+    private void cancelOrder(
+        SalesOrder order,
+        OrderStatus expectedStatus,
+        boolean requestedByCustomer
+    ) {
         // Lock the order first so an online payment cannot start at the same time.
         orderRepository.findByIdForUpdate(order.getId());
         Payment payment = requireSinglePayment(order.getId());
+
+        // Business Rules v1.7: a paid order needs a refund, so only the shop cancels it.
+        if (requestedByCustomer && payment.getStatus() == PaymentStatus.PAID) {
+            throw new BusinessRuleViolationException(
+                "Đơn đã thanh toán. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền."
+            );
+        }
+
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
             payment.getMethod()
         );
-        paymentProcessor.checkCanCancel(payment);
+        paymentProcessor.checkCanCancel(order.getId(), payment);
 
         LocalDateTime now = LocalDateTime.now(clock);
         int changedRows = orderRepository.cancelFromStatus(

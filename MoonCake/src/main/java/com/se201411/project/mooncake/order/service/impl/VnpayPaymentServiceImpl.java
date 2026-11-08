@@ -29,6 +29,12 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
     /** A VNPay attempt stays valid for 15 minutes. */
     private static final long ATTEMPT_LIFETIME_SECONDS = 900;
 
+    /**
+     * Safety margin after the 15 minutes before an attempt that VNPay reports
+     * as "not found" or "not completed" is closed as FAILED.
+     */
+    private static final long CLOSE_AFTER_EXPIRY_SECONDS = 300;
+
     // VNPay IPN response codes.
     private static final String RSP_SUCCESS = "00";
     private static final String RSP_ORDER_NOT_FOUND = "01";
@@ -38,8 +44,10 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
     private static final String RSP_OTHER = "99";
 
     private static final String VNPAY_SUCCESS = "00";
+    private static final String VNPAY_TRANSACTION_NOT_COMPLETED = "01";
     private static final String VNPAY_TRANSACTION_FAILED = "02";
     private static final String VNPAY_PAYMENT_TRANSACTION = "01";
+    private static final String QUERY_TRANSACTION_NOT_FOUND = "91";
 
     private final VnpayRepository vnpayRepository;
     private final PaymentRepository paymentRepository;
@@ -137,11 +145,13 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
     public VnpayPendingAttempt findPendingAttempt(String orderCode) {
         long customerId = currentCustomerService.requireCurrentCustomer().customerId();
         SalesOrder order = vnpayRepository.lockOwned(orderCode, customerId);
-        VnpayRepository.Pending pending = vnpayRepository.pendingAttempt(order.getId());
-        if (pending == null) {
-            return null;
-        }
-        return new VnpayPendingAttempt(pending.ref(), pending.amount(), pending.createdAt());
+        return toPendingAttempt(vnpayRepository.pendingAttempt(order.getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VnpayPendingAttempt findPendingAttemptForOrder(long orderId) {
+        return toPendingAttempt(vnpayRepository.pendingAttempt(orderId));
     }
 
     @Override
@@ -151,12 +161,79 @@ public class VnpayPaymentServiceImpl implements VnpayPaymentService {
         if (!gateway.validQuery(params, transactionRef)) {
             return response(RSP_INVALID_SIGNATURE, "Invalid signature");
         }
-        boolean finalPaymentResult = VNPAY_SUCCESS.equals(params.get("vnp_ResponseCode"))
+
+        String responseCode = params.get("vnp_ResponseCode");
+        if (QUERY_TRANSACTION_NOT_FOUND.equals(responseCode)) {
+            // VNPay never received a payment for this attempt.
+            return closeExpiredAttemptAsFailed(transactionRef);
+        }
+        boolean paymentQuery = VNPAY_SUCCESS.equals(responseCode)
             && VNPAY_PAYMENT_TRANSACTION.equals(params.get("vnp_TransactionType"));
-        if (!finalPaymentResult) {
+        if (!paymentQuery) {
             return response(RSP_OTHER, "Awaiting final transaction status");
         }
+        if (VNPAY_TRANSACTION_NOT_COMPLETED.equals(params.get("vnp_TransactionStatus"))) {
+            // The customer opened the VNPay page but never finished paying.
+            return closeExpiredAttemptAsFailed(transactionRef);
+        }
         return applyVerifiedResult(params);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void requireNoOpenAttempt(long orderId) {
+        VnpayRepository.Pending pending = vnpayRepository.pendingAttempt(orderId);
+        if (pending == null) {
+            return;
+        }
+        LocalDateTime expiresAt = pending.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS);
+        if (LocalDateTime.now(clock).isBefore(expiresAt)) {
+            throw new BusinessRuleViolationException(
+                "Đơn đang có giao dịch VNPay chưa kết thúc. "
+                    + "Vui lòng hoàn tất thanh toán hoặc đợi giao dịch hết hạn (15 phút) rồi thử lại."
+            );
+        }
+        throw new BusinessRuleViolationException(
+            "Giao dịch VNPay trước đó đã hết hạn nhưng chưa được đối soát. "
+                + "Vui lòng bấm \"Kiểm tra thanh toán VNPay\" rồi thử lại; đơn và tồn kho chưa thay đổi."
+        );
+    }
+
+    /**
+     * Closes an attempt as FAILED, but only once its payment window plus a
+     * safety margin has passed. Before that, VNPay may still accept payment.
+     */
+    private Map<String, String> closeExpiredAttemptAsFailed(String transactionRef) {
+        Object[] attempt = vnpayRepository.attempt(transactionRef);
+        if (attempt == null) {
+            return response(RSP_ORDER_NOT_FOUND, "Order not found");
+        }
+        long orderId = ((Number) attempt[0]).longValue();
+        vnpayRepository.lock(orderId);
+
+        VnpayRepository.Pending pending = vnpayRepository.pendingAttempt(orderId);
+        if (pending == null || !pending.ref().equals(transactionRef)) {
+            return response(RSP_ALREADY_CONFIRMED, "Already confirmed");
+        }
+        LocalDateTime closeAfter = pending.createdAt()
+            .plusSeconds(ATTEMPT_LIFETIME_SECONDS + CLOSE_AFTER_EXPIRY_SECONDS);
+        if (LocalDateTime.now(clock).isBefore(closeAfter)) {
+            return response(RSP_OTHER, "Awaiting final transaction status");
+        }
+        vnpayRepository.finish(transactionRef, "FAILED", null);
+        return response(RSP_SUCCESS, "Confirm Success");
+    }
+
+    private VnpayPendingAttempt toPendingAttempt(VnpayRepository.Pending pending) {
+        if (pending == null) {
+            return null;
+        }
+        return new VnpayPendingAttempt(
+            pending.ref(),
+            pending.amount(),
+            pending.createdAt(),
+            pending.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS)
+        );
     }
 
     /**

@@ -33,11 +33,19 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         return Optional.of(paymentUrl);
     }
 
+    /**
+     * Business Rules v1.7, 6.3:
+     * - already PAID: allowed here; only the Admin can reach this point and
+     *   refunds manually on the VNPay merchant portal;
+     * - UNPAID: allowed only when no VNPay attempt is still open, so a
+     *   customer cannot be charged for an order that was just cancelled.
+     */
     @Override
-    public void checkCanCancel(Payment payment) {
-        throw new BusinessRuleViolationException(
-            "Đơn đã mở thanh toán VNPay cần liên hệ cửa hàng để đối soát/hoàn tiền; không thể tự hủy."
-        );
+    public void checkCanCancel(long orderId, Payment payment) {
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            return;
+        }
+        vnpayPaymentService.requireNoOpenAttempt(orderId);
     }
 
     @Override

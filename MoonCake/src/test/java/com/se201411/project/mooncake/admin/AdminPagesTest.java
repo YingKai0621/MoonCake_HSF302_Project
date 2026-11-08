@@ -304,6 +304,11 @@ class AdminPagesTest {
         }
 
         @Bean
+        com.se201411.project.mooncake.order.service.VnpayReconciliationService vnpayReconciliation() {
+            return mock(com.se201411.project.mooncake.order.service.VnpayReconciliationService.class);
+        }
+
+        @Bean
         OrderCancellationService cancellations() {
             return mock(OrderCancellationService.class);
         }

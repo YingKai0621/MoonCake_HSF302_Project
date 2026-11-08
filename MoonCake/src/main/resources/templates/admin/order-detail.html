@@ -29,9 +29,16 @@
                 <button>Xác nhận hoàn thành</button>
             </form>
         </div>
-        <details th:if="${(order.status.name() == 'PLACED' or order.status.name() == 'PROCESSING') and !#lists.isEmpty(order.payments) and order.payments[0].method.name() == 'COD'}">
+        <form th:if="${order.status.name() == 'PLACED' and !#lists.isEmpty(order.payments) and order.payments[0].method.name() == 'VNPAY' and order.payments[0].status.name() == 'UNPAID'}"
+              th:action="@{/admin/orders/{id}/payment-check(id=${order.id})}" method="post">
+            <button>Kiểm tra thanh toán VNPay</button>
+        </form>
+        <details th:if="${(order.status.name() == 'PLACED' or order.status.name() == 'PROCESSING') and !#lists.isEmpty(order.payments)}">
             <summary>Hủy đơn và hoàn kho</summary>
             <p>Đơn sẽ kết thúc và hoàn lại các SKU đã trừ khi đặt hàng.</p>
+            <p th:if="${order.payments[0].method.name() == 'VNPAY' and order.payments[0].status.name() == 'PAID'}">
+                <strong>Đơn đã thanh toán VNPay:</strong> sau khi hủy, hãy hoàn tiền thủ công trên cổng merchant VNPay.
+            </p>
             <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"><input type="hidden"
                                                                                                 name="target"
                                                                                                 value="CANCELLED">

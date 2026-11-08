@@ -28,8 +28,11 @@ public interface PaymentProcessor {
      */
     Optional<String> startPayment(SalesOrder order, String clientIp);
 
-    /** Throws a business exception when this order may not be cancelled now. */
-    void checkCanCancel(Payment payment);
+    /**
+     * Throws a business exception when this order may not be cancelled now
+     * (for example because an online payment is still open).
+     */
+    void checkCanCancel(long orderId, Payment payment);
 
     /**
      * Throws a business exception when the shop may not move the order

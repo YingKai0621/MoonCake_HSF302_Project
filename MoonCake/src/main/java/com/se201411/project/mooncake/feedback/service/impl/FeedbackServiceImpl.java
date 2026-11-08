@@ -77,8 +77,10 @@ public class FeedbackServiceImpl implements FeedbackService {
             if (feedback.getRating() == null) {
                 continue;
             }
+            String customerName = feedback.getCustomer().getFullName();
             reviews.add(new PublicReviewView(
-                feedback.getCustomer().getFullName(),
+                customerName,
+                initialOf(customerName),
                 feedback.getRating(),
                 feedback.getContent()
             ));
@@ -126,6 +128,15 @@ public class FeedbackServiceImpl implements FeedbackService {
     private Feedback requireFeedback(long feedbackId) {
         return feedbackRepository.findById(feedbackId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy góp ý."));
+    }
+
+    private String initialOf(String fullName) {
+        String name = fullName.trim();
+        if (name.isEmpty()) {
+            return "?";
+        }
+        String lastWord = name.substring(name.lastIndexOf(' ') + 1);
+        return lastWord.substring(0, 1).toUpperCase();
     }
 
     private String formatVietnamTime(LocalDateTime utcTime) {

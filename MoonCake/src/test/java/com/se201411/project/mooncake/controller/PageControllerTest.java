@@ -18,7 +18,7 @@ class PageControllerTest {
 
     @Test
     void rendersHomepageWithPublishedReviews() {
-        List<PublicReviewView> reviews = List.of(new PublicReviewView("An", 5, "Bánh ngon"));
+        List<PublicReviewView> reviews = List.of(new PublicReviewView("An", "A", 5, "Bánh ngon"));
         when(feedbackService.findPublishedReviews()).thenReturn(reviews);
         ExtendedModelMap model = new ExtendedModelMap();
 

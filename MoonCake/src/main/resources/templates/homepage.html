@@ -621,33 +621,55 @@
       </h2>
     </div>
 
-    <div class="reviews-marquee" th:classappend="${#lists.size(reviews) < 4} ? 'reviews-marquee--static'">
-      <div class="reviews-marquee__track">
-        <ul class="reviews-marquee__list">
-          <li th:each="review : ${reviews}" class="review-card">
-            <p class="review-card__stars"
-               th:attr="aria-label=${review.rating + ' trên 5 sao'}">
+    <ul th:if="${#lists.size(reviews) < 4}" class="reviews-flat">
+      <li th:each="review : ${reviews}" class="review-card">
+        <div class="review-card__header">
+          <span class="review-card__avatar" th:text="${review.customerInitial}">A</span>
+          <div>
+            <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
+            <p class="review-card__stars" th:attr="aria-label=${review.rating + ' trên 5 sao'}">
               <span th:each="star : ${#numbers.sequence(1, 5)}"
                     th:classappend="${star <= review.rating} ? 'is-filled'">★</span>
             </p>
-            <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
-            <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
-          </li>
-        </ul>
-        <ul th:if="${#lists.size(reviews) >= 4}"
-            class="reviews-marquee__list"
-            aria-hidden="true">
-          <li th:each="review : ${reviews}" class="review-card">
-            <p class="review-card__stars">
-              <span th:each="star : ${#numbers.sequence(1, 5)}"
-                    th:classappend="${star <= review.rating} ? 'is-filled'">★</span>
-            </p>
-            <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
-            <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
-          </li>
-        </ul>
+          </div>
+        </div>
+        <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
+      </li>
+    </ul>
+
+    <div th:if="${#lists.size(reviews) >= 4}" class="reviews-wall" aria-hidden="true">
+      <div class="reviews-wall__stage">
+        <div th:each="column : ${#numbers.sequence(1, 4)}"
+             class="reviews-wall__column"
+             th:classappend="${column % 2 == 0} ? 'is-reverse'"
+             th:style="${'--column-delay: -' + (column * 11) + 's'}">
+          <div class="reviews-wall__track">
+            <th:block th:each="copy : ${#numbers.sequence(1, 2)}">
+              <div th:each="review : ${reviews}" class="review-card">
+                <div class="review-card__header">
+                  <span class="review-card__avatar" th:text="${review.customerInitial}">A</span>
+                  <div>
+                    <p class="review-card__name" th:text="${review.customerName}">Khách hàng</p>
+                    <p class="review-card__stars">
+                      <span th:each="star : ${#numbers.sequence(1, 5)}"
+                            th:classappend="${star <= review.rating} ? 'is-filled'">★</span>
+                    </p>
+                  </div>
+                </div>
+                <p class="review-card__content" th:text="${review.content}">Bánh rất ngon.</p>
+              </div>
+            </th:block>
+          </div>
+        </div>
       </div>
     </div>
+
+    <ul th:if="${#lists.size(reviews) >= 4}" class="sr-only">
+      <li th:each="review : ${reviews}"
+          th:text="${review.customerName + ', ' + review.rating + ' trên 5 sao: ' + review.content}">
+        Khách hàng, 5 trên 5 sao: Bánh rất ngon.
+      </li>
+    </ul>
 
     <div class="text-center mt-10 px-4">
       <a th:href="@{/feedback}" href="/feedback"

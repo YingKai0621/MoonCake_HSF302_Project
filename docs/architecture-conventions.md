@@ -156,6 +156,13 @@ Use one shared `OrderCancellationService` transaction coordinator for every canc
 - A cancelled COD payment remains `UNPAID` with null `paid_at`; `SALES_ORDER.CANCELLED` records the cancellation outcome.
 - Competing transitions such as `PLACED -> PROCESSING` and `PROCESSING -> SHIPPING` must also be conditional on the expected current state. Repeated or losing requests return an already-processed/conflict result without inventory effects.
 
+### Customer delivery updates
+
+- A Customer may update recipient name, recipient phone, shipping address, and order note only for an owned `PLACED` order.
+- Resolve ownership from the authenticated `CUSTOMER` principal. Never accept a submitted customer/account ID as proof of ownership.
+- The write must be a conditional update that includes the expected `PLACED` status and requires exactly one affected row so it cannot race successfully with Admin processing.
+- Delivery updates must not rewrite buyer, item, price, discount, shipping-fee, total, payment, or inventory snapshots.
+
 ### Delivery and COD collection
 
 One transaction conditionally changes `SHIPPING -> COMPLETED` and requires one affected row, then conditionally changes the existing COD payment `UNPAID -> PAID` and writes `paid_at`. Both updates commit or roll back together. Repeated confirmation must return already-processed/conflict without creating or rewriting payment data.
@@ -198,7 +205,7 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - Use a small application exception hierarchy for not-found, validation/business conflict, authorization, concurrency, and insufficient-stock cases.
 - Provide a shared MVC exception handler/error mapping rather than repeated try/catch blocks in controllers.
 - Resolve the current `ACCOUNT` and `CUSTOMER` from the authenticated Spring Security principal. Never accept a submitted account ID, customer ID, cart ID, or configuration ID as proof of ownership.
-- Catalog and product-detail pages remain public. Adding to cart, building a CUSTOM box, viewing or changing a cart, checkout, customer order history/detail, and customer self-cancellation require an authenticated ACTIVE account with role `CUSTOMER`.
+- Catalog and product-detail pages remain public. Adding to cart, building a CUSTOM box, viewing or changing a cart, checkout, customer order history/detail, customer delivery updates, and customer self-cancellation require an authenticated ACTIVE account with role `CUSTOMER`.
 - An unauthenticated purchase action redirects to `/login` with a validated local return URL. Do not mutate a cart and do not automatically replay the original POST after login; return to a safe GET page so the customer can confirm the action again.
 - Protect Admin routes and service operations, not only Admin navigation links.
 - Use one application `SecurityConfig`. The Customer Sales owner owns the Spring Security baseline, login/logout, customer registration, and `CurrentCustomerService`; the Admin owner consumes that configuration and must not create a second filter chain or authentication implementation without review.

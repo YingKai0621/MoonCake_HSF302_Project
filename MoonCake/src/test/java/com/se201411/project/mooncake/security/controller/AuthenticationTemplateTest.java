@@ -68,6 +68,10 @@ class AuthenticationTemplateTest {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("role=\"status\"")))
             .andExpect(content().string(containsString("Đăng ký thành công")))
+            .andExpect(content().string(containsString("data-flash-message")))
+            .andExpect(content().string(containsString("data-flash-timeout=\"5000\"")))
+            .andExpect(content().string(containsString("data-flash-query-param=\"registered\"")))
+            .andExpect(content().string(containsString("/js/flash-message.js")))
             .andExpect(content().string(containsString("data-password-toggle")))
             .andExpect(content().string(containsString("name=\"_csrf\"")))
             .andExpect(content().string(not(containsString("cdn.tailwindcss.com"))));
@@ -79,7 +83,8 @@ class AuthenticationTemplateTest {
 
         mockMvc.perform(get("/login").param("logout", ""))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Bạn đã đăng xuất thành công")));
+            .andExpect(content().string(containsString("Bạn đã đăng xuất thành công")))
+            .andExpect(content().string(containsString("data-flash-query-param=\"logout\"")));
     }
 
     @Test

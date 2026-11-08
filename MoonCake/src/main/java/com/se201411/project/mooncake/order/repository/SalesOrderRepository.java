@@ -52,4 +52,27 @@ public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
         @Param("cancelledStatus") OrderStatus cancelledStatus,
         @Param("updatedAt") LocalDateTime updatedAt
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update SalesOrder salesOrder
+        set salesOrder.recipientName = :recipientName,
+            salesOrder.recipientPhone = :recipientPhone,
+            salesOrder.shippingAddressSnapshot = :shippingAddress,
+            salesOrder.orderNote = :orderNote,
+            salesOrder.updatedAt = :updatedAt
+        where salesOrder.id = :orderId
+          and salesOrder.customer.id = :customerId
+          and salesOrder.status = :expectedStatus
+        """)
+    int updateDeliveryIfStatus(
+        @Param("orderId") long orderId,
+        @Param("customerId") long customerId,
+        @Param("expectedStatus") OrderStatus expectedStatus,
+        @Param("recipientName") String recipientName,
+        @Param("recipientPhone") String recipientPhone,
+        @Param("shippingAddress") String shippingAddress,
+        @Param("orderNote") String orderNote,
+        @Param("updatedAt") LocalDateTime updatedAt
+    );
 }

@@ -6,6 +6,7 @@ public record CustomerOrderDetailView(
     String orderCode,
     String statusLabel,
     boolean cancellable,
+    boolean deliveryEditable,
     String formattedCreatedAt,
     String recipientName,
     String recipientPhone,

@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/pages/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/flash-message.css}">
+    <script th:src="@{/js/flash-message.js}" defer></script>
 </head>
 <body>
 <header th:fragment="nav">
@@ -22,5 +24,11 @@
         <a class="nav-inventory" th:href="@{/admin/inventory}"><span>04</span> Kho &amp; đóng hộp</a>
     </nav>
 </header>
-<p th:fragment="flash" th:if="${success}" class="notice" role="status" th:text="${success}"></p></body>
+<p th:fragment="flash"
+   th:if="${success}"
+   class="flash-message notice"
+   data-flash-message
+   data-flash-timeout="5000"
+   role="status"
+   th:text="${success}"></p></body>
 </html>

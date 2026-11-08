@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.service;
 
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderSummaryView;
+import com.se201411.project.mooncake.order.dto.OrderDeliveryUpdateForm;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 
 import java.util.List;
@@ -12,6 +13,17 @@ public interface CustomerOrderService {
 
     CustomerOrderDetailView requireOrder(
         String orderCode,
+        ShopperIdentity customerIdentity
+    );
+
+    OrderDeliveryUpdateForm requireDeliveryUpdateForm(
+        String orderCode,
+        ShopperIdentity customerIdentity
+    );
+
+    void updateDeliveryInformation(
+        String orderCode,
+        OrderDeliveryUpdateForm form,
         ShopperIdentity customerIdentity
     );
 }

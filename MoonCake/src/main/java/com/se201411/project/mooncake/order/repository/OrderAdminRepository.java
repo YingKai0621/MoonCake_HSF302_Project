@@ -1,9 +1,10 @@
 package com.se201411.project.mooncake.order.repository;
 
+import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
-import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -28,19 +29,30 @@ public class OrderAdminRepository {
         return order;
     }
 
-    public int transition(long id, OrderStatus from, OrderStatus to, LocalDateTime now) {
-        int changed = em.createQuery("update SalesOrder o set o.status=:to,o.updatedAt=:now where o.id=:id and o.status=:from and not exists (select p.id from Payment p where p.order.id=o.id and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY and p.status=com.se201411.project.mooncake.enums.PaymentStatus.UNPAID)")
-                .setParameter("id", id).setParameter("from", from).setParameter("to", to).setParameter("now", now).executeUpdate();
-        em.clear();
-        return changed;
+    /**
+     * Loads and locks the order row until the transaction ends, so an Admin
+     * status change cannot race with an online payment for the same order.
+     */
+    public SalesOrder requireForUpdate(long id) {
+        SalesOrder order = em.find(SalesOrder.class, id, LockModeType.PESSIMISTIC_WRITE);
+        if (order == null) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng.");
+        }
+        return order;
     }
 
-    public int collectCod(long orderId, LocalDateTime now) {
-        return em.createNativeQuery("""
-                UPDATE dbo.PAYMENT SET payment_status='PAID',paid_at=:now,updated_at=:now
-                WHERE order_id=:id AND payment_method='COD' AND payment_status='UNPAID'
-                AND amount=(SELECT total_amount FROM dbo.SALES_ORDER WHERE order_id=:id)
-                AND (SELECT COUNT(*) FROM dbo.PAYMENT WHERE order_id=:id)=1
-                """).setParameter("id", orderId).setParameter("now", now).executeUpdate();
+    public int transition(long id, OrderStatus from, OrderStatus to, LocalDateTime now) {
+        int changed = em.createQuery("""
+                update SalesOrder o
+                set o.status = :to, o.updatedAt = :now
+                where o.id = :id and o.status = :from
+                """)
+                .setParameter("id", id)
+                .setParameter("from", from)
+                .setParameter("to", to)
+                .setParameter("now", now)
+                .executeUpdate();
+        em.clear();
+        return changed;
     }
 }

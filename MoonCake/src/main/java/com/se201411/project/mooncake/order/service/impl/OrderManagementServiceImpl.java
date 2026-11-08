@@ -12,6 +12,8 @@ import com.se201411.project.mooncake.order.repository.OrderItemComponentReposito
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.order.service.PaymentProcessor;
+import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +32,19 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     private final OrderItemRepository items;
     private final OrderItemComponentRepository components;
     private final PaymentRepository payments;
+    private final PaymentProcessorRegistry paymentProcessorRegistry;
     private final AdminAccessService access;
     private final Clock clock;
 
     public OrderManagementServiceImpl(OrderAdminRepository orders, OrderItemRepository items,
                                       OrderItemComponentRepository components, PaymentRepository payments,
+                                      PaymentProcessorRegistry paymentProcessorRegistry,
                                       AdminAccessService access, Clock clock) {
         this.orders = orders;
         this.items = items;
         this.components = components;
         this.payments = payments;
+        this.paymentProcessorRegistry = paymentProcessorRegistry;
         this.access = access;
         this.clock = clock;
     }
@@ -97,25 +102,35 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     @Transactional
     public void transition(long id, OrderStatus target) {
         access.requireAdmin();
-        SalesOrder order = orders.require(id);
+        // Lock the order row so an online payment cannot change it meanwhile.
+        SalesOrder order = orders.requireForUpdate(id);
         OrderStatus source = order.getStatus();
         if (!allowed(source, target)) {
             throw new BusinessRuleViolationException("Không thể chuyển trạng thái " + source + " → " + target);
         }
-        var paymentRows = payments.findByOrderId(id);
-        if (paymentRows.size() == 1 && paymentRows.get(0).getMethod() == com.se201411.project.mooncake.enums.PaymentMethod.VNPAY
-                && paymentRows.get(0).getStatus() != com.se201411.project.mooncake.enums.PaymentStatus.PAID)
-            throw new BusinessRuleViolationException("VNPay chưa xác nhận thanh toán, chưa thể xử lý đơn.");
+
+        Payment payment = requireSinglePayment(id);
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        paymentProcessor.checkCanFulfil(payment);
+
         LocalDateTime now = LocalDateTime.now(clock);
         if (orders.transition(id, source, target, now) != 1) {
             throw new BusinessRuleViolationException("Đơn vừa được xử lý bởi yêu cầu khác. Hãy tải lại.");
         }
-        if (target == OrderStatus.COMPLETED
-                && !(paymentRows.size() == 1 && paymentRows.get(0).getMethod() == com.se201411.project.mooncake.enums.PaymentMethod.VNPAY
-                     && paymentRows.get(0).getStatus() == com.se201411.project.mooncake.enums.PaymentStatus.PAID)
-                && orders.collectCod(id, now) != 1) {
-            throw new BusinessRuleViolationException("Không thể xác nhận COD. Đơn phải có đúng một thanh toán COD chưa thu, đúng số tiền.");
+        if (target == OrderStatus.COMPLETED) {
+            // COD collects the cash here; VNPay was already paid online.
+            paymentProcessor.completeDelivery(id, payment, now);
         }
+    }
+
+    private Payment requireSinglePayment(long orderId) {
+        List<Payment> orderPayments = payments.findByOrderId(orderId);
+        if (orderPayments.size() != 1) {
+            throw new BusinessRuleViolationException(
+                "Đơn phải có đúng một bản ghi thanh toán; không thể chuyển trạng thái."
+            );
+        }
+        return orderPayments.get(0);
     }
 
     public static boolean allowed(OrderStatus from, OrderStatus to) {

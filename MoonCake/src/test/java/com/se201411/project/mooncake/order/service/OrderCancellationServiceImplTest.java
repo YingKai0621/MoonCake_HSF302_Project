@@ -3,22 +3,30 @@ package com.se201411.project.mooncake.order.service;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
+import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
+import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
+import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.OrderCancellationServiceImpl;
+import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
+import com.se201411.project.mooncake.order.service.impl.VnpayPaymentProcessor;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
@@ -32,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,6 +59,8 @@ class OrderCancellationServiceImplTest {
         CurrentCustomerService.class
     );
     private final AdminAccessService adminAccessService = mock(AdminAccessService.class);
+    private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
+    private final VnpayPaymentService vnpayPaymentService = mock(VnpayPaymentService.class);
     private final Clock clock = Clock.fixed(
         Instant.parse("2026-10-22T10:00:00Z"),
         ZoneOffset.UTC
@@ -58,6 +69,11 @@ class OrderCancellationServiceImplTest {
         orderRepository,
         itemRepository,
         componentRepository,
+        paymentRepository,
+        new PaymentProcessorRegistryImpl(List.of(
+            new CodPaymentProcessor(paymentRepository),
+            new VnpayPaymentProcessor(vnpayPaymentService)
+        )),
         inventoryService,
         currentCustomerService,
         adminAccessService,
@@ -65,8 +81,61 @@ class OrderCancellationServiceImplTest {
     );
 
     @BeforeEach
-    void allowAdmin() {
+    void allowAdminAndUseCodByDefault() {
         when(adminAccessService.requireAdmin()).thenReturn(99L);
+        when(paymentRepository.findByOrderId(anyLong()))
+            .thenReturn(List.of(payment(PaymentMethod.COD, PaymentStatus.UNPAID)));
+    }
+
+    @Test
+    void cancellationLocksOrderBeforeChangingIt() {
+        SalesOrder order = order(5L, OrderStatus.PLACED);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(orderRepository.cancelFromStatus(
+            eq(5L),
+            eq(OrderStatus.PLACED),
+            eq(OrderStatus.CANCELLED),
+            any()
+        )).thenReturn(1);
+        OrderItem standard = item(51L, InventorySource.STOCKED_SKU, 1);
+        standard.setVariant(variant(30L));
+        when(itemRepository.findByOrderId(5L)).thenReturn(List.of(standard));
+
+        service.cancelForAdmin(5L);
+
+        InOrder inOrder = inOrder(orderRepository, paymentRepository, inventoryService);
+        inOrder.verify(orderRepository).findByIdForUpdate(5L);
+        inOrder.verify(paymentRepository).findByOrderId(5L);
+        inOrder.verify(orderRepository).cancelFromStatus(eq(5L), any(), any(), any());
+        inOrder.verify(inventoryService).restoreForCancellation(any());
+    }
+
+    @Test
+    void vnpayOrderIsRejectedWithoutChangingStatusOrStock() {
+        SalesOrder order = order(6L, OrderStatus.PLACED);
+        when(orderRepository.findById(6L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(6L))
+            .thenReturn(List.of(payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID)));
+
+        assertThatThrownBy(() -> service.cancelForAdmin(6L))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("VNPay");
+
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+        verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void orderWithoutExactlyOnePaymentIsRejected() {
+        SalesOrder order = order(7L, OrderStatus.PLACED);
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(7L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.cancelForAdmin(7L))
+            .isInstanceOf(BusinessRuleViolationException.class);
+
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+        verifyNoInteractions(inventoryService);
     }
 
     @Test
@@ -185,6 +254,13 @@ class OrderCancellationServiceImplTest {
         component.setComponentVariant(variant(variantId));
         component.setQuantityPerSet(quantityPerSet);
         return component;
+    }
+
+    private Payment payment(PaymentMethod method, PaymentStatus status) {
+        Payment payment = new Payment();
+        payment.setMethod(method);
+        payment.setStatus(status);
+        return payment;
     }
 
     private ProductVariant variant(long id) {

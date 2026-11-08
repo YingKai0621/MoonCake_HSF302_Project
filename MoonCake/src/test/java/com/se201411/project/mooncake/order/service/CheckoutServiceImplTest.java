@@ -18,15 +18,21 @@ import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.DiscountGroup;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderItemKind;
+import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
+import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.impl.CheckoutServiceImpl;
+import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.DeliveryAddressServiceImpl;
+import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
+import com.se201411.project.mooncake.order.service.impl.VnpayPaymentProcessor;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -50,7 +56,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,6 +82,8 @@ class CheckoutServiceImplTest {
     private PaymentRepository paymentRepository;
     @Mock
     private EntityManager entityManager;
+    @Mock
+    private VnpayPaymentService vnpayPaymentService;
 
     private CheckoutService checkoutService;
 
@@ -92,8 +102,77 @@ class CheckoutServiceImplTest {
             paymentRepository,
             entityManager,
             clock,
-            org.mockito.Mockito.mock(com.se201411.project.mooncake.order.service.VnpayPaymentService.class)
+            new PaymentProcessorRegistryImpl(List.of(
+                new CodPaymentProcessor(paymentRepository),
+                new VnpayPaymentProcessor(vnpayPaymentService)
+            ))
         );
+    }
+
+    @Test
+    void vnpayCheckoutSavesVnpayPaymentAndReturnsGatewayUrlAfterDeductingStock() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        CheckoutCartSnapshot cart = new CheckoutCartSnapshot(
+            9L,
+            customerIdentity,
+            List.of(new CartLineSnapshot(10L, null, 1))
+        );
+        CheckoutQuote quote = new CheckoutQuote(
+            List.of(line(cart.lines().get(0), OrderItemKind.STANDARD,
+                InventorySource.STOCKED_SKU, DiscountGroup.MOONCAKE)),
+            List.of(),
+            BigDecimal.valueOf(100_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(30_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(130_000)
+        );
+        when(cartService.claimForCheckout(9L, customerIdentity)).thenReturn(cart);
+        when(pricingService.calculateCheckoutQuote(cart)).thenReturn(quote);
+        when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
+            new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
+        );
+        when(entityManager.getReference(Customer.class, 7L)).thenReturn(new Customer());
+        when(entityManager.getReference(ProductVariant.class, 10L))
+            .thenReturn(new ProductVariant());
+        when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
+            SalesOrder order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 99L);
+            return order;
+        });
+        when(orderItemRepository.save(any(OrderItem.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentRepository.save(any(Payment.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(vnpayPaymentService.startPayment(any(), eq("10.0.0.1")))
+            .thenReturn("https://sandbox.vnpayment.vn/pay?ref=1");
+
+        CheckoutForm form = validForm();
+        form.setPaymentMethod(PaymentMethod.VNPAY);
+        form.setPaymentIp("10.0.0.1");
+
+        CheckoutResult result = checkoutService.placeOrder(customerIdentity, form);
+
+        assertThat(result.paymentUrl()).isEqualTo("https://sandbox.vnpayment.vn/pay?ref=1");
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        org.mockito.Mockito.verify(paymentRepository).save(paymentCaptor.capture());
+        assertThat(paymentCaptor.getValue().getMethod()).isEqualTo(PaymentMethod.VNPAY);
+        assertThat(paymentCaptor.getValue().getStatus()).isEqualTo(PaymentStatus.UNPAID);
+
+        InOrder order = inOrder(inventoryService, vnpayPaymentService);
+        order.verify(inventoryService).deductForSale(any(SaleInventoryCommand.class));
+        order.verify(vnpayPaymentService).startPayment(any(), eq("10.0.0.1"));
+    }
+
+    private CheckoutForm validForm() {
+        CheckoutForm form = new CheckoutForm();
+        form.setCartId(9L);
+        form.setRecipientName("Người nhận");
+        form.setRecipientPhone("0909999999");
+        form.setProvinceCode("79");
+        form.setWardCode("26740");
+        form.setStreetAddress("123 Đường Trung Thu");
+        return form;
     }
 
     @Test
@@ -154,15 +233,13 @@ class CheckoutServiceImplTest {
         when(paymentRepository.save(any(Payment.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
-        CheckoutForm form = new CheckoutForm();
-        form.setCartId(9L);
-        form.setRecipientName("Người nhận");
-        form.setRecipientPhone("0909999999");
-        form.setProvinceCode("79");
-        form.setWardCode("26740");
-        form.setStreetAddress("123 Đường Trung Thu");
+        CheckoutForm form = validForm();
 
-        checkoutService.placeOrder(customerIdentity, form);
+        CheckoutResult result = checkoutService.placeOrder(customerIdentity, form);
+
+        // COD: no redirect to a payment gateway.
+        assertThat(result.paymentUrl()).isNull();
+        verifyNoInteractions(vnpayPaymentService);
 
         ArgumentCaptor<SaleInventoryCommand> commandCaptor = ArgumentCaptor.forClass(
             SaleInventoryCommand.class
@@ -193,6 +270,7 @@ class CheckoutServiceImplTest {
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         org.mockito.Mockito.verify(paymentRepository).save(paymentCaptor.capture());
         assertThat(paymentCaptor.getValue().getAmount()).isEqualByComparingTo("1030000");
+        assertThat(paymentCaptor.getValue().getMethod()).isEqualTo(PaymentMethod.COD);
     }
 
     private CheckoutLineQuote line(

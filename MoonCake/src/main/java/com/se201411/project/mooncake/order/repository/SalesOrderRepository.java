@@ -2,6 +2,8 @@ package com.se201411.project.mooncake.order.repository;
 
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -15,11 +17,15 @@ public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
 
     SalesOrder save(SalesOrder order);
 
-    @Query("select count(p) from Payment p where p.order.id=:id and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY")
-    long onlinePayments(@Param("id") long id);
-
-
     Optional<SalesOrder> findById(Long orderId);
+
+    /**
+     * Locks the order row until the transaction ends, so cancellation and an
+     * online payment for the same order cannot run at the same time.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select salesOrder from SalesOrder salesOrder where salesOrder.id = :orderId")
+    Optional<SalesOrder> findByIdForUpdate(@Param("orderId") long orderId);
 
     @Query("""
         select salesOrder
@@ -49,8 +55,6 @@ public interface SalesOrderRepository extends Repository<SalesOrder, Long> {
             salesOrder.updatedAt = :updatedAt
         where salesOrder.id = :orderId
           and salesOrder.status = :expectedStatus
-          and not exists (select p.id from Payment p where p.order.id=salesOrder.id
-              and p.method=com.se201411.project.mooncake.enums.PaymentMethod.VNPAY)
         """)
     int cancelFromStatus(
         @Param("orderId") long orderId,

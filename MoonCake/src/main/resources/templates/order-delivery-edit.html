@@ -135,6 +135,7 @@
           Hủy thay đổi
         </a>
         <button type="submit"
+                data-loading-text="Đang lưu…"
                 class="bg-gold px-6 py-3 font-semibold text-midnight hover:bg-goldHover transition-colors">
           Lưu thông tin nhận hàng
         </button>
@@ -145,5 +146,6 @@
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/checkout-address.js}" src="/js/pages/checkout-address.js"></script>
+  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
 </body>
 </html>

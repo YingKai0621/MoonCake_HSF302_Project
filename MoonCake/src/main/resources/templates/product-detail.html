@@ -213,7 +213,7 @@
                         aria-label="Tăng số lượng">+</button>
               </div>
             </div>
-            <button type="submit" class="btn-primary-cta w-full rounded-none">
+            <button type="submit" class="btn-primary-cta w-full rounded-none" data-loading-text="Đang thêm…">
               <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
               <span>Thêm vào giỏ hàng</span>
             </button>
@@ -474,5 +474,6 @@
   <!-- Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/product-detail.js}" src="/js/pages/product-detail.js"></script>
-<script th:src="@{/js/pages/product-gallery.js}" defer></script></body>
+<script th:src="@{/js/pages/product-gallery.js}" defer></script>  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+</body>
 </html>

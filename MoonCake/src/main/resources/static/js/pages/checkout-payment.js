@@ -15,6 +15,7 @@ function updateSubmitLabel() {
     return;
   }
   submitButton.textContent = checkedOption.dataset.submitLabel;
+  submitButton.dataset.loadingText = checkedOption.dataset.loadingLabel;
 }
 
 function setUpPaymentOptions() {

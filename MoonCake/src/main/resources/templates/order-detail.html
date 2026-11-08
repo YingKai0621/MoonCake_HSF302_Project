@@ -58,7 +58,9 @@
             <p class="text-xl font-bold text-amber-200" th:text="${order.formattedTotal}">0đ</p>
           </div>
           <form th:if="${vnpayEnabled}" th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post">
-            <button class="bg-amber-400 hover:bg-amber-300 text-midnight px-6 py-3 rounded font-bold whitespace-nowrap transition-colors">
+            <button type="submit"
+                    data-loading-text="Đang chuyển sang VNPay…"
+                    class="bg-amber-400 hover:bg-amber-300 text-midnight px-6 py-3 rounded font-bold whitespace-nowrap transition-colors">
               Thanh toán ngay
             </button>
           </form>
@@ -249,6 +251,7 @@
           </button>
           <button type="submit"
                   form="cancel-order-form"
+                  data-loading-text="Đang hủy…"
                   class="border border-red-400/60 bg-red-950/40 px-5 py-3 font-semibold text-red-100 hover:bg-red-900/50 transition-colors">
             Xác nhận hủy
           </button>
@@ -260,5 +263,6 @@
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/order-detail.js}" src="/js/pages/order-detail.js"></script>
+  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
 </body>
 </html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoonCake — Chỉnh sửa thông tin nhận hàng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D', surface: '#0C1626', control: '#162842',
+            gold: '#D1A85A', goldHover: '#E5C37E', ivory: '#F8F4EB', sand: '#C2BAAB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+  <header th:replace="~{fragments/header :: header('orders')}"></header>
+
+  <main class="flex-grow max-w-[860px] w-full mx-auto px-4 sm:px-6 py-10">
+    <a th:href="@{/orders/{orderCode}(orderCode=${orderCode})}"
+       class="inline-flex items-center gap-2 text-sm text-sand hover:text-gold mb-6 transition-colors">
+      <span aria-hidden="true">←</span>
+      Quay lại chi tiết đơn hàng
+    </a>
+
+    <div class="mb-8">
+      <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Đơn hàng</p>
+      <h1 class="font-serif text-3xl md:text-4xl font-semibold">Chỉnh sửa thông tin nhận hàng</h1>
+      <p class="mt-3 text-sand">
+        Bạn chỉ có thể thay đổi thông tin khi đơn hàng chưa bắt đầu xử lý.
+      </p>
+    </div>
+
+    <form th:action="@{/orders/{orderCode}/delivery(orderCode=${orderCode})}"
+          th:object="${deliveryForm}"
+          method="post"
+          class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8 space-y-6">
+      <div>
+        <label for="recipientName" class="block text-sm font-medium mb-2">
+          Tên người nhận <span class="text-gold">*</span>
+        </label>
+        <input id="recipientName" type="text" th:field="*{recipientName}"
+               autocomplete="name"
+               class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+        <p th:if="${#fields.hasErrors('recipientName')}" th:errors="*{recipientName}"
+           class="mt-2 text-sm text-red-300">Tên người nhận không hợp lệ</p>
+      </div>
+
+      <div>
+        <label for="recipientPhone" class="block text-sm font-medium mb-2">
+          Số điện thoại <span class="text-gold">*</span>
+        </label>
+        <input id="recipientPhone" type="tel" th:field="*{recipientPhone}"
+               inputmode="numeric" autocomplete="tel"
+               class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+        <p th:if="${#fields.hasErrors('recipientPhone')}" th:errors="*{recipientPhone}"
+           class="mt-2 text-sm text-red-300">Số điện thoại không hợp lệ</p>
+      </div>
+
+      <div class="border-t border-gold/15 pt-6">
+        <p class="text-sm text-sand">Địa chỉ hiện tại</p>
+        <p class="mt-2 font-medium leading-relaxed" th:text="*{currentShippingAddress}">Địa chỉ hiện tại</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label for="provinceCode" class="block text-sm font-medium mb-2">
+            Tỉnh/Thành phố <span class="text-gold">*</span>
+          </label>
+          <select id="provinceCode" th:field="*{provinceCode}"
+                  class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+            <option value="">Chọn tỉnh/thành phố</option>
+            <option th:each="province : ${provinces}"
+                    th:value="${province.code}"
+                    th:text="${province.name}">Tỉnh/Thành phố</option>
+          </select>
+          <p th:if="${#fields.hasErrors('provinceCode')}" th:errors="*{provinceCode}"
+             class="mt-2 text-sm text-red-300">Tỉnh/thành phố không hợp lệ</p>
+        </div>
+
+        <div>
+          <label for="wardCode" class="block text-sm font-medium mb-2">
+            Phường/Xã/Đặc khu <span class="text-gold">*</span>
+          </label>
+          <select id="wardCode" th:field="*{wardCode}"
+                  class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+            <option value="">Chọn phường/xã/đặc khu</option>
+            <option th:each="ward : ${wards}"
+                    th:value="${ward.code}"
+                    th:text="${ward.name}"
+                    th:attr="data-parent-code=${ward.parentCode}">Phường/Xã/Đặc khu</option>
+          </select>
+          <p th:if="${#fields.hasErrors('wardCode')}" th:errors="*{wardCode}"
+             class="mt-2 text-sm text-red-300">Phường/xã không hợp lệ</p>
+        </div>
+      </div>
+
+      <div>
+        <label for="streetAddress" class="block text-sm font-medium mb-2">
+          Số nhà và tên đường <span class="text-gold">*</span>
+        </label>
+        <input id="streetAddress" type="text" th:field="*{streetAddress}"
+               autocomplete="street-address"
+               class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+        <p th:if="${#fields.hasErrors('streetAddress')}" th:errors="*{streetAddress}"
+           class="mt-2 text-sm text-red-300">Địa chỉ không hợp lệ</p>
+      </div>
+
+      <div>
+        <label for="orderNote" class="block text-sm font-medium mb-2">Ghi chú giao hàng</label>
+        <textarea id="orderNote" th:field="*{orderNote}" rows="3"
+                  class="w-full resize-y border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold"></textarea>
+        <p th:if="${#fields.hasErrors('orderNote')}" th:errors="*{orderNote}"
+           class="mt-2 text-sm text-red-300">Ghi chú không hợp lệ</p>
+      </div>
+
+      <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-gold/15 pt-6">
+        <a th:href="@{/orders/{orderCode}(orderCode=${orderCode})}"
+           class="border border-gold/30 px-6 py-3 text-center font-semibold text-sand hover:border-gold hover:text-ivory transition-colors">
+          Hủy thay đổi
+        </a>
+        <button type="submit"
+                class="bg-gold px-6 py-3 font-semibold text-midnight hover:bg-goldHover transition-colors">
+          Lưu thông tin nhận hàng
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/pages/checkout-address.js}" src="/js/pages/checkout-address.js"></script>
+</body>
+</html>

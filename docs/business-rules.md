@@ -3,14 +3,22 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.5 — 23/10/2026
+**Phiên bản tài liệu:** 1.6 — 23/10/2026
 
-**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt làm tròn tổng tiền COD đến 1.000 VND gần nhất; Flyway V8 bổ sung snapshot chênh lệch làm tròn và schema vẫn giữ 19 bảng
+**Trạng thái:** Quy tắc nghiệp vụ MVP đã chốt làm tròn tổng tiền COD và cho khách sửa thông tin nhận hàng của đơn `PLACED`; schema vẫn giữ 19 bảng
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.6
+
+- Khách được sửa tên người nhận, số điện thoại, địa chỉ và ghi chú giao hàng của **đơn thuộc chính mình** khi đơn còn `PLACED`.
+- Việc sửa thông tin nhận hàng không thay đổi người mua, sản phẩm, số lượng, giá, chiết khấu, phí giao hàng, tổng tiền, payment hoặc tồn kho.
+- Cập nhật phải kiểm tra lại ownership từ principal `CUSTOMER` và dùng conditional update theo trạng thái `PLACED`; nếu đơn đồng thời chuyển sang xử lý thì yêu cầu sửa thất bại.
+- Từ `PROCESSING` trở đi, khách không tự sửa thông tin nhận hàng mà liên hệ cửa hàng.
+- Quyết định này dùng các cột snapshot sẵn có trong `SALES_ORDER`, không thêm bảng/cột và không cần Flyway migration mới.
 
 ### Thay đổi chính trong phiên bản 1.5
 
@@ -154,7 +162,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Yêu cầu hủy từ `SHIPPING`, `COMPLETED` hoặc `CANCELLED` bị từ chối và không tự hoàn tồn. Đổi/trả sau khi giao nằm ngoài phạm vi MVP.
 - Chuyển sang `CANCELLED` phải là conditional update theo đúng trạng thái hiện tại và yêu cầu cập nhật đúng một dòng. Request hủy lặp/đồng thời hoặc cạnh tranh với chuyển trạng thái khác không được hoàn kho hay ghi movement lần hai.
 - Đơn `COMPLETED` là giao thành công theo xác nhận vận hành. Không tự chuyển `COMPLETED` khi khách chỉ nhấn đặt hàng.
-- Chưa hỗ trợ hoàn tiền, đổi trả sau giao, chỉnh sửa đơn đã đặt, nhiều kiện giao hàng hoặc nhiều địa chỉ giao cho cùng một đơn trong MVP.
+- Khách được sửa snapshot tên người nhận, số điện thoại, địa chỉ và ghi chú của đơn thuộc mình khi còn `PLACED`. Không hỗ trợ sửa sản phẩm, số lượng, giá, phí, payment hoặc các snapshot khác của đơn đã đặt.
+- Chưa hỗ trợ hoàn tiền, đổi trả sau giao, nhiều kiện giao hàng hoặc nhiều địa chỉ giao cho cùng một đơn trong MVP.
 - `SALES_ORDER` lưu **snapshot**: người mua, người nhận, địa chỉ, phí vận chuyển, tổng tiền và trạng thái. `ORDER_ITEM` lưu snapshot SKU/tên/giá/phần trăm giảm/thành tiền; `ORDER_ITEM_COMPONENT` lưu chi tiết hộp. Đơn cũ không thay đổi khi sản phẩm hoặc chính sách giảm giá được cập nhật.
 - `subtotal_amount` là tổng giá gốc của tất cả dòng trước giảm; `discount_amount` là tổng giảm thực tế của các dòng đủ điều kiện; phí giao hàng không tham gia giảm giá.
 - Tổng trước làm tròn là `subtotal_amount - discount_amount + shipping_fee`. Chỉ sau bước này mới làm tròn đến 1.000 VND gần nhất theo `HALF_UP`.
@@ -271,6 +280,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Admin/Service không cho sửa PRESET đã `READY`; thay đổi composition luôn tạo SKU/configuration mới và giữ nguyên recipe cũ.
 - Kiểm tra tier active không chồng khoảng; áp dụng công thức làm tròn v1.1 nhất quán trên từng đơn vị và tổng đơn.
 - Customer cancellation phải dùng POST có CSRF, xác minh đơn thuộc khách hiện tại và chỉ nhận `PLACED`; Admin cancellation nhận `PLACED`/`PROCESSING`. Cả hai gọi cùng một service/transaction hủy, không sao chép logic hoàn kho.
+- Customer delivery update phải dùng POST có CSRF, lấy ownership từ principal và conditional update `WHERE order_status = 'PLACED'`; không được nhận `customer_id` từ form hoặc thay đổi các snapshot tài chính/sản phẩm.
 - Idempotency cho hủy đơn/hoàn kho, ghi nhận COD đúng một lần, thao tác Admin PACK đồng bộ, quản lý chuyển trạng thái đơn hợp lệ.
 - Tạo/activate SKU có tồn phải đồng thời bảo đảm tồn tại `INVENTORY_BALANCE`; không cho mở bán SKU thiếu balance.
 - Mọi snapshot đơn hàng không được thay đổi khi dữ liệu sản phẩm/cấu hình gốc cập nhật.
@@ -321,6 +331,9 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-40 | Đặt lần lượt 4/5/19/20/49/50 hộp quà | Mức giảm `GIFT_BOX` tương ứng 0%/5%/5%/8%/8%/10% |
 | BR-41 | Đặt lần lượt 99/100/199/200/499/500 hộp quà | Mức giảm `GIFT_BOX` tương ứng 10%/12%/12%/15%/15%/18% |
 | BR-42 | Đặt 20 bánh lẻ nhưng không có hộp quà | Bánh lẻ chưa giảm; chính sách sáu bậc hộp quà không áp dụng nhầm cho `MOONCAKE` |
+| BR-43 | Khách sửa thông tin nhận hàng của đơn `PLACED` thuộc chính mình | Cập nhật tên, điện thoại, địa chỉ, ghi chú; sản phẩm, tiền, payment và tồn kho giữ nguyên |
+| BR-44 | Khách A sửa thông tin nhận hàng của đơn khách B | Từ chối; không tiết lộ và không cập nhật đơn |
+| BR-45 | Đơn đồng thời chuyển `PLACED → PROCESSING` khi khách lưu địa chỉ | Chỉ một thao tác thắng; update địa chỉ thất bại nếu trạng thái không còn `PLACED` |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 
@@ -334,8 +347,8 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 8. Không đưa payOS/VietQR, webhook, reservation, duyệt đơn, quản lý lô hay nghiệp vụ ngoài MVP vào migration đầu tiên.
 9. Khi phát hiện khác biệt giữa Physical DDL và quy tắc ở đây: **liệt kê điểm mâu thuẫn và đề xuất cách xử lý, chờ xác nhận rồi mới sửa schema/migration**.
 10. Kết thúc phải báo cáo: file đã tạo/sửa, lệnh test đã chạy, bảng/FK/index tạo thành công hay chưa, lỗi còn tồn tại. Không khẳng định thành công nếu chưa chạy SQL Server thật.
-11. Xác nhận các quyết định v1.4 đã được thể hiện nhất quán: đăng nhập trước khi mua, đăng ký ACCOUNT + CUSTOMER nguyên tử, một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic, checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện, quyền hủy đơn phân biệt giữa Customer/Admin và sáu bậc `GIFT_BOX` độc lập với hai bậc `MOONCAKE`.
+11. Xác nhận các quyết định v1.6 đã được thể hiện nhất quán: đăng nhập trước khi mua, đăng ký ACCOUNT + CUSTOMER nguyên tử, một dòng giỏ cho mỗi target, PRESET bất biến sau READY, snapshot BOX + CAKE cho PRESET/CUSTOM, rounding HALF_UP theo đơn vị, state machine đơn, COD atomic, checkout một lần bằng chuyển giỏ `ACTIVE → CHECKED_OUT` có điều kiện, khách chỉ sửa thông tin nhận hàng của đơn `PLACED` thuộc mình, quyền hủy đơn phân biệt giữa Customer/Admin và sáu bậc `GIFT_BOX` độc lập với hai bậc `MOONCAKE`.
 
 ---
 
-**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: catalog công khai nhưng khách phải đăng ký/đăng nhập trước khi mua; giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động COD; checkout trừ tồn một lần; khách chỉ tự hủy đơn `PLACED` của mình, Admin có thể hủy `PLACED`/`PROCESSING`, và mọi hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Các chức năng online payment được để cho giai đoạn sau.
+**Nguyên tắc cuối:** *MVP đơn giản nhưng đúng dữ liệu*: catalog công khai nhưng khách phải đăng ký/đăng nhập trước khi mua; giỏ hàng không giữ/trừ kho; mỗi giỏ checkout thành công đúng một lần; đặt hàng tự động COD; checkout trừ tồn một lần; khách chỉ sửa thông tin nhận hàng hoặc tự hủy đơn `PLACED` của mình, Admin có thể hủy `PLACED`/`PROCESSING`, và mọi hủy hợp lệ hoàn đúng một lần; PRESET đã READY là bất biến và có luồng xuất kho khác CUSTOM; giá/chiết khấu/phí giao của đơn cũ không thay đổi. Các chức năng online payment được để cho giai đoạn sau.

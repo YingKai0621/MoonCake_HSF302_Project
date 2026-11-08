@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.service.impl;
 
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.order.dto.AddressOption;
+import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
 import com.se201411.project.mooncake.order.service.DeliveryAddressService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DeliveryAddressServiceImpl implements DeliveryAddressService {
@@ -39,6 +41,51 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
     @Override
     public List<AddressOption> getWards() {
         return wards;
+    }
+
+    @Override
+    public Optional<DeliveryAddressParts> parseShippingAddress(
+        String shippingAddress
+    ) {
+        if (shippingAddress == null || shippingAddress.isBlank()) {
+            return Optional.empty();
+        }
+
+        String normalizedAddress = shippingAddress.trim();
+        for (AddressOption province : provinces) {
+            String provinceSuffix = ", " + province.name();
+            if (!normalizedAddress.endsWith(provinceSuffix)) {
+                continue;
+            }
+
+            String addressBeforeProvince = normalizedAddress.substring(
+                0,
+                normalizedAddress.length() - provinceSuffix.length()
+            );
+            for (AddressOption ward : wards) {
+                if (!province.code().equals(ward.parentCode())) {
+                    continue;
+                }
+
+                String wardSuffix = ", " + ward.name();
+                if (!addressBeforeProvince.endsWith(wardSuffix)) {
+                    continue;
+                }
+
+                String streetAddress = addressBeforeProvince.substring(
+                    0,
+                    addressBeforeProvince.length() - wardSuffix.length()
+                ).trim();
+                if (!streetAddress.isBlank()) {
+                    return Optional.of(new DeliveryAddressParts(
+                        streetAddress,
+                        ward.code(),
+                        province.code()
+                    ));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

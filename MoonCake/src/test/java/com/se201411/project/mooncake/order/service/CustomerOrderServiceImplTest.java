@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
@@ -11,6 +13,8 @@ import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderSummaryView;
+import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
+import com.se201411.project.mooncake.order.dto.OrderDeliveryUpdateForm;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
@@ -25,13 +29,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerOrderServiceImplTest {
@@ -46,6 +54,8 @@ class CustomerOrderServiceImplTest {
     private OrderItemComponentRepository componentRepository;
     @Mock
     private PaymentRepository paymentRepository;
+    @Mock
+    private DeliveryAddressService deliveryAddressService;
 
     private CustomerOrderService customerOrderService;
 
@@ -55,7 +65,9 @@ class CustomerOrderServiceImplTest {
             orderRepository,
             itemRepository,
             componentRepository,
-            paymentRepository
+            paymentRepository,
+            deliveryAddressService,
+            Clock.fixed(Instant.parse("2026-10-21T08:00:00Z"), ZoneOffset.UTC)
         );
     }
 
@@ -140,6 +152,7 @@ class CustomerOrderServiceImplTest {
 
         assertThat(view.statusLabel()).isEqualTo("Đã tiếp nhận");
         assertThat(view.cancellable()).isTrue();
+        assertThat(view.deliveryEditable()).isTrue();
         assertThat(view.paymentStatusLabel()).isEqualTo("Chưa thanh toán");
         assertThat(view.totalQuantity()).isEqualTo(1);
         assertThat(view.formattedRoundingAdjustment()).isEqualTo("- 100đ");
@@ -180,6 +193,144 @@ class CustomerOrderServiceImplTest {
         );
 
         assertThat(view.cancellable()).isFalse();
+        assertThat(view.deliveryEditable()).isFalse();
+    }
+
+    @Test
+    void preparesCurrentDeliveryInformationForEditing() {
+        SalesOrder order = order(
+            11L,
+            "MC-EDIT",
+            OrderStatus.PLACED,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        order.setRecipientName("Người nhận");
+        order.setRecipientPhone("0901234567");
+        order.setShippingAddressSnapshot("12 Lê Lợi, Phường Bến Nghé, Hồ Chí Minh");
+        order.setOrderNote("Gọi trước khi giao");
+
+        when(orderRepository.findOwnedByOrderCode("MC-EDIT", 7L))
+            .thenReturn(Optional.of(order));
+        when(deliveryAddressService.parseShippingAddress(
+            "12 Lê Lợi, Phường Bến Nghé, Hồ Chí Minh"
+        )).thenReturn(Optional.of(new DeliveryAddressParts(
+            "12 Lê Lợi",
+            "ward-1",
+            "province-1"
+        )));
+
+        OrderDeliveryUpdateForm form = customerOrderService
+            .requireDeliveryUpdateForm("MC-EDIT", CUSTOMER);
+
+        assertThat(form.getRecipientName()).isEqualTo("Người nhận");
+        assertThat(form.getRecipientPhone()).isEqualTo("0901234567");
+        assertThat(form.getStreetAddress()).isEqualTo("12 Lê Lợi");
+        assertThat(form.getWardCode()).isEqualTo("ward-1");
+        assertThat(form.getProvinceCode()).isEqualTo("province-1");
+        assertThat(form.getCurrentShippingAddress())
+            .isEqualTo("12 Lê Lợi, Phường Bến Nghé, Hồ Chí Minh");
+    }
+
+    @Test
+    void updatesDeliveryInformationOnlyWhileOrderIsPlaced() {
+        SalesOrder order = order(
+            12L,
+            "MC-UPDATE",
+            OrderStatus.PLACED,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        OrderDeliveryUpdateForm form = deliveryForm();
+
+        when(orderRepository.findOwnedByOrderCode("MC-UPDATE", 7L))
+            .thenReturn(Optional.of(order));
+        when(deliveryAddressService.buildShippingAddress(
+            "25 Nguyễn Huệ",
+            "ward-2",
+            "province-2"
+        )).thenReturn("25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng");
+        when(orderRepository.updateDeliveryIfStatus(
+            12L,
+            7L,
+            OrderStatus.PLACED,
+            "Người nhận mới",
+            "0912345678",
+            "25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng",
+            "Giao buổi sáng",
+            LocalDateTime.of(2026, 10, 21, 8, 0)
+        )).thenReturn(1);
+
+        customerOrderService.updateDeliveryInformation("MC-UPDATE", form, CUSTOMER);
+
+        verify(orderRepository).updateDeliveryIfStatus(
+            12L,
+            7L,
+            OrderStatus.PLACED,
+            "Người nhận mới",
+            "0912345678",
+            "25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng",
+            "Giao buổi sáng",
+            LocalDateTime.of(2026, 10, 21, 8, 0)
+        );
+    }
+
+    @Test
+    void rejectsDeliveryUpdateAfterProcessingStarts() {
+        SalesOrder order = order(
+            13L,
+            "MC-PROCESSING",
+            OrderStatus.PROCESSING,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        when(orderRepository.findOwnedByOrderCode("MC-PROCESSING", 7L))
+            .thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> customerOrderService.updateDeliveryInformation(
+            "MC-PROCESSING",
+            deliveryForm(),
+            CUSTOMER
+        ))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa bắt đầu xử lý");
+    }
+
+    @Test
+    void reportsConflictWhenOrderStartsProcessingDuringDeliveryUpdate() {
+        SalesOrder order = order(
+            14L,
+            "MC-RACE",
+            OrderStatus.PLACED,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        OrderDeliveryUpdateForm form = deliveryForm();
+        when(orderRepository.findOwnedByOrderCode("MC-RACE", 7L))
+            .thenReturn(Optional.of(order));
+        when(deliveryAddressService.buildShippingAddress(
+            "25 Nguyễn Huệ",
+            "ward-2",
+            "province-2"
+        )).thenReturn("25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng");
+        when(orderRepository.updateDeliveryIfStatus(
+            14L,
+            7L,
+            OrderStatus.PLACED,
+            "Người nhận mới",
+            "0912345678",
+            "25 Nguyễn Huệ, Phường Trung Tâm, Đà Nẵng",
+            "Giao buổi sáng",
+            LocalDateTime.of(2026, 10, 21, 8, 0)
+        )).thenReturn(0);
+
+        assertThatThrownBy(() -> customerOrderService.updateDeliveryInformation(
+            "MC-RACE",
+            form,
+            CUSTOMER
+        ))
+            .isInstanceOf(ConcurrentOperationException.class)
+            .hasMessageContaining("chuyển sang xử lý");
     }
 
     @Test
@@ -206,5 +357,16 @@ class CustomerOrderServiceImplTest {
         order.setCreatedAt(createdAt);
         order.setTotalAmount(BigDecimal.valueOf(total));
         return order;
+    }
+
+    private OrderDeliveryUpdateForm deliveryForm() {
+        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
+        form.setRecipientName(" Người nhận mới ");
+        form.setRecipientPhone("0912345678");
+        form.setProvinceCode("province-2");
+        form.setWardCode("ward-2");
+        form.setStreetAddress("25 Nguyễn Huệ");
+        form.setOrderNote(" Giao buổi sáng ");
+        return form;
     }
 }

@@ -33,6 +33,8 @@
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
+  <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('cart')}"></header>
@@ -57,12 +59,17 @@
     </div>
 
     <div th:if="${successMessage != null and !cart.empty}"
-         class="mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3"
+         class="flash-message mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3"
+         data-flash-message
+         data-flash-timeout="5000"
+         role="status"
          th:text="${successMessage}">
       Cập nhật giỏ hàng thành công
     </div>
     <div th:if="${errorMessage}"
-         class="mb-6 border border-red-400/40 bg-red-950/30 text-red-200 px-4 py-3"
+         class="flash-message mb-6 border border-red-400/40 bg-red-950/30 text-red-200 px-4 py-3"
+         data-flash-message
+         role="alert"
          th:text="${errorMessage}">
       Không thể cập nhật giỏ hàng
     </div>

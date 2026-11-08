@@ -98,6 +98,17 @@ class AdminPagesTest {
     }
 
     @Test
+    void adminSuccessFlashUsesSharedDismissibleMessage() throws Exception {
+        mvc.perform(get("/admin/orders")
+                .with(user("admin").roles("ADMIN"))
+                .flashAttr("success", "Đã cập nhật đơn hàng."))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("data-flash-message")))
+            .andExpect(content().string(containsString("data-flash-timeout=\"5000\"")))
+            .andExpect(content().string(containsString("/js/flash-message.js")));
+    }
+
+    @Test
     void catalogRendersMarkersForUncheckedCheckboxes() throws Exception {
         mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())

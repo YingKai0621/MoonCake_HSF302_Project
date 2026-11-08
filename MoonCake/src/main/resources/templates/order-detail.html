@@ -28,6 +28,8 @@
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
+  <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
   <header th:replace="~{fragments/header :: header('orders')}"></header>
@@ -38,18 +40,26 @@
       Quay lại danh sách đơn hàng
     </a>
 
-    <details th:if="${order.cancellable}" class="mb-6 border border-gold/30 p-4"><summary class="text-gold cursor-pointer">Sửa địa chỉ giao hàng</summary><form th:action="@{/orders/{code}/address(code=${order.orderCode})}" method="post" class="mt-3"><label>Địa chỉ đầy đủ<input class="w-full p-3 bg-midnight border border-gold/30" name="address" th:value="${order.shippingAddress}" required maxlength="500"></label><button class="bg-gold text-midnight p-3 mt-3">Lưu địa chỉ</button></form></details>
-    <div th:if="${errorMessage}" role="alert" class="mb-4 text-red-300" th:text="${errorMessage}"></div>
     <form th:if="${vnpayEnabled and order.paymentStatusLabel == 'Chưa thanh toán'}" th:action="@{/orders/{code}/payment-check(code=${order.orderCode})}" method="post" class="mb-4"><button class="border border-gold text-gold px-5 py-3 rounded">Kiểm tra thanh toán VNPay</button></form>
     <form th:if="${vnpayEnabled and order.cancellable and order.paymentStatusLabel == 'Chưa thanh toán'}" th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post" class="mb-6">
       <button class="bg-gold text-midnight px-5 py-3 rounded font-semibold">Thanh toán qua VNPay Sandbox</button>
       <p class="text-sm text-sand mt-2">Sau khi mở VNPay, vui lòng liên hệ cửa hàng nếu cần hủy hoặc đối soát giao dịch.</p>
     </form>
     <div th:if="${successMessage}"
-         class="mb-6 border border-emerald-500/40 bg-emerald-950/30 px-5 py-4 text-emerald-200"
+         class="flash-message mb-6 border border-emerald-500/40 bg-emerald-950/30 px-5 py-4 text-emerald-200"
+         data-flash-message
+         data-flash-timeout="5000"
          role="status"
          th:text="${successMessage}">
       Đã hủy đơn hàng thành công.
+    </div>
+
+    <div th:if="${errorMessage}"
+         class="flash-message mb-6 border border-red-400/40 bg-red-950/30 px-5 py-4 text-red-200"
+         data-flash-message
+         role="alert"
+         th:text="${errorMessage}">
+      Không thể thực hiện thao tác.
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
@@ -65,7 +75,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <div class="lg:col-span-8 space-y-6">
         <section class="bg-surface border border-gold/20 rounded-lg p-6">
-          <h2 class="font-serif text-xl font-semibold pb-4 mb-5 border-b border-gold/15">Thông tin nhận hàng</h2>
+          <div class="flex items-center justify-between gap-4 pb-4 mb-5 border-b border-gold/15">
+            <h2 class="font-serif text-xl font-semibold">Thông tin nhận hàng</h2>
+            <a th:if="${order.deliveryEditable}"
+               th:href="@{/orders/{orderCode}/delivery/edit(orderCode=${order.orderCode})}"
+               class="shrink-0 border border-gold/40 px-4 py-2 text-sm font-semibold text-gold hover:bg-gold/10 transition-colors">
+              Chỉnh sửa
+            </a>
+          </div>
           <dl class="space-y-4 text-sm">
             <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Người nhận</dt><dd class="col-span-2 font-medium" th:text="${order.recipientName}">Tên người nhận</dd></div>
             <div class="grid grid-cols-3 gap-3"><dt class="text-sand">Số điện thoại</dt><dd class="col-span-2" th:text="${order.recipientPhone}">0900000000</dd></div>

@@ -10,7 +10,8 @@ import com.se201411.project.mooncake.order.repository.OrderAdminRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
-import com.se201411.project.mooncake.order.service.VnpayPaymentService;
+import com.se201411.project.mooncake.order.repository.VnpayRepository;
+import com.se201411.project.mooncake.order.service.impl.VnpayGateway;
 import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.OrderManagementServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
@@ -44,7 +45,12 @@ class OrderManagementServiceTest {
         payments,
         new PaymentProcessorRegistryImpl(List.of(
             new CodPaymentProcessor(payments),
-            new VnpayPaymentProcessor(mock(VnpayPaymentService.class))
+            new VnpayPaymentProcessor(
+                mock(VnpayRepository.class),
+                payments,
+                mock(VnpayGateway.class),
+                Clock.systemUTC()
+            )
         )),
         access,
         Clock.systemUTC()

@@ -19,7 +19,6 @@ import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
 import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.OrderCancellationServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
-import com.se201411.project.mooncake.order.service.impl.VnpayPaymentProcessor;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import com.se201411.project.mooncake.security.service.CurrentCustomerService;
@@ -49,7 +48,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class OrderCancellationServiceImplTest {
-
     private final SalesOrderRepository orderRepository = mock(SalesOrderRepository.class);
     private final OrderItemRepository itemRepository = mock(OrderItemRepository.class);
     private final OrderItemComponentRepository componentRepository = mock(
@@ -61,7 +59,7 @@ class OrderCancellationServiceImplTest {
     );
     private final AdminAccessService adminAccessService = mock(AdminAccessService.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
-    private final VnpayPaymentService vnpayPaymentService = mock(VnpayPaymentService.class);
+    private final PaymentProcessor vnpayProcessor = vnpayProcessorMock();
     private final Clock clock = Clock.fixed(
         Instant.parse("2026-10-22T10:00:00Z"),
         ZoneOffset.UTC
@@ -73,7 +71,7 @@ class OrderCancellationServiceImplTest {
         paymentRepository,
         new PaymentProcessorRegistryImpl(List.of(
             new CodPaymentProcessor(paymentRepository),
-            new VnpayPaymentProcessor(vnpayPaymentService)
+            vnpayProcessor
         )),
         inventoryService,
         currentCustomerService,
@@ -118,7 +116,7 @@ class OrderCancellationServiceImplTest {
         when(paymentRepository.findByOrderId(6L))
             .thenReturn(List.of(payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID)));
         doThrow(new BusinessRuleViolationException("Đơn đang có giao dịch VNPay chưa kết thúc."))
-            .when(vnpayPaymentService).requireNoOpenAttempt(6L);
+            .when(vnpayProcessor).checkCanCancel(eq(6L), any());
 
         assertThatThrownBy(() -> service.cancelForAdmin(6L))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -145,7 +143,7 @@ class OrderCancellationServiceImplTest {
 
         service.cancelCurrentCustomerOrder("MC-13");
 
-        verify(vnpayPaymentService).requireNoOpenAttempt(13L);
+        verify(vnpayProcessor).checkCanCancel(eq(13L), any());
         verify(inventoryService).restoreForCancellation(any());
     }
 
@@ -182,7 +180,6 @@ class OrderCancellationServiceImplTest {
         service.cancelForAdmin(15L);
 
         verify(inventoryService).restoreForCancellation(any());
-        verify(vnpayPaymentService, never()).requireNoOpenAttempt(anyLong());
         assertThat(paid.getStatus()).isEqualTo(PaymentStatus.PAID);
     }
 
@@ -315,6 +312,12 @@ class OrderCancellationServiceImplTest {
         component.setComponentVariant(variant(variantId));
         component.setQuantityPerSet(quantityPerSet);
         return component;
+    }
+
+    private static PaymentProcessor vnpayProcessorMock() {
+        PaymentProcessor processor = mock(PaymentProcessor.class);
+        when(processor.method()).thenReturn(PaymentMethod.VNPAY);
+        return processor;
     }
 
     private Payment payment(PaymentMethod method, PaymentStatus status) {

@@ -102,7 +102,6 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     @Transactional
     public void transition(long id, OrderStatus target) {
         access.requireAdmin();
-        // Lock the order row so an online payment cannot change it meanwhile.
         SalesOrder order = orders.requireForUpdate(id);
         OrderStatus source = order.getStatus();
         if (!allowed(source, target)) {
@@ -118,9 +117,17 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             throw new BusinessRuleViolationException("Đơn vừa được xử lý bởi yêu cầu khác. Hãy tải lại.");
         }
         if (target == OrderStatus.COMPLETED) {
-            // COD collects the cash here; VNPay was already paid online.
             paymentProcessor.completeDelivery(id, payment, now);
         }
+    }
+
+    @Transactional
+    public void refreshPaymentStatus(long id) {
+        access.requireAdmin();
+        orders.requireForUpdate(id);
+        Payment payment = requireSinglePayment(id);
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        paymentProcessor.refreshPaymentStatus(id);
     }
 
     private Payment requireSinglePayment(long orderId) {

@@ -11,11 +11,9 @@ import java.util.Map;
 
 @Service
 public class PaymentProcessorRegistryImpl implements PaymentProcessorRegistry {
-
     private final Map<PaymentMethod, PaymentProcessor> processors =
         new EnumMap<>(PaymentMethod.class);
 
-    /** Spring passes in every PaymentProcessor bean (COD, VNPay, ...). */
     public PaymentProcessorRegistryImpl(List<PaymentProcessor> processorBeans) {
         for (PaymentProcessor processor : processorBeans) {
             PaymentProcessor previous = processors.put(processor.method(), processor);

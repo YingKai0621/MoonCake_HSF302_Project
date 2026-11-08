@@ -40,17 +40,11 @@
       Quay lại danh sách đơn hàng
     </a>
 
-    <!-- Only VNPay orders that are still unpaid can pay or check the payment. -->
     <section th:if="${vnpayEnabled and order.awaitingOnlinePayment}" class="mb-6 border border-gold/30 rounded p-4">
-      <p class="text-sm text-sand mb-3">Đơn đang chờ thanh toán VNPay. Mỗi lần thanh toán có hiệu lực 15 phút.</p>
-      <div class="flex flex-wrap gap-3">
-        <form th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post">
-          <button class="bg-gold text-midnight px-5 py-3 rounded font-semibold">Thanh toán qua VNPay Sandbox</button>
-        </form>
-        <form th:action="@{/orders/{code}/payment-check(code=${order.orderCode})}" method="post">
-          <button class="border border-gold text-gold px-5 py-3 rounded">Kiểm tra thanh toán VNPay</button>
-        </form>
-      </div>
+      <p class="text-sm text-sand mb-3">Đơn đang chờ thanh toán VNPay.</p>
+      <form th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post">
+        <button class="bg-gold text-midnight px-5 py-3 rounded font-semibold">Thanh toán qua VNPay Sandbox</button>
+      </form>
     </section>
     <div th:if="${successMessage}"
          class="flash-message mb-6 border border-emerald-500/40 bg-emerald-950/30 px-5 py-4 text-emerald-200"

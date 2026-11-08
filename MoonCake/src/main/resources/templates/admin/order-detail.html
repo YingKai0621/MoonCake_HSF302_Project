@@ -29,6 +29,9 @@
                 <button>Xác nhận hoàn thành</button>
             </form>
         </div>
+        <p th:if="${order.status.name() == 'CANCELLED' and !#lists.isEmpty(order.payments) and order.payments[0].status.name() == 'PAID'}">
+            <strong>Cần hoàn tiền:</strong> đơn đã hủy nhưng khách đã thanh toán VNPay. Hãy hoàn tiền thủ công trên cổng merchant VNPay.
+        </p>
         <form th:if="${order.status.name() == 'PLACED' and !#lists.isEmpty(order.payments) and order.payments[0].method.name() == 'VNPAY' and order.payments[0].status.name() == 'UNPAID'}"
               th:action="@{/admin/orders/{id}/payment-check(id=${order.id})}" method="post">
             <button>Kiểm tra thanh toán VNPay</button>

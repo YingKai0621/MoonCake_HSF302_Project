@@ -29,10 +29,6 @@ public class OrderAdminRepository {
         return order;
     }
 
-    /**
-     * Loads and locks the order row until the transaction ends, so an Admin
-     * status change cannot race with an online payment for the same order.
-     */
     public SalesOrder requireForUpdate(long id) {
         SalesOrder order = em.find(SalesOrder.class, id, LockModeType.PESSIMISTIC_WRITE);
         if (order == null) {

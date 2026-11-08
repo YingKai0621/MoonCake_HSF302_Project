@@ -35,7 +35,6 @@ import java.util.TreeMap;
 
 @Service
 public class OrderCancellationServiceImpl implements OrderCancellationService {
-
     private final SalesOrderRepository orderRepository;
     private final OrderItemRepository itemRepository;
     private final OrderItemComponentRepository componentRepository;
@@ -110,20 +109,14 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         cancelOrder(order, currentStatus, false);
     }
 
-    /**
-     * @param requestedByCustomer true for the customer's own cancellation.
-     *                            Set by the service method, never by form input.
-     */
     private void cancelOrder(
         SalesOrder order,
         OrderStatus expectedStatus,
         boolean requestedByCustomer
     ) {
-        // Lock the order first so an online payment cannot start at the same time.
         orderRepository.findByIdForUpdate(order.getId());
         Payment payment = requireSinglePayment(order.getId());
 
-        // Business Rules v1.7: a paid order needs a refund, so only the shop cancels it.
         if (requestedByCustomer && payment.getStatus() == PaymentStatus.PAID) {
             throw new BusinessRuleViolationException(
                 "Đơn đã thanh toán. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền."

@@ -19,7 +19,9 @@ import com.se201411.project.mooncake.order.repository.OrderItemComponentReposito
 import com.se201411.project.mooncake.order.repository.OrderItemRepository;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
+import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.CustomerOrderServiceImpl;
+import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +45,6 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerOrderServiceImplTest {
-
     private static final ShopperIdentity CUSTOMER = ShopperIdentity.forCustomer(7L);
 
     @Mock
@@ -67,6 +68,7 @@ class CustomerOrderServiceImplTest {
             componentRepository,
             paymentRepository,
             deliveryAddressService,
+            new PaymentProcessorRegistryImpl(List.of(new CodPaymentProcessor(paymentRepository))),
             Clock.fixed(Instant.parse("2026-10-21T08:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -232,6 +234,16 @@ class CustomerOrderServiceImplTest {
         assertThat(view.paymentMethodLabel()).isEqualTo("COD");
         assertThat(view.awaitingOnlinePayment()).isFalse();
         assertThat(view.cancellable()).isTrue();
+    }
+
+    @Test
+    void codOrderCannotStartOnlinePayment() {
+        placedOrderView(PaymentMethod.COD, PaymentStatus.UNPAID);
+        SalesOrder order = orderRepository.findOwnedByOrderCode("MC-PLACED", 7L).get();
+        when(orderRepository.findByIdForUpdate(12L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> customerOrderService.startOnlinePayment("MC-PLACED", CUSTOMER, "127.0.0.1"))
+            .isInstanceOf(BusinessRuleViolationException.class);
     }
 
     private CustomerOrderDetailView placedOrderView(

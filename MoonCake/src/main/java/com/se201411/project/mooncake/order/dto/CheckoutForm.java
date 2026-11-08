@@ -8,11 +8,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class CheckoutForm {
-
-    /**
-     * Customer IP sent to VNPay. The controller always overwrites it with the
-     * real request address, so a value posted by the browser is never used.
-     */
     private String paymentIp = "127.0.0.1";
 
     @NotNull(message = "Vui lòng chọn phương thức thanh toán")

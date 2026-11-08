@@ -1,21 +1,20 @@
 package com.se201411.project.mooncake.order.controller;
 
-import com.se201411.project.mooncake.order.service.VnpayPaymentService;
+import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-/** Lets every page know whether the VNPay option should be shown. */
 @ControllerAdvice
 public class PaymentViewAdvice {
+    private final PaymentProcessorRegistry paymentProcessorRegistry;
 
-    private final VnpayPaymentService vnpayPaymentService;
-
-    public PaymentViewAdvice(VnpayPaymentService vnpayPaymentService) {
-        this.vnpayPaymentService = vnpayPaymentService;
+    public PaymentViewAdvice(PaymentProcessorRegistry paymentProcessorRegistry) {
+        this.paymentProcessorRegistry = paymentProcessorRegistry;
     }
 
     @ModelAttribute("vnpayEnabled")
     public boolean vnpayEnabled() {
-        return vnpayPaymentService.isEnabled();
+        return paymentProcessorRegistry.forMethod(PaymentMethod.VNPAY).isAvailable();
     }
 }

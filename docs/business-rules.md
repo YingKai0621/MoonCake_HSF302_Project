@@ -1,3 +1,5 @@
+> Cập nhật phạm vi theo yêu cầu người dùng ngày 02/11/2026: bổ sung VNPay Sandbox bên cạnh COD, góp ý chung và sửa địa chỉ khi đơn còn PLACED. Phần COD-only bên dưới mô tả MVP cũ. Không cho đặt vượt tồn; báo số lượng còn lại. V9/V10 bổ sung giao dịch VNPay và góp ý. VNPay chỉ đánh dấu PAID qua IPN hợp lệ; đơn online chưa trả tiền không chuyển xử lý/giao. Đơn đã khởi tạo VNPay không tự hủy để tránh xung đột giao dịch đang xử lý; cần đối soát và hoàn tiền qua merchant. Chưa tự động hóa refund/querydr.
+
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake

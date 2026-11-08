@@ -241,7 +241,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
 
     private Payment requirePayment(long orderId) {
         List<Payment> payments = paymentRepository.findByOrderId(orderId);
-        if (payments.size() != 1 || payments.get(0).getMethod() != PaymentMethod.COD) {
+        if (payments.size() != 1) {
             throw new BusinessRuleViolationException(
                 "Dữ liệu thanh toán của đơn hàng không hợp lệ"
             );

@@ -34,7 +34,7 @@
             <div class="site-header__dropdown-menu">
               <a th:href="@{/products/gift-boxes}" href="/products/gift-boxes">Hộp quà Trung Thu</a>
               <a th:href="@{/products/mooncakes}" href="/products/mooncakes">Bánh Trung Thu</a>
-              <a th:href="@{/custom-boxes}" href="/custom-boxes">Tự chọn hộp quà</a>
+              <a th:if="${!loggedIn or customerLoggedIn}" th:href="@{/custom-boxes}" href="/custom-boxes">Tự chọn hộp quà</a>
             </div>
           </details>
 

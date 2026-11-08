@@ -142,8 +142,9 @@
             <div class="flex items-start gap-3 p-4 rounded border border-gold bg-control">
               <span class="material-symbols-outlined text-gold">payments</span>
               <div>
-                <p class="text-sm font-semibold">Thanh toán khi nhận hàng (COD)</p>
-                <p class="text-xs text-sand mt-1">Thanh toán trực tiếp khi đơn hàng được giao thành công.</p>
+                <label for="paymentMethod" class="text-sm font-semibold">Chọn phương thức thanh toán</label>
+                  <select id="paymentMethod" th:field="*{paymentMethod}" class="w-full mt-2 p-3 bg-control border border-gold/30 rounded"><option value="COD">Thanh toán khi nhận hàng (COD)</option><option th:if="${vnpayEnabled}" value="VNPAY">Thanh toán trực tuyến VNPay Sandbox</option></select>
+                <p class="text-xs text-sand mt-1">COD: trả khi nhận hàng. VNPay: chuyển đến cổng thanh toán sau khi đặt đơn.</p>
               </div>
             </div>
           </section>
@@ -188,7 +189,7 @@
 
           <button type="submit" form="checkoutForm"
                   class="w-full bg-gold hover:bg-goldHover text-surface font-bold py-3.5 px-4 transition-colors">
-            Đặt hàng COD
+            Đặt hàng
           </button>
           <a th:href="@{/cart}" class="block text-center text-xs text-sand hover:text-gold">Quay lại giỏ hàng</a>
         </div>

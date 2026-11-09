@@ -22,6 +22,7 @@ public record AdminOrderView(
     BigDecimal roundingAdjustment,
     BigDecimal total,
     String formattedCreatedAt,
+    String formattedUpdatedAt,
     List<Item> items,
     List<PaymentLine> payments,
     Actions actions

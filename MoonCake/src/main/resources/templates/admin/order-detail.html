@@ -10,13 +10,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
         Quay lại danh sách đơn hàng
     </a>
-    <div class="detail-header">
-        <div>
-            <h1 class="order-code" th:text="${order.code}">MC-1</h1>
-            <p class="muted" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc</p>
-        </div>
-        <span class="badge badge--large" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span>
+    <div class="order-title">
+        <h1 class="order-code" th:text="${order.code}">MC-1</h1>
+        <span class="badge badge--large badge--dot" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span>
     </div>
+    <p class="order-subtitle" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc</p>
 
     <div th:if="${order.actions.needsRefund}" class="alert alert--danger">
         <strong>Cần hoàn tiền cho khách.</strong>
@@ -25,7 +23,7 @@
 
     <ol class="order-steps" th:unless="${order.status.name() == 'CANCELLED'}"
         th:with="stage=${order.status.name() == 'COMPLETED' ? 4 : order.status.name() == 'SHIPPING' ? 3 : order.status.name() == 'PROCESSING' ? 2 : 1}">
-        <li class="order-steps__step" th:classappend="${stage > 1 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng</li>
+        <li class="order-steps__step" th:classappend="${stage > 1 or stage == 4 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng</li>
         <li class="order-steps__step" th:classappend="${stage > 2 ? 'is-done' : (stage == 2 ? 'is-current' : '')}"><span>2</span>Đang chuẩn bị</li>
         <li class="order-steps__step" th:classappend="${stage > 3 ? 'is-done' : (stage == 3 ? 'is-current' : '')}"><span>3</span>Đang giao</li>
         <li class="order-steps__step" th:classappend="${stage == 4 ? 'is-done' : ''}"><span>4</span>Hoàn tất</li>
@@ -37,40 +35,85 @@
                 <h2 th:text="${'Sản phẩm (' + #lists.size(order.items) + ')'}">Sản phẩm</h2>
                 <ul class="line-items">
                     <li th:each="item : ${order.items}" class="line-item">
-                        <div class="line-item__info">
-                            <strong th:text="${item.name}">Sản phẩm</strong>
-                            <span class="muted" th:text="${#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA') + 'đ × ' + item.quantity}">0đ × 1</span>
-                            <details th:if="${!#lists.isEmpty(item.components)}">
-                                <summary th:text="${'Thành phần mỗi hộp (' + #lists.size(item.components) + ')'}">Thành phần</summary>
-                                <ul class="component-list">
-                                    <li th:each="component : ${item.components}" th:text="${component.name + ' × ' + component.quantity}">Bánh × 1</li>
-                                </ul>
-                            </details>
+                        <div class="line-item__row">
+                            <div class="line-item__info">
+                                <strong th:text="${item.name}">Sản phẩm</strong>
+                                <span class="muted" th:text="${#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA') + 'đ × ' + item.quantity}">0đ × 1</span>
+                            </div>
+                            <strong class="line-item__total" th:text="${#numbers.formatDecimal(item.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</strong>
                         </div>
-                        <strong class="line-item__total" th:text="${#numbers.formatDecimal(item.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</strong>
+                        <div th:if="${!#lists.isEmpty(item.components)}" class="component-box">
+                            <p class="component-box__title" th:text="${'Trong mỗi hộp (' + #lists.size(item.components) + ')'}">Trong mỗi hộp</p>
+                            <ul class="component-list">
+                                <li th:each="component : ${item.components}">
+                                    <span th:text="${component.name}">Bánh</span>
+                                    <span class="component-list__qty" th:text="${'× ' + component.quantity}">× 1</span>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 </ul>
+            </section>
+
+            <section>
+                <h2>Thanh toán</h2>
+                <dl class="summary-list">
+                    <dt>Tạm tính</dt>
+                    <dd th:text="${#numbers.formatDecimal(order.subtotal, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
+                    <th:block th:if="${order.discount.signum() != 0}">
+                        <dt>Chiết khấu</dt>
+                        <dd th:text="${'−' + #numbers.formatDecimal(order.discount, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
+                    </th:block>
+                    <dt>Phí giao hàng</dt>
+                    <dd th:text="${#numbers.formatDecimal(order.shipping, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
+                    <th:block th:if="${order.roundingAdjustment.signum() != 0}">
+                        <dt>Làm tròn</dt>
+                        <dd th:text="${#numbers.formatDecimal(order.roundingAdjustment, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
+                    </th:block>
+                </dl>
+                <div class="summary-total">
+                    <span>Tổng cộng</span>
+                    <strong th:text="${#numbers.formatDecimal(order.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</strong>
+                </div>
+                <div th:each="payment : ${order.payments}" class="payment-row">
+                    <strong th:text="${payment.methodLabel}">COD</strong>
+                    <span th:if="${payment.paid}" class="badge badge--dot badge--success">Đã thanh toán</span>
+                    <span th:if="${!payment.paid and order.status.name() == 'CANCELLED'}" class="badge badge--dot badge--muted">Không thu tiền</span>
+                    <span th:if="${!payment.paid and order.status.name() != 'CANCELLED'}" class="badge badge--dot badge--warning">Chưa thanh toán</span>
+                    <span th:if="${payment.formattedPaidAt}" class="muted" th:text="${'Thu lúc ' + payment.formattedPaidAt}">Thu lúc</span>
+                </div>
             </section>
         </div>
 
         <aside class="detail-side">
-            <section>
-                <h2>Thao tác</h2>
-                <div class="action-stack">
+            <section th:with="finished=${order.status.name() == 'COMPLETED' or order.status.name() == 'CANCELLED'}">
+                <h2 th:text="${finished ? 'Kết quả' : 'Việc cần làm'}">Việc cần làm</h2>
+
+                <div th:if="${order.status.name() == 'COMPLETED'}" class="result-box result-box--success">
+                    <strong>Đã giao thành công</strong>
+                    <span th:if="${order.formattedUpdatedAt != null}" th:text="${'Hoàn tất lúc ' + order.formattedUpdatedAt}">Hoàn tất lúc</span>
+                </div>
+                <div th:if="${order.status.name() == 'CANCELLED'}" class="result-box result-box--muted">
+                    <strong>Đơn đã hủy</strong>
+                    <span th:if="${order.formattedUpdatedAt != null}" th:text="${'Hủy lúc ' + order.formattedUpdatedAt}">Hủy lúc</span>
+                </div>
+
+                <div class="action-stack" th:unless="${finished}">
+                    <div th:if="${order.status.name() == 'PLACED' and !order.actions.canStartProcessing}" class="result-box result-box--warning">
+                        <strong>Chờ khách thanh toán VNPay</strong>
+                        <span>Khách trả xong mới nhận xử lý được.</span>
+                    </div>
                     <form th:if="${order.actions.canStartProcessing}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
                         <input type="hidden" name="target" value="PROCESSING">
                         <button type="submit" data-loading-text="Đang cập nhật…">Nhận xử lý đơn</button>
                     </form>
-                    <p th:if="${order.status.name() == 'PLACED' and !order.actions.canStartProcessing}" class="muted">
-                        Chờ khách thanh toán online xong mới nhận xử lý được.
-                    </p>
                     <form th:if="${order.actions.canShip}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
                         <input type="hidden" name="target" value="SHIPPING">
                         <button type="submit" data-loading-text="Đang cập nhật…">Bàn giao vận chuyển</button>
                     </form>
                     <form th:if="${order.actions.canComplete}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
                         <input type="hidden" name="target" value="COMPLETED">
-                        <label class="checkbox">
+                        <label class="checkbox confirm-check">
                             <input type="checkbox" required>
                             Đã giao thành công và đã nhận đủ tiền
                         </label>
@@ -79,16 +122,13 @@
                     <form th:if="${order.actions.canCheckPayment}" th:action="@{/admin/orders/{id}/payment-check(id=${order.id})}" method="post">
                         <button type="submit" class="secondary" data-loading-text="Đang hỏi VNPay…">Kiểm tra thanh toán với VNPay</button>
                     </form>
-                    <form th:if="${order.actions.canCancel}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
+                    <form th:if="${order.actions.canCancel}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                          th:attr="data-confirm-message=${order.actions.paidOnline
+                              ? 'Hủy đơn ' + order.code + ' và hoàn lại tồn kho? Khách đã thanh toán online nên sau khi hủy cần hoàn tiền thủ công trên VNPay.'
+                              : 'Hủy đơn ' + order.code + ' và hoàn lại tồn kho? Thao tác này không thể hoàn tác.'}">
                         <input type="hidden" name="target" value="CANCELLED">
                         <button type="submit" class="danger">Hủy đơn và hoàn kho</button>
-                        <p th:if="${order.actions.paidOnline}" class="muted small-note">
-                            Khách đã thanh toán online: sau khi hủy cần hoàn tiền thủ công.
-                        </p>
                     </form>
-                    <p th:if="${!order.actions.canStartProcessing and !order.actions.canShip and !order.actions.canComplete and !order.actions.canCancel and !order.actions.canCheckPayment}" class="muted">
-                        Đơn đã kết thúc, không còn thao tác nào.
-                    </p>
                 </div>
             </section>
 
@@ -106,29 +146,6 @@
                         <dd th:text="${order.note}">Ghi chú</dd>
                     </th:block>
                 </dl>
-            </section>
-
-            <section>
-                <h2>Thanh toán</h2>
-                <dl class="summary-list">
-                    <dt>Tạm tính</dt>
-                    <dd th:text="${#numbers.formatDecimal(order.subtotal, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
-                    <dt>Chiết khấu</dt>
-                    <dd th:text="${'−' + #numbers.formatDecimal(order.discount, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
-                    <dt>Phí giao hàng</dt>
-                    <dd th:text="${#numbers.formatDecimal(order.shipping, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
-                    <th:block th:if="${order.roundingAdjustment.signum() != 0}">
-                        <dt>Làm tròn</dt>
-                        <dd th:text="${#numbers.formatDecimal(order.roundingAdjustment, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
-                    </th:block>
-                    <dt class="summary-list__total">Tổng cộng</dt>
-                    <dd class="summary-list__total" th:text="${#numbers.formatDecimal(order.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</dd>
-                </dl>
-                <div th:each="payment : ${order.payments}" class="payment-row">
-                    <strong th:text="${payment.methodLabel}">COD</strong>
-                    <span class="badge" th:classappend="${payment.paid} ? 'badge--success' : 'badge--warning'" th:text="${payment.statusLabel}">Chưa thanh toán</span>
-                    <span th:if="${payment.formattedPaidAt}" class="muted" th:text="${'Thu lúc ' + payment.formattedPaidAt}">Thu lúc</span>
-                </div>
             </section>
         </aside>
     </div>

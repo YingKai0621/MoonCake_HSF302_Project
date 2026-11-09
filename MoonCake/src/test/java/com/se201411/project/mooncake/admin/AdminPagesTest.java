@@ -541,7 +541,7 @@ class AdminPagesTest {
         return new AdminOrderView(1, "ORDER", status, "Chờ xử lý", "warning",
                 "Recipient", "0901234567", "Address", null,
                 BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.TEN, "09/11/2026 10:00",
+                BigDecimal.TEN, "09/11/2026 10:00", "09/11/2026 10:30",
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
                 List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
                 actions);

@@ -47,6 +47,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
@@ -179,7 +181,7 @@ class AdminPagesTest {
             .andExpect(redirectedUrl("/admin/catalog/products/9"));
         verify(catalog).createProduct(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
-            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), "/images/products/gift.png"));
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), "/images/products/gift.png", null));
     }
 
     @Test
@@ -199,6 +201,22 @@ class AdminPagesTest {
                 .param("imageUrl", "javascript:alert(1)"))
             .andExpect(status().isBadRequest());
         verify(catalog, never()).createProduct(any());
+    }
+
+    @Test
+    void uploadingImageReturnsToTheSkuOnItsProductPage() throws Exception {
+        when(catalog.uploadImage(any())).thenReturn(4L);
+        MockMultipartFile photo = new MockMultipartFile("imageFile", "cake.png", "image/png", new byte[] {1, 2, 3});
+        mvc.perform(multipart("/admin/images/upload")
+                .file(photo)
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "2")
+                .param("sortOrder", "1")
+                .param("_primary", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/4#sku-2"));
+        verify(catalog).uploadImage(any());
     }
 
     @Test

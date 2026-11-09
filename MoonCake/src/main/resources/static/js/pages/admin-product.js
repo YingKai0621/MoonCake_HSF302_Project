@@ -53,40 +53,73 @@ function setUpBrokenImages() {
   }
 }
 
-function setUpImagePreview() {
-  const input = document.querySelector("[data-image-input]");
-  const preview = document.querySelector("[data-image-preview]");
-  if (input === null || preview === null) {
-    return;
-  }
-  const image = preview.querySelector("img");
-  const hint = preview.querySelector("span");
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-  function showHint(text) {
-    image.hidden = true;
-    hint.hidden = false;
-    hint.textContent = text;
+function setUpDropzone(zone) {
+  const input = zone.querySelector("[data-dropzone-input]");
+  const preview = zone.querySelector(".dropzone__preview");
+  const previewImage = preview.querySelector("img");
+  const empty = zone.querySelector(".dropzone__empty");
+  const error = zone.querySelector("[data-dropzone-error]");
+
+  function showError(text) {
+    input.value = "";
+    preview.hidden = true;
+    empty.hidden = false;
+    error.textContent = text;
+    error.hidden = false;
   }
 
-  image.addEventListener("load", function () {
-    image.hidden = false;
-    hint.hidden = true;
-  });
-  image.addEventListener("error", function () {
-    showHint("Không tải được ảnh, hãy kiểm tra lại đường dẫn");
-  });
-  input.addEventListener("input", function () {
-    const url = input.value.trim();
-    if (url === "") {
-      showHint("Dán đường dẫn ảnh để xem trước");
+  function showFile() {
+    const file = input.files[0];
+    if (file === undefined) {
+      preview.hidden = true;
+      empty.hidden = false;
       return;
     }
-    image.src = url;
+    if (!IMAGE_TYPES.includes(file.type)) {
+      showError("Chỉ nhận ảnh JPG, PNG hoặc WebP.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      showError("Ảnh quá lớn. Hãy chọn ảnh tối đa 5MB.");
+      return;
+    }
+    error.hidden = true;
+    previewImage.src = URL.createObjectURL(file);
+    preview.hidden = false;
+    empty.hidden = true;
+  }
+
+  input.addEventListener("change", showFile);
+
+  zone.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    zone.classList.add("is-dragging");
+  });
+  zone.addEventListener("dragleave", function () {
+    zone.classList.remove("is-dragging");
+  });
+  zone.addEventListener("drop", function (event) {
+    event.preventDefault();
+    zone.classList.remove("is-dragging");
+    if (event.dataTransfer.files.length > 0) {
+      input.files = event.dataTransfer.files;
+      showFile();
+    }
   });
 }
 
+function setUpDropzones() {
+  const zones = document.querySelectorAll("[data-dropzone]");
+  for (let i = 0; i < zones.length; i++) {
+    setUpDropzone(zones[i]);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-  setUpImagePreview();
+  setUpDropzones();
   setUpSlugFields();
   openSectionFromHash();
   setUpBrokenImages();

@@ -86,6 +86,13 @@ public class AdminCatalogController {
         return savedProduct(flash, productId, "#sku-" + form.variantId());
     }
 
+    @PostMapping("/images/upload")
+    public String uploadImage(@Valid @ModelAttribute ImageUploadForm form, RedirectAttributes flash) {
+        long productId = catalog.uploadImage(form);
+        flash.addFlashAttribute("success", "Đã tải ảnh lên.");
+        return "redirect:/admin/catalog/products/" + productId + "#sku-" + form.variantId();
+    }
+
     @PostMapping("/images/{id}/remove")
     public String removeImage(@PathVariable long id, RedirectAttributes flash) {
         long productId = catalog.removeImage(id);

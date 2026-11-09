@@ -17,3 +17,4 @@ MoonCake/src/main/resources/static/images/products/**/manifest.json
 MoonCake/src/main/resources/static/images/products/**/gallery-map.json
 MoonCake/src/main/resources/static/images/products/**/thumbnails/
 MoonCake/src/main/resources/static/images/products/**/*-thumb.webp
+MoonCake/uploads/

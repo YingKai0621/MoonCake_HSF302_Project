@@ -12,6 +12,7 @@ import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.NewProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
@@ -22,6 +23,7 @@ import com.se201411.project.mooncake.product.dto.AdminProductTab;
 import com.se201411.project.mooncake.product.dto.ProductTypeOption;
 import com.se201411.project.mooncake.product.repository.ProductAdminRepository;
 import com.se201411.project.mooncake.product.service.PresetConfigurationQueryService;
+import com.se201411.project.mooncake.product.service.ProductImageStorageService;
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import org.springframework.stereotype.Service;
@@ -41,15 +43,17 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private final PresetConfigurationQueryService presets;
     private final AdminAccessService access;
     private final AdminFormValidation validation;
+    private final ProductImageStorageService imageStorage;
 
     public ProductAdminServiceImpl(ProductAdminRepository repo, InventoryService inventory,
                                    PresetConfigurationQueryService presets, AdminAccessService access,
-                                   AdminFormValidation validation) {
+                                   AdminFormValidation validation, ProductImageStorageService imageStorage) {
         this.repo = repo;
         this.inventory = inventory;
         this.presets = presets;
         this.access = access;
         this.validation = validation;
+        this.imageStorage = imageStorage;
     }
 
     @Override
@@ -255,9 +259,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         );
         saveVariant(variantForm);
 
-        if (f.imageUrl() != null && !f.imageUrl().isBlank()) {
+        String imageUrl = null;
+        if (f.imageFile() != null && !f.imageFile().isEmpty()) {
+            imageUrl = imageStorage.store(f.imageFile());
+        } else if (f.imageUrl() != null && !f.imageUrl().isBlank()) {
+            imageUrl = f.imageUrl().trim();
+        }
+        if (imageUrl != null) {
             long variantId = repo.variantsOf(productId).get(0).getId();
-            saveImage(new ImageForm(null, variantId, f.imageUrl().trim(), f.name(), 0, true));
+            saveImage(new ImageForm(null, variantId, imageUrl, f.name(), 0, true));
         }
         return productId;
     }
@@ -347,6 +357,16 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         repo.save(v);
         repo.flush();
         return variant.getProduct().getId();
+    }
+
+    @Override
+    public long uploadImage(ImageUploadForm f) {
+        access.requireAdmin();
+        validation.validate(f);
+        repo.variant(f.variantId());
+        String imageUrl = imageStorage.store(f.imageFile());
+        ImageForm image = new ImageForm(null, f.variantId(), imageUrl, f.altText(), f.sortOrder(), f.primary());
+        return saveImage(image);
     }
 
     private List<CategoryForm> categoryForms() {

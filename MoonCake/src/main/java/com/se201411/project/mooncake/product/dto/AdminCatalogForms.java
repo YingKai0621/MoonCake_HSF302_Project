@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.product.dto;
 
 import jakarta.validation.constraints.*;
 import com.se201411.project.mooncake.enums.ProductType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -31,7 +32,12 @@ public final class AdminCatalogForms {
                                  @NotBlank @Size(max = 80) String sku,
                                  @NotBlank @Size(max = 200) String variantName,
                                  @NotNull @DecimalMin("0") @Digits(integer = 18, fraction = 0) BigDecimal unitPrice,
-                                 @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+)?") String imageUrl) {
+                                 @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)?") String imageUrl,
+                                 MultipartFile imageFile) {
+    }
+
+    public record ImageUploadForm(@Positive long variantId, MultipartFile imageFile,
+                                  @Size(max = 250) String altText, @Min(0) int sortOrder, boolean primary) {
     }
 
     public record VariantForm(Long id, @Positive long productId, @NotBlank @Size(max = 80) String sku,
@@ -46,7 +52,7 @@ public final class AdminCatalogForms {
     }
 
     public record ImageForm(Long id, @Positive long variantId,
-                            @NotBlank @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+)") String imageUrl,
+                            @NotBlank @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)") String imageUrl,
                             @Size(max = 250) String altText, @Min(0) int sortOrder, boolean primary) {
     }
 }

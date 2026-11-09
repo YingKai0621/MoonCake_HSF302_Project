@@ -122,5 +122,19 @@
     </div>
 </form>
 
+<label th:fragment="dropzone(required)" class="dropzone" data-dropzone>
+    <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" th:required="${required}" data-dropzone-input>
+    <span class="dropzone__preview" hidden>
+        <img alt="">
+        <span class="dropzone__change">Bấm hoặc kéo ảnh khác để đổi</span>
+    </span>
+    <span class="dropzone__empty">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <strong>Kéo thả ảnh vào đây</strong>
+        <small>hoặc bấm để chọn từ máy · JPG, PNG, WebP · tối đa 5MB</small>
+    </span>
+    <span class="dropzone__error" hidden data-dropzone-error></span>
+</label>
+
 </body>
 </html>

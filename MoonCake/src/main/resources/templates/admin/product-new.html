@@ -15,7 +15,7 @@
         <h1>Thêm sản phẩm</h1>
     </div>
 
-    <form th:action="@{/admin/catalog/products}" method="post" class="create-layout">
+    <form th:action="@{/admin/catalog/products}" method="post" enctype="multipart/form-data" class="create-layout">
         <section class="create-layout__main">
             <h2>Thông tin chung</h2>
             <div th:replace="~{admin/product-forms :: productFields(null, false)}"></div>
@@ -40,15 +40,13 @@
 
             <section>
                 <h2>Ảnh đại diện</h2>
-                <div class="image-preview" data-image-preview>
-                    <img alt="" hidden>
-                    <span>Dán đường dẫn ảnh để xem trước</span>
-                </div>
-                <label>Đường dẫn ảnh
-                    <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+)"
-                           placeholder="/images/products/... hoặc https://..." data-image-input>
-                    <small class="field-hint">Có thể bỏ trống và thêm ảnh sau.</small>
-                </label>
+                <label th:replace="~{admin/product-forms :: dropzone(false)}"></label>
+                <details class="url-option">
+                    <summary>Hoặc dán đường dẫn ảnh có sẵn</summary>
+                    <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
+                           placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
+                </details>
+                <p class="field-hint">Có thể bỏ trống và thêm ảnh sau.</p>
             </section>
 
             <section class="create-layout__submit">

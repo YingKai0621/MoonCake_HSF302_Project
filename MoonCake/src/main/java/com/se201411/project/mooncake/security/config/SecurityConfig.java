@@ -33,7 +33,7 @@ public class SecurityConfig {
         RequestCache requestCache
     ) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+            .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/products/**", "/favicon.ico").permitAll()
             .requestMatchers(
                 HttpMethod.GET,
                 "/",

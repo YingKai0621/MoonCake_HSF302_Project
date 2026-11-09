@@ -85,23 +85,35 @@
                     </ul>
                     <p th:if="${sku.images.isEmpty()}" class="muted">Phiên bản này chưa có ảnh.</p>
 
-                    <form th:action="@{/admin/images}" method="post" class="image-add">
+                    <form th:action="@{/admin/images/upload}" method="post" enctype="multipart/form-data" class="image-upload">
                         <input type="hidden" name="variantId" th:value="${sku.form.id}">
                         <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
-                        <label>Thêm ảnh: đường dẫn
-                            <input type="text" name="imageUrl" required maxlength="1000"
-                                   pattern="(https?://\S+|/images/\S+)" placeholder="/images/products/... hoặc https://...">
-                        </label>
-                        <label>Mô tả ảnh
-                            <input type="text" name="altText" maxlength="250" placeholder="Ví dụ: Hộp quà mở nắp">
-                        </label>
-                        <label class="checkbox">
-                            <input type="hidden" name="_primary" value="on">
-                            <input type="checkbox" name="primary" value="true" th:checked="${sku.images.isEmpty()}">
-                            Làm ảnh chính
-                        </label>
-                        <button type="submit" class="secondary" data-loading-text="Đang thêm…">Thêm ảnh</button>
+                        <label th:replace="~{admin/product-forms :: dropzone(true)}"></label>
+                        <div class="image-upload__side">
+                            <label>Mô tả ảnh
+                                <input type="text" name="altText" maxlength="250" placeholder="Ví dụ: Hộp quà mở nắp">
+                            </label>
+                            <label class="checkbox">
+                                <input type="hidden" name="_primary" value="on">
+                                <input type="checkbox" name="primary" value="true" th:checked="${sku.images.isEmpty()}">
+                                Làm ảnh chính
+                            </label>
+                            <button type="submit" data-loading-text="Đang tải lên…">Tải ảnh lên</button>
+                        </div>
                     </form>
+
+                    <details class="url-option">
+                        <summary>Hoặc dùng đường dẫn ảnh có sẵn</summary>
+                        <form th:action="@{/admin/images}" method="post" class="url-option__form">
+                            <input type="hidden" name="variantId" th:value="${sku.form.id}">
+                            <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
+                            <input type="hidden" name="_primary" value="on">
+                            <input type="text" name="imageUrl" required maxlength="1000"
+                                   pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
+                                   placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
+                            <button type="submit" class="secondary">Thêm ảnh</button>
+                        </form>
+                    </details>
                 </div>
             </details>
 

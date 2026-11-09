@@ -4,6 +4,7 @@ import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.NewProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
@@ -39,6 +40,8 @@ public interface ProductAdminService {
     long saveBox(BoxForm form);
 
     long saveImage(ImageForm form);
+
+    long uploadImage(ImageUploadForm form);
 
     long removeImage(long imageId);
 }

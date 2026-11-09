@@ -6,14 +6,11 @@
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
 
-    <div class="page-heading">
-        <span class="eyebrow">Bán hàng</span>
+    <div class="page-heading page-heading--simple">
         <h1>Đơn hàng</h1>
-        <p>Mở một đơn để xem chi tiết và chuyển bước: nhận xử lý → bàn giao vận chuyển → xác nhận hoàn tất.</p>
     </div>
 
     <nav class="tabs" aria-label="Lọc theo trạng thái" data-tabs>
-        <span class="tabs__indicator" aria-hidden="true"></span>
         <a th:each="tab : ${tabs}"
            class="tabs__item"
            th:classappend="${tab.selected} ? 'is-active'"
@@ -66,6 +63,5 @@
         <a th:if="${orders.size() == 50}" class="button secondary" th:href="@{/admin/orders(page=${page + 1},status=${status})}">Trang sau →</a>
     </div>
 </main>
-<script th:src="@{/js/pages/admin-tabs.js}"></script>
 </body>
 </html>

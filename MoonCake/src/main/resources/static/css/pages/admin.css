@@ -1392,54 +1392,107 @@ main > nav a[aria-current="page"] {
 
 /* ---------- Tabs ---------- */
 
-.tabs {
-  position: relative;
+main > nav.tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+main > nav.tabs .tabs__item {
   display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border);
-}
-
-.tabs__indicator {
-  position: absolute;
-  left: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent);
-  transition: transform var(--motion) var(--ease-out), width var(--motion) var(--ease-out);
-}
-
-.tabs__item {
-  display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface);
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
-  transition: color var(--motion-fast) ease-out;
+  transition: border-color var(--motion-fast) ease-out, color var(--motion-fast) ease-out, background var(--motion-fast) ease-out;
 }
 
-.tabs__item:hover,
-.tabs__item.is-active {
+main > nav.tabs .tabs__item:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+main > nav.tabs .tabs__item.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--text);
 }
 
 .tabs__count {
-  padding: 0 8px;
+  min-width: 28px;
+  padding: 1px 8px;
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--text-muted);
   font-size: 12px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
 .tabs__item.is-active .tabs__count {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.page-heading--simple {
+  padding-bottom: 16px;
+}
+
+.page-heading--simple h1 {
+  font-size: clamp(32px, 4vw, 42px);
+}
+
+/* ---------- Table pager ---------- */
+
+.table-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.table-pager__status {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.table-pager__pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.table-pager__pages button {
+  min-width: 40px;
+  padding: 8px 12px;
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.table-pager__pages button:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.table-pager__pages button.is-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 /* ---------- Lists and detail pages ---------- */

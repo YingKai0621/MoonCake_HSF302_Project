@@ -27,7 +27,10 @@
             <p class="kpi-card__value">
                 <span data-count-to th:attr="data-count-to=${kpi.value},data-money=${kpi.money}" th:text="${kpi.value}">0</span><span th:if="${kpi.money}" class="kpi-card__unit">đ</span>
             </p>
-            <p class="kpi-card__change">
+            <p class="kpi-card__change" th:if="${kpi.trend() == 'waiting'}">
+                <span class="muted" th:text="${kpi.previousLabel + ': ' + #numbers.formatInteger(kpi.previousValue, 1, 'POINT') + (kpi.money ? 'đ' : '')}">Hôm qua: 240.000đ</span>
+            </p>
+            <p class="kpi-card__change" th:unless="${kpi.trend() == 'waiting'}">
                 <span class="trend" th:classappend="${'trend--' + kpi.trend()}">
                     <th:block th:if="${kpi.trend() == 'up'}" th:text="${'▲ ' + kpi.changePercent + '%'}">▲ 12%</th:block>
                     <th:block th:if="${kpi.trend() == 'down'}" th:text="${'▼ ' + (-kpi.changePercent) + '%'}">▼ 5%</th:block>

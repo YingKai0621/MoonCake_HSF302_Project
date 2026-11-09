@@ -5,9 +5,14 @@ public record KpiView(
     long value,
     boolean money,
     Double changePercent,
-    String compareLabel
+    String compareLabel,
+    long previousValue,
+    String previousLabel
 ) {
     public String trend() {
+        if (value == 0 && previousValue > 0) {
+            return "waiting";
+        }
         if (changePercent == null) {
             return value > 0 ? "new" : "flat";
         }

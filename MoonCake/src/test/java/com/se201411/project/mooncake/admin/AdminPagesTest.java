@@ -522,7 +522,7 @@ class AdminPagesTest {
     static DashboardView sampleDashboard() {
         return new DashboardView(
             DashboardPeriod.DAY,
-            List.of(new KpiView("Doanh thu", 620000L, true, 12.5, "so với hôm qua")),
+            List.of(new KpiView("Doanh thu", 620000L, true, 12.5, "so với hôm qua", 551000L, "Hôm qua")),
             List.of("08/11", "09/11"),
             List.of(0L, 620000L),
             List.of(0L, 1L),

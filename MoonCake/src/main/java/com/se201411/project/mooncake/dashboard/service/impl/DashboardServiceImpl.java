@@ -185,7 +185,7 @@ public class DashboardServiceImpl implements DashboardService {
         } else if (current == 0) {
             change = 0.0;
         }
-        return new KpiView(label, current, money, change, period.getCompareLabel());
+        return new KpiView(label, current, money, change, period.getCompareLabel(), previous, period.getPreviousLabel());
     }
 
     private long average(long total, long count) {

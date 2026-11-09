@@ -117,8 +117,10 @@ class AdminPagesTest {
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of())));
-        when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", 3, 5)));
-        when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now())));
+        when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
+        when(inventory.balances(any())).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
+        when(inventory.stockTabs(any())).thenReturn(List.of());
+        when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now(), "Cake · Cake 80g", "Nhập kho", "09/11/2026 10:00")));
         when(orders.orders(null, 0)).thenReturn(List.of(order(OrderStatus.PLACED)));
         when(orders.detail(1)).thenReturn(order(OrderStatus.PLACED));
         when(orders.statusTabs(null)).thenReturn(List.of(new AdminOrderTab(null, "Tất cả", 1, true)));
@@ -403,6 +405,18 @@ class AdminPagesTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("tabs__count")))
                 .andExpect(content().string(containsString("Chưa thanh toán")));
+    }
+
+    @Test
+    void inventoryShowsStockRowsWithActionsAndHistoryPage() throws Exception {
+        mvc.perform(get("/admin/inventory").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Sắp hết")))
+            .andExpect(content().string(containsString("data-open-modal=\"receive-dialog\"")));
+        mvc.perform(get("/admin/inventory/movements").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Nhập kho")))
+            .andExpect(content().string(containsString("+3")));
     }
 
     @Test

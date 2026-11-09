@@ -26,7 +26,7 @@ public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
 
     @Override
     public List<StockMovement> movements(int page) {
-        return em.createQuery("from StockMovement m join fetch m.variant order by m.id desc", StockMovement.class)
+        return em.createQuery("from StockMovement m join fetch m.variant v join fetch v.product order by m.id desc", StockMovement.class)
                 .setFirstResult(page * 50).setMaxResults(50).getResultList();
     }
 

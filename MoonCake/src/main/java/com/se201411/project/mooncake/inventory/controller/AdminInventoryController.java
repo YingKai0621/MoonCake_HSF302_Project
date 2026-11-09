@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.inventory.controller;
 
 import com.se201411.project.mooncake.inventory.service.*;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -25,15 +26,22 @@ public class AdminInventoryController {
     }
 
     @GetMapping
-    public String inventory(@RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("balances", inventory.balances());
-        model.addAttribute("movements", inventory.movements(page));
+    public String inventory(@RequestParam(defaultValue = "ALL") StockFilter filter, Model model) {
+        model.addAttribute("balances", inventory.balances(filter));
+        model.addAttribute("tabs", inventory.stockTabs(filter));
+        model.addAttribute("filter", filter);
         model.addAttribute("presets", presets.presets());
-        model.addAttribute("page", Math.max(0, page));
         model.addAttribute("receiveKey", UUID.randomUUID().toString());
         model.addAttribute("adjustKey", UUID.randomUUID().toString());
         model.addAttribute("packKey", UUID.randomUUID().toString());
         return "admin/inventory";
+    }
+
+    @GetMapping("/movements")
+    public String movements(@RequestParam(defaultValue = "0") int page, Model model) {
+        model.addAttribute("movements", inventory.movements(page));
+        model.addAttribute("page", Math.max(0, page));
+        return "admin/inventory-movements";
     }
 
     @PostMapping("/receive")
@@ -55,7 +63,7 @@ public class AdminInventoryController {
     }
 
     private String done(RedirectAttributes flash) {
-        flash.addFlashAttribute("success", "Đã ghi nhận kho và lịch sử.");
+        flash.addFlashAttribute("success", "Đã cập nhật tồn kho.");
         return "redirect:/admin/inventory";
     }
 }

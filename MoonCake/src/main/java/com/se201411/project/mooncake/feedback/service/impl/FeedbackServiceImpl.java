@@ -25,6 +25,7 @@ import java.util.List;
 public class FeedbackServiceImpl implements FeedbackService {
 
     private static final int MAX_CONTENT_LENGTH = 2000;
+    private static final int HOMEPAGE_MIN_RATING = 4;
     private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -73,10 +74,9 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Transactional(readOnly = true)
     public List<PublicReviewView> findPublishedReviews() {
         List<PublicReviewView> reviews = new ArrayList<>();
-        for (Feedback feedback : feedbackRepository.findTop20ByPublishedTrueOrderByCreatedAtDesc()) {
-            if (feedback.getRating() == null) {
-                continue;
-            }
+        List<Feedback> publishedReviews =
+            feedbackRepository.findTop20ByPublishedTrueAndRatingGreaterThanEqualOrderByCreatedAtDesc(HOMEPAGE_MIN_RATING);
+        for (Feedback feedback : publishedReviews) {
             String customerName = feedback.getCustomer().getFullName();
             reviews.add(new PublicReviewView(
                 customerName,

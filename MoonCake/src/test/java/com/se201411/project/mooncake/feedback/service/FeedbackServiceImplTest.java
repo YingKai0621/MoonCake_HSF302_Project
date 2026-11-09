@@ -74,11 +74,18 @@ class FeedbackServiceImplTest {
     @Test
     void publishedReviewsShowCustomerNameRatingAndContent() {
         Feedback feedback = feedback(5, true, "Trần Thị Lan");
-        when(feedbackRepository.findTop20ByPublishedTrueOrderByCreatedAtDesc()).thenReturn(List.of(feedback));
+        when(feedbackRepository.findTop20ByPublishedTrueAndRatingGreaterThanEqualOrderByCreatedAtDesc(4)).thenReturn(List.of(feedback));
 
         List<PublicReviewView> reviews = service.findPublishedReviews();
 
         assertThat(reviews).containsExactly(new PublicReviewView("Trần Thị Lan", "L", 5, "Bánh ngon"));
+    }
+
+    @Test
+    void homepageAsksOnlyForReviewsWithAtLeastFourStars() {
+        service.findPublishedReviews();
+
+        verify(feedbackRepository).findTop20ByPublishedTrueAndRatingGreaterThanEqualOrderByCreatedAtDesc(4);
     }
 
     @Test

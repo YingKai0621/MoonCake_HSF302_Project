@@ -140,95 +140,80 @@
     </div>
   </section>
 
-  <!-- ================= 2.5 KHÁM PHÁ HỘP QUÀ (INTERACTIVE 3D UNBOXING EXPERIENCE) ================= -->
-  <!-- ================= 2.5 KHÁM PHÁ HỘP QUÀ (INTERACTIVE 3D UNBOXING EXPERIENCE) ================= -->
-  <section id="kham-pha-hop-qua" class="gift-3d-section relative py-16 lg:py-20 border-b border-[#EDC565]/30 overflow-hidden">
-    <!-- Atmospheric Decorative Background Art Layer (Approved Background) -->
-    <div class="gift-3d-bg-art" aria-hidden="true"></div>
-    <div class="gift-3d-bg-overlay" aria-hidden="true"></div>
+  <!-- 2.5 TỰ TẠO HỘP QUÀ (3 BƯỚC) -->
+  <section id="kham-pha-hop-qua" class="box-steps py-16 lg:py-24 border-b border-gold/20" data-box-steps>
+    <div class="max-w-7xl mx-auto px-4 sm:px-8">
+      <div class="box-steps__intro">
+        <p class="box-steps__eyebrow">Hộp quà tự chọn</p>
+        <h2 class="box-steps__heading">Tự tạo hộp quà của riêng bạn</h2>
+        <p class="box-steps__lead">Chọn vỏ hộp, chọn bánh, và MoonCake sẽ đóng hộp giao tận nơi.</p>
+      </div>
 
-    <!-- Subtle Layered Moonlit Product Stage Atmosphere -->
-    <div class="gift-3d-moon-halo" aria-hidden="true"></div>
-    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-[620px] h-[620px] bg-[#EDC565]/[0.045] rounded-full blur-[140px] pointer-events-none" aria-hidden="true"></div>
-
-    <!-- Minimal Traditional Corner Linework Ornaments -->
-    <svg class="gift-3d-corner-ornament top-left w-12 h-12" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M4 24V4H24" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-      <path d="M4 4L14 14" stroke="currentColor" stroke-width="0.75" stroke-linecap="round"/>
-      <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
-      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
-    </svg>
-    <svg class="gift-3d-corner-ornament bottom-right w-12 h-12" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M4 24V4H24" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-      <path d="M4 4L14 14" stroke="currentColor" stroke-width="0.75" stroke-linecap="round"/>
-      <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
-      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
-    </svg>
-
-    <div class="max-w-[1340px] mx-auto px-4 sm:px-8 relative z-10">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[580px] lg:min-h-[660px]">
-        
-        <!-- LEFT SIDE: Editorial & Shopping Navigation (~38% on desktop) -->
-        <div class="lg:col-span-5 flex flex-col justify-center space-y-6 text-left">
-          <h2 class="font-serif text-3xl sm:text-4xl lg:text-[48px] font-semibold text-[#F8F4EB] leading-[1.2] tracking-tight">
-            Khám phá hộp quà
-          </h2>
-
-          <p class="font-sans text-[#D3CABB] text-base sm:text-[17px] leading-[1.68] max-w-[420px] font-normal">
-            Một góc nhìn gần hơn về hộp quà MoonCake.
-          </p>
-
-          <!-- Interactive Controls & Shopping CTA -->
-          <div class="pt-2 flex flex-wrap items-center gap-4">
-            <!-- Primary Shopping Action -->
-            <a th:href="@{/#hop-qua}" href="#hop-qua" class="gift-3d-cta-primary inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#EDC565] text-[#0C1626] font-semibold text-base hover:bg-[#F5D68E] transition-all shadow-md min-h-[46px]">
-              <span>Xem hộp quà</span>
-              <i class="w-4 h-4 shrink-0" data-lucide="arrow-down"></i>
-            </a>
-
-            <!-- Replay Animation Button -->
-            <button id="box-replay-btn" type="button" aria-label="Mở lại hộp quà" class="gift-3d-replay-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-[#EDC565]/50 bg-[#162842]/60 text-[#F8F4EB] font-medium text-base hover:border-[#EDC565] hover:bg-[#162842] hover:text-[#FAF4A9] transition-all min-h-[46px] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-              <i class="w-4 h-4 shrink-0 text-[#EDC565]" data-lucide="rotate-ccw"></i>
-              <span>Mở lại</span>
-            </button>
-          </div>
-
-          <!-- Unobtrusive Note -->
-          <p class="text-xs text-[#D3CABB]/85 italic tracking-wide pt-1">
-            * Hình ảnh 3D minh họa
-          </p>
-        </div>
-
-        <!-- RIGHT SIDE: 3D Interactive WebGL Canvas (~62% on desktop) -->
-        <div class="lg:col-span-7 relative w-full h-[480px] sm:h-[540px] lg:h-[620px] rounded-2xl overflow-hidden">
-          <!-- WebGL Container -->
-          <div id="gift-box-canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing">
-            <!-- Loading Indicator -->
-            <div id="box-3d-loader" class="absolute inset-0 flex items-center justify-center bg-[#0C1626]/80 z-10 transition-opacity duration-500">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-8 h-8 border-2 border-[#EDC565]/40 border-t-[#EDC565] rounded-full animate-spin"></div>
-                <span class="text-xs text-[#D3CABB] tracking-widest uppercase">Đang chuẩn bị mô hình...</span>
-              </div>
+      <div class="box-steps__layout">
+        <ol class="box-steps__list">
+          <li class="box-steps__step is-active" data-step="1">
+            <span class="box-steps__number">01</span>
+            <div>
+              <h3 class="box-steps__title">Chọn vỏ hộp</h3>
+              <p class="box-steps__text">Hộp Kim Phúc 4 ngăn hoặc Lam Phúc 6 ngăn, đóng gói sang trọng để làm quà biếu.</p>
+              <img class="box-steps__inline-image"
+                   th:src="@{/images/boxes/box-kim-phuc-4.png}"
+                   src="/images/boxes/box-kim-phuc-4.png"
+                   alt="Vỏ hộp quà Kim Phúc 4 ngăn"
+                   loading="lazy">
             </div>
-          </div>
-
-          <!-- Graceful Fallback (Visible if WebGL fails or reduced motion) -->
-          <div id="box-3d-fallback" class="hidden absolute inset-0 flex items-center justify-center p-6 bg-[#0C1626]">
-            <div class="relative w-full h-full max-w-lg max-h-[420px] rounded-xl overflow-hidden border border-[#EDC565]/35 shadow-navy-card">
-              <img th:src="@{/images/homepage/lunar_mooncake_gift_set_under_moonlight.png}"
-                   src="/images/homepage/lunar_mooncake_gift_set_under_moonlight.png"
-                   alt="Hộp quà MoonCake cao cấp"
-                   class="w-full h-full object-cover" />
+          </li>
+          <li class="box-steps__step" data-step="2">
+            <span class="box-steps__number">02</span>
+            <div>
+              <h3 class="box-steps__title">Chọn bánh yêu thích</h3>
+              <p class="box-steps__text">Kết hợp các hương vị bạn thích cho đến khi đủ số ngăn của hộp.</p>
+              <img class="box-steps__inline-image"
+                   th:src="@{/images/business/moonlit_mid_autumn_mooncake_feast.png}"
+                   src="/images/business/moonlit_mid_autumn_mooncake_feast.png"
+                   alt="Nhiều hương vị bánh Trung Thu bày trên bàn"
+                   loading="lazy">
             </div>
-          </div>
+          </li>
+          <li class="box-steps__step" data-step="3">
+            <span class="box-steps__number">03</span>
+            <div>
+              <h3 class="box-steps__title">Nhận hộp quà của riêng bạn</h3>
+              <p class="box-steps__text">Đặt hàng, thanh toán khi nhận hàng hoặc qua VNPay, cửa hàng giao tận nơi.</p>
+              <img class="box-steps__inline-image"
+                   th:src="@{/images/products/gift-kim-phuc.jpg}"
+                   src="/images/products/gift-kim-phuc.jpg"
+                   alt="Hộp quà Kim Phúc hoàn chỉnh"
+                   loading="lazy">
+            </div>
+          </li>
+        </ol>
 
-          <!-- Subtle Interaction Hint Overlay (fades out after first interaction) -->
-          <div id="box-interaction-hint" class="pointer-events-none absolute bottom-4 right-5 flex items-center gap-2 text-xs text-[#D3CABB]/85 bg-[#0C1626]/70 px-3 py-1.5 rounded-full backdrop-blur-sm border border-[#EDC565]/30 opacity-0 transition-opacity duration-700">
-            <i class="w-3.5 h-3.5 text-[#EDC565]" data-lucide="move"></i>
-            <span>Di chuột để khám phá góc nhìn</span>
-          </div>
+        <div class="box-steps__visual" aria-hidden="true">
+          <img class="box-steps__image is-active"
+               data-step-image="1"
+               th:src="@{/images/boxes/box-kim-phuc-4.png}"
+               src="/images/boxes/box-kim-phuc-4.png"
+               alt=""
+               loading="lazy">
+          <img class="box-steps__image"
+               data-step-image="2"
+               th:src="@{/images/business/moonlit_mid_autumn_mooncake_feast.png}"
+               src="/images/business/moonlit_mid_autumn_mooncake_feast.png"
+               alt=""
+               loading="lazy">
+          <img class="box-steps__image"
+               data-step-image="3"
+               th:src="@{/images/products/gift-kim-phuc.jpg}"
+               src="/images/products/gift-kim-phuc.jpg"
+               alt=""
+               loading="lazy">
         </div>
+      </div>
 
+      <div class="box-steps__actions">
+        <a th:href="@{/custom-boxes}" href="/custom-boxes" class="box-steps__button">Tạo hộp tự chọn</a>
+        <a th:href="@{/#hop-qua}" href="#hop-qua" class="box-steps__link">Xem hộp quà có sẵn</a>
       </div>
     </div>
   </section>
@@ -702,7 +687,7 @@
   <!-- External Extracted Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <!-- Three.js Interactive 3D Gift Box Unboxing Scene -->
-  <script type="module" th:src="@{/js/three/gift-box-scene.js}" src="/js/three/gift-box-scene.js"></script>
+  <script th:src="@{/js/pages/homepage-steps.js}" src="/js/pages/homepage-steps.js"></script>
 </body>
 
 </html>

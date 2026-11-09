@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Lịch sử biến động kho')}"></head>
+<body class="page-inventory">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <a class="back-link" th:href="@{/admin/inventory}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại tồn kho
+    </a>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Kho</span>
+        <h1>Lịch sử biến động</h1>
+    </div>
+
+    <section class="table-scroll">
+        <table data-search-table>
+            <thead>
+            <tr>
+                <th>Thời gian</th>
+                <th>Sản phẩm</th>
+                <th>Thao tác</th>
+                <th class="numeric">Thay đổi</th>
+                <th>Lý do</th>
+                <th>Đơn hàng</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${movements}">
+                <td class="muted" th:text="${m.formattedCreatedAt}">09/11/2026 10:00</td>
+                <td>
+                    <strong th:text="${m.productName}">Bánh</strong>
+                    <small class="muted"><code th:text="${m.sku}">SKU</code></small>
+                </td>
+                <td th:text="${m.typeLabel}">Nhập kho</td>
+                <td class="numeric delta" th:classappend="${m.delta > 0} ? 'delta--up' : 'delta--down'"
+                    th:text="${m.delta > 0 ? '+' + m.delta : m.delta}">+3</td>
+                <td th:text="${m.reason}">Lý do</td>
+                <td>
+                    <a th:if="${m.orderId != null}" th:href="@{/admin/orders/{id}(id=${m.orderId})}" th:text="${'Đơn #' + m.orderId}">Đơn #1</a>
+                    <span th:if="${m.orderId == null}" class="muted">—</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${movements.isEmpty()}" class="empty-state">
+            <p><strong>Chưa có biến động nào.</strong></p>
+        </div>
+    </section>
+
+    <div class="pager" th:if="${page > 0 or movements.size() == 50}">
+        <a th:if="${page > 0}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page - 1})}">← Trang trước</a>
+        <a th:if="${movements.size() == 50}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page + 1})}">Trang sau →</a>
+    </div>
+</main>
+</body>
+</html>

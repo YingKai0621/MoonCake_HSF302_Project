@@ -8,6 +8,10 @@ import java.util.List;
 public interface InventoryAdminService {
     List<Balance> balances();
 
+    List<Balance> balances(StockFilter filter);
+
+    List<StockTab> stockTabs(StockFilter selected);
+
     List<Movement> movements(int page);
 
     boolean hasStockOrHistory(long variantId);

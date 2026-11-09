@@ -15,10 +15,12 @@
         <h1>Thêm sản phẩm</h1>
     </div>
 
-    <form th:action="@{/admin/catalog/products}" method="post" enctype="multipart/form-data" class="create-layout">
+    <p th:replace="~{admin/product-forms :: alert('new-product')}"></p>
+    <form th:action="@{/admin/catalog/products}" method="post" enctype="multipart/form-data" class="create-layout"
+          th:with="values=${formTarget == 'new-product' ? formValues : null}">
         <section class="create-layout__main">
             <h2>Thông tin chung</h2>
-            <div th:replace="~{admin/product-forms :: productFields(null, false)}"></div>
+            <div th:replace="~{admin/product-forms :: productFields(${values}, false)}"></div>
         </section>
 
         <aside class="create-layout__side">
@@ -26,21 +28,26 @@
                 <h2>Giá bán</h2>
                 <div class="side-fields">
                     <label>Tên phiên bản
-                        <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh">
+                        <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh"
+                               th:value="${values != null ? values.variantName : ''}">
                     </label>
                     <label>Giá bán (đ)
                         <input type="number" name="unitPrice" placeholder="Ví dụ: 450000"
+                               th:value="${values != null ? values.unitPrice : ''}"
                                required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
                     </label>
                     <label>Mã SKU
                         <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"
+                               th:value="${values != null ? values.sku : ''}"
                                pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
                     </label>
                     <label data-cake-only hidden>Khối lượng (g)
-                        <input type="number" name="weightGrams" placeholder="Ví dụ: 150" min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
+                        <input type="number" name="weightGrams" placeholder="Ví dụ: 150"
+                               th:value="${values != null ? values.weightGrams : ''}" min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
                     </label>
                     <label data-cake-only hidden>Nhân bánh
-                        <input type="text" name="fillingLabel" maxlength="180" placeholder="Ví dụ: Thập cẩm lạp xưởng">
+                        <input type="text" name="fillingLabel" maxlength="180" placeholder="Ví dụ: Thập cẩm lạp xưởng"
+                               th:value="${values != null ? values.fillingLabel : ''}">
                     </label>
                 </div>
             </section>
@@ -58,7 +65,7 @@
             <section class="create-layout__submit">
                 <label class="switch-card">
                     <input type="hidden" name="_active" value="on">
-                    <input type="checkbox" class="switch" name="active" value="true">
+                    <input type="checkbox" class="switch" name="active" value="true" th:checked="${values != null and values.active}">
                     <span class="switch-card__text">
                         <strong>Hiển thị trên cửa hàng ngay</strong>
                     </span>

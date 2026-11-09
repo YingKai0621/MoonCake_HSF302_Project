@@ -27,7 +27,8 @@
 
     <section id="info">
         <h2>Thông tin sản phẩm</h2>
-        <form th:replace="~{admin/product-forms :: product(${product}, ${detail.typeLocked})}"></form>
+        <p th:replace="~{admin/product-forms :: alert('info')}"></p>
+        <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, ${detail.typeLocked})}"></form>
     </section>
 
     <section id="skus">
@@ -40,7 +41,7 @@
 
         <div class="sku-list">
             <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
-                     th:open="${#lists.size(detail.skus) <= 3}">
+                     th:open="${#lists.size(detail.skus) <= 3 or formTarget == 'sku-' + sku.form.id}">
                 <summary class="sku-card__summary">
                     <span class="product-thumb">
                         <img th:if="${sku.imageUrl != null}" th:src="${sku.imageUrl}" alt="" loading="lazy" width="48" height="48">
@@ -56,7 +57,8 @@
                 </summary>
 
                 <div class="sku-card__body">
-                    <form th:replace="~{admin/product-forms :: sku(${sku.form}, ${product.id})}"></form>
+                    <p th:replace="~{admin/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
+                    <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
 
                     <h3 th:text="${'Ảnh (' + #lists.size(sku.images) + ')'}">Ảnh</h3>
                     <ul class="image-grid">
@@ -65,6 +67,7 @@
                             <span th:if="${image.primary}" class="badge badge--success image-tile__flag">Ảnh chính</span>
                             <div class="image-tile__actions">
                                 <form th:unless="${image.primary}" th:action="@{/admin/images}" method="post">
+                                    <input type="hidden" name="productId" th:value="${product.id}">
                                     <input type="hidden" name="id" th:value="${image.id}">
                                     <input type="hidden" name="variantId" th:value="${image.variantId}">
                                     <input type="hidden" name="imageUrl" th:value="${image.imageUrl}">
@@ -74,6 +77,8 @@
                                     <button type="submit" class="secondary small-button">Đặt làm ảnh chính</button>
                                 </form>
                                 <form th:action="@{/admin/images/{id}/remove(id=${image.id})}" method="post">
+                                    <input type="hidden" name="productId" th:value="${product.id}">
+                                    <input type="hidden" name="variantId" th:value="${image.variantId}">
                                     <button type="submit" class="danger small-button">Xóa</button>
                                 </form>
                             </div>
@@ -82,6 +87,7 @@
                     <p th:if="${sku.images.isEmpty()}" class="muted">Phiên bản này chưa có ảnh.</p>
 
                     <form th:action="@{/admin/images/upload}" method="post" enctype="multipart/form-data" class="image-upload">
+                        <input type="hidden" name="productId" th:value="${product.id}">
                         <input type="hidden" name="variantId" th:value="${sku.form.id}">
                         <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
                         <label th:replace="~{admin/product-forms :: dropzone(true)}"></label>
@@ -101,6 +107,7 @@
                     <details class="url-option">
                         <summary>Hoặc dùng đường dẫn ảnh có sẵn</summary>
                         <form th:action="@{/admin/images}" method="post" class="url-option__form">
+                            <input type="hidden" name="productId" th:value="${product.id}">
                             <input type="hidden" name="variantId" th:value="${sku.form.id}">
                             <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
                             <input type="hidden" name="_primary" value="on">
@@ -113,7 +120,7 @@
 
                     <div class="sku-delete">
                         <form th:if="${sku.deleteBlocker == null}"
-                              th:action="@{/admin/variants/{id}/delete(id=${sku.form.id})}"
+                              th:action="@{/admin/variants/{id}/delete(id=${sku.form.id},productId=${product.id})}"
                               th:attr="data-confirm-message=${'Xóa phiên bản “' + sku.form.name + '” cùng ảnh của nó? Không thể hoàn tác.'}"
                               method="post">
                             <button type="submit" class="danger small-button">Xóa phiên bản</button>
@@ -123,13 +130,14 @@
                 </div>
             </details>
 
-            <details class="sku-card sku-card--new" th:open="${detail.skus.isEmpty()}">
+            <details class="sku-card sku-card--new" id="sku-new" th:open="${detail.skus.isEmpty() or formTarget == 'sku-new'}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__plus" aria-hidden="true">+</span>
                     <strong>Thêm phiên bản mới</strong>
                 </summary>
                 <div class="sku-card__body">
-                    <form th:replace="~{admin/product-forms :: sku(null, ${product.id})}"></form>
+                    <p th:replace="~{admin/product-forms :: alert('sku-new')}"></p>
+                    <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
                 </div>
             </details>
         </div>
@@ -142,7 +150,7 @@
             </div>
         </div>
         <div class="sku-list">
-            <details th:each="box : ${detail.boxes}" class="sku-card">
+            <details th:each="box : ${detail.boxes}" class="sku-card" th:id="${'box-' + box.id}" th:open="${formTarget == 'box-' + box.id}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__title">
                         <strong th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</strong>
@@ -152,16 +160,18 @@
                           th:text="${box.active} ? 'Đang dùng' : 'Ngừng dùng'">Đang dùng</span>
                 </summary>
                 <div class="sku-card__body">
-                    <form th:replace="~{this :: boxForm(${box})}"></form>
+                    <p th:replace="~{admin/product-forms :: alert(${'box-' + box.id})}"></p>
+                    <form th:replace="~{this :: boxForm(${formTarget == 'box-' + box.id ? formValues : box})}"></form>
                 </div>
             </details>
-            <details class="sku-card sku-card--new" th:if="${!detail.skus.isEmpty()}">
+            <details class="sku-card sku-card--new" id="box-new" th:if="${!detail.skus.isEmpty()}" th:open="${formTarget == 'box-new'}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__plus" aria-hidden="true">+</span>
                     <strong>Thêm mẫu hộp</strong>
                 </summary>
                 <div class="sku-card__body">
-                    <form th:replace="~{this :: boxForm(null)}"></form>
+                    <p th:replace="~{admin/product-forms :: alert('box-new')}"></p>
+                    <form th:replace="~{this :: boxForm(${formTarget == 'box-new' ? formValues : null})}"></form>
                 </div>
             </details>
             <p th:if="${detail.skus.isEmpty()}" class="muted">Thêm phiên bản (SKU) cho hộp trước, sau đó tạo mẫu hộp.</p>
@@ -171,6 +181,7 @@
     <section id="danger" class="danger-zone">
         <div>
             <h2>Xóa sản phẩm</h2>
+            <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
             <p th:if="${detail.deleteBlocker == null}" class="muted">
                 Xóa hẳn sản phẩm cùng mọi phiên bản và ảnh. Không thể hoàn tác.
             </p>
@@ -188,18 +199,23 @@
     </section>
 
     <th:block th:if="false">
-        <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form">
-            <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+        <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form"
+              th:with="editing=${f != null and f.id != null}">
+            <input type="hidden" name="productId" th:value="${product.id}">
+            <input type="hidden" name="id" th:if="${editing}" th:value="${f.id}">
             <div class="form-grid">
-                <label th:if="${f != null}">Phiên bản hộp
+                <label th:if="${editing}">Phiên bản hộp
                     <input type="hidden" name="variantId" th:value="${f.variantId}">
-                    <input type="text" th:value="${'SKU #' + f.variantId}" readonly>
+                    <th:block th:each="sku : ${detail.skus}" th:if="${sku.form.id == f.variantId}">
+                        <input type="text" th:value="${sku.form.name}" readonly>
+                    </th:block>
                 </label>
-                <label th:if="${f == null}">Phiên bản hộp
+                <label th:if="${!editing}">Phiên bản hộp
                     <select name="variantId" required>
                         <option th:each="sku : ${detail.skus}"
                                 th:value="${sku.form.id}"
-                                th:text="${sku.form.name + ' (' + sku.form.sku + ')'}">Hộp</option>
+                                th:selected="${f != null and f.variantId == sku.form.id}"
+                                th:text="${sku.form.name}">Hộp</option>
                     </select>
                 </label>
                 <label>Sức chứa (số bánh)

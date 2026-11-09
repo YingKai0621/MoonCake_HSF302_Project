@@ -4,7 +4,11 @@ import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.service.*;
 import com.se201411.project.mooncake.product.dto.*;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
+import com.se201411.project.mooncake.common.exception.MoonCakeException;
+import com.se201411.project.mooncake.common.web.FormErrors;
 import jakarta.validation.Valid;
+import org.springframework.dao.DataAccessException;
+import org.springframework.validation.BindingResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -51,67 +55,146 @@ public class AdminCatalogController {
 
     @PostMapping("/catalog/products/{id}/delete")
     public String deleteProduct(@PathVariable long id, RedirectAttributes flash) {
-        String name = catalog.deleteProduct(id);
+        String name;
+        try {
+            name = catalog.deleteProduct(id);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(id), "danger", null, message(ex));
+        }
         flash.addFlashAttribute("success", "Đã xóa sản phẩm " + name + ".");
         return "redirect:/admin/catalog";
     }
 
     @PostMapping("/variants/{id}/delete")
-    public String deleteVariant(@PathVariable long id, RedirectAttributes flash) {
-        long productId = catalog.deleteVariant(id);
+    public String deleteVariant(@PathVariable long id, @RequestParam long productId, RedirectAttributes flash) {
+        try {
+            catalog.deleteVariant(id);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), "sku-" + id, null, message(ex));
+        }
         flash.addFlashAttribute("success", "Đã xóa phiên bản.");
-        return "redirect:/admin/catalog/products/" + productId + "#skus";
+        return "redirect:" + productPage(productId) + "#skus";
     }
 
     @PostMapping("/categories")
-    public String category(@Valid @ModelAttribute CategoryForm form, RedirectAttributes flash) {
-        catalog.saveCategory(form);
+    public String category(@Valid @ModelAttribute CategoryForm form, BindingResult result, RedirectAttributes flash) {
+        String target = form.id() == null ? "category-new" : "category-" + form.id();
+        if (result.hasErrors()) {
+            return failed(flash, "/admin/catalog", target, form, FormErrors.first(result));
+        }
+        try {
+            catalog.saveCategory(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, "/admin/catalog", target, form, message(ex));
+        }
         return saved(flash, "catalog#categories");
     }
 
     @PostMapping("/products")
-    public String product(@Valid @ModelAttribute ProductForm form, RedirectAttributes flash) {
-        long productId = catalog.saveProduct(form);
+    public String product(@Valid @ModelAttribute ProductForm form, BindingResult result, RedirectAttributes flash) {
+        String page = "/admin/catalog/products/new";
+        if (form.id() != null) {
+            page = productPage(form.id());
+        }
+        if (result.hasErrors()) {
+            return failed(flash, page, "info", form, FormErrors.first(result));
+        }
+        long productId;
+        try {
+            productId = catalog.saveProduct(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, page, "info", form, message(ex));
+        }
         return savedProduct(flash, productId, "");
     }
 
     @PostMapping("/catalog/products")
-    public String createProduct(@Valid @ModelAttribute NewProductForm form, RedirectAttributes flash) {
-        long productId = catalog.createProduct(form);
+    public String createProduct(@Valid @ModelAttribute NewProductForm form, BindingResult result, RedirectAttributes flash) {
+        String newPage = "/admin/catalog/products/new";
+        if (result.hasErrors()) {
+            return failed(flash, newPage, "new-product", withoutFile(form), FormErrors.first(result));
+        }
+        long productId;
+        try {
+            productId = catalog.createProduct(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, newPage, "new-product", withoutFile(form), message(ex));
+        }
         flash.addFlashAttribute("success", "Đã tạo sản phẩm. Bạn có thể thêm phiên bản và ảnh khác bên dưới.");
-        return "redirect:/admin/catalog/products/" + productId;
+        return "redirect:" + productPage(productId);
     }
 
     @PostMapping("/variants")
-    public String variant(@Valid @ModelAttribute VariantForm form, RedirectAttributes flash) {
-        catalog.saveVariant(form);
-        return savedProduct(flash, form.productId(), "#skus");
+    public String variant(@Valid @ModelAttribute VariantForm form, BindingResult result, RedirectAttributes flash) {
+        String target = form.id() == null ? "sku-new" : "sku-" + form.id();
+        if (result.hasErrors()) {
+            return failed(flash, productPage(form.productId()), target, form, FormErrors.first(result));
+        }
+        try {
+            catalog.saveVariant(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(form.productId()), target, form, message(ex));
+        }
+        return savedProduct(flash, form.productId(), "#" + target);
     }
 
     @PostMapping("/boxes")
-    public String box(@Valid @ModelAttribute BoxForm form, RedirectAttributes flash) {
-        long productId = catalog.saveBox(form);
+    public String box(@Valid @ModelAttribute BoxForm form, BindingResult result,
+                      @RequestParam long productId, RedirectAttributes flash) {
+        String target = form.id() == null ? "box-new" : "box-" + form.id();
+        if (result.hasErrors()) {
+            return failed(flash, productPage(productId), target, form, FormErrors.first(result));
+        }
+        try {
+            catalog.saveBox(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), target, form, message(ex));
+        }
         return savedProduct(flash, productId, "#boxes");
     }
 
     @PostMapping("/images")
-    public String image(@Valid @ModelAttribute ImageForm form, RedirectAttributes flash) {
-        long productId = catalog.saveImage(form);
-        return savedProduct(flash, productId, "#sku-" + form.variantId());
+    public String image(@Valid @ModelAttribute ImageForm form, BindingResult result,
+                        @RequestParam long productId, RedirectAttributes flash) {
+        String target = "sku-" + form.variantId();
+        if (result.hasErrors()) {
+            return failed(flash, productPage(productId), target, null, FormErrors.first(result));
+        }
+        try {
+            catalog.saveImage(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), target, null, message(ex));
+        }
+        return savedProduct(flash, productId, "#" + target);
     }
 
     @PostMapping("/images/upload")
-    public String uploadImage(@Valid @ModelAttribute ImageUploadForm form, RedirectAttributes flash) {
-        long productId = catalog.uploadImage(form);
+    public String uploadImage(@Valid @ModelAttribute ImageUploadForm form, BindingResult result,
+                              @RequestParam long productId, RedirectAttributes flash) {
+        String target = "sku-" + form.variantId();
+        if (result.hasErrors()) {
+            return failed(flash, productPage(productId), target, null, FormErrors.first(result));
+        }
+        try {
+            catalog.uploadImage(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), target, null, message(ex));
+        }
         flash.addFlashAttribute("success", "Đã tải ảnh lên.");
-        return "redirect:/admin/catalog/products/" + productId + "#sku-" + form.variantId();
+        return "redirect:" + productPage(productId) + "#" + target;
     }
 
     @PostMapping("/images/{id}/remove")
-    public String removeImage(@PathVariable long id, RedirectAttributes flash) {
-        long productId = catalog.removeImage(id);
+    public String removeImage(@PathVariable long id, @RequestParam long productId,
+                              @RequestParam long variantId, RedirectAttributes flash) {
+        String target = "sku-" + variantId;
+        try {
+            catalog.removeImage(id);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), target, null, message(ex));
+        }
         flash.addFlashAttribute("success", "Đã xóa ảnh.");
-        return "redirect:/admin/catalog/products/" + productId + "#skus";
+        return "redirect:" + productPage(productId) + "#" + target;
     }
 
     @GetMapping("/presets")
@@ -137,6 +220,48 @@ public class AdminCatalogController {
     public String activate(@PathVariable long id, RedirectAttributes flash) {
         presets.activate(id);
         return saved(flash, "presets#preset-" + id);
+    }
+
+    private String failed(RedirectAttributes flash, String page, String target, Object values, String message) {
+        flash.addFlashAttribute("formTarget", target);
+        flash.addFlashAttribute("formError", message);
+        if (values != null) {
+            flash.addFlashAttribute("formValues", values);
+        }
+        return "redirect:" + page + "#" + target;
+    }
+
+    private String message(Exception ex) {
+        if (ex instanceof MoonCakeException) {
+            return ex.getMessage();
+        }
+        return "Không lưu được vì dữ liệu bị trùng hoặc vừa được thay đổi. Hãy tải lại trang và thử lại.";
+    }
+
+    private String productPage(long productId) {
+        return "/admin/catalog/products/" + productId;
+    }
+
+    private NewProductForm withoutFile(NewProductForm form) {
+        return new NewProductForm(
+            form.categoryId(),
+            form.productType(),
+            form.name(),
+            form.slug(),
+            form.shortDescription(),
+            form.detailedDescription(),
+            form.mainIngredients(),
+            form.shelfLifeInfo(),
+            form.storageGuidance(),
+            form.active(),
+            form.sku(),
+            form.variantName(),
+            form.unitPrice(),
+            form.weightGrams(),
+            form.fillingLabel(),
+            form.imageUrl(),
+            null
+        );
     }
 
     private String savedProduct(RedirectAttributes flash, long productId, String anchor) {

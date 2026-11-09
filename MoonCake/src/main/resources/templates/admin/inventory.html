@@ -1,100 +1,170 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Kho & đóng hộp')}"></head>
+<head th:replace="~{admin/layout :: head('Tồn kho')}"></head>
 <body class="page-inventory">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading page-heading--simple"><span class="eyebrow">Kho</span><h1>Kho &amp; đóng hộp</h1></div>
-    <section class="table-scroll"><h2>Tồn kho hiện tại</h2>
+
+    <div class="page-heading page-heading--simple page-heading--with-action">
+        <div>
+            <span class="eyebrow">Kho</span>
+            <h1>Tồn kho</h1>
+        </div>
+        <div class="heading-actions">
+            <a class="button secondary" th:href="@{/admin/inventory/movements}">Lịch sử biến động</a>
+            <button type="button" data-open-modal="pack-dialog">Đóng hộp quà</button>
+        </div>
+    </div>
+
+    <nav class="tabs" aria-label="Lọc theo tình trạng tồn">
+        <a th:each="tab : ${tabs}"
+           class="tabs__item"
+           th:classappend="${tab.selected} ? 'is-active'"
+           th:attr="aria-current=${tab.selected ? 'page' : null}"
+           th:href="${tab.filter.name() == 'ALL'} ? @{/admin/inventory} : @{/admin/inventory(filter=${tab.filter})}">
+            <span th:text="${tab.label}">Tất cả</span>
+            <span class="tabs__count" th:text="${tab.count}">0</span>
+        </a>
+    </nav>
+
+    <section class="table-scroll">
         <table data-search-table>
             <thead>
             <tr>
-                <th>SKU</th>
-                <th>Tên</th>
-                <th>Có thể bán</th>
-                <th>Ngưỡng cảnh báo</th>
+                <th>Sản phẩm</th>
+                <th>Mã SKU</th>
+                <th class="numeric">Có thể bán</th>
+                <th class="numeric">Ngưỡng cảnh báo</th>
                 <th>Tình trạng</th>
+                <th class="actions-cell">Thao tác</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="b : ${balances}" th:classappend="${b.low()} ? 'warning'">
-                <td th:text="${b.sku}"></td>
-                <td th:text="${b.name}"></td>
-                <td th:text="${b.quantity}"></td>
-                <td th:text="${b.threshold}"></td>
-                <td th:text="${b.low()} ? 'Sắp hết' : 'Đủ tồn'"></td>
+            <tr th:each="b : ${balances}" th:classappend="${b.low()} ? 'is-low'">
+                <td>
+                    <strong th:text="${b.productName}">Bánh</strong>
+                    <small class="muted" th:text="${b.name}">Phiên bản</small>
+                </td>
+                <td><code th:text="${b.sku}">SKU</code></td>
+                <td class="numeric stock-number" th:text="${b.quantity}">0</td>
+                <td class="numeric muted" th:text="${b.threshold}">5</td>
+                <td>
+                    <span class="badge badge--dot" th:classappend="${'badge--' + b.statusTone()}" th:text="${b.statusLabel()}">Đủ hàng</span>
+                </td>
+                <td class="actions-cell">
+                    <button type="button" class="secondary small-button"
+                            data-open-modal="receive-dialog"
+                            th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name}">Nhập</button>
+                    <button type="button" class="secondary small-button"
+                            data-open-modal="adjust-dialog"
+                            th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name}">Điều chỉnh</button>
+                </td>
             </tr>
             </tbody>
         </table>
+        <div th:if="${balances.isEmpty()}" class="empty-state">
+            <p><strong>Không có phiên bản nào ở nhóm này.</strong></p>
+            <a th:href="@{/admin/inventory}">Xem tất cả</a>
+        </div>
     </section>
-    <section><h2>Nhập kho</h2>
-        <form th:action="@{/admin/inventory/receive}" method="post"><input type="hidden" name="operationKey"
-                                                                           th:value="${receiveKey}">
-            <div class="grid"><label>SKU<select name="variantId" required>
-                <option th:each="b : ${balances}" th:value="${b.variantId}"
-                        th:text="${b.sku + ' — ' + b.name}"></option>
-            </select></label><label>Số lượng<input type="number" name="quantity" required min="1" max="100000"></label><label>Lý do /
-                ghi chú<input name="reason" required maxlength="500"></label></div>
-            <div class="actions">
-                <button>Nhập kho</button>
+
+    <dialog class="modal" id="receive-dialog" th:attr="data-reopen=${dialogId == 'receive-dialog' ? 'true' : null}">
+        <form th:action="@{/admin/inventory/receive}" method="post" class="modal__panel">
+            <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div class="modal__body">
+                <h2>Nhập kho</h2>
+                <p class="modal__subject" data-modal-subject></p>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'receive-dialog'}" th:text="${dialogError}">Lỗi</p>
+                <input type="hidden" name="variantId" data-modal-variant
+                       th:value="${dialogId == 'receive-dialog' ? dialogForm.variantId : ''}">
+                <input type="hidden" name="operationKey" th:value="${receiveKey}">
+                <label>Số lượng nhập thêm
+                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 20"
+                           data-min-error="Số lượng nhập phải lớn hơn 0."
+                           th:value="${dialogId == 'receive-dialog' ? dialogForm.quantity : ''}">
+                </label>
+                <label>Ghi chú
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Nhận hàng từ xưởng"
+                           th:value="${dialogId == 'receive-dialog' ? dialogForm.reason : ''}">
+                </label>
+            </div>
+            <div class="modal__footer">
+                <button type="button" class="secondary" data-dialog-close>Hủy</button>
+                <button type="submit" data-loading-text="Đang lưu…">Nhập kho</button>
             </div>
         </form>
-    </section>
-    <section><h2>Điều chỉnh kho</h2>
-        <form th:action="@{/admin/inventory/adjust}" method="post"><input type="hidden" name="operationKey"
-                                                                          th:value="${adjustKey}">
-            <div class="grid"><label>SKU<select name="variantId" required>
-                <option th:each="b : ${balances}" th:value="${b.variantId}"
-                        th:text="${b.sku + ' — ' + b.name}"></option>
-            </select></label><label>Số tăng/giảm (ví dụ -2)<input type="number" name="quantity" required min="-100000" max="100000"></label><label>Lý
-                do / ghi chú<input name="reason" required maxlength="500"></label></div>
-            <div class="actions">
-                <button>Điều chỉnh kho</button>
+    </dialog>
+
+    <dialog class="modal" id="adjust-dialog" th:attr="data-reopen=${dialogId == 'adjust-dialog' ? 'true' : null}">
+        <form th:action="@{/admin/inventory/adjust}" method="post" class="modal__panel">
+            <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div class="modal__body">
+                <h2>Điều chỉnh kho</h2>
+                <p class="modal__subject" data-modal-subject></p>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'adjust-dialog'}" th:text="${dialogError}">Lỗi</p>
+                <input type="hidden" name="variantId" data-modal-variant
+                       th:value="${dialogId == 'adjust-dialog' ? dialogForm.variantId : ''}">
+                <input type="hidden" name="operationKey" th:value="${adjustKey}">
+                <label>Số tăng hoặc giảm
+                    <input type="number" name="quantity" required min="-100000" max="100000" placeholder="Ví dụ: -2"
+                           data-not-zero="Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."
+                           th:value="${dialogId == 'adjust-dialog' ? dialogForm.quantity : ''}">
+                </label>
+                <label>Lý do
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Kiểm kê thiếu 2 bánh"
+                           th:value="${dialogId == 'adjust-dialog' ? dialogForm.reason : ''}">
+                </label>
+            </div>
+            <div class="modal__footer">
+                <button type="button" class="secondary" data-dialog-close>Hủy</button>
+                <button type="submit" data-loading-text="Đang lưu…">Điều chỉnh</button>
             </div>
         </form>
-    </section>
-    <section><h2>Đóng hộp PRESET</h2>
-        <form th:action="@{/admin/inventory/pack}" method="post"><input type="hidden" name="operationKey"
-                                                                        th:value="${packKey}">
-            <div class="grid"><label>SKU<select name="variantId" required>
-                <option th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}" th:value="${p.giftSetVariantId}"
-                        th:text="${p.sku}"></option>
-            </select></label><label>Số lượng<input type="number" name="quantity" required min="1" max="100000"></label><label>Lý do /
-                ghi chú<input name="reason" required maxlength="500"></label></div>
-            <div class="actions">
-                <button>Đóng hộp PRESET</button>
+    </dialog>
+
+    <dialog class="modal" id="pack-dialog" th:attr="data-reopen=${dialogId == 'pack-dialog' ? 'true' : null}">
+        <form th:action="@{/admin/inventory/pack}" method="post" class="modal__panel">
+            <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div class="modal__body">
+                <h2>Đóng hộp quà</h2>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'pack-dialog'}" th:text="${dialogError}">Lỗi</p>
+                <input type="hidden" name="operationKey" th:value="${packKey}">
+                <label>Hộp quà
+                    <select name="variantId" required>
+                        <option value="">Chọn hộp quà…</option>
+                        <th:block th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}">
+                            <option th:each="b : ${allBalances}" th:if="${b.variantId == p.giftSetVariantId}"
+                                    th:value="${b.variantId}"
+                                    th:selected="${dialogId == 'pack-dialog' and dialogForm.variantId == b.variantId}"
+                                    th:text="${b.productName + ' · ' + b.name + ' (đang có ' + b.quantity + ' hộp)'}">Hộp quà</option>
+                        </th:block>
+                    </select>
+                </label>
+                <label>Số hộp cần đóng
+                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 10"
+                           data-min-error="Số hộp phải lớn hơn 0."
+                           th:value="${dialogId == 'pack-dialog' ? dialogForm.quantity : ''}">
+                </label>
+                <label>Ghi chú
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Đóng hộp cho đợt giao 15/9"
+                           th:value="${dialogId == 'pack-dialog' ? dialogForm.reason : ''}">
+                </label>
+            </div>
+            <div class="modal__footer">
+                <button type="button" class="secondary" data-dialog-close>Hủy</button>
+                <button type="submit" data-loading-text="Đang đóng hộp…">Đóng hộp</button>
             </div>
         </form>
-    </section>
-    <section class="table-scroll"><h2>Lịch sử biến động</h2>
-        <table data-search-table>
-            <thead>
-            <tr>
-                <th>Ngày (UTC)</th>
-                <th>SKU</th>
-                <th>Thao tác</th>
-                <th>Tăng/giảm</th>
-                <th>Lý do</th>
-                <th>Nhóm thao tác / đơn</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="m : ${movements}">
-                <td th:text="${m.createdAt}"></td>
-                <td th:text="${m.sku}"></td>
-                <td th:text="${m.type}"></td>
-                <td th:text="${m.delta}"></td>
-                <td th:text="${m.reason}"></td>
-                <td><small th:text="${m.groupKey}"></small><a th:if="${m.orderId}"
-                                                              th:href="@{/admin/orders/{id}(id=${m.orderId})}"
-                                                              th:text="${'Đơn #' + m.orderId}"></a></td>
-            </tr>
-            </tbody>
-        </table>
-        <div class="actions"><a th:if="${page > 0}" th:href="@{/admin/inventory(page=${page-1})}">Trang trước</a><a
-                th:if="${movements.size() == 50}" th:href="@{/admin/inventory(page=${page+1})}">Trang sau</a></div>
-    </section>
+    </dialog>
 </main>
+<script th:src="@{/js/pages/admin-modal.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
 </body>
 </html>

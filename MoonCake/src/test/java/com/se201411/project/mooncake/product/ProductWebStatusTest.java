@@ -125,6 +125,6 @@ class ProductWebStatusTest {
         variant.setUnitPrice(BigDecimal.valueOf(100_000));
         variant.setActive(active);
         variants.add(variant);
-        balances.add(new Balance(id, "SKU-" + id, "Phiên bản " + id, stock, 5));
+        balances.add(new Balance(id, "SKU-" + id, product.getName(), "Phiên bản " + id, stock, 5));
     }
 }

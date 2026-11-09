@@ -27,6 +27,7 @@ import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.AdminExceptionAdvice;
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.security.config.SecurityConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,8 +118,10 @@ class AdminPagesTest {
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of())));
-        when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", 3, 5)));
-        when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now())));
+        when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
+        when(inventory.balances(any())).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
+        when(inventory.stockTabs(any())).thenReturn(List.of());
+        when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now(), "Cake · Cake 80g", "Nhập kho", "09/11/2026 10:00")));
         when(orders.orders(null, 0)).thenReturn(List.of(order(OrderStatus.PLACED)));
         when(orders.detail(1)).thenReturn(order(OrderStatus.PLACED));
         when(orders.statusTabs(null)).thenReturn(List.of(new AdminOrderTab(null, "Tất cả", 1, true)));
@@ -207,7 +210,10 @@ class AdminPagesTest {
                 .param("unitPrice", "450000")
                 .param("sku", "GIFT-NEW")
                 .param("imageUrl", "javascript:alert(1)"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/new#new-product"))
+            .andExpect(flash().attribute("formError", "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/."))
+            .andExpect(flash().attributeExists("formValues"));
         verify(catalog, never()).createProduct(any());
     }
 
@@ -219,6 +225,7 @@ class AdminPagesTest {
                 .file(photo)
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "4")
                 .param("variantId", "2")
                 .param("sortOrder", "1")
                 .param("_primary", "on"))
@@ -243,7 +250,8 @@ class AdminPagesTest {
         when(catalog.deleteVariant(8)).thenReturn(3L);
         mvc.perform(post("/admin/variants/8/delete")
                 .with(user("admin").roles("ADMIN"))
-                .with(csrf()))
+                .with(csrf())
+                .param("productId", "3"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog/products/3#skus"));
     }
@@ -254,6 +262,37 @@ class AdminPagesTest {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("/admin/catalog/products/1/delete")))
             .andExpect(content().string(containsString("/admin/variants/1/delete")));
+    }
+
+    @Test
+    void variantRuleErrorReturnsToTheSameCardWithTypedValues() throws Exception {
+        doThrow(new BusinessRuleViolationException("Bánh lẻ cần nhập khối lượng."))
+            .when(catalog).saveVariant(any());
+        mvc.perform(post("/admin/variants")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("productId", "1")
+                .param("sku", "MC-NEW")
+                .param("name", "Bánh 150g")
+                .param("unitPrice", "65000")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/1#sku-new"))
+            .andExpect(flash().attribute("formError", "Bánh lẻ cần nhập khối lượng."))
+            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)));
+    }
+
+    @Test
+    void editPageShowsErrorInsideTheFailedSection() throws Exception {
+        mvc.perform(get("/admin/catalog/products/1")
+                .with(user("admin").roles("ADMIN"))
+                .flashAttr("formTarget", "sku-new")
+                .flashAttr("formError", "Bánh lẻ cần nhập khối lượng.")
+                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("class=\"form-alert\"")))
+            .andExpect(content().string(containsString("Bánh lẻ cần nhập khối lượng.")))
+            .andExpect(content().string(containsString("value=\"MC-NEW\"")));
     }
 
     @Test
@@ -306,7 +345,11 @@ class AdminPagesTest {
                 .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/admin/catalog#categories"));
         verify(catalog).saveCategory(new CategoryForm(null, "New Category", "new-category", true));
         mvc.perform(post("/admin/categories").with(user("admin").roles("ADMIN")).with(csrf())
-                .param("name", "").param("slug", "bad slug")).andExpect(status().isBadRequest());
+                .param("name", "").param("slug", "bad slug"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/catalog#category-new"))
+                .andExpect(flash().attribute("formTarget", "category-new"))
+                .andExpect(flash().attributeExists("formError"));
         verifyNoMoreInteractions(catalog);
     }
 
@@ -373,6 +416,7 @@ class AdminPagesTest {
         mvc.perform(post("/admin/boxes")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "1")
                 .param("variantId", "1")
                 .param("capacityCakes", "4")
                 .param("_active", "on"))
@@ -382,6 +426,7 @@ class AdminPagesTest {
         mvc.perform(post("/admin/images")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "1")
                 .param("variantId", "1")
                 .param("imageUrl", "/images/cake.png")
                 .param("sortOrder", "0")
@@ -403,6 +448,35 @@ class AdminPagesTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("tabs__count")))
                 .andExpect(content().string(containsString("Chưa thanh toán")));
+    }
+
+    @Test
+    void inventoryShowsStockRowsWithActionsAndHistoryPage() throws Exception {
+        mvc.perform(get("/admin/inventory").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Sắp hết")))
+            .andExpect(content().string(containsString("data-open-modal=\"receive-dialog\"")));
+        mvc.perform(get("/admin/inventory/movements").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Nhập kho")))
+            .andExpect(content().string(containsString("+3")));
+    }
+
+    @Test
+    void stockErrorReopensTheDialogInsteadOfErrorPage() throws Exception {
+        doThrow(new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."))
+            .when(inventory).adjust(any());
+        mvc.perform(post("/admin/inventory/adjust")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "1")
+                .param("quantity", "0")
+                .param("reason", "Kiểm kê")
+                .param("operationKey", "123e4567-e89b-12d3-a456-426614174000"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/inventory"))
+            .andExpect(flash().attribute("dialogId", "adjust-dialog"))
+            .andExpect(flash().attribute("dialogError", "Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."));
     }
 
     @Test

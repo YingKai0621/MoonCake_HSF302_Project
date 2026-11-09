@@ -11,10 +11,12 @@ import com.se201411.project.mooncake.security.service.AdminAccessService;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.enums.StockMovementType;
+import com.se201411.project.mooncake.entity.InventoryBalance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -42,13 +44,84 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         this.clock = clock;
     }
 
+    private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    @Override
     @Transactional(readOnly = true)
     public List<Balance> balances() {
         access.requireAdmin();
-        var result = new ArrayList<Balance>();
-        for (var b : repo.balances())
-            result.add(new Balance(b.getVariantId(), b.getVariant().getSku(), b.getVariant().getName(), b.getAvailableQuantity(), b.getLowStockThreshold()));
+        List<Balance> result = new ArrayList<>();
+        for (InventoryBalance balance : repo.balances()) {
+            result.add(new Balance(
+                balance.getVariantId(),
+                balance.getVariant().getSku(),
+                balance.getVariant().getProduct().getName(),
+                balance.getVariant().getName(),
+                balance.getAvailableQuantity(),
+                balance.getLowStockThreshold()
+            ));
+        }
         return List.copyOf(result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Balance> balances(StockFilter filter) {
+        List<Balance> result = new ArrayList<>();
+        for (Balance balance : balances()) {
+            if (matches(balance, filter)) {
+                result.add(balance);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StockTab> stockTabs(StockFilter selected) {
+        List<Balance> all = balances();
+        List<StockTab> tabs = new ArrayList<>();
+        tabs.add(new StockTab(StockFilter.ALL, "Tất cả", count(all, StockFilter.ALL), selected == StockFilter.ALL));
+        tabs.add(new StockTab(StockFilter.LOW, "Sắp hết", count(all, StockFilter.LOW), selected == StockFilter.LOW));
+        tabs.add(new StockTab(StockFilter.OUT, "Hết hàng", count(all, StockFilter.OUT), selected == StockFilter.OUT));
+        return tabs;
+    }
+
+    private long count(List<Balance> balances, StockFilter filter) {
+        long total = 0;
+        for (Balance balance : balances) {
+            if (matches(balance, filter)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    private boolean matches(Balance balance, StockFilter filter) {
+        if (filter == StockFilter.OUT) {
+            return balance.out();
+        }
+        if (filter == StockFilter.LOW) {
+            return balance.low() && !balance.out();
+        }
+        return true;
+    }
+
+    private String movementLabel(StockMovementType type) {
+        if (type == StockMovementType.RECEIVE) {
+            return "Nhập kho";
+        }
+        if (type == StockMovementType.SALE) {
+            return "Bán hàng";
+        }
+        if (type == StockMovementType.CANCEL_RETURN) {
+            return "Hoàn kho do hủy đơn";
+        }
+        if (type == StockMovementType.ADJUST) {
+            return "Điều chỉnh";
+        }
+        return "Đóng hộp";
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +136,10 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
                 m.getReason(),
                 m.getOperationGroupKey(),
                 m.getOrder() == null ? null : m.getOrder().getId(),
-                m.getCreatedAt()
+                m.getCreatedAt(),
+                m.getVariant().getProduct().getName() + " · " + m.getVariant().getName(),
+                movementLabel(m.getMovementType()),
+                m.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
             ));
         return List.copyOf(result);
     }
@@ -85,8 +161,12 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     private void change(AdminStockForm f, StockMovementType type) {
         long admin = access.requireAdmin();
         validation.validate(f);
-        if (f.quantity() == 0 || (type == StockMovementType.RECEIVE && f.quantity() < 0))
-            throw new BusinessRuleViolationException("Số lượng nhập phải dương. Điều chỉnh phải khác 0.");
+        if (type == StockMovementType.RECEIVE && f.quantity() <= 0) {
+            throw new BusinessRuleViolationException("Số lượng nhập phải lớn hơn 0.");
+        }
+        if (f.quantity() == 0) {
+            throw new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3.");
+        }
         if (repo.isGiftSet(f.variantId())) presets.requireReadyPreset(f.variantId());
         String group = type + ":" + f.operationKey();
         requireNew(group);

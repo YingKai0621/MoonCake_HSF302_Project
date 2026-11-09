@@ -15,8 +15,8 @@
             <span class="eyebrow" th:text="${detail.typeLabel}">Hộp quà</span>
             <h1 th:text="${product.name}">Tên sản phẩm</h1>
         </div>
-        <span class="badge badge--large" th:classappend="${product.active} ? 'badge--success' : 'badge--muted'"
-              th:text="${product.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
+        <span class="badge badge--large badge--dot" th:classappend="${'badge--' + detail.webTone}"
+              th:text="${detail.webLabel}">Đang bán trên web</span>
     </div>
 
     <nav class="jump-links" aria-label="Đi tới phần">
@@ -55,8 +55,9 @@
                         <code th:text="${sku.form.sku}">SKU</code>
                     </span>
                     <span class="sku-card__price" th:text="${#numbers.formatDecimal(sku.form.unitPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
-                    <span class="badge" th:classappend="${sku.form.active} ? 'badge--success' : 'badge--muted'"
-                          th:text="${sku.form.active} ? 'Đang bán' : 'Ngừng bán'">Đang bán</span>
+                    <span class="sku-card__stock" th:text="${'Kho: ' + sku.stock}">Kho: 0</span>
+                    <span class="badge badge--dot" th:classappend="${'badge--' + sku.webTone}"
+                          th:text="${sku.webLabel}">Đang bán trên web</span>
                 </summary>
 
                 <div class="sku-card__body">
@@ -190,10 +191,13 @@
                 </label>
             </div>
             <div class="form-footer">
-                <label class="checkbox">
+                <label class="switch-card">
                     <input type="hidden" name="_active" value="on">
-                    <input type="checkbox" name="active" value="true" th:checked="${f != null and f.active}">
-                    Đang dùng
+                    <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
+                    <span class="switch-card__text">
+                        <strong>Đang dùng mẫu hộp này</strong>
+                        <small>Tắt thì khách không chọn được hộp này khi tự đóng hộp.</small>
+                    </span>
                 </label>
                 <button type="submit" data-loading-text="Đang lưu…">Lưu mẫu hộp</button>
             </div>

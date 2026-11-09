@@ -11,6 +11,7 @@ public record AdminProductRow(
     BigDecimal minPrice,
     BigDecimal maxPrice,
     String imageUrl,
-    boolean active
+    String webLabel,
+    String webTone
 ) {
 }

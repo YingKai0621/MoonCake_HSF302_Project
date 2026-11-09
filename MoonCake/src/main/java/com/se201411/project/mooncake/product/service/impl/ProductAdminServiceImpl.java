@@ -7,7 +7,12 @@ import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductImage;
 import com.se201411.project.mooncake.entity.ProductVariant;
+import com.se201411.project.mooncake.enums.ConfigurationStatus;
+import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.entity.BoxConfiguration;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Balance;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
@@ -21,6 +26,7 @@ import com.se201411.project.mooncake.product.dto.AdminProductDetail;
 import com.se201411.project.mooncake.product.dto.AdminProductRow;
 import com.se201411.project.mooncake.product.dto.AdminProductTab;
 import com.se201411.project.mooncake.product.dto.ProductTypeOption;
+import com.se201411.project.mooncake.product.repository.PresetConfigurationRepository;
 import com.se201411.project.mooncake.product.repository.ProductAdminRepository;
 import com.se201411.project.mooncake.product.service.PresetConfigurationQueryService;
 import com.se201411.project.mooncake.product.service.ProductImageStorageService;
@@ -33,7 +39,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -44,16 +52,22 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private final AdminAccessService access;
     private final AdminFormValidation validation;
     private final ProductImageStorageService imageStorage;
+    private final InventoryAdminService inventoryAdmin;
+    private final PresetConfigurationRepository presetConfigurations;
 
     public ProductAdminServiceImpl(ProductAdminRepository repo, InventoryService inventory,
                                    PresetConfigurationQueryService presets, AdminAccessService access,
-                                   AdminFormValidation validation, ProductImageStorageService imageStorage) {
+                                   AdminFormValidation validation, ProductImageStorageService imageStorage,
+                                   InventoryAdminService inventoryAdmin,
+                                   PresetConfigurationRepository presetConfigurations) {
         this.repo = repo;
         this.inventory = inventory;
         this.presets = presets;
         this.access = access;
         this.validation = validation;
         this.imageStorage = imageStorage;
+        this.inventoryAdmin = inventoryAdmin;
+        this.presetConfigurations = presetConfigurations;
     }
 
     @Override
@@ -83,8 +97,11 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Transactional(readOnly = true)
     public List<AdminProductRow> productRows(ProductType type) {
         access.requireAdmin();
+        List<ProductVariant> allVariants = repo.variants();
+        Map<Long, Integer> stock = stockByVariant();
+        Set<Long> readyGiftSets = readyGiftSets(allVariants);
         Map<Long, List<ProductVariant>> variantsByProduct = new HashMap<>();
-        for (ProductVariant variant : repo.variants()) {
+        for (ProductVariant variant : allVariants) {
             long productId = variant.getProduct().getId();
             variantsByProduct.computeIfAbsent(productId, key -> new ArrayList<>()).add(variant);
         }
@@ -111,6 +128,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                     maxPrice = price;
                 }
             }
+            WebStatus status = productStatus(product, variants, readyGiftSets, stock);
             rows.add(new AdminProductRow(
                 product.getId(),
                 product.getName(),
@@ -120,7 +138,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                 minPrice,
                 maxPrice,
                 coverImage(imagesByProduct.getOrDefault(product.getId(), List.of())),
-                product.isActive()
+                status.label(),
+                status.tone()
             ));
         }
         return rows;
@@ -156,11 +175,24 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             imagesBySku.computeIfAbsent(variantId, key -> new ArrayList<>()).add(imageForm(image));
         }
 
+        List<ProductVariant> variants = repo.variantsOf(productId);
+        Map<Long, Integer> stock = stockByVariant();
+        Set<Long> readyGiftSets = readyGiftSets(variants);
         List<AdminProductDetail.Sku> skus = new ArrayList<>();
-        for (ProductVariant variant : repo.variantsOf(productId)) {
+        for (ProductVariant variant : variants) {
             List<ImageForm> images = imagesBySku.getOrDefault(variant.getId(), List.of());
-            skus.add(new AdminProductDetail.Sku(variantForm(variant), coverImage(images), images));
+            int quantity = stock.getOrDefault(variant.getId(), 0);
+            WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
+            skus.add(new AdminProductDetail.Sku(
+                variantForm(variant),
+                coverImage(images),
+                images,
+                quantity,
+                status.label(),
+                status.tone()
+            ));
         }
+        WebStatus productStatus = productStatus(product, variants, readyGiftSets, stock);
 
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxesOf(productId)) {
@@ -172,6 +204,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             typeLabel(product.getProductType()),
             !skus.isEmpty(),
             product.getProductType() == ProductType.EMPTY_BOX,
+            productStatus.label(),
+            productStatus.tone(),
             skus,
             boxes
         );
@@ -367,6 +401,101 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         String imageUrl = imageStorage.store(f.imageFile());
         ImageForm image = new ImageForm(null, f.variantId(), imageUrl, f.altText(), f.sortOrder(), f.primary());
         return saveImage(image);
+    }
+
+    private Map<Long, Integer> stockByVariant() {
+        Map<Long, Integer> stock = new HashMap<>();
+        for (Balance balance : inventoryAdmin.balances()) {
+            stock.put(balance.variantId(), balance.quantity());
+        }
+        return stock;
+    }
+
+    private Set<Long> readyGiftSets(List<ProductVariant> variants) {
+        List<Long> giftSetIds = new ArrayList<>();
+        for (ProductVariant variant : variants) {
+            if (variant.getProduct().getProductType() == ProductType.GIFT_SET) {
+                giftSetIds.add(variant.getId());
+            }
+        }
+        Set<Long> ready = new HashSet<>();
+        if (giftSetIds.isEmpty()) {
+            return ready;
+        }
+        List<BoxConfiguration> presetsFound = presetConfigurations.findReadyByGiftSetVariantIds(
+            giftSetIds,
+            ConfigurationType.PRESET,
+            ConfigurationStatus.READY
+        );
+        for (BoxConfiguration preset : presetsFound) {
+            ready.add(preset.getPresetVariant().getId());
+        }
+        return ready;
+    }
+
+    private WebStatus productStatus(Product product, List<ProductVariant> variants,
+                                    Set<Long> readyGiftSets, Map<Long, Integer> stock) {
+        if (!product.isActive()) {
+            return new WebStatus("Đang ẩn", "muted");
+        }
+        if (!product.getCategory().isActive()) {
+            return new WebStatus("Danh mục đang ẩn", "muted");
+        }
+        if (variants.isEmpty()) {
+            return new WebStatus("Chưa có phiên bản", "warning");
+        }
+        boolean anyOpen = false;
+        boolean anyReady = false;
+        boolean anyInStock = false;
+        for (ProductVariant variant : variants) {
+            if (!variant.isActive()) {
+                continue;
+            }
+            anyOpen = true;
+            if (needsRecipe(product, variant, readyGiftSets)) {
+                continue;
+            }
+            anyReady = true;
+            if (stock.getOrDefault(variant.getId(), 0) > 0) {
+                anyInStock = true;
+            }
+        }
+        if (!anyOpen) {
+            return new WebStatus("Chưa mở bán", "warning");
+        }
+        if (!anyReady) {
+            return new WebStatus("Chưa có công thức", "warning");
+        }
+        if (!anyInStock) {
+            return new WebStatus("Kho đang hết", "danger");
+        }
+        return new WebStatus("Đang bán trên web", "success");
+    }
+
+    private WebStatus skuStatus(Product product, ProductVariant variant, Set<Long> readyGiftSets, int quantity) {
+        if (!variant.isActive()) {
+            return new WebStatus("Ngừng bán", "muted");
+        }
+        if (needsRecipe(product, variant, readyGiftSets)) {
+            return new WebStatus("Chưa có công thức", "warning");
+        }
+        if (!product.isActive()) {
+            return new WebStatus("Sản phẩm đang ẩn", "muted");
+        }
+        if (!product.getCategory().isActive()) {
+            return new WebStatus("Danh mục đang ẩn", "muted");
+        }
+        if (quantity <= 0) {
+            return new WebStatus("Kho đang hết", "danger");
+        }
+        return new WebStatus("Đang bán trên web", "success");
+    }
+
+    private boolean needsRecipe(Product product, ProductVariant variant, Set<Long> readyGiftSets) {
+        return product.getProductType() == ProductType.GIFT_SET && !readyGiftSets.contains(variant.getId());
+    }
+
+    private record WebStatus(String label, String tone) {
     }
 
     private List<CategoryForm> categoryForms() {

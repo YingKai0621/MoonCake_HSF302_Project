@@ -93,7 +93,7 @@ class AdminPagesTest {
                 List.of(new BoxForm(1L, 1, 4, null, null, true)),
                 List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true))));
         when(catalog.productRows(null)).thenReturn(List.of(new AdminProductRow(
-                1L, "Cake", "Category", "Bánh lẻ", 1, BigDecimal.TEN, BigDecimal.TEN, "/images/cake.png", true)));
+                1L, "Cake", "Category", "Bánh lẻ", 1, BigDecimal.TEN, BigDecimal.TEN, "/images/cake.png", "Đang bán trên web", "success")));
         when(catalog.productTabs(null)).thenReturn(List.of(new AdminProductTab(null, "Tất cả", 1, true)));
         when(catalog.categories()).thenReturn(List.of(new CategoryForm(1L, "Category", "category", true)));
         when(catalog.productTypes()).thenReturn(List.of(new ProductTypeOption(ProductType.MOONCAKE, "Bánh lẻ")));
@@ -102,10 +102,15 @@ class AdminPagesTest {
                 "Bánh lẻ",
                 true,
                 false,
+                "Đang bán trên web",
+                "success",
                 List.of(new AdminProductDetail.Sku(
                         new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
                         "/images/cake.png",
-                        List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)))),
+                        List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)),
+                        12,
+                        "Đang bán trên web",
+                        "success")),
                 List.of()));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
@@ -158,6 +163,7 @@ class AdminPagesTest {
         mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("/admin/catalog/products/1")))
+            .andExpect(content().string(containsString("Đang bán trên web")))
             .andExpect(content().string(containsString("tabs__count")));
     }
 

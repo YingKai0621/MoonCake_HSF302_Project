@@ -12,9 +12,18 @@ public record AdminProductDetail(
     String typeLabel,
     boolean typeLocked,
     boolean emptyBox,
+    String webLabel,
+    String webTone,
     List<Sku> skus,
     List<BoxForm> boxes
 ) {
-    public record Sku(VariantForm form, String imageUrl, List<ImageForm> images) {
+    public record Sku(
+        VariantForm form,
+        String imageUrl,
+        List<ImageForm> images,
+        int stock,
+        String webLabel,
+        String webTone
+    ) {
     }
 }

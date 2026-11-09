@@ -33,7 +33,7 @@
                 <th>Loại</th>
                 <th class="numeric">Số phiên bản</th>
                 <th class="numeric">Giá bán</th>
-                <th>Trạng thái</th>
+                <th>Trên web</th>
             </tr>
             </thead>
             <tbody>
@@ -59,8 +59,8 @@
                           th:text="${#numbers.formatDecimal(product.minPrice, 0, 'POINT', 0, 'COMMA') + ' – ' + #numbers.formatDecimal(product.maxPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
                 </td>
                 <td>
-                    <span class="badge" th:classappend="${product.active} ? 'badge--success' : 'badge--muted'"
-                          th:text="${product.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
+                    <span class="badge badge--dot" th:classappend="${'badge--' + product.webTone}"
+                          th:text="${product.webLabel}">Đang bán trên web</span>
                 </td>
             </tr>
             </tbody>

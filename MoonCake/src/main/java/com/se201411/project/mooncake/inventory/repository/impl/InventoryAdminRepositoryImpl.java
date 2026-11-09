@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository.impl;
 
+import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 
 import com.se201411.project.mooncake.entity.*;
@@ -51,7 +52,7 @@ public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
                 SELECT @result;
                 """).setParameter("key", "MoonCake:" + group).getSingleResult();
         if (result.intValue() < 0)
-            throw new com.se201411.project.mooncake.common.exception.ConcurrentOperationException(
+            throw new ConcurrentOperationException(
                     "Thao tác kho đang được xử lý. Hãy tải lại trước khi thử lại.");
     }
 

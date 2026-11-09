@@ -17,14 +17,26 @@ function updateCountdown(ring, deadline, start) {
   ring.querySelector("[data-countdown-progress]").style.strokeDashoffset = String(RING_LENGTH * (1 - fraction));
   ring.classList.toggle("is-urgent", remainingSeconds <= URGENT_SECONDS);
 
-  if (remainingSeconds === 0) {
-    const message = document.querySelector("[data-countdown-message]");
-    if (message !== null) {
-      message.textContent = "Đã hết thời gian thanh toán. Đơn sẽ được hủy trong ít phút, vui lòng tải lại trang.";
-    }
-    return false;
+  return remainingSeconds > 0;
+}
+
+function lockPayment(messageText) {
+  const message = document.querySelector("[data-countdown-message]");
+  if (message !== null) {
+    message.textContent = messageText;
   }
-  return true;
+  const payButton = document.querySelector("[data-pay-button]");
+  if (payButton !== null) {
+    payButton.disabled = true;
+    payButton.classList.add("opacity-50", "cursor-not-allowed");
+  }
+}
+
+function expireWhileWatching() {
+  lockPayment("Đã hết thời gian thanh toán. Đang cập nhật đơn hàng…");
+  setTimeout(function () {
+    window.location.reload();
+  }, 2000);
 }
 
 function setUpCountdown() {
@@ -36,11 +48,13 @@ function setUpCountdown() {
   const start = Number(ring.dataset.start);
 
   if (!updateCountdown(ring, deadline, start)) {
+    lockPayment("Đã hết thời gian thanh toán. Hệ thống đang hủy đơn, vui lòng tải lại trang sau ít phút.");
     return;
   }
   const timer = setInterval(function () {
     if (!updateCountdown(ring, deadline, start)) {
       clearInterval(timer);
+      expireWhileWatching();
     }
   }, 1000);
 }

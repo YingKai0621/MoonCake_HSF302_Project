@@ -76,6 +76,7 @@
           </div>
           <form th:if="${vnpayEnabled}" th:action="@{/orders/{code}/pay-vnpay(code=${order.orderCode})}" method="post">
             <button type="submit"
+                    data-pay-button
                     data-loading-text="Đang chuyển sang VNPay…"
                     class="bg-amber-400 hover:bg-amber-300 text-midnight px-6 py-3 rounded font-bold whitespace-nowrap transition-colors">
               Thanh toán ngay

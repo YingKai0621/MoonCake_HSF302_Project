@@ -83,7 +83,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             && order.getTotalAmount().signum() > 0;
         if (!canPayOnline) {
             throw new BusinessRuleViolationException(
-                "Chỉ thanh toán online cho đơn chờ xử lý, chưa trả tiền."
+                "Đơn hàng này không còn chờ thanh toán. Vui lòng tải lại trang."
             );
         }
         if (payment.getMethod() != PaymentMethod.VNPAY) {

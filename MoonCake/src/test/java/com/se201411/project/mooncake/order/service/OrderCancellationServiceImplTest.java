@@ -366,6 +366,17 @@ class OrderCancellationServiceImplTest {
     }
 
     @Test
+    void customerViewOfAnotherCustomersOrderDoesNothing() {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(ShopperIdentity.forCustomer(8L));
+        when(orderRepository.findOwnedByOrderCode("MC-OTHER", 8L)).thenReturn(Optional.empty());
+
+        boolean cancelled = service.cancelOwnOrderIfPaymentExpired("MC-OTHER");
+
+        assertThat(cancelled).isFalse();
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+    }
+
+    @Test
     void codOrderIsNeverAutoCancelled() {
         SalesOrder order = order(24L, OrderStatus.PLACED);
         when(orderRepository.findById(24L)).thenReturn(Optional.of(order));

@@ -141,6 +141,20 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         return true;
     }
 
+    @Override
+    @Transactional
+    public boolean cancelOwnOrderIfPaymentExpired(String orderCode) {
+        ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
+        Optional<SalesOrder> order = orderRepository.findOwnedByOrderCode(
+            normalizeOrderCode(orderCode),
+            customer.customerId()
+        );
+        if (order.isEmpty()) {
+            return false;
+        }
+        return cancelIfPaymentExpired(order.get().getId());
+    }
+
     private void cancelOrder(
         SalesOrder order,
         OrderStatus expectedStatus,

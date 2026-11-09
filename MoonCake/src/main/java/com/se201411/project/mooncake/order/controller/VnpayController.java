@@ -4,6 +4,7 @@ import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.service.CustomerOrderService;
+import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
@@ -24,15 +25,18 @@ public class VnpayController {
     private final CustomerOrderService customerOrderService;
     private final CurrentCustomerService currentCustomerService;
     private final PaymentProcessorRegistry paymentProcessorRegistry;
+    private final OrderCancellationService orderCancellationService;
 
     public VnpayController(
         CustomerOrderService customerOrderService,
         CurrentCustomerService currentCustomerService,
-        PaymentProcessorRegistry paymentProcessorRegistry
+        PaymentProcessorRegistry paymentProcessorRegistry,
+        OrderCancellationService orderCancellationService
     ) {
         this.customerOrderService = customerOrderService;
         this.currentCustomerService = currentCustomerService;
         this.paymentProcessorRegistry = paymentProcessorRegistry;
+        this.orderCancellationService = orderCancellationService;
     }
 
     @PostMapping("/orders/{code}/pay-vnpay")
@@ -43,6 +47,13 @@ public class VnpayController {
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         try {
+            if (orderCancellationService.cancelOwnOrderIfPaymentExpired(code)) {
+                flash.addFlashAttribute(
+                    "errorMessage",
+                    "Đơn hàng đã quá thời gian thanh toán nên đã được hủy."
+                );
+                return "redirect:/orders/" + code;
+            }
             String paymentUrl = customerOrderService.startOnlinePayment(
                 code,
                 customer,

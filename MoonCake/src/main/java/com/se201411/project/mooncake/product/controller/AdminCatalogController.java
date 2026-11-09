@@ -61,6 +61,13 @@ public class AdminCatalogController {
         return savedProduct(flash, productId, "");
     }
 
+    @PostMapping("/catalog/products")
+    public String createProduct(@Valid @ModelAttribute NewProductForm form, RedirectAttributes flash) {
+        long productId = catalog.createProduct(form);
+        flash.addFlashAttribute("success", "Đã tạo sản phẩm. Bạn có thể thêm phiên bản và ảnh khác bên dưới.");
+        return "redirect:/admin/catalog/products/" + productId;
+    }
+
     @PostMapping("/variants")
     public String variant(@Valid @ModelAttribute VariantForm form, RedirectAttributes flash) {
         catalog.saveVariant(form);

@@ -3,19 +3,65 @@
 <head th:replace="~{admin/layout :: head('Thêm sản phẩm')}"></head>
 <body class="page-catalog">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main class="narrow-main">
+<main>
     <div th:replace="~{admin/layout :: flash}"></div>
 
-    <a class="back-link" th:href="@{/admin/catalog}">← Sản phẩm</a>
+    <a class="back-link" th:href="@{/admin/catalog}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại danh sách sản phẩm
+    </a>
     <div class="page-heading page-heading--simple">
         <span class="eyebrow">Sản phẩm</span>
         <h1>Thêm sản phẩm</h1>
-        <p>Nhập thông tin chung trước. Sau khi tạo, bạn thêm phiên bản, giá bán và ảnh ở trang tiếp theo.</p>
     </div>
 
-    <section>
-        <form th:replace="~{admin/product-forms :: product(null, false)}"></form>
-    </section>
+    <form th:action="@{/admin/catalog/products}" method="post" class="create-layout">
+        <section class="create-layout__main">
+            <h2>Thông tin chung</h2>
+            <div th:replace="~{admin/product-forms :: productFields(null, false)}"></div>
+        </section>
+
+        <aside class="create-layout__side">
+            <section>
+                <h2>Giá bán</h2>
+                <div class="side-fields">
+                    <label>Tên phiên bản
+                        <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh">
+                    </label>
+                    <label>Giá bán (đ)
+                        <input type="number" name="unitPrice" required min="0" step="1000" placeholder="Ví dụ: 450000">
+                    </label>
+                    <label>Mã SKU
+                        <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG">
+                        <small class="field-hint">Mã nội bộ để quản lý kho, không đổi được sau khi tạo.</small>
+                    </label>
+                </div>
+            </section>
+
+            <section>
+                <h2>Ảnh đại diện</h2>
+                <div class="image-preview" data-image-preview>
+                    <img alt="" hidden>
+                    <span>Dán đường dẫn ảnh để xem trước</span>
+                </div>
+                <label>Đường dẫn ảnh
+                    <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+)"
+                           placeholder="/images/products/... hoặc https://..." data-image-input>
+                    <small class="field-hint">Có thể bỏ trống và thêm ảnh sau.</small>
+                </label>
+            </section>
+
+            <section class="create-layout__submit">
+                <label class="checkbox">
+                    <input type="hidden" name="_active" value="on">
+                    <input type="checkbox" name="active" value="true">
+                    Hiển thị trên cửa hàng ngay
+                </label>
+                <p class="field-hint">Phiên bản mới chưa mở bán. Mở bán ở trang sửa sau khi đã nhập kho<span> (hộp quà cần có công thức trước)</span>.</p>
+                <button type="submit" data-loading-text="Đang tạo…">Tạo sản phẩm</button>
+            </section>
+        </aside>
+    </form>
 </main>
 <script th:src="@{/js/pages/admin-product.js}" defer></script>
 <script th:src="@{/js/loading-button.js}" defer></script>

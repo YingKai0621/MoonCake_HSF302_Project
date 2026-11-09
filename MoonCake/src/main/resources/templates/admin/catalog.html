@@ -71,13 +71,16 @@
         </div>
     </section>
 
-    <section id="categories">
-        <div class="section-heading">
-            <div>
-                <h2>Danh mục</h2>
-                <p class="muted">Nhóm sản phẩm khách thấy trên cửa hàng.</p>
-            </div>
-            <button type="button" class="secondary" data-batch-dialog="category-new">+ Thêm danh mục</button>
+    <details id="categories" class="settings-panel">
+        <summary>
+            <span>
+                <strong th:text="${'Danh mục (' + #lists.size(categories) + ')'}">Danh mục</strong>
+                <small class="muted">Mỗi sản phẩm thuộc một danh mục. Ẩn một danh mục thì mọi sản phẩm trong đó ngừng bán.</small>
+            </span>
+        </summary>
+        <div class="settings-panel__body">
+        <div class="settings-panel__actions">
+            <button type="button" class="secondary small-button" data-batch-dialog="category-new">+ Thêm danh mục</button>
         </div>
         <ul class="category-list">
             <li th:each="category : ${categories}">
@@ -106,7 +109,8 @@
             </div>
             <form th:replace="~{admin/product-forms :: category(null)}"></form>
         </dialog>
-    </section>
+        </div>
+    </details>
 </main>
 <script th:src="@{/js/pages/admin-product.js}" defer></script>
 <script th:src="@{/js/loading-button.js}" defer></script>

@@ -160,6 +160,48 @@ class AdminPagesTest {
     }
 
     @Test
+    void creatingProductWithPriceAndImageRedirectsToEditPage() throws Exception {
+        when(catalog.createProduct(any())).thenReturn(9L);
+        mvc.perform(post("/admin/catalog/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "GIFT_SET")
+                .param("name", "Hộp quà mới")
+                .param("slug", "hop-qua-moi")
+                .param("shortDescription", "Mô tả")
+                .param("_active", "on")
+                .param("variantName", "Hộp 4 bánh")
+                .param("unitPrice", "450000")
+                .param("sku", "GIFT-NEW")
+                .param("imageUrl", "/images/products/gift.png"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/9"));
+        verify(catalog).createProduct(new NewProductForm(
+            1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), "/images/products/gift.png"));
+    }
+
+    @Test
+    void creatingProductRejectsBadImageUrl() throws Exception {
+        mvc.perform(post("/admin/catalog/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "GIFT_SET")
+                .param("name", "Hộp quà mới")
+                .param("slug", "hop-qua-moi")
+                .param("shortDescription", "Mô tả")
+                .param("_active", "on")
+                .param("variantName", "Hộp 4 bánh")
+                .param("unitPrice", "450000")
+                .param("sku", "GIFT-NEW")
+                .param("imageUrl", "javascript:alert(1)"))
+            .andExpect(status().isBadRequest());
+        verify(catalog, never()).createProduct(any());
+    }
+
+    @Test
     void savingProductRedirectsToItsEditPage() throws Exception {
         when(catalog.saveProduct(any())).thenReturn(7L);
         mvc.perform(post("/admin/products")

@@ -6,7 +6,10 @@
 <main th:with="product=${detail.product}">
     <div th:replace="~{admin/layout :: flash}"></div>
 
-    <a class="back-link" th:href="@{/admin/catalog}">← Sản phẩm</a>
+    <a class="back-link" th:href="@{/admin/catalog}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại danh sách sản phẩm
+    </a>
     <div class="detail-header">
         <div>
             <span class="eyebrow" th:text="${detail.typeLabel}">Hộp quà</span>
@@ -31,7 +34,7 @@
         <div class="section-heading">
             <div>
                 <h2>Phiên bản &amp; giá</h2>
-                <p class="muted">Mỗi phiên bản có mã SKU, giá bán và ảnh riêng. Bấm vào một phiên bản để sửa.</p>
+                <p class="muted">Sửa giá, tên và ảnh của từng phiên bản ngay bên dưới. Một sản phẩm có thể có nhiều phiên bản, ví dụ hộp 4 bánh và hộp 6 bánh.</p>
             </div>
         </div>
 
@@ -41,7 +44,8 @@
         </p>
 
         <div class="sku-list">
-            <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}">
+            <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
+                     th:open="${#lists.size(detail.skus) <= 3}">
                 <summary class="sku-card__summary">
                     <span class="product-thumb">
                         <img th:if="${sku.imageUrl != null}" th:src="${sku.imageUrl}" alt="" loading="lazy" width="48" height="48">

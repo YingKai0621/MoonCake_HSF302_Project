@@ -30,7 +30,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/pages/admin.css}">
-    <link rel="stylesheet" th:href="@{/css/flash-message.css}">
     <script th:src="@{/js/flash-message.js}" defer></script>
     <script th:src="@{/js/pages/admin-ui.js}" defer></script>
     <script th:src="@{/js/pages/admin-confirm.js}" defer></script>
@@ -121,12 +120,20 @@
     <div class="admin-sidebar__scrim" data-sidebar-close></div>
 </aside>
 
-<p th:fragment="flash"
-   th:if="${success}"
-   class="flash-message notice"
-   data-flash-message
-   data-flash-timeout="5000"
-   role="status"
-   th:text="${success}">Đã lưu.</p>
+<div th:fragment="flash"
+     th:if="${success}"
+     class="toast"
+     data-flash-message
+     data-flash-timeout="5000"
+     role="status">
+    <span class="toast__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+    </span>
+    <div class="toast__body">
+        <strong class="toast__title">Thành công</strong>
+        <p class="toast__text" th:text="${success}">Đã lưu thay đổi.</p>
+    </div>
+    <span class="toast__timer" aria-hidden="true"></span>
+</div>
 </body>
 </html>

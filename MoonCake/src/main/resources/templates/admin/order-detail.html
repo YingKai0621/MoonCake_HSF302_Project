@@ -6,7 +6,10 @@
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
 
-    <a class="back-link" th:href="@{/admin/orders}">← Đơn hàng</a>
+    <a class="back-link" th:href="@{/admin/orders}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại danh sách đơn hàng
+    </a>
     <div class="detail-header">
         <div>
             <h1 class="order-code" th:text="${order.code}">MC-1</h1>

@@ -53,7 +53,40 @@ function setUpBrokenImages() {
   }
 }
 
+function setUpImagePreview() {
+  const input = document.querySelector("[data-image-input]");
+  const preview = document.querySelector("[data-image-preview]");
+  if (input === null || preview === null) {
+    return;
+  }
+  const image = preview.querySelector("img");
+  const hint = preview.querySelector("span");
+
+  function showHint(text) {
+    image.hidden = true;
+    hint.hidden = false;
+    hint.textContent = text;
+  }
+
+  image.addEventListener("load", function () {
+    image.hidden = false;
+    hint.hidden = true;
+  });
+  image.addEventListener("error", function () {
+    showHint("Không tải được ảnh, hãy kiểm tra lại đường dẫn");
+  });
+  input.addEventListener("input", function () {
+    const url = input.value.trim();
+    if (url === "") {
+      showHint("Dán đường dẫn ảnh để xem trước");
+      return;
+    }
+    image.src = url;
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  setUpImagePreview();
   setUpSlugFields();
   openSectionFromHash();
   setUpBrokenImages();

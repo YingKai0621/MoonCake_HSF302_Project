@@ -12,6 +12,7 @@ import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.NewProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogView;
@@ -221,6 +222,44 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         repo.save(v);
         repo.flush();
         return v.getId();
+    }
+
+    @Override
+    public long createProduct(NewProductForm f) {
+        access.requireAdmin();
+        validation.validate(f);
+        ProductForm productForm = new ProductForm(
+            null,
+            f.categoryId(),
+            f.productType(),
+            f.name(),
+            f.slug(),
+            f.shortDescription(),
+            f.detailedDescription(),
+            f.mainIngredients(),
+            f.shelfLifeInfo(),
+            f.storageGuidance(),
+            f.active()
+        );
+        long productId = saveProduct(productForm);
+
+        VariantForm variantForm = new VariantForm(
+            null,
+            productId,
+            f.sku().trim(),
+            f.variantName(),
+            null,
+            null,
+            f.unitPrice(),
+            false
+        );
+        saveVariant(variantForm);
+
+        if (f.imageUrl() != null && !f.imageUrl().isBlank()) {
+            long variantId = repo.variantsOf(productId).get(0).getId();
+            saveImage(new ImageForm(null, variantId, f.imageUrl().trim(), f.name(), 0, true));
+        }
+        return productId;
     }
 
     @Override

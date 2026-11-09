@@ -109,7 +109,8 @@
             <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" th:required="${cake}"
                    min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
         </label>
-        <label class="span-2">Nhân bánh
+        <input th:if="${giftBox == true}" type="hidden" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}">
+        <label class="span-2" th:unless="${giftBox == true}">Nhân bánh
             <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
                    th:required="${cake}" placeholder="Ví dụ: Thập cẩm lạp xưởng">
         </label>
@@ -163,6 +164,66 @@
     </span>
     <span class="dropzone__error" hidden data-dropzone-error></span>
 </label>
+
+<div th:fragment="imageManager(sku, productId)" class="image-manager">
+    <h3 th:text="${'Ảnh (' + #lists.size(sku.images) + ')'}">Ảnh</h3>
+    <ul class="image-grid">
+        <li th:each="image : ${sku.images}" class="image-tile">
+            <img th:src="${image.imageUrl}" th:alt="${image.altText}" loading="lazy">
+            <span th:if="${image.primary}" class="badge badge--success image-tile__flag">Ảnh chính</span>
+            <div class="image-tile__actions">
+                <form th:unless="${image.primary}" th:action="@{/admin/images}" method="post" class="image-tile__main">
+                    <input type="hidden" name="productId" th:value="${productId}">
+                    <input type="hidden" name="id" th:value="${image.id}">
+                    <input type="hidden" name="variantId" th:value="${image.variantId}">
+                    <input type="hidden" name="imageUrl" th:value="${image.imageUrl}">
+                    <input type="hidden" name="altText" th:value="${image.altText}">
+                    <input type="hidden" name="sortOrder" th:value="${image.sortOrder}">
+                    <input type="hidden" name="primary" value="true">
+                    <button type="submit" class="image-tile__button">Đặt làm ảnh chính</button>
+                </form>
+                <span th:if="${image.primary}" class="image-tile__main image-tile__note">Đang là ảnh chính</span>
+                <form th:action="@{/admin/images/{id}/remove(id=${image.id})}" method="post">
+                    <input type="hidden" name="productId" th:value="${productId}">
+                    <input type="hidden" name="variantId" th:value="${image.variantId}">
+                    <button type="submit" class="image-tile__button image-tile__button--danger" aria-label="Xóa ảnh" title="Xóa ảnh">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                    </button>
+                </form>
+            </div>
+        </li>
+        <li class="image-tile image-tile--add">
+            <form th:action="@{/admin/images/upload}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="productId" th:value="${productId}">
+                <input type="hidden" name="variantId" th:value="${sku.form.id}">
+                <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
+                <input type="hidden" name="primary" th:value="${sku.images.isEmpty()}">
+                <label class="add-tile" data-auto-upload>
+                    <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp">
+                    <span class="add-tile__icon" aria-hidden="true">+</span>
+                    <strong>Thêm ảnh</strong>
+                    <small>Kéo thả hoặc bấm để chọn</small>
+                    <small>JPG, PNG, WebP, tối đa 5MB</small>
+                    <span class="add-tile__error" data-auto-upload-error hidden></span>
+                </label>
+            </form>
+        </li>
+    </ul>
+    <details class="url-option">
+        <summary>Hoặc dùng đường dẫn ảnh có sẵn</summary>
+        <form th:action="@{/admin/images}" method="post" class="url-option__form">
+            <input type="hidden" name="productId" th:value="${productId}">
+            <input type="hidden" name="variantId" th:value="${sku.form.id}">
+            <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
+            <input type="hidden" name="_primary" value="on">
+            <input type="text" name="imageUrl" required maxlength="1000"
+                   pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
+                   data-error="Đường dẫn phải bắt đầu bằng https://, /images/ hoặc /uploads/."
+                   placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
+            <button type="submit" class="secondary">Thêm ảnh</button>
+        </form>
+    </details>
+</div>
 
 </body>
 </html>

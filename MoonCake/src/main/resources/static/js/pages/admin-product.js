@@ -174,10 +174,63 @@ function setUpUppercaseFields() {
   }
 }
 
+function setUpAutoUpload(tile) {
+  const input = tile.querySelector('input[type="file"]');
+  const error = tile.querySelector("[data-auto-upload-error]");
+  const form = tile.closest("form");
+
+  function upload() {
+    const file = input.files[0];
+    if (file === undefined) {
+      return;
+    }
+    if (!IMAGE_TYPES.includes(file.type)) {
+      error.textContent = "Chỉ nhận ảnh JPG, PNG hoặc WebP.";
+      error.hidden = false;
+      input.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      error.textContent = "Ảnh quá lớn. Hãy chọn ảnh tối đa 5MB.";
+      error.hidden = false;
+      input.value = "";
+      return;
+    }
+    error.hidden = true;
+    tile.classList.add("is-uploading");
+    form.submit();
+  }
+
+  input.addEventListener("change", upload);
+  tile.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    tile.classList.add("is-dragging");
+  });
+  tile.addEventListener("dragleave", function () {
+    tile.classList.remove("is-dragging");
+  });
+  tile.addEventListener("drop", function (event) {
+    event.preventDefault();
+    tile.classList.remove("is-dragging");
+    if (event.dataTransfer.files.length > 0) {
+      input.files = event.dataTransfer.files;
+      upload();
+    }
+  });
+}
+
+function setUpAutoUploads() {
+  const tiles = document.querySelectorAll("[data-auto-upload]");
+  for (let i = 0; i < tiles.length; i++) {
+    setUpAutoUpload(tiles[i]);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   setUpCakeOnlyFields();
   setUpUppercaseFields();
   setUpDropzones();
+  setUpAutoUploads();
   setUpSlugFields();
   setUpAutoSku();
   openSectionFromHash();

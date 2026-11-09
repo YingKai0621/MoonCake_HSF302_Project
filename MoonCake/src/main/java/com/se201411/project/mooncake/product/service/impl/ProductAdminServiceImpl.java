@@ -41,10 +41,31 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             categories.add(new CategoryForm(v.getId(), v.getName(), v.getSlug(), v.isActive()));
         var products = new ArrayList<ProductForm>();
         for (var v : repo.products())
-            products.add(new ProductForm(v.getId(), v.getCategory().getId(), v.getProductType(), v.getName(), v.getSlug(), v.getShortDescription(), v.getDetailedDescription(), v.getMainIngredients(), v.getShelfLifeInfo(), v.getStorageGuidance(), v.isActive()));
+            products.add(new ProductForm(
+                v.getId(),
+                v.getCategory().getId(),
+                v.getProductType(),
+                v.getName(),
+                v.getSlug(),
+                v.getShortDescription(),
+                v.getDetailedDescription(),
+                v.getMainIngredients(),
+                v.getShelfLifeInfo(),
+                v.getStorageGuidance(),
+                v.isActive()
+            ));
         var variants = new ArrayList<VariantForm>();
         for (var v : repo.variants())
-            variants.add(new VariantForm(v.getId(), v.getProduct().getId(), v.getSku(), v.getName(), v.getWeightGrams(), v.getFillingLabel(), v.getUnitPrice(), v.isActive()));
+            variants.add(new VariantForm(
+                v.getId(),
+                v.getProduct().getId(),
+                v.getSku(),
+                v.getName(),
+                v.getWeightGrams(),
+                v.getFillingLabel(),
+                v.getUnitPrice(),
+                v.isActive()
+            ));
         var boxes = new ArrayList<BoxForm>();
         for (var v : repo.boxes())
             boxes.add(new BoxForm(v.getId(), v.getEmptyBoxVariant().getId(), v.getCapacityCakes(), v.getMaterial(), v.getNotes(), v.isActive()));

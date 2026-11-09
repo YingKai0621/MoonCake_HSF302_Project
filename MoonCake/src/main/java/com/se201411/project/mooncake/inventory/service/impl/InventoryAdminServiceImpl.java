@@ -56,7 +56,15 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         access.requireAdmin();
         var result = new ArrayList<Movement>();
         for (var m : repo.movements(Math.max(0, Math.min(page, 100000))))
-            result.add(new Movement(m.getVariant().getSku(), m.getMovementType(), m.getQuantityDelta(), m.getReason(), m.getOperationGroupKey(), m.getOrder() == null ? null : m.getOrder().getId(), m.getCreatedAt()));
+            result.add(new Movement(
+                m.getVariant().getSku(),
+                m.getMovementType(),
+                m.getQuantityDelta(),
+                m.getReason(),
+                m.getOperationGroupKey(),
+                m.getOrder() == null ? null : m.getOrder().getId(),
+                m.getCreatedAt()
+            ));
         return List.copyOf(result);
     }
 

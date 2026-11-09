@@ -32,6 +32,16 @@ public class CodPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
+    public String displayName() {
+        return "COD";
+    }
+
+    @Override
+    public boolean isOnline() {
+        return false;
+    }
+
+    @Override
     public Optional<String> startPayment(SalesOrder order, String clientIp) {
         return Optional.empty();
     }

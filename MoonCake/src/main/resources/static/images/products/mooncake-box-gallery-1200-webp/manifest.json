@@ -1,0 +1,57 @@
+{
+  "notes": "AI-generated concept renders. Verify MORDAN logo, actual packaging and product details before publishing. Source tiles are upscaled to 1200px; not native 1200px renders.",
+  "products": {
+    "kim-phuc": [
+      {
+        "name": "01-hop-dong",
+        "main": "kim-phuc/01-hop-dong.webp",
+        "thumbnail": "kim-phuc/thumbnails/01-hop-dong-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 111074,
+        "thumbnail_bytes": 11890
+      },
+      {
+        "name": "02-hop-mo-4-banh",
+        "main": "kim-phuc/02-hop-mo-4-banh.webp",
+        "thumbnail": "kim-phuc/thumbnails/02-hop-mo-4-banh-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 120460,
+        "thumbnail_bytes": 14576
+      },
+      {
+        "name": "03-chi-tiet-hop",
+        "main": "kim-phuc/03-chi-tiet-hop.webp",
+        "thumbnail": "kim-phuc/thumbnails/03-chi-tiet-hop-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 155900,
+        "thumbnail_bytes": 13870
+      }
+    ],
+    "lam-phuc": [
+      {
+        "name": "01-hop-dong",
+        "main": "lam-phuc/01-hop-dong.webp",
+        "thumbnail": "lam-phuc/thumbnails/01-hop-dong-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 152616,
+        "thumbnail_bytes": 15838
+      },
+      {
+        "name": "02-hop-mo-6-banh",
+        "main": "lam-phuc/02-hop-mo-6-banh.webp",
+        "thumbnail": "lam-phuc/thumbnails/02-hop-mo-6-banh-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 118830,
+        "thumbnail_bytes": 14592
+      },
+      {
+        "name": "03-chi-tiet-hop",
+        "main": "lam-phuc/03-chi-tiet-hop.webp",
+        "thumbnail": "lam-phuc/thumbnails/03-chi-tiet-hop-thumb.webp",
+        "pixels": "1200x1200",
+        "main_bytes": 150756,
+        "thumbnail_bytes": 16066
+      }
+    ]
+  }
+}

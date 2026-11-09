@@ -271,3 +271,17 @@
     transition: none;
   }
 }
+
+.gallery-thumbs {
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.gallery-thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-thumbs button[hidden] {
+  display: none;
+}

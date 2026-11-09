@@ -1,13 +1,48 @@
 function setUpProductGallery() {
   const mainImage = document.getElementById("mainImageDisplay");
-  const thumbnails = Array.from(document.querySelectorAll("[data-gallery-src]"));
-  if (mainImage === null || thumbnails.length === 0) {
+  const allThumbnails = Array.from(document.querySelectorAll("[data-gallery-src]"));
+  if (mainImage === null || allThumbnails.length === 0) {
     return;
   }
 
   const frame = document.querySelector("[data-gallery-frame]");
   const counter = document.querySelector("[data-gallery-counter]");
+  const previousArrow = document.querySelector("[data-gallery-prev]");
+  const nextArrow = document.querySelector("[data-gallery-next]");
+  let thumbnails = allThumbnails;
   let currentIndex = 0;
+
+  function photosOf(variantId) {
+    const photos = [];
+    for (let i = 0; i < allThumbnails.length; i++) {
+      if (allThumbnails[i].dataset.galleryVariant === String(variantId)) {
+        photos.push(allThumbnails[i]);
+      }
+    }
+    return photos;
+  }
+
+  function showVariant(variantId) {
+    let photos = photosOf(variantId);
+    if (photos.length === 0) {
+      photos = photosOf(allThumbnails[0].dataset.galleryVariant);
+    }
+    thumbnails = photos;
+    for (let i = 0; i < allThumbnails.length; i++) {
+      allThumbnails[i].hidden = !photos.includes(allThumbnails[i]);
+    }
+    const several = photos.length > 1;
+    if (previousArrow !== null) {
+      previousArrow.hidden = !several;
+    }
+    if (nextArrow !== null) {
+      nextArrow.hidden = !several;
+    }
+    if (counter !== null) {
+      counter.hidden = !several;
+    }
+    showImage(0);
+  }
 
   function showImage(index) {
     currentIndex = (index + thumbnails.length) % thumbnails.length;
@@ -27,21 +62,25 @@ function setUpProductGallery() {
     mainImage.classList.add("is-switching");
     loader.src = nextSource;
 
-    for (let i = 0; i < thumbnails.length; i++) {
-      const active = i === currentIndex;
-      thumbnails[i].classList.toggle("is-active", active);
-      thumbnails[i].setAttribute("aria-pressed", String(active));
+    for (let i = 0; i < allThumbnails.length; i++) {
+      const active = allThumbnails[i] === thumbnail;
+      allThumbnails[i].classList.toggle("is-active", active);
+      allThumbnails[i].setAttribute("aria-pressed", String(active));
     }
-    thumbnail.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const strip = thumbnail.parentElement;
+    const left = thumbnail.offsetLeft - strip.offsetLeft;
+    if (left < strip.scrollLeft || left + thumbnail.offsetWidth > strip.scrollLeft + strip.clientWidth) {
+      strip.scrollTo({ left: left - 8, behavior: "smooth" });
+    }
 
     if (counter !== null) {
       counter.textContent = (currentIndex + 1) + " / " + thumbnails.length;
     }
   }
 
-  for (let i = 0; i < thumbnails.length; i++) {
-    thumbnails[i].addEventListener("click", function () {
-      showImage(i);
+  for (let i = 0; i < allThumbnails.length; i++) {
+    allThumbnails[i].addEventListener("click", function () {
+      showImage(thumbnails.indexOf(allThumbnails[i]));
     });
   }
 
@@ -89,13 +128,22 @@ function setUpProductGallery() {
     }, { passive: true });
   }
 
-  for (let i = 0; i < thumbnails.length; i++) {
+  for (let i = 0; i < allThumbnails.length; i++) {
     const preload = new Image();
-    preload.src = thumbnails[i].dataset.gallerySrc;
+    preload.src = allThumbnails[i].dataset.gallerySrc;
   }
 
-  thumbnails[0].classList.add("is-active");
-  thumbnails[0].setAttribute("aria-pressed", "true");
+  document.addEventListener("variant-change", function (event) {
+    showVariant(event.detail.variantId);
+  });
+
+  const select = document.getElementById("variantSelect");
+  if (select !== null && select.value !== "") {
+    showVariant(select.value);
+  } else {
+    allThumbnails[0].classList.add("is-active");
+    allThumbnails[0].setAttribute("aria-pressed", "true");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", setUpProductGallery);

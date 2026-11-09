@@ -97,7 +97,10 @@ function initVariantSelector() {
     if (price) {
       price.textContent = option.dataset.formattedPrice || '';
     }
-    if (mainImage) {
+    const hasGallery = document.querySelector('[data-gallery-src]') !== null;
+    if (hasGallery) {
+      document.dispatchEvent(new CustomEvent('variant-change', { detail: { variantId: option.value } }));
+    } else if (mainImage) {
       mainImage.src = option.dataset.imageUrl || mainImage.src;
       mainImage.alt = option.dataset.imageAlt || mainImage.alt;
     }
@@ -143,6 +146,12 @@ function initVariantSelector() {
   }
 
   select.addEventListener('change', applySelectedVariant);
+  select.addEventListener('change', function () {
+    const label = document.querySelector('[data-price-label]');
+    if (label) {
+      label.textContent = 'Giá';
+    }
+  });
   applySelectedVariant();
 }
 

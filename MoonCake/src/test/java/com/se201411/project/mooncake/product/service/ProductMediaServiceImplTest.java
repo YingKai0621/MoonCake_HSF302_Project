@@ -1,0 +1,74 @@
+package com.se201411.project.mooncake.product.service;
+
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductVideo;
+import com.se201411.project.mooncake.product.dto.ProductVideoView;
+import com.se201411.project.mooncake.product.repository.ProductImageRepository;
+import com.se201411.project.mooncake.product.repository.ProductRepository;
+import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
+import com.se201411.project.mooncake.product.service.impl.ProductMediaServiceImpl;
+import com.se201411.project.mooncake.security.service.AdminAccessService;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class ProductMediaServiceImplTest {
+
+    private final ProductImageRepository productImageRepository = mock(ProductImageRepository.class);
+    private final ProductVideoRepository productVideoRepository = mock(ProductVideoRepository.class);
+    private final ProductRepository productRepository = mock(ProductRepository.class);
+    private final AdminAccessService adminAccessService = mock(AdminAccessService.class);
+    private final ProductMediaService service = new ProductMediaServiceImpl(
+        productImageRepository,
+        productVideoRepository,
+        productRepository,
+        adminAccessService
+    );
+
+    @Test
+    void addsValidVideoForExistingProduct() {
+        Product product = new Product();
+        when(productRepository.findById(3L)).thenReturn(Optional.of(product));
+
+        service.addVideo(3L, "https://example.test/cake.mp4", "  Cắt bánh  ");
+
+        ArgumentCaptor<ProductVideo> saved = ArgumentCaptor.forClass(ProductVideo.class);
+        verify(productVideoRepository).save(saved.capture());
+        assertThat(saved.getValue().getProduct()).isSameAs(product);
+        assertThat(saved.getValue().getCaption()).isEqualTo("Cắt bánh");
+    }
+
+    @Test
+    void rejectsVideoThatIsNotMp4OrWebm() {
+        assertThatThrownBy(() -> service.addVideo(3L, "https://example.test/cake.avi", "Video"))
+            .isInstanceOf(BusinessRuleViolationException.class);
+        verify(productVideoRepository, never()).save(any());
+    }
+
+    @Test
+    void videosAreReturnedAsViews() {
+        ProductVideo video = new ProductVideo();
+        ReflectionTestUtils.setField(video, "id", 9L);
+        video.setVideoUrl("/images/cake.webm");
+        video.setCaption("Bánh");
+        when(productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(3L)).thenReturn(List.of(video));
+
+        List<ProductVideoView> views = service.videos(3L);
+
+        assertThat(views).hasSize(1);
+        assertThat(views.get(0).url()).isEqualTo("/images/cake.webm");
+        assertThat(views.get(0).caption()).isEqualTo("Bánh");
+    }
+}

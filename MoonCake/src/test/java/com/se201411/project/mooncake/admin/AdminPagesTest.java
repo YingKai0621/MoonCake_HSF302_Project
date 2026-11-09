@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.product.dto.AdminVideoView;
 import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
 import com.se201411.project.mooncake.feedback.dto.AdminFeedbackView;
 import com.se201411.project.mooncake.feedback.service.FeedbackService;
@@ -69,7 +70,7 @@ class AdminPagesTest {
         reset(catalog, presets, inventory, orders, cancellations);
         when(operations.statistics()).thenReturn(new Object[]{1,1,BigDecimal.TEN,0});
         when(batches.list()).thenReturn(java.util.Collections.singletonList(new Object[]{1L,"SKU","LOT",null,null,3,"Chưa có hạn dùng"}));
-        when(media.all()).thenReturn(java.util.Collections.singletonList(new Object[]{1L,"Cake","https://example.test/cake.mp4","Video"}));
+        when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         when(catalog.catalog()).thenReturn(new AdminCatalogView(
                 List.of(new CategoryForm(1L, "Category", "category", true)),

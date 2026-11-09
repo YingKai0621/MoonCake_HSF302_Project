@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface ProductRepository extends Repository<Product, Long> {
 
+    Optional<Product> findById(Long productId);
+
     @Query("""
         select p
         from Product p

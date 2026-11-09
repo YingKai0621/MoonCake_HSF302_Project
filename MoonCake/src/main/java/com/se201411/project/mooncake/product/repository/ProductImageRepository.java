@@ -21,4 +21,16 @@ public interface ProductImageRepository extends Repository<ProductImage, Long> {
             i.id
         """)
     List<ProductImage> findOrderedByVariantIds(@Param("variantIds") Collection<Long> variantIds);
+
+    @Query("""
+        select i
+        from ProductImage i
+        join i.variant v
+        where v.product.id = :productId
+          and v.active = true
+        order by case when i.primary = true then 0 else 1 end,
+            i.sortOrder,
+            i.id
+        """)
+    List<ProductImage> findGalleryByProductId(@Param("productId") Long productId);
 }

@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product.dto;
 
+import java.util.stream.Stream;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -34,12 +37,12 @@ public record AdminCatalogView(List<CategoryForm> categories, List<ProductForm> 
 
     public String productImage(long productId) {
         var ids = variants.stream().filter(v -> v.productId() == productId)
-                .map(VariantForm::id).collect(java.util.stream.Collectors.toSet());
+                .map(VariantForm::id).collect(Collectors.toSet());
         return imageFrom(images.stream().filter(image -> ids.contains(image.variantId())));
     }
 
-    private String imageFrom(java.util.stream.Stream<ImageForm> candidates) {
-        return candidates.sorted(java.util.Comparator.comparing(ImageForm::primary).reversed()
+    private String imageFrom(Stream<ImageForm> candidates) {
+        return candidates.sorted(Comparator.comparing(ImageForm::primary).reversed()
                         .thenComparingInt(ImageForm::sortOrder).thenComparing(ImageForm::id))
                 .map(ImageForm::imageUrl).findFirst().orElse(null);
     }

@@ -1,108 +1,47 @@
 package com.se201411.project.mooncake.product.repository;
 
 import com.se201411.project.mooncake.entity.*;
-import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
-@Repository
-public class ProductAdminRepository {
-    private final EntityManager em;
+public interface ProductAdminRepository {
 
-    public ProductAdminRepository(EntityManager em) {
-        this.em = em;
-    }
+    List<Category> categories();
 
-    public List<Category> categories() {
-        return em.createQuery("from Category order by id", Category.class).getResultList();
-    }
+    List<Product> products();
 
-    public List<Product> products() {
-        return em.createQuery("from Product p join fetch p.category order by p.id", Product.class).getResultList();
-    }
+    List<ProductVariant> variants();
 
-    public List<ProductVariant> variants() {
-        return em.createQuery("from ProductVariant v join fetch v.product order by v.id", ProductVariant.class).getResultList();
-    }
+    List<Box> boxes();
 
-    public List<Box> boxes() {
-        return em.createQuery("from Box b join fetch b.emptyBoxVariant order by b.id", Box.class).getResultList();
-    }
+    List<ProductImage> images();
 
-    public List<ProductImage> images() {
-        return em.createQuery("from ProductImage i join fetch i.variant order by i.sortOrder, i.id", ProductImage.class).getResultList();
-    }
+    Category category(long id);
 
-    public Category category(long id) {
-        return require(Category.class, id);
-    }
+    Product product(long id);
 
-    public Product product(long id) {
-        return require(Product.class, id);
-    }
+    ProductVariant variant(long id);
 
-    public ProductVariant variant(long id) {
-        return require(ProductVariant.class, id);
-    }
+    Box box(long id);
 
-    public Box box(long id) {
-        return require(Box.class, id);
-    }
+    ProductImage image(long id);
 
-    public ProductImage image(long id) {
-        return require(ProductImage.class, id);
-    }
+    void save(Category value);
 
-    private <T> T require(Class<T> type, long id) {
-        T value = em.find(type, id, LockModeType.PESSIMISTIC_WRITE);
-        if (value == null) throw new ResourceNotFoundException("Không tìm thấy dữ liệu catalog.");
-        return value;
-    }
+    void save(Product value);
 
-    public void save(Category value) {
-        if (value.getId() == null) em.persist(value);
-    }
+    void save(ProductVariant value);
 
-    public void save(Product value) {
-        if (value.getId() == null) em.persist(value);
-    }
+    void save(Box value);
 
-    public void save(ProductVariant value) {
-        if (value.getId() == null) em.persist(value);
-        em.flush();
-    }
+    void save(ProductImage value);
 
-    public void save(Box value) {
-        if (value.getId() == null) em.persist(value);
-    }
+    boolean hasVariants(long id);
 
-    public void save(ProductImage value) {
-        if (value.getId() == null) em.persist(value);
-    }
+    boolean boxReferenced(long id);
 
-    public boolean hasVariants(long id) {
-        return em.createQuery("select count(v) from ProductVariant v where v.product.id=:id", Long.class).setParameter("id", id).getSingleResult() > 0;
-    }
+    void clearPrimary(long id);
 
-    public boolean boxReferenced(long id) {
-        return em.createQuery("select count(c) from BoxConfiguration c where c.box.id=:id", Long.class).setParameter("id", id).getSingleResult() > 0;
-    }
+    void removeImage(ProductImage image);
 
-    public void clearPrimary(long id) {
-        em.createQuery("update ProductImage i set i.primary=false where i.variant.id=:id").setParameter("id", id).executeUpdate();
-        for (ProductImage image : em.createQuery("from ProductImage i where i.variant.id=:id", ProductImage.class).setParameter("id", id).getResultList())
-            em.refresh(image);
-    }
-
-    public void removeImage(ProductImage image) {
-        em.remove(image);
-        em.flush();
-    }
-
-    public void flush() {
-        em.flush();
-    }
+    void flush();
 }

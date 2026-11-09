@@ -47,7 +47,15 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
             var components = new ArrayList<AdminPresetView.Component>();
             for (var i : componentsByConfiguration.getOrDefault(c.getId(), List.of()))
                 components.add(new AdminPresetView.Component(i.getMooncakeVariant().getId(), i.getMooncakeVariant().getSku(), i.getQuantityPerBox()));
-            result.add(new AdminPresetView(c.getId(), c.getPresetVariant().getId(), c.getPresetVariant().getSku(), c.getBox().getId(), c.getBox().getCapacityCakes(), c.getStatus(), List.copyOf(components)));
+            result.add(new AdminPresetView(
+                c.getId(),
+                c.getPresetVariant().getId(),
+                c.getPresetVariant().getSku(),
+                c.getBox().getId(),
+                c.getBox().getCapacityCakes(),
+                c.getStatus(),
+                List.copyOf(components)
+            ));
         }
         return List.copyOf(result);
     }

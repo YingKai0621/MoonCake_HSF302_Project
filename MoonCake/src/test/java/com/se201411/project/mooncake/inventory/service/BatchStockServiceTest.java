@@ -1,35 +1,110 @@
 package com.se201411.project.mooncake.inventory.service;
-import com.se201411.project.mooncake.inventory.repository.BatchRepository;
-import com.se201411.project.mooncake.security.service.AdminAccessService;
-import com.se201411.project.mooncake.enums.StockMovementType;
+
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.entity.BatchAllocation;
+import com.se201411.project.mooncake.entity.StockBatch;
+import com.se201411.project.mooncake.enums.StockMovementType;
+import com.se201411.project.mooncake.inventory.dto.BatchQuantity;
+import com.se201411.project.mooncake.inventory.repository.BatchAllocationRepository;
+import com.se201411.project.mooncake.inventory.repository.InventoryBalanceRepository;
+import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
+import com.se201411.project.mooncake.inventory.service.impl.BatchStockServiceImpl;
+import com.se201411.project.mooncake.security.service.AdminAccessService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class BatchStockServiceTest {
- final BatchRepository repo=mock(BatchRepository.class);
- final BatchStockService service=new BatchStockService(repo,mock(AdminAccessService.class));
- @Test void saleConsumesEligibleBatchesInExpiryOrder(){
-  when(repo.physical(1)).thenReturn(7);when(repo.tracked(1)).thenReturn(12);
-  when(repo.available(1,false)).thenReturn(List.of(new Object[]{11L,3},new Object[]{12L,9}));
-  service.apply(1,-5,"SALE",9L,StockMovementType.SALE);
-  var order=inOrder(repo);order.verify(repo).change(11,-3);order.verify(repo).record(11,9L,"SALE",-3);order.verify(repo).change(12,-2);
- }
- @Test void insufficientEligibleStockDoesNotConsumeAnyBatch(){
-  when(repo.physical(1)).thenReturn(7);when(repo.tracked(1)).thenReturn(12);
-  when(repo.available(1,false)).thenReturn(java.util.Collections.singletonList(new Object[]{11L,3}));
-  assertThatThrownBy(()->service.apply(1,-5,"SALE",9L,StockMovementType.SALE)).isInstanceOf(BusinessRuleViolationException.class).hasMessageContaining("3");
-  verify(repo,never()).change(anyLong(),anyInt());
- }
- @Test void cancellationRestoresOriginalLotsEvenWhenExpired(){
-  when(repo.physical(1)).thenReturn(12);when(repo.tracked(1)).thenReturn(7);
-  when(repo.sold(1,9)).thenReturn(List.of(new Object[]{11L,3},new Object[]{12L,2}));
-  service.apply(1,5,"RETURN",9L,StockMovementType.CANCEL_RETURN);
-  verify(repo).change(11,3);verify(repo).change(12,2);verify(repo,never()).create(anyLong(),anyString(),anyInt());
- }
- @Test void balanceMismatchFailsInsteadOfFabricatingLots(){
-  when(repo.physical(1)).thenReturn(2);when(repo.tracked(1)).thenReturn(9);
-  assertThatThrownBy(()->service.apply(1,-1,"SALE",9L,StockMovementType.SALE)).isInstanceOf(BusinessRuleViolationException.class);
- }
+
+    private static final LocalDate TODAY = LocalDate.of(2026, 11, 9);
+
+    private final StockBatchRepository stockBatchRepository = mock(StockBatchRepository.class);
+    private final BatchAllocationRepository batchAllocationRepository = mock(BatchAllocationRepository.class);
+    private final InventoryBalanceRepository inventoryBalanceRepository = mock(InventoryBalanceRepository.class);
+    private final BatchStockService service = new BatchStockServiceImpl(
+        stockBatchRepository,
+        batchAllocationRepository,
+        inventoryBalanceRepository,
+        mock(AdminAccessService.class),
+        Clock.fixed(Instant.parse("2026-11-09T03:00:00Z"), ZoneOffset.UTC)
+    );
+
+    @BeforeEach
+    void changesSucceedByDefault() {
+        when(stockBatchRepository.changeRemaining(anyLong(), anyInt(), anyInt(), anyInt())).thenReturn(1);
+    }
+
+    @Test
+    void saleConsumesEligibleBatchesInExpiryOrder() {
+        when(inventoryBalanceRepository.available(1)).thenReturn(7);
+        when(stockBatchRepository.sumRemaining(1)).thenReturn(12L);
+        when(stockBatchRepository.findSellableForUpdate(1, TODAY)).thenReturn(List.of(batch(11L, 3), batch(12L, 9)));
+
+        service.apply(1, -5, "SALE", 9L, StockMovementType.SALE);
+
+        InOrder order = inOrder(stockBatchRepository);
+        order.verify(stockBatchRepository).changeRemaining(11L, -3, 3, Integer.MAX_VALUE);
+        order.verify(stockBatchRepository).changeRemaining(12L, -2, 2, Integer.MAX_VALUE);
+        verify(batchAllocationRepository, times(2)).save(any(BatchAllocation.class));
+    }
+
+    @Test
+    void insufficientEligibleStockDoesNotConsumeAnyBatch() {
+        when(inventoryBalanceRepository.available(1)).thenReturn(7);
+        when(stockBatchRepository.sumRemaining(1)).thenReturn(12L);
+        when(stockBatchRepository.findSellableForUpdate(1, TODAY)).thenReturn(List.of(batch(11L, 3)));
+
+        assertThatThrownBy(() -> service.apply(1, -5, "SALE", 9L, StockMovementType.SALE))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("3");
+        verify(stockBatchRepository, never()).changeRemaining(anyLong(), anyInt(), anyInt(), anyInt());
+    }
+
+    @Test
+    void cancellationRestoresOriginalLotsEvenWhenExpired() {
+        when(inventoryBalanceRepository.available(1)).thenReturn(12);
+        when(stockBatchRepository.sumRemaining(1)).thenReturn(7L);
+        when(batchAllocationRepository.findSoldForOrder(1, 9))
+            .thenReturn(List.of(new BatchQuantity(11L, 3L), new BatchQuantity(12L, 2L)));
+
+        service.apply(1, 5, "RETURN", 9L, StockMovementType.CANCEL_RETURN);
+
+        verify(stockBatchRepository).changeRemaining(11L, 3, 0, Integer.MAX_VALUE - 3);
+        verify(stockBatchRepository).changeRemaining(12L, 2, 0, Integer.MAX_VALUE - 2);
+        verify(stockBatchRepository, never()).save(any(StockBatch.class));
+    }
+
+    @Test
+    void balanceMismatchFailsInsteadOfFabricatingLots() {
+        when(inventoryBalanceRepository.available(1)).thenReturn(2);
+        when(stockBatchRepository.sumRemaining(1)).thenReturn(9L);
+
+        assertThatThrownBy(() -> service.apply(1, -1, "SALE", 9L, StockMovementType.SALE))
+            .isInstanceOf(BusinessRuleViolationException.class);
+    }
+
+    private StockBatch batch(long id, int remaining) {
+        StockBatch batch = new StockBatch();
+        ReflectionTestUtils.setField(batch, "id", id);
+        batch.setRemainingQuantity(remaining);
+        return batch;
+    }
 }

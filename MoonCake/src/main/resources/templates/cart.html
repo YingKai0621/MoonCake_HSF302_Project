@@ -35,6 +35,7 @@
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
   <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
   <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('cart')}"></header>
@@ -239,5 +240,6 @@
 
   <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
 </body>
 </html>

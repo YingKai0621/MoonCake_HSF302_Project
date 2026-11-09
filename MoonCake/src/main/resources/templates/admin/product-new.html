@@ -29,7 +29,7 @@
                         <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh">
                     </label>
                     <label>Giá bán (đ)
-                        <input type="number" name="unitPrice" required min="0" step="1000" placeholder="Ví dụ: 450000">
+                        <input type="number" name="unitPrice" required min="0" step="1" placeholder="Ví dụ: 450000">
                     </label>
                     <label>Mã SKU
                         <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG">
@@ -42,7 +42,7 @@
                 <label th:replace="~{admin/product-forms :: dropzone(false)}"></label>
                 <details class="url-option">
                     <summary>Hoặc dán đường dẫn ảnh có sẵn</summary>
-                    <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
+                    <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+|/uploads/\S+)" data-error="Đường dẫn phải bắt đầu bằng https://, /images/ hoặc /uploads/."
                            placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
                 </details>
             </section>

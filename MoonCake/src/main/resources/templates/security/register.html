@@ -12,6 +12,7 @@
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/pages/auth.css}" href="/css/pages/auth.css">
   <script th:src="@{/js/auth.js}" src="/js/auth.js" defer></script>
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
 </head>
 <body class="auth-page">
   <header th:replace="~{fragments/header :: header('register')}"></header>
@@ -53,7 +54,7 @@
                  th:field="*{phone}"
                  minlength="10"
                  maxlength="10"
-                 pattern="0[0-9]{9}"
+                 pattern="0[0-9]{9}" data-error="Số điện thoại gồm 10 số và bắt đầu bằng 0."
                  inputmode="numeric"
                  autocomplete="tel"
                  placeholder="0901234567"
@@ -146,5 +147,6 @@
     </section>
   </main>
   <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
 </body>
 </html>

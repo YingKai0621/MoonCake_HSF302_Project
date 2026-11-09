@@ -105,7 +105,7 @@
                             <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
                             <input type="hidden" name="_primary" value="on">
                             <input type="text" name="imageUrl" required maxlength="1000"
-                                   pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
+                                   pattern="(https?://\S+|/images/\S+|/uploads/\S+)" data-error="Đường dẫn phải bắt đầu bằng https://, /images/ hoặc /uploads/."
                                    placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
                             <button type="submit" class="secondary">Thêm ảnh</button>
                         </form>

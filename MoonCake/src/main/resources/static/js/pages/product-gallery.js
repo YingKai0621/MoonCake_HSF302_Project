@@ -13,12 +13,16 @@ function setUpProductGallery() {
     currentIndex = (index + thumbnails.length) % thumbnails.length;
     const thumbnail = thumbnails[currentIndex];
 
-    mainImage.classList.add("is-switching");
-    setTimeout(function () {
-      mainImage.src = thumbnail.dataset.gallerySrc;
-      mainImage.alt = thumbnail.dataset.galleryAlt || "Ảnh sản phẩm";
+    const nextSource = thumbnail.dataset.gallerySrc;
+    const nextAlt = thumbnail.dataset.galleryAlt || "Ảnh sản phẩm";
+    const loader = new Image();
+    loader.onload = function () {
+      mainImage.src = nextSource;
+      mainImage.alt = nextAlt;
       mainImage.classList.remove("is-switching");
-    }, 150);
+    };
+    mainImage.classList.add("is-switching");
+    loader.src = nextSource;
 
     for (let i = 0; i < thumbnails.length; i++) {
       const active = i === currentIndex;
@@ -80,6 +84,11 @@ function setUpProductGallery() {
         showImage(currentIndex + 1);
       }
     }, { passive: true });
+  }
+
+  for (let i = 0; i < thumbnails.length; i++) {
+    const preload = new Image();
+    preload.src = thumbnails[i].dataset.gallerySrc;
   }
 
   thumbnails[0].classList.add("is-active");

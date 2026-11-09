@@ -1,13 +1,13 @@
 package com.se201411.project.mooncake.inventory.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.InventoryBalance;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 public interface InventoryBalanceRepository
-    extends Repository<InventoryBalance, Long> {
+    extends JpaRepository<InventoryBalance, Long> {
 
     boolean existsById(Long variantId);
 

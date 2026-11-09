@@ -1,14 +1,14 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.CartItem;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface CartItemRepository extends Repository<CartItem, Long> {
+public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     @Query("""
         select i

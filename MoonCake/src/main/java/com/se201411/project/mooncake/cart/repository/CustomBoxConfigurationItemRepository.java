@@ -1,15 +1,15 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface CustomBoxConfigurationItemRepository
-    extends Repository<BoxConfigurationItem, Long> {
+    extends JpaRepository<BoxConfigurationItem, Long> {
 
     BoxConfigurationItem save(BoxConfigurationItem item);
 

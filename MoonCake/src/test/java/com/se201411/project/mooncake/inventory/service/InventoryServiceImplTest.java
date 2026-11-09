@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import java.util.Optional;
+import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.Product;
@@ -10,7 +13,6 @@ import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.repository.InventoryBalanceRepository;
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.impl.InventoryServiceImpl;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +39,9 @@ class InventoryServiceImplTest {
     @Mock
     private StockMovementRepository movementRepository;
     @Mock
-    private EntityManager entityManager;
+    private ProductVariantRepository productVariantRepository;
+    @Mock
+    private SalesOrderRepository salesOrderRepository;
 
     private InventoryService inventoryService;
 
@@ -47,7 +51,8 @@ class InventoryServiceImplTest {
         inventoryService = new InventoryServiceImpl(
             balanceRepository,
             movementRepository,
-            entityManager,
+            productVariantRepository,
+            salesOrderRepository,
             clock
         );
     }
@@ -57,8 +62,8 @@ class InventoryServiceImplTest {
         ProductVariant variant = new ProductVariant();
         SalesOrder order = new SalesOrder();
         when(balanceRepository.deductAvailable(5L, 3)).thenReturn(1);
-        when(entityManager.getReference(ProductVariant.class, 5L)).thenReturn(variant);
-        when(entityManager.getReference(SalesOrder.class, 8L)).thenReturn(order);
+        when(productVariantRepository.getReferenceById(5L)).thenReturn(variant);
+        when(salesOrderRepository.getReferenceById(8L)).thenReturn(order);
 
         inventoryService.deductForSale(new SaleInventoryCommand(
             8L,
@@ -85,7 +90,7 @@ class InventoryServiceImplTest {
         ProductVariant variant = new ProductVariant();
         variant.setProduct(product);
         variant.setSku("MC-CBTN-080");
-        when(entityManager.find(ProductVariant.class, 5L)).thenReturn(variant);
+        when(productVariantRepository.findById(5L)).thenReturn(Optional.of(variant));
 
         SaleInventoryCommand command = new SaleInventoryCommand(
             8L,

@@ -1,14 +1,14 @@
 package com.se201411.project.mooncake.product.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.ProductImage;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface ProductImageRepository extends Repository<ProductImage, Long> {
+public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
 
     @Query("""
         select i

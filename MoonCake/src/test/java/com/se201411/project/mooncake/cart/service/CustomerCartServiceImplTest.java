@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
@@ -23,7 +24,6 @@ import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +61,7 @@ class CustomerCartServiceImplTest {
     @Mock
     private ProductQueryService productQueryService;
     @Mock
-    private EntityManager entityManager;
+    private ProductVariantRepository productVariantRepository;
 
     private CustomerCartService service;
 
@@ -77,7 +77,7 @@ class CustomerCartServiceImplTest {
             configurationRepository,
             configurationItemRepository,
             productQueryService,
-            entityManager,
+            productVariantRepository,
             clock
         );
     }
@@ -113,7 +113,7 @@ class CustomerCartServiceImplTest {
             .thenReturn(Optional.empty(), Optional.of(cart));
         when(cartRepository.createActiveCartIfMissing(10L)).thenReturn(1);
         when(cartItemRepository.findVariantItem(100L, 200L)).thenReturn(Optional.empty());
-        when(entityManager.getReference(ProductVariant.class, 200L))
+        when(productVariantRepository.getReferenceById(200L))
             .thenReturn(variantReference);
 
         service.addVariant(CUSTOMER, 200L, 2);

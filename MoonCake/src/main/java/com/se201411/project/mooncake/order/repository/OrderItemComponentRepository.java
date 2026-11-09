@@ -1,15 +1,15 @@
 package com.se201411.project.mooncake.order.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface OrderItemComponentRepository
-    extends Repository<OrderItemComponent, Long> {
+    extends JpaRepository<OrderItemComponent, Long> {
 
     OrderItemComponent save(OrderItemComponent component);
 

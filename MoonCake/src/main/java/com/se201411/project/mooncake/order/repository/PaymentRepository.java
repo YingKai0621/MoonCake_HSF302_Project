@@ -1,17 +1,17 @@
 package com.se201411.project.mooncake.order.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface PaymentRepository extends Repository<Payment, Long> {
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Payment save(Payment payment);
 
     @Query("""

@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.cart.repository.VolumeDiscountTierRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.security.repository.CustomerRepository;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -41,7 +45,6 @@ import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
-import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +74,10 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemComponentRepository componentRepository;
     private final PaymentRepository paymentRepository;
-    private final EntityManager entityManager;
+    private final CustomerRepository customerRepository;
+    private final ProductVariantRepository productVariantRepository;
+    private final CustomBoxConfigurationRepository configurationRepository;
+    private final VolumeDiscountTierRepository volumeDiscountTierRepository;
     private final Clock clock;
     private final PaymentProcessorRegistry paymentProcessorRegistry;
 
@@ -85,7 +91,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         OrderItemRepository orderItemRepository,
         OrderItemComponentRepository componentRepository,
         PaymentRepository paymentRepository,
-        EntityManager entityManager,
+        CustomerRepository customerRepository,
+        ProductVariantRepository productVariantRepository,
+        CustomBoxConfigurationRepository configurationRepository,
+        VolumeDiscountTierRepository volumeDiscountTierRepository,
         Clock clock,
         PaymentProcessorRegistry paymentProcessorRegistry
     ) {
@@ -98,7 +107,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         this.orderItemRepository = orderItemRepository;
         this.componentRepository = componentRepository;
         this.paymentRepository = paymentRepository;
-        this.entityManager = entityManager;
+        this.customerRepository = customerRepository;
+        this.productVariantRepository = productVariantRepository;
+        this.configurationRepository = configurationRepository;
+        this.volumeDiscountTierRepository = volumeDiscountTierRepository;
         this.clock = clock;
         this.paymentProcessorRegistry = paymentProcessorRegistry;
     }
@@ -229,7 +241,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     ) {
         SalesOrder order = new SalesOrder();
         order.setOrderCode(generateOrderCode());
-        order.setCustomer(entityManager.getReference(Customer.class, customer.customerId()));
+        order.setCustomer(customerRepository.getReferenceById(customer.customerId()));
         order.setOrderType(OrderType.RETAIL);
         order.setBuyerNameSnapshot(customer.fullName());
         order.setBuyerPhoneSnapshot(customer.phone());
@@ -254,20 +266,14 @@ public class CheckoutServiceImpl implements CheckoutService {
             OrderItem item = new OrderItem();
             item.setOrder(order);
             if (line.cartLine().variantId() != null) {
-                item.setVariant(entityManager.getReference(
-                    ProductVariant.class,
-                    line.cartLine().variantId()
+                item.setVariant(productVariantRepository.getReferenceById(line.cartLine().variantId()
                 ));
             } else {
-                item.setConfiguration(entityManager.getReference(
-                    BoxConfiguration.class,
-                    line.cartLine().configurationId()
+                item.setConfiguration(configurationRepository.getReferenceById(line.cartLine().configurationId()
                 ));
             }
             if (line.volumeDiscountTierId() != null) {
-                item.setVolumeDiscountTier(entityManager.getReference(
-                    VolumeDiscountTier.class,
-                    line.volumeDiscountTierId()
+                item.setVolumeDiscountTier(volumeDiscountTierRepository.getReferenceById(line.volumeDiscountTierId()
                 ));
             }
             item.setItemKind(line.itemKind());
@@ -296,9 +302,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         for (CheckoutComponentQuote quote : componentQuotes) {
             OrderItemComponent component = new OrderItemComponent();
             component.setOrderItem(item);
-            component.setComponentVariant(entityManager.getReference(
-                ProductVariant.class,
-                quote.variantId()
+            component.setComponentVariant(productVariantRepository.getReferenceById(quote.variantId()
             ));
             component.setComponentRole(quote.role());
             component.setComponentNameSnapshot(quote.name());

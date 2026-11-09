@@ -1,14 +1,14 @@
 package com.se201411.project.mooncake.product.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface PresetConfigurationItemRepository extends Repository<BoxConfigurationItem, Long> {
+public interface PresetConfigurationItemRepository extends JpaRepository<BoxConfigurationItem, Long> {
 
     @Query("""
         select item

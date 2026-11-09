@@ -1,11 +1,11 @@
 package com.se201411.project.mooncake.security.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Customer;
-import org.springframework.data.repository.Repository;
 
 import java.util.Optional;
 
-public interface CustomerRepository extends Repository<Customer, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     Optional<Customer> findById(Long customerId);
 

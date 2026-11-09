@@ -33,7 +33,6 @@
                     </label>
                     <label>Mã SKU
                         <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG">
-                        <small class="field-hint">Mã nội bộ để quản lý kho, không đổi được sau khi tạo.</small>
                     </label>
                 </div>
             </section>
@@ -46,7 +45,6 @@
                     <input type="text" name="imageUrl" maxlength="1000" pattern="(https?://\S+|/images/\S+|/uploads/\S+)"
                            placeholder="https://... hoặc /images/products/..." aria-label="Đường dẫn ảnh">
                 </details>
-                <p class="field-hint">Có thể bỏ trống và thêm ảnh sau.</p>
             </section>
 
             <section class="create-layout__submit">
@@ -55,10 +53,8 @@
                     <input type="checkbox" class="switch" name="active" value="true">
                     <span class="switch-card__text">
                         <strong>Hiển thị trên cửa hàng ngay</strong>
-                        <small>Có thể bật sau ở trang sửa sản phẩm.</small>
                     </span>
                 </label>
-                <p class="field-hint">Phiên bản mới chưa mở bán. Mở bán ở trang sửa sau khi đã nhập kho<span> (hộp quà cần có công thức trước)</span>.</p>
                 <button type="submit" data-loading-text="Đang tạo…">Tạo sản phẩm</button>
             </section>
         </aside>

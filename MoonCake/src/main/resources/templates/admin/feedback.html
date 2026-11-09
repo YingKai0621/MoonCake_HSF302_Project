@@ -5,10 +5,9 @@
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading">
-        <span class="eyebrow">LẮNG NGHE KHÁCH HÀNG</span>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Bán hàng</span>
         <h1>Đánh giá khách hàng</h1>
-        <p>Chỉ đánh giá đã được hiển thị mới xuất hiện trên trang chủ. Góp ý cũ chưa chấm sao không thể hiển thị.</p>
     </div>
 
     <p th:if="${#lists.isEmpty(feedbacks)}" class="muted">Chưa có góp ý nào.</p>

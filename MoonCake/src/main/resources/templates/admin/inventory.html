@@ -5,14 +5,7 @@
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading"><span class="eyebrow">VẬN HÀNH & TỒN KHO</span><h1>Kho & đóng hộp</h1><p>Theo dõi số lượng có thể bán, nhập hàng và điều chỉnh chênh lệch sau kiểm kê. Đóng hộp sẽ trừ bánh, vỏ hộp và tăng tồn hộp quà thành phẩm.</p></div>
-    <details class="help-panel"><summary>Phân biệt nhập kho, điều chỉnh và đóng hộp</summary>
-        <ul><li><strong>Nhập kho:</strong> ghi nhận hàng mới nhận. Đang có 20 bánh, nhập 10 thì có 30 bánh.</li>
-        <li><strong>Điều chỉnh:</strong> nhập phần chênh lệch sau kiểm kê. Hệ thống có 20, thực tế có 18 thì nhập <strong>-2</strong>, kèm lý do.</li>
-        <li><strong>Đóng hộp:</strong> chọn công thức READY và số hộp cần đóng. Ví dụ mỗi hộp gồm 2 bánh A + 2 bánh B; đóng 10 hộp sẽ trừ 10 vỏ hộp, 20 bánh A, 20 bánh B và cộng 10 hộp quà. Thiếu linh kiện thì không đóng được.</li>
-        <li><strong>Lịch sử biến động:</strong> xem mỗi lần tăng/giảm kho, lý do và đơn hàng liên quan.</li></ul>
-        <p class="muted">Đặt đơn PRESET trừ hộp quà thành phẩm. Đặt đơn CUSTOM trừ từng bánh và vỏ hộp. Tồn đã được trừ lúc đặt đơn, không cần trừ thêm khi giao hàng. Hủy đơn hợp lệ sẽ tự hoàn kho.</p>
-    </details>
+    <div class="page-heading page-heading--simple"><span class="eyebrow">Kho</span><h1>Kho &amp; đóng hộp</h1></div>
     <section class="table-scroll"><h2>Tồn kho hiện tại</h2>
         <table data-search-table>
             <thead>
@@ -35,7 +28,7 @@
             </tbody>
         </table>
     </section>
-    <section><h2>Nhập kho</h2><p class="muted">Nhập số lượng hàng nhận thêm, không nhập tổng tồn mong muốn.</p>
+    <section><h2>Nhập kho</h2>
         <form th:action="@{/admin/inventory/receive}" method="post"><input type="hidden" name="operationKey"
                                                                            th:value="${receiveKey}">
             <div class="grid"><label>SKU<select name="variantId" required>
@@ -48,7 +41,7 @@
             </div>
         </form>
     </section>
-    <section><h2>Điều chỉnh kho</h2><p class="muted">Nhập số chênh lệch: số dương để tăng, số âm để giảm. Ghi rõ lý do kiểm kê.</p>
+    <section><h2>Điều chỉnh kho</h2>
         <form th:action="@{/admin/inventory/adjust}" method="post"><input type="hidden" name="operationKey"
                                                                           th:value="${adjustKey}">
             <div class="grid"><label>SKU<select name="variantId" required>
@@ -61,7 +54,7 @@
             </div>
         </form>
     </section>
-    <section><h2>Đóng hộp PRESET</h2><p class="muted">Số lượng là số hộp thành phẩm cần đóng. Chỉ công thức READY xuất hiện trong danh sách.</p>
+    <section><h2>Đóng hộp PRESET</h2>
         <form th:action="@{/admin/inventory/pack}" method="post"><input type="hidden" name="operationKey"
                                                                         th:value="${packKey}">
             <div class="grid"><label>SKU<select name="variantId" required>

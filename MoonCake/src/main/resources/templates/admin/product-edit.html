@@ -34,14 +34,9 @@
         <div class="section-heading">
             <div>
                 <h2>Phiên bản &amp; giá</h2>
-                <p class="muted">Sửa giá, tên và ảnh của từng phiên bản ngay bên dưới. Một sản phẩm có thể có nhiều phiên bản, ví dụ hộp 4 bánh và hộp 6 bánh.</p>
             </div>
         </div>
 
-        <p th:if="${product.productType.name() == 'GIFT_SET'}" class="note">
-            Hộp quà chỉ mở bán được khi đã có công thức sẵn sàng ở trang
-            <a th:href="@{/admin/presets}">Công thức hộp quà</a>.
-        </p>
 
         <div class="sku-list">
             <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
@@ -134,7 +129,6 @@
         <div class="section-heading">
             <div>
                 <h2>Mẫu hộp</h2>
-                <p class="muted">Sức chứa của hộp dùng khi khách tự chọn bánh. Mẫu đã có khách dùng thì không đổi được sức chứa.</p>
             </div>
         </div>
         <div class="sku-list">
@@ -168,12 +162,10 @@
         <div>
             <h2>Xóa sản phẩm</h2>
             <p th:if="${detail.deleteBlocker == null}" class="muted">
-                Sản phẩm chưa phát sinh đơn hàng, giỏ hàng hay nhập xuất kho nên có thể xóa hẳn.
-                Mọi phiên bản và ảnh của sản phẩm cũng bị xóa theo. Không thể hoàn tác.
+                Xóa hẳn sản phẩm cùng mọi phiên bản và ảnh. Không thể hoàn tác.
             </p>
             <p th:if="${detail.deleteBlocker != null}" class="muted">
                 <span th:text="${detail.deleteBlocker}">Sản phẩm đã có đơn hàng.</span>
-                Hãy tắt "Hiển thị trên cửa hàng" ở phần Thông tin để ẩn sản phẩm khỏi cửa hàng.
             </p>
         </div>
         <form th:if="${detail.deleteBlocker == null}"
@@ -217,7 +209,6 @@
                     <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
                     <span class="switch-card__text">
                         <strong>Đang dùng mẫu hộp này</strong>
-                        <small>Tắt thì khách không chọn được hộp này khi tự đóng hộp.</small>
                     </span>
                 </label>
                 <button type="submit" data-loading-text="Đang lưu…">Lưu mẫu hộp</button>

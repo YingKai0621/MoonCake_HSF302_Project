@@ -5,11 +5,10 @@
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <h1>Ảnh &amp; video sản phẩm</h1>
-    <p>
-        Ảnh được quản lý trong trang sửa từng <a th:href="@{/admin/catalog}">sản phẩm</a>.
-        Video dùng đường dẫn trực tiếp tới file MP4 hoặc WebM.
-    </p>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Sản phẩm</span>
+        <h1>Video sản phẩm</h1>
+    </div>
 
     <section>
         <h2>Thêm video</h2>

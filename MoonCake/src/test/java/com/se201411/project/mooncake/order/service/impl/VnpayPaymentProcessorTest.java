@@ -460,6 +460,25 @@ class VnpayPaymentProcessorTest {
     }
 
     @Test
+    void shorterLifetimesCanBeConfiguredForTesting() {
+        VnpayGateway quickGateway = new VnpayGateway(new MockEnvironment()
+            .withProperty("UNPAID_ORDER_CANCEL_MINUTES", "2")
+            .withProperty("VNPAY_ATTEMPT_SECONDS", "60"));
+        VnpayPaymentProcessor quickProcessor = new VnpayPaymentProcessor(
+            vnpayRepository,
+            paymentRepository,
+            quickGateway,
+            clock
+        );
+        SalesOrder order = placedAt(2, 0);
+        when(vnpayRepository.findPendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 1, 30));
+
+        Optional<LocalDateTime> deadline = quickProcessor.autoCancelAt(order, payment(PaymentStatus.UNPAID));
+
+        assertThat(deadline).contains(LocalDateTime.of(2026, 11, 8, 2, 2, 30));
+    }
+
+    @Test
     void paidOrderHasNoDeadline() {
         SalesOrder order = mock(SalesOrder.class);
         when(order.getStatus()).thenReturn(OrderStatus.PLACED);
@@ -495,6 +514,16 @@ class VnpayPaymentProcessorTest {
         payment.setStatus(status);
         payment.setAmount(AMOUNT);
         return payment;
+    }
+
+    private VnpayRepository.Attempt pendingCreatedAt(int hour, int minute, int second) {
+        return new VnpayRepository.Attempt(
+            "ref",
+            7L,
+            AMOUNT,
+            "PENDING",
+            LocalDateTime.of(2026, 11, 8, hour, minute, second)
+        );
     }
 
     private VnpayRepository.Attempt pendingCreatedAt(int hour, int minute) {

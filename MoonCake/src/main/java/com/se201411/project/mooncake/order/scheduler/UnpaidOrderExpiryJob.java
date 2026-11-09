@@ -13,7 +13,10 @@ public class UnpaidOrderExpiryJob {
         this.unpaidOrderExpiryService = unpaidOrderExpiryService;
     }
 
-    @Scheduled(initialDelay = 60_000, fixedDelay = 300_000)
+    @Scheduled(
+        initialDelayString = "${AUTO_CANCEL_CHECK_MS:300000}",
+        fixedDelayString = "${AUTO_CANCEL_CHECK_MS:300000}"
+    )
     public void cancelExpiredUnpaidOrders() {
         unpaidOrderExpiryService.cancelExpiredUnpaidOrders();
     }

@@ -25,8 +25,6 @@ import java.util.UUID;
 
 @Service
 public class VnpayPaymentProcessor implements PaymentProcessor {
-    private static final long ATTEMPT_LIFETIME_SECONDS = 900;
-    private static final long UNPAID_ORDER_LIFETIME_MINUTES = 30;
     private static final String SERVER_IP = "127.0.0.1";
 
     private static final String RSP_SUCCESS = "00";
@@ -156,10 +154,10 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (order.getStatus() != OrderStatus.PLACED || payment.getStatus() != PaymentStatus.UNPAID) {
             return Optional.empty();
         }
-        LocalDateTime deadline = order.getCreatedAt().plusMinutes(UNPAID_ORDER_LIFETIME_MINUTES);
+        LocalDateTime deadline = order.getCreatedAt().plusMinutes(gateway.unpaidOrderLifetimeMinutes());
         VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(order.getId());
         if (pending != null) {
-            LocalDateTime attemptEnd = pending.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS);
+            LocalDateTime attemptEnd = pending.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
             if (attemptEnd.isAfter(deadline)) {
                 deadline = attemptEnd;
             }
@@ -263,7 +261,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     private boolean isExpired(VnpayRepository.Attempt attempt) {
-        LocalDateTime expiresAt = attempt.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS);
+        LocalDateTime expiresAt = attempt.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
         return !LocalDateTime.now(clock).isBefore(expiresAt);
     }
 

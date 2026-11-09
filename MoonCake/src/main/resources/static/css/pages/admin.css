@@ -2723,3 +2723,14 @@ tr.is-low .stock-number {
   font-size: 14px;
   font-weight: 500;
 }
+
+.form-alert {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--danger);
+  border-radius: var(--radius-small);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 500;
+}

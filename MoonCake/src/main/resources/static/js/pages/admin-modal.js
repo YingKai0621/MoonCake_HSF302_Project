@@ -42,9 +42,13 @@ function closeOnBackdrop(event) {
 }
 
 function reopenAfterError() {
-  const dialog = document.querySelector("dialog.modal[data-reopen]");
+  const dialog = document.querySelector("dialog[data-reopen]");
   if (dialog === null) {
     return;
+  }
+  const parent = dialog.closest("details");
+  if (parent !== null) {
+    parent.open = true;
   }
   const variant = dialog.querySelector("[data-modal-variant]");
   const subject = dialog.querySelector("[data-modal-subject]");

@@ -210,7 +210,10 @@ class AdminPagesTest {
                 .param("unitPrice", "450000")
                 .param("sku", "GIFT-NEW")
                 .param("imageUrl", "javascript:alert(1)"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/new#new-product"))
+            .andExpect(flash().attribute("formError", "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/."))
+            .andExpect(flash().attributeExists("formValues"));
         verify(catalog, never()).createProduct(any());
     }
 
@@ -222,6 +225,7 @@ class AdminPagesTest {
                 .file(photo)
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "4")
                 .param("variantId", "2")
                 .param("sortOrder", "1")
                 .param("_primary", "on"))
@@ -246,7 +250,8 @@ class AdminPagesTest {
         when(catalog.deleteVariant(8)).thenReturn(3L);
         mvc.perform(post("/admin/variants/8/delete")
                 .with(user("admin").roles("ADMIN"))
-                .with(csrf()))
+                .with(csrf())
+                .param("productId", "3"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog/products/3#skus"));
     }
@@ -257,6 +262,37 @@ class AdminPagesTest {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("/admin/catalog/products/1/delete")))
             .andExpect(content().string(containsString("/admin/variants/1/delete")));
+    }
+
+    @Test
+    void variantRuleErrorReturnsToTheSameCardWithTypedValues() throws Exception {
+        doThrow(new BusinessRuleViolationException("Bánh lẻ cần nhập khối lượng."))
+            .when(catalog).saveVariant(any());
+        mvc.perform(post("/admin/variants")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("productId", "1")
+                .param("sku", "MC-NEW")
+                .param("name", "Bánh 150g")
+                .param("unitPrice", "65000")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/1#sku-new"))
+            .andExpect(flash().attribute("formError", "Bánh lẻ cần nhập khối lượng."))
+            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)));
+    }
+
+    @Test
+    void editPageShowsErrorInsideTheFailedSection() throws Exception {
+        mvc.perform(get("/admin/catalog/products/1")
+                .with(user("admin").roles("ADMIN"))
+                .flashAttr("formTarget", "sku-new")
+                .flashAttr("formError", "Bánh lẻ cần nhập khối lượng.")
+                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("class=\"form-alert\"")))
+            .andExpect(content().string(containsString("Bánh lẻ cần nhập khối lượng.")))
+            .andExpect(content().string(containsString("value=\"MC-NEW\"")));
     }
 
     @Test
@@ -309,7 +345,11 @@ class AdminPagesTest {
                 .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/admin/catalog#categories"));
         verify(catalog).saveCategory(new CategoryForm(null, "New Category", "new-category", true));
         mvc.perform(post("/admin/categories").with(user("admin").roles("ADMIN")).with(csrf())
-                .param("name", "").param("slug", "bad slug")).andExpect(status().isBadRequest());
+                .param("name", "").param("slug", "bad slug"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/catalog#category-new"))
+                .andExpect(flash().attribute("formTarget", "category-new"))
+                .andExpect(flash().attributeExists("formError"));
         verifyNoMoreInteractions(catalog);
     }
 
@@ -376,6 +416,7 @@ class AdminPagesTest {
         mvc.perform(post("/admin/boxes")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "1")
                 .param("variantId", "1")
                 .param("capacityCakes", "4")
                 .param("_active", "on"))
@@ -385,6 +426,7 @@ class AdminPagesTest {
         mvc.perform(post("/admin/images")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
+                .param("productId", "1")
                 .param("variantId", "1")
                 .param("imageUrl", "/images/cake.png")
                 .param("sortOrder", "0")

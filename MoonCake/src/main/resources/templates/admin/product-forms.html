@@ -2,6 +2,9 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
 
+<p th:fragment="alert(target)" class="form-alert" role="alert"
+   th:if="${formTarget != null and formTarget == target}" th:text="${formError}">Lỗi</p>
+
 <div th:fragment="productFields(f, typeLocked)" class="form-grid">
     <label class="span-2">Tên sản phẩm
         <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="220" data-slug-source>
@@ -66,12 +69,13 @@
     </div>
 </form>
 
-<form th:fragment="sku(f, productId)" th:action="@{/admin/variants}" method="post" class="product-form">
-    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+<form th:fragment="sku(f, productId)" th:action="@{/admin/variants}" method="post" class="product-form"
+      th:with="editing=${f != null and f.id != null}">
+    <input type="hidden" name="id" th:if="${editing}" th:value="${f.id}">
     <input type="hidden" name="productId" th:value="${productId}">
     <div class="form-grid" th:with="cake=${detail.product.productType.name() == 'MOONCAKE'}">
         <label>Mã SKU
-            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${f != null}"
+            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${editing}"
                    pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
         </label>
         <label>Tên phiên bản
@@ -99,12 +103,12 @@
                 <strong>Mở bán phiên bản này</strong>
             </span>
         </label>
-        <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Thêm phiên bản' : 'Lưu phiên bản'}">Lưu</button>
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${editing ? 'Lưu phiên bản' : 'Thêm phiên bản'}">Lưu</button>
     </div>
 </form>
 
 <form th:fragment="category(f)" th:action="@{/admin/categories}" method="post" class="product-form">
-    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <input type="hidden" name="id" th:if="${f != null and f.id != null}" th:value="${f.id}">
     <div class="form-grid">
         <label class="span-2">Tên danh mục
             <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="160" data-slug-source>

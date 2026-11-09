@@ -92,26 +92,31 @@
                           th:text="${category.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
                     <button type="button" class="secondary small-button" th:attr="data-batch-dialog=${'category-' + category.id}">Sửa</button>
                 </span>
-                <dialog class="catalog-editor" th:id="${'category-' + category.id}">
+                <dialog class="catalog-editor" th:id="${'category-' + category.id}"
+                        th:attr="data-reopen=${formTarget == 'category-' + category.id ? 'true' : null}">
                     <div class="editor-heading">
                         <h2 th:text="${'Sửa danh mục: ' + category.name}">Sửa danh mục</h2>
                         <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
                     </div>
-                    <form th:replace="~{admin/product-forms :: category(${category})}"></form>
+                    <p th:replace="~{admin/product-forms :: alert(${'category-' + category.id})}"></p>
+                    <form th:replace="~{admin/product-forms :: category(${formTarget == 'category-' + category.id ? formValues : category})}"></form>
                 </dialog>
             </li>
         </ul>
-        <dialog class="catalog-editor" id="category-new">
+        <dialog class="catalog-editor" id="category-new"
+                th:attr="data-reopen=${formTarget == 'category-new' ? 'true' : null}">
             <div class="editor-heading">
                 <h2>Thêm danh mục</h2>
                 <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
             </div>
-            <form th:replace="~{admin/product-forms :: category(null)}"></form>
+            <p th:replace="~{admin/product-forms :: alert('category-new')}"></p>
+            <form th:replace="~{admin/product-forms :: category(${formTarget == 'category-new' ? formValues : null})}"></form>
         </dialog>
         </div>
     </details>
 </main>
 <script th:src="@{/js/pages/admin-product.js}" defer></script>
+<script th:src="@{/js/pages/admin-modal.js}" defer></script>
 <script th:src="@{/js/loading-button.js}" defer></script>
 </body>
 </html>

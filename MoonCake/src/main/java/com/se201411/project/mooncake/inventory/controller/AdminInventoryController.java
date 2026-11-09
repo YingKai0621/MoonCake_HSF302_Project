@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.inventory.controller;
 
 import com.se201411.project.mooncake.inventory.service.*;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
+import com.se201411.project.mooncake.common.web.FormErrors;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
@@ -9,7 +10,6 @@ import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -51,7 +51,7 @@ public class AdminInventoryController {
     @PostMapping("/receive")
     public String receive(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            return reopen(flash, "receive-dialog", form, firstError(result));
+            return reopen(flash, "receive-dialog", form, FormErrors.first(result));
         }
         try {
             inventory.receive(form);
@@ -64,7 +64,7 @@ public class AdminInventoryController {
     @PostMapping("/adjust")
     public String adjust(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            return reopen(flash, "adjust-dialog", form, firstError(result));
+            return reopen(flash, "adjust-dialog", form, FormErrors.first(result));
         }
         try {
             inventory.adjust(form);
@@ -77,7 +77,7 @@ public class AdminInventoryController {
     @PostMapping("/pack")
     public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            return reopen(flash, "pack-dialog", form, firstError(result));
+            return reopen(flash, "pack-dialog", form, FormErrors.first(result));
         }
         try {
             packing.pack(form);
@@ -92,20 +92,6 @@ public class AdminInventoryController {
         flash.addFlashAttribute("dialogError", message);
         flash.addFlashAttribute("dialogForm", form);
         return "redirect:/admin/inventory";
-    }
-
-    private String firstError(BindingResult result) {
-        FieldError error = result.getFieldError();
-        if (error == null || error.getDefaultMessage() == null) {
-            return "Dữ liệu chưa hợp lệ. Hãy kiểm tra lại.";
-        }
-        if (error.isBindingFailure()) {
-            if ("variantId".equals(error.getField())) {
-                return "Vui lòng chọn sản phẩm.";
-            }
-            return "Vui lòng nhập số hợp lệ.";
-        }
-        return error.getDefaultMessage();
     }
 
     private String done(RedirectAttributes flash) {

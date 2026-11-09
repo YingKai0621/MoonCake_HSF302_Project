@@ -47,9 +47,14 @@ public class AdminCatalogController {
 
     @GetMapping("/catalog/products/{id}")
     public String editProduct(@PathVariable long id, Model model) {
-        model.addAttribute("detail", catalog.productDetail(id));
+        AdminProductDetail detail = catalog.productDetail(id);
+        model.addAttribute("detail", detail);
         model.addAttribute("categories", catalog.categories());
         model.addAttribute("productTypes", catalog.productTypes());
+        if (detail.product().productType() == ProductType.GIFT_SET) {
+            model.addAttribute("recipes", presets.presetsForProduct(id));
+            model.addAttribute("options", presets.presetOptions());
+        }
         return "admin/product-edit";
     }
 
@@ -119,6 +124,10 @@ public class AdminCatalogController {
             productId = catalog.createProduct(form);
         } catch (MoonCakeException | DataAccessException ex) {
             return failed(flash, newPage, "new-product", withoutFile(form), message(ex));
+        }
+        if (form.productType() == ProductType.GIFT_SET) {
+            flash.addFlashAttribute("success", "Đã tạo hộp quà. Bước tiếp theo: chọn bánh cho hộp.");
+            return "redirect:" + productPage(productId) + "#recipe";
         }
         flash.addFlashAttribute("success", "Đã tạo sản phẩm. Bạn có thể thêm phiên bản và ảnh khác bên dưới.");
         return "redirect:" + productPage(productId);
@@ -198,52 +207,44 @@ public class AdminCatalogController {
     }
 
     @GetMapping("/presets")
-    public String presets(Model model) {
-        model.addAttribute("presets", presets.presets());
-        model.addAttribute("options", presets.presetOptions());
-        return "admin/presets";
+    public String presets() {
+        return "redirect:/admin/catalog?type=GIFT_SET";
     }
 
     @PostMapping("/presets")
-    public String preset(@Valid @ModelAttribute AdminPresetForm form, BindingResult result, RedirectAttributes flash) {
-        String target = form.id() == null ? "preset-new" : "preset-" + form.id();
+    public String preset(@Valid @ModelAttribute AdminPresetForm form, BindingResult result,
+                         @RequestParam long productId, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            return failed(flash, "/admin/presets", target, form, FormErrors.first(result));
+            return failed(flash, productPage(productId), "recipe", form, FormErrors.first(result));
         }
         try {
             presets.saveDraft(form);
         } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, "/admin/presets", target, form, message(ex));
+            return failed(flash, productPage(productId), "recipe", form, message(ex));
         }
-        if (form.id() == null) {
-            flash.addFlashAttribute("success", "Đã tạo công thức. Hãy thêm bánh cho đủ hộp.");
-            return "redirect:/admin/presets";
-        }
-        return saved(flash, "presets#" + target);
+        return savedProduct(flash, productId, "#recipe");
     }
 
     @PostMapping("/presets/{id}/components")
     public String component(@PathVariable long id, @RequestParam long variantId, @RequestParam int quantity,
-                            RedirectAttributes flash) {
-        String target = "preset-" + id;
+                            @RequestParam long productId, RedirectAttributes flash) {
         try {
             presets.setComponent(id, variantId, quantity);
         } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, "/admin/presets", target, null, message(ex));
+            return failed(flash, productPage(productId), "recipe", null, message(ex));
         }
-        return saved(flash, "presets#" + target);
+        return savedProduct(flash, productId, "#recipe");
     }
 
     @PostMapping("/presets/{id}/activate")
-    public String activate(@PathVariable long id, RedirectAttributes flash) {
-        String target = "preset-" + id;
+    public String activate(@PathVariable long id, @RequestParam long productId, RedirectAttributes flash) {
         try {
             presets.activate(id);
         } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, "/admin/presets", target, null, message(ex));
+            return failed(flash, productPage(productId), "recipe", null, message(ex));
         }
-        flash.addFlashAttribute("success", "Đã khóa công thức. Giờ có thể đóng hộp ở trang Tồn kho.");
-        return "redirect:/admin/presets#" + target;
+        flash.addFlashAttribute("success", "Đã khóa danh sách bánh. Bước tiếp theo: đóng hộp ở trang Tồn kho.");
+        return "redirect:" + productPage(productId) + "#recipe";
     }
 
     private String failed(RedirectAttributes flash, String page, String target, Object values, String message) {

@@ -9,6 +9,8 @@ public interface PresetConfigurationAdminService {
 
     AdminPresetOptions presetOptions();
 
+    List<AdminPresetView> presetsForProduct(long productId);
+
     void saveDraft(AdminPresetForm form);
 
     void setComponent(long configurationId, long variantId, int quantity);

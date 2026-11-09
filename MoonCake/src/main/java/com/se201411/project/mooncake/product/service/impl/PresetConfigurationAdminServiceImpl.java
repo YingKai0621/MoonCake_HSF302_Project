@@ -104,6 +104,22 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         return new AdminPresetOptions(giftSets, boxes, cakes);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminPresetView> presetsForProduct(long productId) {
+        Set<Long> variantIds = new HashSet<>();
+        for (ProductVariant variant : products.variantsOf(productId)) {
+            variantIds.add(variant.getId());
+        }
+        List<AdminPresetView> result = new ArrayList<>();
+        for (AdminPresetView preset : presets()) {
+            if (variantIds.contains(preset.giftSetVariantId())) {
+                result.add(preset);
+            }
+        }
+        return result;
+    }
+
     private String variantLabel(ProductVariant variant) {
         return variant.getProduct().getName() + " · " + variant.getName();
     }

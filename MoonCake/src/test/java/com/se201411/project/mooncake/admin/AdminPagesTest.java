@@ -133,7 +133,7 @@ class AdminPagesTest {
 
     @Test
     void rendersAllPagesWithRealThymeleafAndCsrf() throws Exception {
-        for (String path : List.of("/admin/catalog", "/admin/catalog/products/new", "/admin/catalog/products/1", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
+        for (String path : List.of("/admin/catalog", "/admin/catalog/products/new", "/admin/catalog/products/1", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
             mvc.perform(get(path).with(user("admin").roles("ADMIN")))
                     .andExpect(status().isOk()).andExpect(content().string(containsString("_csrf")));
     }
@@ -193,7 +193,7 @@ class AdminPagesTest {
                 .param("sku", "GIFT-NEW")
                 .param("imageUrl", "/images/products/gift.png"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/catalog/products/9"));
+            .andExpect(redirectedUrl("/admin/catalog/products/9#recipe"));
         verify(catalog).createProduct(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
             "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
@@ -484,19 +484,51 @@ class AdminPagesTest {
     }
 
     @Test
-    void presetsShowNamesProgressAndInlineErrors() throws Exception {
-        mvc.perform(get("/admin/presets").with(user("admin").roles("ADMIN")))
+    void giftBoxPageShowsStepsRecipeAndInlineErrors() throws Exception {
+        when(catalog.productDetail(2)).thenReturn(new AdminProductDetail(
+                new ProductForm(2L, 1, ProductType.GIFT_SET, "Hộp quà Kim Phúc", "hop-qua-kim-phuc", "Mô tả", null, null, null, null, false),
+                "Hộp quà",
+                true,
+                false,
+                "Chưa có công thức",
+                "warning",
+                null,
+                List.of(new AdminProductDetail.Sku(
+                        new VariantForm(1L, 2, "GIFT-KP-4", "Hộp 4 bánh", null, null, BigDecimal.valueOf(590_000), false),
+                        null,
+                        List.of(),
+                        0,
+                        "Ngừng bán",
+                        "muted",
+                        null)),
+                List.of()));
+        when(presets.presetsForProduct(2)).thenReturn(List.of(new AdminPresetView(
+                1, 1, "GIFT-KP-4", 1, 4, ConfigurationStatus.DRAFT,
+                List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")),
+                "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc 4 bánh")));
+        mvc.perform(get("/admin/catalog/products/2").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Hộp quà Kim Phúc · Hộp 4 bánh")))
+            .andExpect(content().string(containsString("Chọn bánh cho hộp")))
+            .andExpect(content().string(containsString("Bánh trong hộp")))
             .andExpect(content().string(containsString("4/4 bánh")))
-            .andExpect(content().string(containsString("Khóa công thức")));
+            .andExpect(content().string(containsString("Khóa danh sách bánh")));
 
         doThrow(new BusinessRuleViolationException("Tổng số bánh phải bằng sức chứa của hộp."))
             .when(presets).activate(1L);
-        mvc.perform(post("/admin/presets/1/activate").with(user("admin").roles("ADMIN")).with(csrf()))
+        mvc.perform(post("/admin/presets/1/activate")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("productId", "2"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/presets#preset-1"))
+            .andExpect(redirectedUrl("/admin/catalog/products/2#recipe"))
             .andExpect(flash().attribute("formError", "Tổng số bánh phải bằng sức chứa của hộp."));
+    }
+
+    @Test
+    void oldRecipePageRedirectsToGiftBoxes() throws Exception {
+        mvc.perform(get("/admin/presets").with(user("admin").roles("ADMIN")))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog?type=GIFT_SET"));
     }
 
     @Test

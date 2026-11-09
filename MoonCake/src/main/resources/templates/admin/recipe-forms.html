@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="card(p, productId)" class="recipe" th:id="${'preset-' + p.id}">
+    <div class="recipe__head">
+        <span class="sku-card__title">
+            <strong th:text="${p.boxName}">Vỏ hộp Kim Phúc 4 bánh</strong>
+            <small class="muted" th:text="${p.giftName}">Hộp quà Kim Phúc · Hộp 4 bánh</small>
+        </span>
+        <span class="fill-meter" th:classappend="${p.filled() == p.capacity} ? 'is-full'">
+            <span class="fill-meter__track"><span class="fill-meter__bar" th:style="${'width:' + p.fillPercent() + '%'}"></span></span>
+            <span class="fill-meter__text" th:text="${p.filled() + '/' + p.capacity + ' bánh'}">0/4 bánh</span>
+        </span>
+        <span class="badge badge--dot" th:classappend="${p.draft()} ? 'badge--warning' : 'badge--success'"
+              th:text="${p.draft()} ? 'Bản nháp' : 'Đã khóa'">Bản nháp</span>
+    </div>
+
+    <table class="recipe-table" th:if="${!p.components.isEmpty()}">
+        <thead>
+        <tr>
+            <th>Bánh</th>
+            <th class="numeric">Số bánh mỗi hộp</th>
+            <th th:if="${p.draft()}" class="actions-cell"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${p.components}">
+            <td th:text="${c.name}">Bánh Kim Sa · 80g</td>
+            <td class="numeric">
+                <form th:if="${p.draft()}" th:action="@{/admin/presets/{id}/components(id=${p.id})}" method="post" class="qty-form">
+                    <input type="hidden" name="productId" th:value="${productId}">
+                    <input type="hidden" name="variantId" th:value="${c.variantId}">
+                    <input type="number" name="quantity" th:value="${c.quantity}" required min="1" th:max="${p.capacity}"
+                           aria-label="Số bánh mỗi hộp" th:attr="data-max-error=${'Hộp chỉ chứa ' + p.capacity + ' bánh.'}">
+                    <button type="submit" class="secondary small-button">Lưu</button>
+                </form>
+                <strong th:unless="${p.draft()}" th:text="${c.quantity}">2</strong>
+            </td>
+            <td th:if="${p.draft()}" class="actions-cell">
+                <form th:action="@{/admin/presets/{id}/components(id=${p.id})}" method="post">
+                    <input type="hidden" name="productId" th:value="${productId}">
+                    <input type="hidden" name="variantId" th:value="${c.variantId}">
+                    <input type="hidden" name="quantity" value="0">
+                    <button type="submit" class="danger small-button">Bỏ</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${p.components.isEmpty()}" class="muted">Chưa có bánh nào trong hộp.</p>
+
+    <th:block th:if="${p.draft()}">
+        <form th:action="@{/admin/presets/{id}/components(id=${p.id})}" method="post" class="recipe-add">
+            <input type="hidden" name="productId" th:value="${productId}">
+            <label>Thêm bánh
+                <select name="variantId" required>
+                    <option value="">Chọn bánh…</option>
+                    <option th:each="cake : ${options.cakes}" th:value="${cake.id}" th:text="${cake.label}">Bánh</option>
+                </select>
+            </label>
+            <label>Số bánh
+                <input type="number" name="quantity" required min="1" th:max="${p.capacity}" value="1"
+                       th:attr="data-max-error=${'Hộp chỉ chứa ' + p.capacity + ' bánh.'}">
+            </label>
+            <button type="submit" class="secondary">Thêm vào hộp</button>
+        </form>
+
+        <form th:action="@{/admin/presets}" method="post" class="recipe-add">
+            <input type="hidden" name="productId" th:value="${productId}">
+            <input type="hidden" name="id" th:value="${p.id}">
+            <input type="hidden" name="giftSetVariantId" th:value="${p.giftSetVariantId}">
+            <label>Vỏ hộp
+                <select name="boxId" required>
+                    <option th:each="box : ${options.boxes}" th:value="${box.id}" th:selected="${box.id == p.boxId}"
+                            th:text="${box.label}">Vỏ hộp</option>
+                </select>
+            </label>
+            <button type="submit" class="secondary">Đổi vỏ hộp</button>
+        </form>
+
+        <div class="recipe-footer">
+            <form th:if="${p.filled() == p.capacity}" th:action="@{/admin/presets/{id}/activate(id=${p.id})}" method="post"
+                  th:attr="data-confirm-message=${'Khóa danh sách bánh của “' + p.giftName + '”? Sau khi khóa sẽ không đổi được bánh trong hộp.'}">
+                <input type="hidden" name="productId" th:value="${productId}">
+                <button type="submit">Khóa danh sách bánh</button>
+            </form>
+            <button th:unless="${p.filled() == p.capacity}" type="button" disabled
+                    th:text="${p.filled() < p.capacity ? 'Còn thiếu ' + (p.capacity - p.filled()) + ' bánh' : 'Thừa ' + (p.filled() - p.capacity) + ' bánh'}">Còn thiếu</button>
+        </div>
+    </th:block>
+</div>
+
+<form th:fragment="create(giftSetVariantId, productId)" th:action="@{/admin/presets}" method="post" class="recipe-add recipe-create">
+    <input type="hidden" name="productId" th:value="${productId}">
+    <input type="hidden" name="giftSetVariantId" th:value="${giftSetVariantId}">
+    <label>Chọn vỏ hộp
+        <select name="boxId" required>
+            <option value="">Chọn vỏ hộp…</option>
+            <option th:each="box : ${options.boxes}" th:value="${box.id}" th:text="${box.label}">Vỏ hộp</option>
+        </select>
+    </label>
+    <button type="submit" data-loading-text="Đang tạo…">Bắt đầu chọn bánh</button>
+</form>
+
+</body>
+</html>

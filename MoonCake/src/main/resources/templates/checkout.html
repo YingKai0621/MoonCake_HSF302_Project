@@ -143,7 +143,8 @@
 
             <label class="payment-option">
               <input type="radio" th:field="*{paymentMethod}" value="COD"
-                     class="payment-option__radio" data-submit-label="Đặt hàng">
+                     class="payment-option__radio" data-submit-label="Đặt hàng"
+                     data-loading-label="Đang đặt hàng…">
               <span class="material-symbols-outlined payment-option__icon" aria-hidden="true">local_shipping</span>
               <span class="payment-option__text">
                 <span class="payment-option__title">Thanh toán khi nhận hàng (COD)</span>
@@ -153,7 +154,8 @@
 
             <label th:if="${vnpayEnabled}" class="payment-option">
               <input type="radio" th:field="*{paymentMethod}" value="VNPAY"
-                     class="payment-option__radio" data-submit-label="Thanh toán qua VNPay">
+                     class="payment-option__radio" data-submit-label="Thanh toán qua VNPay"
+                     data-loading-label="Đang chuyển sang VNPay…">
               <span class="material-symbols-outlined payment-option__icon" aria-hidden="true">credit_card</span>
               <span class="payment-option__text">
                 <span class="payment-option__title">Thanh toán online qua VNPay</span>
@@ -204,6 +206,7 @@
           </div>
 
           <button id="checkoutSubmit" type="submit" form="checkoutForm"
+                  data-loading-text="Đang đặt hàng…"
                   class="w-full bg-gold hover:bg-goldHover text-surface font-bold py-3.5 px-4 transition-colors">
             Đặt hàng
           </button>
@@ -217,5 +220,6 @@
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/checkout-address.js}" src="/js/pages/checkout-address.js"></script>
   <script th:src="@{/js/pages/checkout-payment.js}" src="/js/pages/checkout-payment.js"></script>
+  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
 </body>
 </html>

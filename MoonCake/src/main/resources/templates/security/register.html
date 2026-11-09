@@ -136,7 +136,7 @@
              th:errors="*{confirmPassword}">Lỗi xác nhận mật khẩu</p>
         </div>
 
-        <button type="submit" class="auth-submit auth-field--wide">Đăng ký</button>
+        <button type="submit" class="auth-submit auth-field--wide" data-loading-text="Đang tạo tài khoản…">Đăng ký</button>
       </form>
 
       <p class="auth-switch">
@@ -145,5 +145,6 @@
       </p>
     </section>
   </main>
+  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
 </body>
 </html>

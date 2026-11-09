@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.service.BatchStockService;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.se201411.project.mooncake.inventory.service.*;
 import com.se201411.project.mooncake.inventory.dto.*;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.*;
@@ -18,9 +20,13 @@ import java.util.*;
 @Service
 @Transactional
 public class InventoryAdminServiceImpl implements InventoryAdminService, PackingService {
-    private com.se201411.project.mooncake.inventory.service.BatchStockService batchStock;
-    @org.springframework.beans.factory.annotation.Autowired
-    public void setBatchStock(com.se201411.project.mooncake.inventory.service.BatchStockService value) { this.batchStock=value; }
+    private BatchStockService batchStock;
+
+    @Autowired
+    public void setBatchStock(BatchStockService batchStock) {
+        this.batchStock = batchStock;
+    }
+
     private final InventoryAdminRepository repo;
     private final PresetConfigurationQueryService presets;
     private final AdminAccessService access;

@@ -69,7 +69,7 @@
       
       <!-- CỘT TRÁI: Main Product Image Area (col-span-6 / 50%) -->
       <div class="lg:col-span-6 flex flex-col space-y-4">
-        <div class="image-frame relative w-full aspect-square rounded-none overflow-hidden border border-gold/30 bg-midnight/60 group shadow-navy-card">
+        <div class="image-frame relative w-full aspect-square rounded-none overflow-hidden border border-gold/30 bg-midnight/60 group shadow-navy-card" data-gallery-frame>
           <!-- Main Product Photograph -->
           <img th:src="${product.imageUrl}"
                th:alt="${product.imageAlt}"
@@ -85,6 +85,23 @@
                   class="absolute bottom-4 right-4 z-20 w-10 h-10 rounded-none bg-dark-navy/90 border border-gold/40 text-ivory hover:text-gold hover:border-gold flex items-center justify-center transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-lg">fullscreen</span>
           </button>
+
+          <th:block th:if="${galleryImages != null and #lists.size(galleryImages) > 1}">
+            <button type="button"
+                    class="gallery-arrow gallery-arrow--prev"
+                    data-gallery-prev
+                    aria-label="Ảnh trước">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+            </button>
+            <button type="button"
+                    class="gallery-arrow gallery-arrow--next"
+                    data-gallery-next
+                    aria-label="Ảnh tiếp theo">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </button>
+            <span class="gallery-counter" data-gallery-counter aria-live="polite"
+                  th:text="${'1 / ' + #lists.size(galleryImages)}">1 / 5</span>
+          </th:block>
         </div>
         <div class="flex gap-3 overflow-x-auto py-2" aria-label="Ảnh sản phẩm">
           <button th:each="photo : ${galleryImages}"

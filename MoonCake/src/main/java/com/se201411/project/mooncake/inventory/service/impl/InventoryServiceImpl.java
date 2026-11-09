@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.service.BatchStockService;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.ProductVariant;
@@ -25,9 +27,13 @@ import java.util.List;
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
-    private com.se201411.project.mooncake.inventory.service.BatchStockService batchStock;
-    @org.springframework.beans.factory.annotation.Autowired
-    public void setBatchStock(com.se201411.project.mooncake.inventory.service.BatchStockService value) { this.batchStock=value; }
+    private BatchStockService batchStock;
+
+    @Autowired
+    public void setBatchStock(BatchStockService batchStock) {
+        this.batchStock = batchStock;
+    }
+
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
     private final EntityManager entityManager;

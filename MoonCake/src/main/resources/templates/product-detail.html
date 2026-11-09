@@ -104,11 +104,11 @@
                   th:text="${'1 / ' + #lists.size(galleryImages)}">1 / 5</span>
           </th:block>
         </div>
-        <div class="flex gap-3 overflow-x-auto py-2" aria-label="Ảnh sản phẩm">
+        <div class="gallery-thumbs flex gap-3 py-2" aria-label="Ảnh sản phẩm">
           <button th:each="photo : ${galleryImages}"
                   type="button"
                   class="shrink-0 border border-gold/30 rounded p-1"
-                  th:attr="data-gallery-src=${photo.url},data-gallery-alt=${photo.altText}"
+                  th:attr="data-gallery-src=${photo.url},data-gallery-alt=${photo.altText},data-gallery-variant=${photo.variantId}"
                   aria-label="Xem ảnh này">
             <img th:src="${photo.url}" th:alt="${photo.altText}" loading="lazy" class="w-20 h-20 object-contain">
           </button>
@@ -130,7 +130,7 @@
 
         <!-- Selling Price Block (Be Vietnam Pro, 30-34px, 700 weight, gold accent #EDC565) -->
         <div class="border-y border-gold/20 py-4">
-          <span class="text-xs uppercase tracking-wider text-sand block mb-1"
+          <span class="text-xs uppercase tracking-wider text-sand block mb-1" data-price-label
                 th:text="${product.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
           <span class="product-detail-price text-3xl sm:text-[32px] font-bold text-gold tracking-tight leading-none block"
                 th:text="${product.formattedPrice}">

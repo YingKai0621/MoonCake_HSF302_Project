@@ -50,7 +50,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public List<ProductImageView> images(long productId) {
         List<ProductImageView> views = new ArrayList<>();
         for (ProductImage image : productImageRepository.findGalleryByProductId(productId)) {
-            views.add(new ProductImageView(image.getImageUrl(), image.getAltText()));
+            views.add(new ProductImageView(image.getImageUrl(), image.getAltText(), image.getVariant().getId()));
         }
         return views;
     }

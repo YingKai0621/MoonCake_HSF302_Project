@@ -115,9 +115,13 @@ class AdminPagesTest {
                         "success",
                         null)),
                 List.of()));
+        when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
+                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh")),
+                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc · 4 bánh")),
+                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa · 80g"))));
         when(presets.presets()).thenReturn(List.of(
-                new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
-                new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of())));
+                new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")), "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc · 4 bánh"),
+                new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of(), "Hộp quà Lam Phúc · Hộp 6 bánh", "Vỏ hộp Lam Phúc · 6 bánh")));
         when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
         when(inventory.balances(any())).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
         when(inventory.stockTabs(any())).thenReturn(List.of());
@@ -477,6 +481,22 @@ class AdminPagesTest {
             .andExpect(redirectedUrl("/admin/inventory"))
             .andExpect(flash().attribute("dialogId", "adjust-dialog"))
             .andExpect(flash().attribute("dialogError", "Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."));
+    }
+
+    @Test
+    void presetsShowNamesProgressAndInlineErrors() throws Exception {
+        mvc.perform(get("/admin/presets").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Hộp quà Kim Phúc · Hộp 4 bánh")))
+            .andExpect(content().string(containsString("4/4 bánh")))
+            .andExpect(content().string(containsString("Khóa công thức")));
+
+        doThrow(new BusinessRuleViolationException("Tổng số bánh phải bằng sức chứa của hộp."))
+            .when(presets).activate(1L);
+        mvc.perform(post("/admin/presets/1/activate").with(user("admin").roles("ADMIN")).with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/presets#preset-1"))
+            .andExpect(flash().attribute("formError", "Tổng số bánh phải bằng sức chứa của hộp."));
     }
 
     @Test

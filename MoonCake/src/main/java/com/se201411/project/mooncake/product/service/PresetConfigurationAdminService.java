@@ -7,6 +7,8 @@ import java.util.List;
 public interface PresetConfigurationAdminService {
     List<AdminPresetView> presets();
 
+    AdminPresetOptions presetOptions();
+
     void saveDraft(AdminPresetForm form);
 
     void setComponent(long configurationId, long variantId, int quantity);

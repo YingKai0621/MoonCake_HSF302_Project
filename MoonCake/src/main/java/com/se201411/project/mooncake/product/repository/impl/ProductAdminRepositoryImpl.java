@@ -295,7 +295,7 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
 
     private <T> T require(Class<T> type, long id) {
         T value = em.find(type, id, LockModeType.PESSIMISTIC_WRITE);
-        if (value == null) throw new ResourceNotFoundException("Không tìm thấy dữ liệu catalog.");
+        if (value == null) throw new ResourceNotFoundException("Không tìm thấy dữ liệu, có thể đã bị xóa. Hãy tải lại trang.");
         return value;
     }
 

@@ -35,29 +35,81 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         this.clock = clock;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<AdminPresetView> presets() {
         access.requireAdmin();
-        var result = new ArrayList<AdminPresetView>();
-        var componentsByConfiguration = new HashMap<Long, List<BoxConfigurationItem>>();
-        for (var item : repo.allPresetItems()) {
-            componentsByConfiguration.computeIfAbsent(item.getConfiguration().getId(), ignored -> new ArrayList<>()).add(item);
+        Map<Long, List<BoxConfigurationItem>> itemsByConfiguration = new HashMap<>();
+        for (BoxConfigurationItem item : repo.allPresetItems()) {
+            long configurationId = item.getConfiguration().getId();
+            itemsByConfiguration.computeIfAbsent(configurationId, key -> new ArrayList<>()).add(item);
         }
-        for (var c : repo.all()) {
-            var components = new ArrayList<AdminPresetView.Component>();
-            for (var i : componentsByConfiguration.getOrDefault(c.getId(), List.of()))
-                components.add(new AdminPresetView.Component(i.getMooncakeVariant().getId(), i.getMooncakeVariant().getSku(), i.getQuantityPerBox()));
+        List<AdminPresetView> result = new ArrayList<>();
+        for (BoxConfiguration configuration : repo.all()) {
+            List<AdminPresetView.Component> components = new ArrayList<>();
+            for (BoxConfigurationItem item : itemsByConfiguration.getOrDefault(configuration.getId(), List.of())) {
+                ProductVariant cake = item.getMooncakeVariant();
+                components.add(new AdminPresetView.Component(
+                    cake.getId(),
+                    cake.getSku(),
+                    item.getQuantityPerBox(),
+                    variantLabel(cake)
+                ));
+            }
+            Box box = configuration.getBox();
             result.add(new AdminPresetView(
-                c.getId(),
-                c.getPresetVariant().getId(),
-                c.getPresetVariant().getSku(),
-                c.getBox().getId(),
-                c.getBox().getCapacityCakes(),
-                c.getStatus(),
-                List.copyOf(components)
+                configuration.getId(),
+                configuration.getPresetVariant().getId(),
+                configuration.getPresetVariant().getSku(),
+                box.getId(),
+                box.getCapacityCakes(),
+                configuration.getStatus(),
+                components,
+                variantLabel(configuration.getPresetVariant()),
+                boxLabel(box)
             ));
         }
         return List.copyOf(result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminPresetOptions presetOptions() {
+        access.requireAdmin();
+        Set<Long> giftSetsWithRecipe = new HashSet<>();
+        for (BoxConfiguration configuration : repo.all()) {
+            giftSetsWithRecipe.add(configuration.getPresetVariant().getId());
+        }
+        List<AdminPresetOptions.Option> giftSets = new ArrayList<>();
+        List<AdminPresetOptions.Option> cakes = new ArrayList<>();
+        for (ProductVariant variant : products.variants()) {
+            ProductType type = variant.getProduct().getProductType();
+            if (type == ProductType.MOONCAKE) {
+                cakes.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant)));
+            }
+            boolean freeGiftSet = type == ProductType.GIFT_SET
+                && !variant.isActive()
+                && !giftSetsWithRecipe.contains(variant.getId())
+                && !inventory.hasStockOrHistory(variant.getId());
+            if (freeGiftSet) {
+                giftSets.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant)));
+            }
+        }
+        List<AdminPresetOptions.Option> boxes = new ArrayList<>();
+        for (Box box : products.boxes()) {
+            if (box.isActive()) {
+                boxes.add(new AdminPresetOptions.Option(box.getId(), boxLabel(box)));
+            }
+        }
+        return new AdminPresetOptions(giftSets, boxes, cakes);
+    }
+
+    private String variantLabel(ProductVariant variant) {
+        return variant.getProduct().getName() + " · " + variant.getName();
+    }
+
+    private String boxLabel(Box box) {
+        return box.getEmptyBoxVariant().getProduct().getName();
     }
 
     public void saveDraft(AdminPresetForm f) {
@@ -67,9 +119,9 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         if (f.id() != null) requireMutable(c);
         ProductVariant gift = products.variant(f.giftSetVariantId());
         if (gift.getProduct().getProductType() != ProductType.GIFT_SET || gift.isActive() || inventory.hasStockOrHistory(gift.getId()))
-            throw new BusinessRuleViolationException("Chọn SKU GIFT_SET mới, chưa mở bán và chưa có tồn/lịch sử.");
+            throw new BusinessRuleViolationException("Chỉ chọn được hộp quà chưa mở bán và chưa có hàng trong kho.");
         if (f.id() != null && !c.getPresetVariant().getId().equals(f.giftSetVariantId()))
-            throw new BusinessRuleViolationException("Không đổi SKU của công thức đã tạo.");
+            throw new BusinessRuleViolationException("Không đổi được hộp quà của công thức đã tạo.");
         Box box = products.box(f.boxId());
         if (!box.isActive()) throw new BusinessRuleViolationException("Mẫu hộp đã ngừng dùng.");
         c.setBox(box);
@@ -88,7 +140,7 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         if (quantity < 0) throw new BusinessRuleViolationException("Số bánh không được âm. Dùng 0 để bỏ thành phần.");
         ProductVariant cake = products.variant(variantId);
         if (cake.getProduct().getProductType() != ProductType.MOONCAKE)
-            throw new BusinessRuleViolationException("Thành phần phải là SKU MOONCAKE.");
+            throw new BusinessRuleViolationException("Thành phần phải là bánh lẻ.");
         BoxConfigurationItem target = null;
         for (var i : repo.items(id)) if (i.getMooncakeVariant().getId().equals(variantId)) target = i;
         if (quantity == 0) {
@@ -120,7 +172,7 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
             total = Math.addExact(total, i.getQuantityPerBox());
         }
         if (total != c.getBox().getCapacityCakes())
-            throw new BusinessRuleViolationException("Tổng số bánh phải bằng sức chứa hộp.");
+            throw new BusinessRuleViolationException("Tổng số bánh phải bằng sức chứa của hộp.");
         c.setStatus(ConfigurationStatus.READY);
         c.setUpdatedAt(LocalDateTime.now(clock));
         repo.save(c);
@@ -130,6 +182,6 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         if (c.getStatus() != ConfigurationStatus.DRAFT || c.getPresetVariant().isActive()
                 || inventory.hasStockOrHistory(c.getPresetVariant().getId())
                 || repo.historicallyReferenced(c.getId(), c.getPresetVariant().getId()))
-            throw new BusinessRuleViolationException("Công thức đã khóa. Thay đổi thành phần cần SKU và PRESET mới.");
+            throw new BusinessRuleViolationException("Công thức đã khóa nên không sửa được. Muốn đổi thành phần, hãy tạo hộp quà mới.");
     }
 }

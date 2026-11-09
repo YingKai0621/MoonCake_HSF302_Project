@@ -200,26 +200,50 @@ public class AdminCatalogController {
     @GetMapping("/presets")
     public String presets(Model model) {
         model.addAttribute("presets", presets.presets());
-        model.addAttribute("catalog", catalog.catalog());
+        model.addAttribute("options", presets.presetOptions());
         return "admin/presets";
     }
 
     @PostMapping("/presets")
-    public String preset(@Valid @ModelAttribute AdminPresetForm form, RedirectAttributes flash) {
-        presets.saveDraft(form);
-        return saved(flash, form.id() == null ? "presets" : "presets#preset-" + form.id());
+    public String preset(@Valid @ModelAttribute AdminPresetForm form, BindingResult result, RedirectAttributes flash) {
+        String target = form.id() == null ? "preset-new" : "preset-" + form.id();
+        if (result.hasErrors()) {
+            return failed(flash, "/admin/presets", target, form, FormErrors.first(result));
+        }
+        try {
+            presets.saveDraft(form);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, "/admin/presets", target, form, message(ex));
+        }
+        if (form.id() == null) {
+            flash.addFlashAttribute("success", "Đã tạo công thức. Hãy thêm bánh cho đủ hộp.");
+            return "redirect:/admin/presets";
+        }
+        return saved(flash, "presets#" + target);
     }
 
     @PostMapping("/presets/{id}/components")
-    public String component(@PathVariable long id, @RequestParam long variantId, @RequestParam int quantity, RedirectAttributes flash) {
-        presets.setComponent(id, variantId, quantity);
-        return saved(flash, "presets#preset-" + id);
+    public String component(@PathVariable long id, @RequestParam long variantId, @RequestParam int quantity,
+                            RedirectAttributes flash) {
+        String target = "preset-" + id;
+        try {
+            presets.setComponent(id, variantId, quantity);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, "/admin/presets", target, null, message(ex));
+        }
+        return saved(flash, "presets#" + target);
     }
 
     @PostMapping("/presets/{id}/activate")
     public String activate(@PathVariable long id, RedirectAttributes flash) {
-        presets.activate(id);
-        return saved(flash, "presets#preset-" + id);
+        String target = "preset-" + id;
+        try {
+            presets.activate(id);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, "/admin/presets", target, null, message(ex));
+        }
+        flash.addFlashAttribute("success", "Đã khóa công thức. Giờ có thể đóng hộp ở trang Tồn kho.");
+        return "redirect:/admin/presets#" + target;
     }
 
     private String failed(RedirectAttributes flash, String page, String target, Object values, String message) {

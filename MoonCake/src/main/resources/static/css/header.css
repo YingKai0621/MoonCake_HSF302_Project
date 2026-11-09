@@ -63,6 +63,46 @@
   text-shadow: 0 2px 12px rgba(237, 197, 101, 0.2);
 }
 
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .site-header__brand-name {
+    background-image:
+      linear-gradient(110deg, transparent 42%, rgba(255, 248, 225, 0.95) 50%, transparent 58%),
+      linear-gradient(180deg, #FFF1C9 0%, #EDC565 45%, #B8893A 100%);
+    background-repeat: no-repeat;
+    background-size: 250% 100%, 100% 100%;
+    background-position: 160% 0, 0 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 8px rgba(237, 197, 101, 0.22));
+    animation: brand-shine 1400ms ease-out 400ms 1 both;
+  }
+
+  .site-header__brand:hover .site-header__brand-name,
+  .site-header__brand:focus-visible .site-header__brand-name {
+    animation: brand-shine-again 1200ms ease-out 1 both;
+  }
+}
+
+@keyframes brand-shine {
+  from {
+    background-position: 160% 0, 0 0;
+  }
+  to {
+    background-position: -60% 0, 0 0;
+  }
+}
+
+@keyframes brand-shine-again {
+  from {
+    background-position: 160% 0, 0 0;
+  }
+  to {
+    background-position: -60% 0, 0 0;
+  }
+}
+
 .site-header__panel {
   display: flex;
   flex: 1 1 auto;
@@ -508,6 +548,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .site-header__brand-name,
+  .site-header__brand:hover .site-header__brand-name {
+    animation: none;
+  }
+
   .site-header *,
   .site-header *::before,
   .site-header *::after {

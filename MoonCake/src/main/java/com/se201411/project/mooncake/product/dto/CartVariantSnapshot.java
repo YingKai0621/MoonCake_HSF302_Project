@@ -18,8 +18,16 @@ public record CartVariantSnapshot(
     BigDecimal unitPrice,
     String imageUrl,
     String imageAlt,
-    boolean currentlySellable
+    boolean currentlySellable,
+    int stock
 ) {
+    public CartVariantSnapshot(long variantId, String productSlug, String productName, String variantName,
+                               String sku, ProductType productType, BigDecimal unitPrice, String imageUrl,
+                               String imageAlt, boolean currentlySellable) {
+        this(variantId, productSlug, productName, variantName, sku, productType, unitPrice, imageUrl,
+            imageAlt, currentlySellable, -1);
+    }
+
     public CartVariantSnapshot {
         if (variantId <= 0) {
             throw new IllegalArgumentException("Variant ID must be positive");

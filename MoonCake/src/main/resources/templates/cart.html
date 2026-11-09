@@ -121,6 +121,8 @@
                   Tên sản phẩm
                 </a>
                 <p class="text-sm text-sand" th:text="${item.variantName}">Phiên bản</p>
+                <p th:if="${item.stockWarning() != null}" class="text-sm font-semibold text-red-300"
+                   th:text="${item.stockWarning()}">Chỉ còn 2 sản phẩm</p>
                 <div th:if="${item.custom}" class="pt-2 text-xs text-sand space-y-1">
                   <details class="collapsible">
                     <summary class="collapsible__toggle text-ivory font-medium"

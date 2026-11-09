@@ -20,6 +20,7 @@ import com.se201411.project.mooncake.product.repository.PresetConfigurationRepos
 import com.se201411.project.mooncake.product.repository.ProductImageRepository;
 import com.se201411.project.mooncake.product.repository.ProductRepository;
 import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,19 +48,22 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     private final ProductImageRepository productImageRepository;
     private final PresetConfigurationRepository presetConfigurationRepository;
     private final PresetConfigurationItemRepository presetConfigurationItemRepository;
+    private final InventoryService inventoryService;
 
     public ProductQueryServiceImpl(
         ProductRepository productRepository,
         ProductVariantRepository productVariantRepository,
         ProductImageRepository productImageRepository,
         PresetConfigurationRepository presetConfigurationRepository,
-        PresetConfigurationItemRepository presetConfigurationItemRepository
+        PresetConfigurationItemRepository presetConfigurationItemRepository,
+        InventoryService inventoryService
     ) {
         this.productRepository = productRepository;
         this.productVariantRepository = productVariantRepository;
         this.productImageRepository = productImageRepository;
         this.presetConfigurationRepository = presetConfigurationRepository;
         this.presetConfigurationItemRepository = presetConfigurationItemRepository;
+        this.inventoryService = inventoryService;
     }
 
     @Override
@@ -123,6 +127,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         if (variantIds == null || variantIds.isEmpty()) {
             return List.of();
         }
+        Map<Long, Integer> stockByVariantId = inventoryService.availableQuantities(variantIds);
 
         List<ProductVariant> variants = productVariantRepository.findByIdsForCart(variantIds);
         Map<Long, BoxConfiguration> readyPresets = loadReadyPresets(variants);
@@ -156,7 +161,8 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 variant.getUnitPrice(),
                 imageUrl,
                 imageAlt,
-                currentlySellable
+                currentlySellable,
+                stockByVariantId.getOrDefault(variant.getId(), 0)
             );
             result.add(snapshot);
         }
@@ -187,6 +193,11 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
 
         Map<Long, List<ProductImage>> imagesByVariantId = loadImages(sellableVariants);
+        List<Long> sellableIds = new ArrayList<>();
+        for (ProductVariant variant : sellableVariants) {
+            sellableIds.add(variant.getId());
+        }
+        Map<Long, Integer> stockByVariantId = inventoryService.availableQuantities(sellableIds);
         Map<Long, List<BoxConfigurationItem>> itemsByConfigurationId = loadPresetItems(
             presetsByVariantId.values()
         );
@@ -209,7 +220,8 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                     variant,
                     imagesByVariantId.getOrDefault(variant.getId(), List.of()),
                     presetsByVariantId.get(variant.getId()),
-                    itemsByConfigurationId
+                    itemsByConfigurationId,
+                    stockByVariantId.getOrDefault(variant.getId(), 0)
                 );
                 variantViews.add(variantView);
             }
@@ -313,7 +325,8 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         ProductVariant variant,
         List<ProductImage> images,
         BoxConfiguration preset,
-        Map<Long, List<BoxConfigurationItem>> itemsByConfigurationId
+        Map<Long, List<BoxConfigurationItem>> itemsByConfigurationId,
+        int stock
     ) {
         ProductImage primaryImage = findPrimaryImage(images);
 
@@ -345,7 +358,8 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             formatVnd(variant.getUnitPrice()),
             imageUrl,
             imageAlt,
-            presetView
+            presetView,
+            stock
         );
     }
 

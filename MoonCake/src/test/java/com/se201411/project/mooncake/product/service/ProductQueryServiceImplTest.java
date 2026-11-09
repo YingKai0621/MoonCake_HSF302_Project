@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.product.service;
 
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Box;
+import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import com.se201411.project.mooncake.entity.Category;
@@ -47,6 +48,8 @@ class ProductQueryServiceImplTest {
     private PresetConfigurationRepository presetConfigurationRepository;
     @Mock
     private PresetConfigurationItemRepository presetConfigurationItemRepository;
+    @Mock
+    private InventoryService inventoryService;
 
     private ProductQueryService service;
 
@@ -57,7 +60,8 @@ class ProductQueryServiceImplTest {
             productVariantRepository,
             productImageRepository,
             presetConfigurationRepository,
-            presetConfigurationItemRepository
+            presetConfigurationItemRepository,
+            inventoryService
         );
     }
 

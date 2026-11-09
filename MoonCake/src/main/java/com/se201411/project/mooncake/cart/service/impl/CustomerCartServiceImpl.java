@@ -256,7 +256,8 @@ public class CustomerCartServiceImpl implements CustomerCartService {
                 formatVnd(variant.unitPrice()),
                 lineTotal,
                 formatVnd(lineTotal),
-                variant.currentlySellable()
+                variant.currentlySellable(),
+                variant.stock()
             );
             itemViews.add(itemView);
 

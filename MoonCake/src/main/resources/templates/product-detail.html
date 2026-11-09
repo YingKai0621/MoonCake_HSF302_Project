@@ -158,6 +158,7 @@
                     th:data-image-url="${variant.imageUrl}"
                     th:data-image-alt="${variant.imageAlt}"
                     th:data-weight="${variant.weightGrams}"
+                    th:data-stock="${variant.stock}"
                     th:data-filling="${variant.fillingLabel}"
                     th:data-box-count="${variant.presetRecipe == null ? null : variant.presetRecipe.capacityCakes}">
               Phiên bản sản phẩm
@@ -216,6 +217,13 @@
           </th:block>
         </div>
 
+        <p class="stock-hint text-base font-semibold"
+           data-stock-hint
+           th:with="first=${product.primaryVariant}"
+           th:classappend="${first.soldOut() ? 'text-red-300' : 'text-gold'}"
+           th:hidden="${!first.soldOut() and !first.lowStock()}"
+           th:text="${first.soldOut() ? 'Tạm hết hàng' : 'Chỉ còn ' + first.stock + ' sản phẩm'}">Chỉ còn 3 sản phẩm</p>
+
         <div class="pt-2" th:if="${customerLoggedIn}">
           <form id="addCartItemForm" th:action="@{/cart/items}" method="post" class="space-y-3">
             <input th:unless="${product.multipleVariants}"
@@ -242,9 +250,10 @@
                         aria-label="Tăng số lượng">+</button>
               </div>
             </div>
-            <button type="submit" class="btn-primary-cta w-full rounded-none" data-loading-text="Đang thêm…">
+            <button type="submit" class="btn-primary-cta w-full rounded-none" data-loading-text="Đang thêm…"
+                    data-add-button th:disabled="${product.primaryVariant.soldOut()}">
               <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-              <span>Thêm vào giỏ hàng</span>
+              <span data-add-label th:text="${product.primaryVariant.soldOut() ? 'Tạm hết hàng' : 'Thêm vào giỏ hàng'}">Thêm vào giỏ hàng</span>
             </button>
           </form>
         </div>

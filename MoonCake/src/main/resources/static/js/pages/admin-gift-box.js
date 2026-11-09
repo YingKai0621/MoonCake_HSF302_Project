@@ -15,6 +15,10 @@ function panelForHash(hash) {
 }
 
 function showPanel(tabs, name) {
+  const target = tabs.querySelector('[data-panel="' + name + '"]');
+  if (target === null || target.disabled) {
+    name = tabs.dataset.default;
+  }
   const panels = document.querySelectorAll("[data-step-panel]");
   for (let i = 0; i < panels.length; i++) {
     panels[i].hidden = panels[i].dataset.stepPanel !== name;
@@ -52,7 +56,9 @@ function setUpCakePicker(picker) {
   const text = picker.querySelector("[data-fill-text]");
   const hint = picker.querySelector("[data-fill-hint]");
   const meter = picker.querySelector("[data-fill-meter]");
-  const lockForm = document.querySelector("[data-lock-form]");
+  const lockInput = picker.querySelector("[data-lock-input]");
+  const saveLock = picker.querySelector("[data-save-lock]");
+  const saveDraft = picker.querySelector("[data-save-draft]");
   let changed = false;
 
   function total() {
@@ -82,13 +88,26 @@ function setUpCakePicker(picker) {
       const value = Math.max(0, Number(inputs[i].value) || 0);
       card.classList.toggle("is-picked", value > 0);
       card.querySelector("[data-cake-count]").textContent = value;
-      card.querySelector('[data-step="1"]').disabled = sum >= capacity;
+      const unavailable = card.classList.contains("is-unavailable");
+      card.querySelector('[data-step="1"]').disabled = unavailable || sum >= capacity;
       card.querySelector('[data-step="-1"]').disabled = value <= 0;
     }
-    if (lockForm !== null) {
-      lockForm.hidden = changed;
+    saveLock.disabled = sum !== capacity;
+    if (sum === capacity) {
+      saveLock.removeAttribute("title");
+    } else {
+      saveLock.title = "Cần đủ " + capacity + " bánh để khóa";
     }
   }
+
+  saveDraft.addEventListener("click", function () {
+    lockInput.value = "false";
+    delete picker.dataset.confirmMessage;
+  });
+  saveLock.addEventListener("click", function () {
+    lockInput.value = "true";
+    picker.dataset.confirmMessage = saveLock.dataset.lockMessage;
+  });
 
   const steppers = picker.querySelectorAll("[data-step]");
   for (let i = 0; i < steppers.length; i++) {
@@ -107,8 +126,15 @@ function setUpCakePicker(picker) {
     });
   }
   picker.addEventListener("submit", function (event) {
+    if (lockInput.value === "true" && total() !== capacity) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      hint.textContent = "Cần đủ " + capacity + " bánh để khóa.";
+      return;
+    }
     if (total() > capacity) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       hint.textContent = "Hộp chỉ chứa " + capacity + " bánh. Hãy bớt " + (total() - capacity) + " bánh.";
     }
   });

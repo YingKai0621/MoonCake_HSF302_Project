@@ -8,7 +8,8 @@ public record GiftBoxPage(
     AdminPresetView recipe,
     List<Step> steps,
     String currentPanel,
-    boolean onSale
+    boolean onSale,
+    boolean canUnlock
 ) {
     public record Step(int number, String label, String panel, boolean done) {
     }

@@ -27,7 +27,8 @@
             <section>
                 <h2>Giá bán</h2>
                 <div class="side-fields">
-                    <label>Tên phiên bản
+                    <input th:if="${giftBox == true}" type="hidden" name="variantName" value="Hộp quà">
+                    <label th:unless="${giftBox == true}">Tên phiên bản
                         <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh"
                                th:value="${values != null ? values.variantName : ''}">
                     </label>
@@ -36,11 +37,21 @@
                                th:value="${values != null ? values.unitPrice : ''}"
                                required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
                     </label>
+                    <th:block th:unless="${giftBox == true}">
                     <label>Mã SKU
                         <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"
                                th:value="${values != null ? values.sku : ''}"
                                pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
                     </label>
+                    </th:block>
+                    <details th:if="${giftBox == true}" class="url-option" th:open="${values != null}">
+                        <summary>Nâng cao: mã SKU</summary>
+                        <label>Mã SKU
+                        <input type="text" name="sku" required data-sku-auto maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"
+                               th:value="${values != null ? values.sku : ''}"
+                               pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
+                    </label>
+                    </details>
                     <label data-cake-only hidden>Khối lượng (g)
                         <input type="number" name="weightGrams" placeholder="Ví dụ: 150"
                                th:value="${values != null ? values.weightGrams : ''}" min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">

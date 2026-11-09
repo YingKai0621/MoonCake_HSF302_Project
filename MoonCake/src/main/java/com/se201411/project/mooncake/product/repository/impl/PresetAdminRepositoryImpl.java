@@ -49,6 +49,15 @@ public class PresetAdminRepositoryImpl implements PresetAdminRepository {
     }
 
     @Override
+    public boolean inCarts(long id, long variant) {
+        return em.createQuery(
+                "select count(i) from CartItem i where i.configuration.id = :id or i.variant.id = :variant", Long.class)
+            .setParameter("id", id)
+            .setParameter("variant", variant)
+            .getSingleResult() > 0;
+    }
+
+    @Override
     public void save(BoxConfiguration c) {
         if (c.getType() != ConfigurationType.PRESET) throw new IllegalArgumentException("PRESET only");
         if (c.getId() == null) em.persist(c);

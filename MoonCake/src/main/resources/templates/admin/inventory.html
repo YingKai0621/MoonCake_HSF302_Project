@@ -136,6 +136,7 @@
                 <h2>Đóng hộp quà</h2>
                 <p class="modal__error" role="alert" th:if="${dialogId == 'pack-dialog'}" th:text="${dialogError}">Lỗi</p>
                 <input type="hidden" name="operationKey" th:value="${packKey}">
+                <input th:if="${returnGiftBox != null}" type="hidden" name="returnGiftBox" th:value="${returnGiftBox}">
                 <label>Hộp quà
                     <select name="variantId" required>
                         <option value="">Chọn hộp quà…</option>

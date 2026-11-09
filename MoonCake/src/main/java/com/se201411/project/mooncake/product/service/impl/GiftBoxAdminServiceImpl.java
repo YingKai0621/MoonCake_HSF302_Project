@@ -94,7 +94,19 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
                 break;
             }
         }
-        return new GiftBoxPage(detail, sku, recipe, steps, current, onSale);
+        boolean canUnlock = locked && recipes.canUnlock(recipe.id());
+        return new GiftBoxPage(detail, sku, recipe, steps, current, onSale, canUnlock);
+    }
+
+    @Override
+    public long copy(long productId) {
+        GiftBoxPage source = page(productId);
+        long copyId = products.duplicateProduct(productId);
+        if (source.recipe() != null) {
+            GiftBoxPage target = page(copyId);
+            recipes.copyRecipe(source.recipe().id(), target.sku().form().id());
+        }
+        return copyId;
     }
 
     @Override

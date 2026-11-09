@@ -118,9 +118,9 @@ class AdminPagesTest {
                         null)),
                 List.of()));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
-                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null)),
-                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png")),
-                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png"))));
+                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false)),
+                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true)),
+                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png", 120, true))));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")), "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc · 4 bánh"),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of(), "Hộp quà Lam Phúc · Hộp 6 bánh", "Vỏ hộp Lam Phúc · 6 bánh")));
@@ -518,13 +518,15 @@ class AdminPagesTest {
                         new GiftBoxPage.Step(3, "Đóng hộp", "pack", false),
                         new GiftBoxPage.Step(4, "Mở bán", "sale", false)),
                 "recipe",
+                false,
                 false));
         mvc.perform(get("/admin/gift-boxes/2").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("data-default=\"recipe\"")))
             .andExpect(content().string(containsString("name=\"quantities[1]\"")))
             .andExpect(content().string(containsString("/images/cake.png")))
-            .andExpect(content().string(containsString("Cần đủ 4 bánh để khóa")));
+            .andExpect(content().string(containsString("Lưu &amp; khóa danh sách")))
+            .andExpect(content().string(containsString("Kho: 120")));
 
         when(catalog.productDetail(2)).thenReturn(detail);
         mvc.perform(get("/admin/catalog/products/2").with(user("admin").roles("ADMIN")))

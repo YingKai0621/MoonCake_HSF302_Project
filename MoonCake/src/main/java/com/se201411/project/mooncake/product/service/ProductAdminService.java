@@ -37,6 +37,8 @@ public interface ProductAdminService {
 
     long createProduct(NewProductForm form);
 
+    long duplicateProduct(long productId);
+
     void saveVariant(VariantForm form);
 
     long saveBox(BoxForm form);

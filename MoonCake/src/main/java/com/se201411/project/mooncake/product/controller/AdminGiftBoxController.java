@@ -71,14 +71,45 @@ public class AdminGiftBoxController {
 
     @PostMapping("/{id}/cakes")
     public String cakes(@PathVariable long id, @RequestParam long recipeId,
+                        @RequestParam(defaultValue = "false") boolean lock,
                         @ModelAttribute RecipeCakesForm form, RedirectAttributes flash) {
         try {
             recipes.setComponents(recipeId, form.getQuantities());
+            if (lock) {
+                recipes.activate(recipeId);
+            }
         } catch (MoonCakeException | DataAccessException ex) {
             return failed(flash, id, "recipe", ex);
         }
-        flash.addFlashAttribute("success", "Đã lưu danh sách bánh.");
+        if (lock) {
+            flash.addFlashAttribute("success", "Đã khóa danh sách bánh. Bước tiếp theo: đóng hộp.");
+            return "redirect:/admin/gift-boxes/" + id + "#pack";
+        }
+        flash.addFlashAttribute("success", "Đã lưu nháp danh sách bánh.");
         return "redirect:/admin/gift-boxes/" + id + "#recipe";
+    }
+
+    @PostMapping("/{id}/unlock")
+    public String unlock(@PathVariable long id, @RequestParam long recipeId, RedirectAttributes flash) {
+        try {
+            recipes.unlock(recipeId);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, id, "recipe", ex);
+        }
+        flash.addFlashAttribute("success", "Đã mở khóa. Bạn có thể sửa danh sách bánh.");
+        return "redirect:/admin/gift-boxes/" + id + "#recipe";
+    }
+
+    @PostMapping("/{id}/copy")
+    public String copy(@PathVariable long id, RedirectAttributes flash) {
+        long copyId;
+        try {
+            copyId = giftBoxes.copy(id);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, id, "recipe", ex);
+        }
+        flash.addFlashAttribute("success", "Đã tạo bản sao. Hãy sửa tên, giá và danh sách bánh.");
+        return "redirect:/admin/gift-boxes/" + copyId + "#recipe";
     }
 
     private String failed(RedirectAttributes flash, long id, String target, Exception ex) {

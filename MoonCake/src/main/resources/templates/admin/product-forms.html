@@ -41,9 +41,17 @@
     <label class="span-2">Mô tả ngắn
         <textarea name="shortDescription" required maxlength="600" rows="3" th:text="${f != null ? f.shortDescription : ''}"></textarea>
     </label>
-    <label class="span-2">Mô tả chi tiết
-        <textarea name="detailedDescription" rows="5" th:text="${f != null ? f.detailedDescription : ''}"></textarea>
-    </label>
+    <details class="span-2 more-fields" th:open="${f != null and f.detailedDescription != null and !#strings.isEmpty(f.detailedDescription)}">
+        <summary>Mô tả chi tiết</summary>
+        <textarea name="detailedDescription" rows="5" aria-label="Mô tả chi tiết"
+                  th:text="${f != null ? f.detailedDescription : ''}"></textarea>
+    </details>
+    <th:block th:if="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
+        <input type="hidden" name="mainIngredients" th:value="${f != null ? f.mainIngredients : ''}">
+        <input type="hidden" name="shelfLifeInfo" th:value="${f != null ? f.shelfLifeInfo : ''}">
+        <input type="hidden" name="storageGuidance" th:value="${f != null ? f.storageGuidance : ''}">
+    </th:block>
+    <th:block th:unless="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
     <label class="span-2">Thành phần chính
         <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
     </label>
@@ -55,13 +63,15 @@
         <textarea name="storageGuidance" maxlength="600" rows="2" placeholder="Ví dụ: Nơi khô ráo, tránh nắng"
                   th:text="${f != null ? f.storageGuidance : ''}"></textarea>
     </label>
+    </th:block>
 </div>
 
 <form th:fragment="product(f, typeLocked)" th:action="@{/admin/products}" method="post" class="product-form" data-slug-form>
     <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
     <div th:replace="~{admin/product-forms :: productFields(${f}, ${typeLocked})}"></div>
     <div class="form-footer">
-        <label class="switch-card">
+        <input th:if="${giftBox == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${giftBox == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">
@@ -99,7 +109,8 @@
         </label>
     </div>
     <div class="form-footer">
-        <label class="switch-card">
+        <input th:if="${giftBox == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${giftBox == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">

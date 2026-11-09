@@ -12,6 +12,7 @@ import com.se201411.project.mooncake.common.exception.BusinessRuleViolationExcep
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Balance;
 import java.time.*;
 import java.util.*;
 
@@ -81,6 +82,10 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
             giftSetsWithRecipe.add(configuration.getPresetVariant().getId());
         }
         Map<Long, String> pictures = coverPictures();
+        Map<Long, Integer> stock = new HashMap<>();
+        for (Balance balance : inventory.balances()) {
+            stock.put(balance.variantId(), balance.quantity());
+        }
         List<AdminPresetOptions.Option> giftSets = new ArrayList<>();
         List<AdminPresetOptions.Option> cakes = new ArrayList<>();
         for (ProductVariant variant : products.variants()) {
@@ -90,7 +95,9 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
                     variant.getId(),
                     variant.getProduct().getName(),
                     variant.getName(),
-                    pictures.get(variant.getId())
+                    pictures.get(variant.getId()),
+                    stock.getOrDefault(variant.getId(), 0),
+                    variant.isActive() && variant.getProduct().isActive()
                 ));
             }
             boolean freeGiftSet = type == ProductType.GIFT_SET
@@ -98,7 +105,7 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
                 && !giftSetsWithRecipe.contains(variant.getId())
                 && !inventory.hasStockOrHistory(variant.getId());
             if (freeGiftSet) {
-                giftSets.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant), null, pictures.get(variant.getId())));
+                giftSets.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant), null, pictures.get(variant.getId()), 0, false));
             }
         }
         List<AdminPresetOptions.Option> boxes = new ArrayList<>();
@@ -108,7 +115,9 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
                     box.getId(),
                     boxLabel(box),
                     box.getCapacityCakes() + " bánh",
-                    pictures.get(box.getEmptyBoxVariant().getId())
+                    pictures.get(box.getEmptyBoxVariant().getId()),
+                    stock.getOrDefault(box.getEmptyBoxVariant().getId(), 0),
+                    true
                 ));
             }
         }
@@ -235,6 +244,66 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         c.setStatus(ConfigurationStatus.READY);
         c.setUpdatedAt(LocalDateTime.now(clock));
         repo.save(c);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canUnlock(long id) {
+        access.requireAdmin();
+        BoxConfiguration configuration = repo.lock(id);
+        return unlockBlocker(configuration) == null;
+    }
+
+    @Override
+    public void unlock(long id) {
+        access.requireAdmin();
+        BoxConfiguration configuration = repo.lock(id);
+        String blocker = unlockBlocker(configuration);
+        if (blocker != null) {
+            throw new BusinessRuleViolationException(blocker);
+        }
+        configuration.setStatus(ConfigurationStatus.DRAFT);
+        configuration.setUpdatedAt(LocalDateTime.now(clock));
+        repo.save(configuration);
+    }
+
+    @Override
+    public void copyRecipe(long fromId, long toGiftSetVariantId) {
+        access.requireAdmin();
+        BoxConfiguration source = repo.lock(fromId);
+        saveDraft(new AdminPresetForm(null, toGiftSetVariantId, source.getBox().getId()));
+        BoxConfiguration copy = null;
+        for (BoxConfiguration configuration : repo.all()) {
+            if (configuration.getPresetVariant().getId() == toGiftSetVariantId) {
+                copy = configuration;
+            }
+        }
+        if (copy == null) {
+            throw new BusinessRuleViolationException("Không tạo được bản sao danh sách bánh.");
+        }
+        for (BoxConfigurationItem item : repo.items(fromId)) {
+            setComponent(copy.getId(), item.getMooncakeVariant().getId(), item.getQuantityPerBox());
+        }
+    }
+
+    private String unlockBlocker(BoxConfiguration configuration) {
+        long giftId = configuration.getPresetVariant().getId();
+        if (configuration.getStatus() != ConfigurationStatus.READY) {
+            return "Danh sách bánh đang ở dạng nháp, không cần mở khóa.";
+        }
+        if (configuration.getPresetVariant().isActive()) {
+            return "Hộp quà đang mở bán. Hãy ngừng bán trước khi mở khóa.";
+        }
+        if (inventory.hasStockOrHistory(giftId)) {
+            return "Hộp quà đã đóng hộp nên không mở khóa được. Hãy tạo bản sao để đổi bánh.";
+        }
+        if (repo.inCarts(configuration.getId(), giftId)) {
+            return "Hộp quà đang nằm trong giỏ hàng của khách nên không mở khóa được.";
+        }
+        if (repo.historicallyReferenced(configuration.getId(), giftId)) {
+            return "Hộp quà đã có đơn hàng nên không mở khóa được. Hãy tạo bản sao để đổi bánh.";
+        }
+        return null;
     }
 
     private void requireMutable(BoxConfiguration c) {

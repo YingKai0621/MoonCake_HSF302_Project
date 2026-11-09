@@ -27,10 +27,11 @@
 <form th:fragment="cakePicker(recipe, productId)" th:action="@{/admin/gift-boxes/{id}/cakes(id=${productId})}" method="post"
       class="cake-picker" th:attr="data-capacity=${recipe.capacity}" data-cake-picker>
     <input type="hidden" name="recipeId" th:value="${recipe.id}">
+    <input type="hidden" name="lock" value="false" data-lock-input>
     <div class="pick-grid pick-grid--focus">
         <div th:each="cake : ${options.cakes}" class="pick-card pick-card--cake"
              th:with="current=${recipe.components.?[variantId == __${cake.id}__]}"
-             th:classappend="${!current.isEmpty()} ? 'is-picked'">
+             th:classappend="${(!current.isEmpty() ? 'is-picked ' : '') + (cake.selling ? '' : 'is-unavailable')}">
             <span class="pick-card__image">
                 <img th:if="${cake.imageUrl != null}" th:src="${cake.imageUrl}" alt="" loading="lazy">
                 <span class="pick-card__count" data-cake-count th:text="${current.isEmpty() ? 0 : current[0].quantity}">0</span>
@@ -38,6 +39,8 @@
             <span class="pick-card__text">
                 <strong th:text="${cake.label}">Bánh Kim Sa</strong>
                 <small th:text="${cake.detail}">Bánh 80g</small>
+                <small class="pick-card__stock" th:classappend="${cake.stock <= 0} ? 'is-empty'"
+                       th:text="${!cake.selling ? 'Ngừng bán' : (cake.stock <= 0 ? 'Kho đang hết' : 'Kho: ' + cake.stock)}">Kho: 120</small>
             </span>
             <span class="stepper">
                 <button type="button" class="stepper__button" data-step="-1" th:attr="aria-label=${'Bớt ' + cake.label}">−</button>
@@ -45,7 +48,8 @@
                        th:name="${'quantities[' + cake.id + ']'}"
                        th:value="${current.isEmpty() ? 0 : current[0].quantity}"
                        th:attr="aria-label=${'Số ' + cake.label}">
-                <button type="button" class="stepper__button" data-step="1" th:attr="aria-label=${'Thêm ' + cake.label}">+</button>
+                <button type="button" class="stepper__button" data-step="1" th:disabled="${!cake.selling}"
+                        th:attr="aria-label=${'Thêm ' + cake.label}">+</button>
             </span>
         </div>
     </div>
@@ -55,7 +59,11 @@
             <span class="fill-meter__text" data-fill-text>0/4 bánh</span>
         </span>
         <span class="picker-bar__hint" data-fill-hint></span>
-        <button type="submit" class="secondary" data-loading-text="Đang lưu…">Lưu danh sách bánh</button>
+        <span class="picker-bar__actions">
+            <button type="submit" class="secondary" data-save-draft>Lưu nháp</button>
+            <button type="submit" data-save-lock
+                    th:attr="data-lock-message=${'Khóa danh sách bánh này? Sau khi khóa chỉ mở lại được khi hộp quà chưa đóng hộp, chưa bán.'}">Lưu &amp; khóa danh sách</button>
+        </span>
     </div>
 </form>
 

@@ -3249,3 +3249,80 @@ tr.is-low .stock-number {
     transform: none;
   }
 }
+
+.step-tabs__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.step-tabs__item:disabled:hover {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.more-fields > summary {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.more-fields > textarea {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.delete-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 4px 0 20px;
+  font-size: 13px;
+}
+
+.delete-row form {
+  margin: 0;
+}
+
+.delete-row .form-alert {
+  flex-basis: 100%;
+}
+
+.locked-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
+}
+
+.locked-actions form {
+  margin: 0;
+}
+
+.pick-card__stock {
+  color: var(--success) !important;
+  font-weight: 600;
+}
+
+.pick-card__stock.is-empty {
+  color: var(--danger) !important;
+}
+
+.pick-card.is-unavailable {
+  opacity: 0.55;
+}
+
+.pick-card.is-unavailable .pick-card__stock {
+  color: var(--text-muted) !important;
+}
+
+.picker-bar__actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.picker-bar__actions button {
+  margin-left: 0;
+}

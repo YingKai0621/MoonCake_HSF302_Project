@@ -11,4 +11,6 @@ public interface GiftBoxAdminService {
     GiftBoxPage page(long productId);
 
     void setOnSale(long productId, boolean onSale);
+
+    long copy(long productId);
 }

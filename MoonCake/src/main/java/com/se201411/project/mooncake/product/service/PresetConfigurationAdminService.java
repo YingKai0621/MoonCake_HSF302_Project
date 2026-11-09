@@ -19,4 +19,10 @@ public interface PresetConfigurationAdminService {
     void setComponents(long configurationId, Map<Long, Integer> quantities);
 
     void activate(long configurationId);
+
+    boolean canUnlock(long configurationId);
+
+    void unlock(long configurationId);
+
+    void copyRecipe(long fromConfigurationId, long toGiftSetVariantId);
 }

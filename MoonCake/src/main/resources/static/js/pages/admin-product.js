@@ -28,6 +28,28 @@ function setUpSlugFields() {
   }
 }
 
+function setUpAutoSku() {
+  const sku = document.querySelector("[data-sku-auto]");
+  const slug = document.querySelector("[data-slug-target]");
+  if (sku === null || slug === null) {
+    return;
+  }
+  let followSlug = sku.value === "";
+  sku.addEventListener("input", function () {
+    followSlug = false;
+  });
+  function update() {
+    if (followSlug && slug.value !== "") {
+      sku.value = "GIFT-" + slug.value.toUpperCase();
+    }
+  }
+  slug.addEventListener("input", update);
+  const name = document.querySelector("[data-slug-source]");
+  if (name !== null) {
+    name.addEventListener("input", update);
+  }
+}
+
 function openSectionFromHash() {
   if (location.hash === "") {
     return;
@@ -157,6 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
   setUpUppercaseFields();
   setUpDropzones();
   setUpSlugFields();
+  setUpAutoSku();
   openSectionFromHash();
   setUpBrokenImages();
 });

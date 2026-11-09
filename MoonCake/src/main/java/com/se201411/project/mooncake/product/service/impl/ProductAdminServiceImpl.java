@@ -304,6 +304,72 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     @Override
+    public long duplicateProduct(long productId) {
+        access.requireAdmin();
+        Product source = repo.product(productId);
+        Product copy = new Product();
+        copy.setCategory(source.getCategory());
+        copy.setProductType(source.getProductType());
+        copy.setName(source.getName() + " (bản mới)");
+        copy.setSlug(freeSlug(source.getSlug()));
+        copy.setShortDescription(source.getShortDescription());
+        copy.setDetailedDescription(source.getDetailedDescription());
+        copy.setMainIngredients(source.getMainIngredients());
+        copy.setShelfLifeInfo(source.getShelfLifeInfo());
+        copy.setStorageGuidance(source.getStorageGuidance());
+        copy.setActive(false);
+        repo.save(copy);
+        repo.flush();
+
+        for (ProductVariant variant : repo.variantsOf(productId)) {
+            ProductVariant newVariant = new ProductVariant();
+            newVariant.setProduct(copy);
+            newVariant.setSku(freeSku(variant.getSku()));
+            newVariant.setName(variant.getName());
+            newVariant.setWeightGrams(variant.getWeightGrams());
+            newVariant.setFillingLabel(variant.getFillingLabel());
+            newVariant.setUnitPrice(variant.getUnitPrice());
+            newVariant.setActive(false);
+            repo.save(newVariant);
+            inventory.initializeBalance(newVariant.getId());
+            for (ProductImage image : repo.imagesOf(productId)) {
+                if (!image.getVariant().getId().equals(variant.getId())) {
+                    continue;
+                }
+                ProductImage newImage = new ProductImage();
+                newImage.setVariant(newVariant);
+                newImage.setImageUrl(image.getImageUrl());
+                newImage.setAltText(image.getAltText());
+                newImage.setSortOrder(image.getSortOrder());
+                newImage.setPrimary(image.isPrimary());
+                repo.save(newImage);
+            }
+        }
+        repo.flush();
+        return copy.getId();
+    }
+
+    private String freeSlug(String base) {
+        int number = 2;
+        String candidate = base + "-" + number;
+        while (repo.productSlugUsed(candidate, null)) {
+            number++;
+            candidate = base + "-" + number;
+        }
+        return candidate;
+    }
+
+    private String freeSku(String base) {
+        int number = 2;
+        String candidate = base + "-" + number;
+        while (repo.skuExists(candidate)) {
+            number++;
+            candidate = base + "-" + number;
+        }
+        return candidate;
+    }
+
+    @Override
     public long createProduct(NewProductForm f) {
         access.requireAdmin();
         validation.validate(f);

@@ -138,8 +138,13 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
+    public boolean canFulfil(Payment payment) {
+        return payment.getStatus() == PaymentStatus.PAID;
+    }
+
+    @Override
     public void checkCanFulfil(Payment payment) {
-        if (payment.getStatus() != PaymentStatus.PAID) {
+        if (!canFulfil(payment)) {
             throw new BusinessRuleViolationException(
                 "VNPay chưa xác nhận thanh toán, chưa thể xử lý đơn."
             );

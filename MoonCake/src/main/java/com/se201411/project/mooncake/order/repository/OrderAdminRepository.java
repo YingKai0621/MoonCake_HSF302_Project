@@ -9,6 +9,8 @@ public interface OrderAdminRepository {
 
     List<SalesOrder> orders(OrderStatus status, int page);
 
+    long count(OrderStatus status);
+
     SalesOrder require(long id);
 
     SalesOrder requireForUpdate(long id);

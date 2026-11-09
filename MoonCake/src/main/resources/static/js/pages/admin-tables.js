@@ -15,6 +15,20 @@ function createButton(text) {
   return button;
 }
 
+function pageNumbersToShow(page, pageCount) {
+  const numbers = [];
+  for (let i = 0; i < pageCount; i++) {
+    const isEdge = i === 0 || i === pageCount - 1;
+    const isNear = Math.abs(i - page) <= 1;
+    if (isEdge || isNear) {
+      numbers.push(i);
+    } else if (numbers[numbers.length - 1] !== -1) {
+      numbers.push(-1);
+    }
+  }
+  return numbers;
+}
+
 function setUpSearchableTable(table) {
   const rows = Array.from(table.tBodies[0].rows);
 
@@ -27,16 +41,67 @@ function setUpSearchableTable(table) {
   input.type = "search";
   input.placeholder = "Tên, mã, trạng thái…";
   label.append(input);
-
-  const status = document.createElement("span");
-  status.setAttribute("role", "status");
-  const previousButton = createButton("← Trước");
-  const nextButton = createButton("Sau →");
-
-  bar.append(label, status, previousButton, nextButton);
+  bar.append(label);
   table.before(bar);
 
+  const pager = document.createElement("div");
+  pager.className = "table-pager";
+  const status = document.createElement("span");
+  status.className = "table-pager__status";
+  status.setAttribute("role", "status");
+  const pages = document.createElement("div");
+  pages.className = "table-pager__pages";
+  pager.append(status, pages);
+  table.after(pager);
+
   let page = 0;
+
+  function goTo(newPage) {
+    page = newPage;
+    render();
+    bar.scrollIntoView({ block: "nearest" });
+  }
+
+  function renderPageButtons(pageCount) {
+    pages.replaceChildren();
+    if (pageCount <= 1) {
+      return;
+    }
+    const previousButton = createButton("← Trước");
+    previousButton.disabled = page === 0;
+    previousButton.addEventListener("click", function () {
+      goTo(page - 1);
+    });
+    pages.append(previousButton);
+
+    const numbers = pageNumbersToShow(page, pageCount);
+    for (let i = 0; i < numbers.length; i++) {
+      const number = numbers[i];
+      if (number === -1) {
+        const gap = document.createElement("span");
+        gap.className = "table-pager__status";
+        gap.textContent = "…";
+        pages.append(gap);
+        continue;
+      }
+      const button = createButton(String(number + 1));
+      if (number === page) {
+        button.classList.add("is-current");
+        button.setAttribute("aria-current", "page");
+      }
+      button.addEventListener("click", function () {
+        goTo(number);
+      });
+      pages.append(button);
+    }
+
+    const nextButton = createButton("Sau →");
+    nextButton.disabled = page >= pageCount - 1;
+    nextButton.addEventListener("click", function () {
+      goTo(page + 1);
+    });
+    pages.append(nextButton);
+  }
 
   function render() {
     const query = normalizeText(input.value.trim());
@@ -51,25 +116,21 @@ function setUpSearchableTable(table) {
       rows[i].hidden = !visible.has(rows[i]);
     }
 
+    pager.hidden = rows.length === 0;
     if (matched.length === 0) {
-      status.textContent = "Không có bản ghi phù hợp";
+      status.textContent = "Không có kết quả phù hợp";
+    } else if (pageCount === 1) {
+      status.textContent = matched.length + " kết quả";
     } else {
-      status.textContent = matched.length + " bản ghi · Trang " + (page + 1) + "/" + pageCount;
+      const first = page * ROWS_PER_PAGE + 1;
+      const last = Math.min(matched.length, (page + 1) * ROWS_PER_PAGE);
+      status.textContent = "Hiển thị " + first + "–" + last + " trên " + matched.length + " kết quả";
     }
-    previousButton.disabled = page === 0;
-    nextButton.disabled = page >= pageCount - 1;
+    renderPageButtons(pageCount);
   }
 
   input.addEventListener("input", function () {
     page = 0;
-    render();
-  });
-  previousButton.addEventListener("click", function () {
-    page--;
-    render();
-  });
-  nextButton.addEventListener("click", function () {
-    page++;
     render();
   });
   render();

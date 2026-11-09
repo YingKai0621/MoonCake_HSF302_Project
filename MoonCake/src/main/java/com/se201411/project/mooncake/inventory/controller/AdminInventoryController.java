@@ -100,7 +100,7 @@ public class AdminInventoryController {
             return reopen(flash, "pack-dialog", form, error);
         }
         if (returnGiftBox != null) {
-            flash.addFlashAttribute("success", "Đã đóng " + form.quantity() + " hộp. Bước cuối: mở bán.");
+            flash.addFlashAttribute("success", "Đã đóng " + form.quantity() + " hộp.");
             return "redirect:/admin/gift-boxes/" + returnGiftBox + "#sale";
         }
         return done(flash);

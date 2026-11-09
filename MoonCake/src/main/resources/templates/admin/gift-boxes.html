@@ -25,10 +25,10 @@
                       th:text="${#numbers.formatDecimal(box.price, 0, 'POINT', 0, 'COMMA') + 'đ'}">590.000đ</span>
                 <span class="gift-card__progress">
                     <span class="gift-card__dots">
-                        <span th:each="i : ${#numbers.sequence(1, 4)}" class="gift-card__dot"
+                        <span th:each="i : ${#numbers.sequence(1, 3)}" class="gift-card__dot"
                               th:classappend="${i <= box.doneSteps} ? 'is-done'"></span>
                     </span>
-                    <small th:text="${box.doneSteps == 4 ? 'Đã xong 4/4 bước' : 'Bước ' + (box.doneSteps + 1) + '/4'}">Bước 2/4</small>
+                    <small th:text="${box.doneSteps == 3 ? 'Đã xong cả 3 bước' : 'Bước ' + (box.doneSteps + 1) + '/3'}">Bước 2/3</small>
                 </span>
                 <span class="badge badge--dot" th:classappend="${'badge--' + box.webTone}" th:text="${box.webLabel}">Đang bán trên web</span>
             </span>

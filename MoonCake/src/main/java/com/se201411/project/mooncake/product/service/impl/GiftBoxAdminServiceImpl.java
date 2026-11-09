@@ -78,14 +78,12 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
 
         boolean hasPrice = sku != null;
         boolean locked = recipe != null && recipe.status() == ConfigurationStatus.READY;
-        boolean packed = sku != null && sku.stock() > 0;
         boolean onSale = sku != null && sku.form().active() && detail.product().active();
 
         List<GiftBoxPage.Step> steps = new ArrayList<>();
         steps.add(new GiftBoxPage.Step(1, "Thông tin & giá", "info", hasPrice));
         steps.add(new GiftBoxPage.Step(2, "Chọn bánh cho hộp", "recipe", locked));
-        steps.add(new GiftBoxPage.Step(3, "Đóng hộp", "pack", packed));
-        steps.add(new GiftBoxPage.Step(4, "Mở bán", "sale", onSale));
+        steps.add(new GiftBoxPage.Step(3, "Đóng hộp & mở bán", "sale", onSale));
 
         String current = "sale";
         for (GiftBoxPage.Step step : steps) {

@@ -21,10 +21,10 @@
 
     <nav class="step-tabs" data-step-tabs th:attr="data-default=${page.currentPanel}" aria-label="Các bước">
         <button type="button" th:each="step, stat : ${page.steps}" class="step-tabs__item"
-                th:with="ready=${stat.index == 0 or (stat.index == 3 ? page.steps[1].done : page.steps[stat.index - 1].done)}"
+                th:with="ready=${stat.index == 0 or page.steps[stat.index - 1].done}"
                 th:classappend="${step.done} ? 'is-done'" th:attr="data-panel=${step.panel}"
                 th:disabled="${!ready}"
-                th:title="${ready ? null : 'Làm xong bước ' + (stat.index == 3 ? 2 : stat.index) + ' trước'}">
+                th:title="${ready ? null : 'Làm xong bước ' + stat.index + ' trước'}">
             <span class="step-tabs__number">
                 <svg th:if="${step.done}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
                 <th:block th:unless="${step.done}" th:text="${step.number}">1</th:block>
@@ -117,7 +117,7 @@
 
             <th:block th:if="${recipe != null and recipe.draft()}">
                 <div class="section-heading">
-                    <h2 th:text="${'Chọn ' + recipe.capacity + ' bánh cho ' + recipe.boxName}">Chọn bánh</h2>
+                    <h2 th:text="${'Chọn ' + recipe.capacity + ' bánh cho hộp'}">Chọn bánh</h2>
                 </div>
                 <form th:replace="~{admin/recipe-forms :: cakePicker(${recipe}, ${product.id})}"></form>
 
@@ -158,24 +158,17 @@
         </section>
     </div>
 
-    <div class="step-panel" data-step-panel="pack" id="pack" hidden>
+    <div class="step-panel" data-step-panel="sale" id="sale" hidden>
         <section>
-            <h2>Đóng hộp</h2>
-            <p th:if="${recipe == null or recipe.draft()}" class="muted">Khóa danh sách bánh ở bước 2 trước.</p>
-            <th:block th:if="${recipe != null and !recipe.draft()}">
+            <h2>Đóng hộp &amp; mở bán</h2>
+            <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+            <div class="pack-row" th:if="${recipe != null and !recipe.draft()}">
                 <div class="stat-line">
                     <span class="muted">Đang có trong kho</span>
                     <strong th:text="${sku.stock + ' hộp'}">0 hộp</strong>
                 </div>
-                <a class="button" th:href="@{/admin/inventory(pack=${sku.form.id},giftBox=${product.id})}">Đóng hộp ở trang Tồn kho</a>
-            </th:block>
-        </section>
-    </div>
-
-    <div class="step-panel" data-step-panel="sale" id="sale" hidden>
-        <section>
-            <h2>Mở bán</h2>
-            <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+                <a class="button secondary" th:href="@{/admin/inventory(pack=${sku.form.id},giftBox=${product.id})}">Đóng thêm hộp ở trang Tồn kho</a>
+            </div>
             <div class="sale-card" th:classappend="${page.onSale} ? 'is-on'">
                 <div>
                     <strong th:text="${page.onSale} ? 'Hộp quà đang bán trên cửa hàng' : 'Hộp quà chưa bán'">Hộp quà chưa bán</strong>

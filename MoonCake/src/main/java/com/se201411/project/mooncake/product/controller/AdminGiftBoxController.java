@@ -82,8 +82,8 @@ public class AdminGiftBoxController {
             return failed(flash, id, "recipe", ex);
         }
         if (lock) {
-            flash.addFlashAttribute("success", "Đã khóa danh sách bánh. Bước tiếp theo: đóng hộp.");
-            return "redirect:/admin/gift-boxes/" + id + "#pack";
+            flash.addFlashAttribute("success", "Đã khóa danh sách bánh. Bước tiếp theo: đóng hộp và mở bán.");
+            return "redirect:/admin/gift-boxes/" + id + "#sale";
         }
         flash.addFlashAttribute("success", "Đã lưu nháp danh sách bánh.");
         return "redirect:/admin/gift-boxes/" + id + "#recipe";

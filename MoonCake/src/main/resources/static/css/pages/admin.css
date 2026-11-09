@@ -2954,9 +2954,9 @@ tr.is-low .stock-number {
   transition: transform 300ms ease-out, filter 300ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
-.pick-grid--focus:hover .pick-card:not(:hover) {
-  filter: blur(1px);
-  transform: scale(0.98);
+.pick-card--cake:hover:not(.is-unavailable) {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
 .pick-card.is-static {
@@ -3244,8 +3244,7 @@ tr.is-low .stock-number {
     transition: none;
   }
 
-  .pick-grid--focus:hover .pick-card:not(:hover) {
-    filter: none;
+  .pick-card--cake:hover {
     transform: none;
   }
 }
@@ -3325,4 +3324,34 @@ tr.is-low .stock-number {
 
 .picker-bar__actions button {
   margin-left: 0;
+}
+
+.cake-picker .pick-grid {
+  padding-bottom: 8px;
+}
+
+.box-picker__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.pack-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.pack-row .stat-line {
+  margin: 0;
+}
+
+.step-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }

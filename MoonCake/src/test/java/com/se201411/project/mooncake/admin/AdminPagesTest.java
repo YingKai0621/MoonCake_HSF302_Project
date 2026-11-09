@@ -515,8 +515,7 @@ class AdminPagesTest {
                 List.of(
                         new GiftBoxPage.Step(1, "Thông tin & giá", "info", true),
                         new GiftBoxPage.Step(2, "Chọn bánh cho hộp", "recipe", false),
-                        new GiftBoxPage.Step(3, "Đóng hộp", "pack", false),
-                        new GiftBoxPage.Step(4, "Mở bán", "sale", false)),
+                        new GiftBoxPage.Step(3, "Đóng hộp & mở bán", "sale", false)),
                 "recipe",
                 false,
                 false));
@@ -525,7 +524,7 @@ class AdminPagesTest {
             .andExpect(content().string(containsString("data-default=\"recipe\"")))
             .andExpect(content().string(containsString("name=\"quantities[1]\"")))
             .andExpect(content().string(containsString("/images/cake.png")))
-            .andExpect(content().string(containsString("Lưu &amp; khóa danh sách")))
+            .andExpect(content().string(containsString("Xong, chốt danh sách")))
             .andExpect(content().string(containsString("Kho: 120")));
 
         when(catalog.productDetail(2)).thenReturn(detail);

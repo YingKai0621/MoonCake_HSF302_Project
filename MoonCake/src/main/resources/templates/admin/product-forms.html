@@ -48,8 +48,14 @@
     </details>
     <th:block th:if="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
         <input type="hidden" name="mainIngredients" th:value="${f != null ? f.mainIngredients : ''}">
-        <input type="hidden" name="shelfLifeInfo" th:value="${f != null ? f.shelfLifeInfo : ''}">
-        <input type="hidden" name="storageGuidance" th:value="${f != null ? f.storageGuidance : ''}">
+        <label>Hạn sử dụng
+            <textarea name="shelfLifeInfo" maxlength="350" rows="2" placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất"
+                      th:text="${f != null ? f.shelfLifeInfo : ''}"></textarea>
+        </label>
+        <label>Cách bảo quản
+            <textarea name="storageGuidance" maxlength="600" rows="2" placeholder="Ví dụ: Nơi khô ráo, tránh nắng"
+                      th:text="${f != null ? f.storageGuidance : ''}"></textarea>
+        </label>
     </th:block>
     <th:block th:unless="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
     <label class="span-2">Thành phần chính

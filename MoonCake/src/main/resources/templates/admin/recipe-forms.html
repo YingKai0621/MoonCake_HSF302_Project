@@ -15,12 +15,12 @@
             </span>
             <span class="pick-card__text">
                 <strong th:text="${box.label}">Vỏ hộp Kim Phúc 4 bánh</strong>
-                <small th:text="${box.detail}">4 bánh</small>
+                <small th:text="${'Kho: ' + box.stock + ' vỏ'}">Kho: 98 vỏ</small>
             </span>
         </label>
     </div>
-    <div class="picker-bar">
-        <button type="submit" data-loading-text="Đang lưu…" th:text="${recipe == null ? 'Dùng vỏ hộp này' : 'Đổi vỏ hộp'}">Dùng vỏ hộp này</button>
+    <div class="box-picker__actions">
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${recipe == null ? 'Dùng vỏ hộp đã chọn' : 'Đổi sang vỏ hộp đã chọn'}">Dùng vỏ hộp đã chọn</button>
     </div>
 </form>
 
@@ -29,8 +29,8 @@
     <input type="hidden" name="recipeId" th:value="${recipe.id}">
     <input type="hidden" name="lock" value="false" data-lock-input>
     <div class="pick-grid pick-grid--focus">
-        <div th:each="cake : ${options.cakes}" class="pick-card pick-card--cake"
-             th:with="current=${recipe.components.?[variantId == __${cake.id}__]}"
+        <th:block th:each="cake : ${options.cakes}" th:with="current=${recipe.components.?[variantId == __${cake.id}__]}">
+        <div th:if="${cake.selling or !current.isEmpty()}" class="pick-card pick-card--cake"
              th:classappend="${(!current.isEmpty() ? 'is-picked ' : '') + (cake.selling ? '' : 'is-unavailable')}">
             <span class="pick-card__image">
                 <img th:if="${cake.imageUrl != null}" th:src="${cake.imageUrl}" alt="" loading="lazy">
@@ -52,6 +52,7 @@
                         th:attr="aria-label=${'Thêm ' + cake.label}">+</button>
             </span>
         </div>
+        </th:block>
     </div>
     <div class="picker-bar">
         <span class="fill-meter" data-fill-meter>
@@ -60,9 +61,9 @@
         </span>
         <span class="picker-bar__hint" data-fill-hint></span>
         <span class="picker-bar__actions">
-            <button type="submit" class="secondary" data-save-draft>Lưu nháp</button>
+            <button type="submit" class="secondary" data-save-draft>Lưu lại, làm tiếp sau</button>
             <button type="submit" data-save-lock
-                    th:attr="data-lock-message=${'Khóa danh sách bánh này? Sau khi khóa chỉ mở lại được khi hộp quà chưa đóng hộp, chưa bán.'}">Lưu &amp; khóa danh sách</button>
+                    th:attr="data-lock-message=${'Chốt danh sách bánh này? Sau khi chốt chỉ mở lại được khi hộp quà chưa đóng hộp, chưa bán.'}">Xong, chốt danh sách</button>
         </span>
     </div>
 </form>

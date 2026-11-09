@@ -2,7 +2,7 @@ const PANEL_BY_HASH = {
   info: "info",
   danger: "info",
   recipe: "recipe",
-  pack: "pack",
+  pack: "sale",
   sale: "sale"
 };
 

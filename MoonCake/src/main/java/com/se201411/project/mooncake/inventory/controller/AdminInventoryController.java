@@ -31,7 +31,9 @@ public class AdminInventoryController {
     @GetMapping
     public String inventory(@RequestParam(defaultValue = "ALL") StockFilter filter,
                             @RequestParam(required = false) Long pack,
-                            @RequestParam(required = false) Long giftBox, Model model) {
+                            @RequestParam(required = false) Long giftBox,
+                            @RequestParam(required = false) Long receive,
+                            @RequestParam(required = false) Long returnProduct, Model model) {
         model.addAttribute("balances", inventory.balances(filter));
         model.addAttribute("tabs", inventory.stockTabs(filter));
         model.addAttribute("filter", filter);
@@ -44,6 +46,10 @@ public class AdminInventoryController {
         if (giftBox != null) {
             model.addAttribute("returnGiftBox", giftBox);
         }
+        model.addAttribute("receiveVariant", receive);
+        if (returnProduct != null) {
+            model.addAttribute("returnProduct", returnProduct);
+        }
         return "admin/inventory";
     }
 
@@ -55,14 +61,27 @@ public class AdminInventoryController {
     }
 
     @PostMapping("/receive")
-    public String receive(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
+    public String receive(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
+                          @RequestParam(required = false) Long returnProduct, RedirectAttributes flash) {
+        String error = null;
         if (result.hasErrors()) {
-            return reopen(flash, "receive-dialog", form, FormErrors.first(result));
+            error = FormErrors.first(result);
+        } else {
+            try {
+                inventory.receive(form);
+            } catch (MoonCakeException ex) {
+                error = ex.getMessage();
+            }
         }
-        try {
-            inventory.receive(form);
-        } catch (MoonCakeException ex) {
-            return reopen(flash, "receive-dialog", form, ex.getMessage());
+        if (error != null) {
+            if (returnProduct != null) {
+                flash.addFlashAttribute("returnProduct", returnProduct);
+            }
+            return reopen(flash, "receive-dialog", form, error);
+        }
+        if (returnProduct != null) {
+            flash.addFlashAttribute("success", "Đã nhập thêm " + form.quantity() + " vào kho.");
+            return "redirect:/admin/catalog/products/" + returnProduct + "#sku-" + form.variantId();
         }
         return done(flash);
     }

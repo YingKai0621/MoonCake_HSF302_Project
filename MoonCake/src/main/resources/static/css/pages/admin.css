@@ -3744,3 +3744,29 @@ td small.muted,
 td .muted {
   font-size: 15px;
 }
+
+.page-catalog .sale-card {
+  margin: 0 0 16px;
+  background: var(--surface);
+}
+
+.page-catalog .sale-card.is-on {
+  background: var(--success-soft);
+}
+
+.sale-card .form-alert {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.sku-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 0 4px;
+}
+
+.sku-tools form {
+  margin: 0;
+}

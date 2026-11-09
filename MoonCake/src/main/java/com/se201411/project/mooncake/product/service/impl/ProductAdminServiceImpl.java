@@ -304,6 +304,42 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     @Override
+    public void setProductVisible(long productId, boolean visible) {
+        access.requireAdmin();
+        ProductForm current = productForm(repo.product(productId));
+        saveProduct(new ProductForm(
+            current.id(),
+            current.categoryId(),
+            current.productType(),
+            current.name(),
+            current.slug(),
+            current.shortDescription(),
+            current.detailedDescription(),
+            current.mainIngredients(),
+            current.shelfLifeInfo(),
+            current.storageGuidance(),
+            visible
+        ));
+    }
+
+    @Override
+    public long setVariantOnSale(long variantId, boolean onSale) {
+        access.requireAdmin();
+        VariantForm current = variantForm(repo.variant(variantId));
+        saveVariant(new VariantForm(
+            current.id(),
+            current.productId(),
+            current.sku(),
+            current.name(),
+            current.weightGrams(),
+            current.fillingLabel(),
+            current.unitPrice(),
+            onSale
+        ));
+        return current.productId();
+    }
+
+    @Override
     public long duplicateProduct(long productId) {
         access.requireAdmin();
         Product source = repo.product(productId);

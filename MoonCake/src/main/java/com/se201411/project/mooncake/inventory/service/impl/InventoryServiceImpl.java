@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
@@ -14,7 +16,6 @@ import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.repository.InventoryBalanceRepository;
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
-import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,18 +37,21 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
-    private final EntityManager entityManager;
+    private final ProductVariantRepository productVariantRepository;
+    private final SalesOrderRepository salesOrderRepository;
     private final Clock clock;
 
     public InventoryServiceImpl(
         InventoryBalanceRepository balanceRepository,
         StockMovementRepository movementRepository,
-        EntityManager entityManager,
+        ProductVariantRepository productVariantRepository,
+        SalesOrderRepository salesOrderRepository,
         Clock clock
     ) {
         this.balanceRepository = balanceRepository;
         this.movementRepository = movementRepository;
-        this.entityManager = entityManager;
+        this.productVariantRepository = productVariantRepository;
+        this.salesOrderRepository = salesOrderRepository;
         this.clock = clock;
     }
 
@@ -136,11 +140,9 @@ public class InventoryServiceImpl implements InventoryService {
     ) {
         if (batchStock != null) batchStock.apply(demand.variantId(), quantityDelta, operationGroupKey + ":" + demand.variantId(), orderId, movementType);
         StockMovement movement = new StockMovement();
-        movement.setVariant(entityManager.getReference(
-            ProductVariant.class,
-            demand.variantId()
+        movement.setVariant(productVariantRepository.getReferenceById(demand.variantId()
         ));
-        movement.setOrder(entityManager.getReference(SalesOrder.class, orderId));
+        movement.setOrder(salesOrderRepository.getReferenceById(orderId));
         movement.setMovementType(movementType);
         movement.setQuantityDelta(quantityDelta);
         movement.setReason(buildReason(movementType));
@@ -158,7 +160,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private String describeVariant(long variantId) {
-        ProductVariant variant = entityManager.find(ProductVariant.class, variantId);
+        ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
         if (variant == null) {
             return "sản phẩm đã chọn";
         }

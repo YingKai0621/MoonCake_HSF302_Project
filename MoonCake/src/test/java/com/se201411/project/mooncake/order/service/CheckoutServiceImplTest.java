@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.cart.repository.VolumeDiscountTierRepository;
+import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
+import com.se201411.project.mooncake.security.repository.CustomerRepository;
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -35,7 +39,6 @@ import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistry
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,7 +82,13 @@ class CheckoutServiceImplTest {
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
-    private EntityManager entityManager;
+    private CustomerRepository customerRepository;
+    @Mock
+    private ProductVariantRepository productVariantRepository;
+    @Mock
+    private CustomBoxConfigurationRepository configurationRepository;
+    @Mock
+    private VolumeDiscountTierRepository volumeDiscountTierRepository;
     @Mock
     private PaymentProcessor vnpayProcessor;
 
@@ -98,7 +107,10 @@ class CheckoutServiceImplTest {
             orderItemRepository,
             componentRepository,
             paymentRepository,
-            entityManager,
+            customerRepository,
+            productVariantRepository,
+            configurationRepository,
+            volumeDiscountTierRepository,
             clock,
             registry()
         );
@@ -127,8 +139,8 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(entityManager.getReference(Customer.class, 7L)).thenReturn(new Customer());
-        when(entityManager.getReference(ProductVariant.class, 10L))
+        when(customerRepository.getReferenceById(7L)).thenReturn(new Customer());
+        when(productVariantRepository.getReferenceById(10L))
             .thenReturn(new ProductVariant());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -212,14 +224,14 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(entityManager.getReference(Customer.class, 7L)).thenReturn(new Customer());
-        when(entityManager.getReference(ProductVariant.class, 10L))
+        when(customerRepository.getReferenceById(7L)).thenReturn(new Customer());
+        when(productVariantRepository.getReferenceById(10L))
             .thenReturn(new ProductVariant());
-        when(entityManager.getReference(ProductVariant.class, 20L))
+        when(productVariantRepository.getReferenceById(20L))
             .thenReturn(new ProductVariant());
-        when(entityManager.getReference(ProductVariant.class, 30L))
+        when(productVariantRepository.getReferenceById(30L))
             .thenReturn(new ProductVariant());
-        when(entityManager.getReference(BoxConfiguration.class, 50L))
+        when(configurationRepository.getReferenceById(50L))
             .thenReturn(new BoxConfiguration());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);

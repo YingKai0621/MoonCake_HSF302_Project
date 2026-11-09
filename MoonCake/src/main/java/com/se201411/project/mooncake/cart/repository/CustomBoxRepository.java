@@ -1,15 +1,15 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.enums.ProductType;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomBoxRepository extends Repository<Box, Long> {
+public interface CustomBoxRepository extends JpaRepository<Box, Long> {
 
     @Query("""
         select b

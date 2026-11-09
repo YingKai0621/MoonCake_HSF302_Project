@@ -1,17 +1,17 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Cart;
 import com.se201411.project.mooncake.enums.CartStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface CartRepository extends Repository<Cart, Long> {
+public interface CartRepository extends JpaRepository<Cart, Long> {
 
     @Query("""
         select c

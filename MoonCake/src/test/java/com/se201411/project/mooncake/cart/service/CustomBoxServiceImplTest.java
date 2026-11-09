@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.cart.dto.CustomCakeQuantity;
 import com.se201411.project.mooncake.cart.dto.SaveCustomBoxCommand;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
@@ -23,7 +24,6 @@ import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +64,7 @@ class CustomBoxServiceImplTest {
     @Mock
     private ProductQueryService productQueryService;
     @Mock
-    private EntityManager entityManager;
+    private ProductVariantRepository productVariantRepository;
 
     private CustomBoxService service;
 
@@ -81,7 +81,7 @@ class CustomBoxServiceImplTest {
             cartRepository,
             cartItemRepository,
             productQueryService,
-            entityManager,
+            productVariantRepository,
             clock
         );
     }
@@ -101,8 +101,8 @@ class CustomBoxServiceImplTest {
             .thenReturn(mooncake(201L));
         when(productQueryService.requireSellableVariant(202L))
             .thenReturn(mooncake(202L));
-        when(entityManager.getReference(ProductVariant.class, 201L)).thenReturn(firstCake);
-        when(entityManager.getReference(ProductVariant.class, 202L)).thenReturn(secondCake);
+        when(productVariantRepository.getReferenceById(201L)).thenReturn(firstCake);
+        when(productVariantRepository.getReferenceById(202L)).thenReturn(secondCake);
         when(configurationRepository.save(any(BoxConfiguration.class))).thenAnswer(invocation -> {
             BoxConfiguration configuration = invocation.getArgument(0);
             ReflectionTestUtils.setField(configuration, "id", 300L);

@@ -1,16 +1,16 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.VolumeDiscountTier;
 import com.se201411.project.mooncake.enums.DiscountGroup;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface VolumeDiscountTierRepository
-    extends Repository<VolumeDiscountTier, Long> {
+    extends JpaRepository<VolumeDiscountTier, Long> {
 
     @Query("""
         select tier

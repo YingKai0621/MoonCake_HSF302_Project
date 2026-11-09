@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
+import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
 import com.se201411.project.mooncake.cart.dto.CartItemView;
 import com.se201411.project.mooncake.cart.dto.CustomCartComponentView;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
@@ -23,7 +24,6 @@ import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
-import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +48,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
     private final CustomBoxConfigurationRepository configurationRepository;
     private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final ProductQueryService productQueryService;
-    private final EntityManager entityManager;
+    private final ProductVariantRepository productVariantRepository;
     private final Clock clock;
 
     public CustomerCartServiceImpl(
@@ -57,7 +57,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         CustomBoxConfigurationRepository configurationRepository,
         CustomBoxConfigurationItemRepository configurationItemRepository,
         ProductQueryService productQueryService,
-        EntityManager entityManager,
+        ProductVariantRepository productVariantRepository,
         Clock clock
     ) {
         this.cartRepository = cartRepository;
@@ -65,7 +65,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         this.configurationRepository = configurationRepository;
         this.configurationItemRepository = configurationItemRepository;
         this.productQueryService = productQueryService;
-        this.entityManager = entityManager;
+        this.productVariantRepository = productVariantRepository;
         this.clock = clock;
     }
 
@@ -130,9 +130,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         } else {
             CartItem item = new CartItem();
             item.setCart(cart);
-            ProductVariant variantReference = entityManager.getReference(
-                ProductVariant.class,
-                variantId
+            ProductVariant variantReference = productVariantRepository.getReferenceById(variantId
             );
             item.setVariant(variantReference);
             item.setQuantity(quantity);
@@ -184,11 +182,11 @@ public class CustomerCartServiceImpl implements CustomerCartService {
                 cart.getId()
             );
             cartItemRepository.delete(item);
-            entityManager.flush();
+            cartItemRepository.flush();
             List<BoxConfigurationItem> components = configurationItemRepository
                 .findByConfigurationIds(List.of(configuration.getId()));
             configurationItemRepository.deleteAll(components);
-            entityManager.flush();
+            cartItemRepository.flush();
             configurationRepository.delete(configuration);
         }
         cart.setUpdatedAt(now());

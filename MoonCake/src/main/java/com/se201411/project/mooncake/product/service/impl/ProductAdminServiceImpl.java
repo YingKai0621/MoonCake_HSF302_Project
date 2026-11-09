@@ -113,6 +113,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
 
         List<AdminProductRow> rows = new ArrayList<>();
         for (Product product : repo.products()) {
+            if (type == null && product.getProductType() == ProductType.GIFT_SET) {
+                continue;
+            }
             if (type != null && product.getProductType() != type) {
                 continue;
             }
@@ -152,12 +155,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<ProductType, Long> counts = new HashMap<>();
         long total = 0;
         for (Product product : repo.products()) {
+            if (product.getProductType() == ProductType.GIFT_SET) {
+                continue;
+            }
             counts.merge(product.getProductType(), 1L, Long::sum);
             total++;
         }
         List<AdminProductTab> tabs = new ArrayList<>();
         tabs.add(new AdminProductTab(null, "Tất cả", total, selected == null));
-        for (ProductType type : List.of(ProductType.GIFT_SET, ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
+        for (ProductType type : List.of(ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
             tabs.add(new AdminProductTab(type, typeLabel(type), counts.getOrDefault(type, 0L), type == selected));
         }
         return tabs;
@@ -221,9 +227,36 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<CategoryForm> categoriesFor(boolean giftBoxes) {
+        access.requireAdmin();
+        Set<Long> withGiftBoxes = new HashSet<>();
+        Set<Long> withOtherProducts = new HashSet<>();
+        for (Product product : repo.products()) {
+            long categoryId = product.getCategory().getId();
+            if (product.getProductType() == ProductType.GIFT_SET) {
+                withGiftBoxes.add(categoryId);
+            } else {
+                withOtherProducts.add(categoryId);
+            }
+        }
+        List<CategoryForm> result = new ArrayList<>();
+        for (CategoryForm category : categoryForms()) {
+            boolean empty = !withGiftBoxes.contains(category.id()) && !withOtherProducts.contains(category.id());
+            boolean matches = giftBoxes
+                ? withGiftBoxes.contains(category.id())
+                : withOtherProducts.contains(category.id());
+            if (matches || empty) {
+                result.add(category);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public List<ProductTypeOption> productTypes() {
         List<ProductTypeOption> options = new ArrayList<>();
-        for (ProductType type : List.of(ProductType.GIFT_SET, ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
+        for (ProductType type : List.of(ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
             options.add(new ProductTypeOption(type, typeLabel(type)));
         }
         return options;
@@ -268,6 +301,72 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         repo.save(v);
         repo.flush();
         return v.getId();
+    }
+
+    @Override
+    public long duplicateProduct(long productId) {
+        access.requireAdmin();
+        Product source = repo.product(productId);
+        Product copy = new Product();
+        copy.setCategory(source.getCategory());
+        copy.setProductType(source.getProductType());
+        copy.setName(source.getName() + " (bản mới)");
+        copy.setSlug(freeSlug(source.getSlug()));
+        copy.setShortDescription(source.getShortDescription());
+        copy.setDetailedDescription(source.getDetailedDescription());
+        copy.setMainIngredients(source.getMainIngredients());
+        copy.setShelfLifeInfo(source.getShelfLifeInfo());
+        copy.setStorageGuidance(source.getStorageGuidance());
+        copy.setActive(false);
+        repo.save(copy);
+        repo.flush();
+
+        for (ProductVariant variant : repo.variantsOf(productId)) {
+            ProductVariant newVariant = new ProductVariant();
+            newVariant.setProduct(copy);
+            newVariant.setSku(freeSku(variant.getSku()));
+            newVariant.setName(variant.getName());
+            newVariant.setWeightGrams(variant.getWeightGrams());
+            newVariant.setFillingLabel(variant.getFillingLabel());
+            newVariant.setUnitPrice(variant.getUnitPrice());
+            newVariant.setActive(false);
+            repo.save(newVariant);
+            inventory.initializeBalance(newVariant.getId());
+            for (ProductImage image : repo.imagesOf(productId)) {
+                if (!image.getVariant().getId().equals(variant.getId())) {
+                    continue;
+                }
+                ProductImage newImage = new ProductImage();
+                newImage.setVariant(newVariant);
+                newImage.setImageUrl(image.getImageUrl());
+                newImage.setAltText(image.getAltText());
+                newImage.setSortOrder(image.getSortOrder());
+                newImage.setPrimary(image.isPrimary());
+                repo.save(newImage);
+            }
+        }
+        repo.flush();
+        return copy.getId();
+    }
+
+    private String freeSlug(String base) {
+        int number = 2;
+        String candidate = base + "-" + number;
+        while (repo.productSlugUsed(candidate, null)) {
+            number++;
+            candidate = base + "-" + number;
+        }
+        return candidate;
+    }
+
+    private String freeSku(String base) {
+        int number = 2;
+        String candidate = base + "-" + number;
+        while (repo.skuExists(candidate)) {
+            number++;
+            candidate = base + "-" + number;
+        }
+        return candidate;
     }
 
     @Override

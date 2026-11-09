@@ -27,6 +27,8 @@ public interface ProductAdminService {
 
     List<CategoryForm> categories();
 
+    List<CategoryForm> categoriesFor(boolean giftBoxes);
+
     List<ProductTypeOption> productTypes();
 
     void saveCategory(CategoryForm form);
@@ -34,6 +36,8 @@ public interface ProductAdminService {
     long saveProduct(ProductForm form);
 
     long createProduct(NewProductForm form);
+
+    long duplicateProduct(long productId);
 
     void saveVariant(VariantForm form);
 

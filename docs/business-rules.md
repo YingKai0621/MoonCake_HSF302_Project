@@ -1,14 +1,20 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.9 — 09/11/2026
+**Phiên bản tài liệu:** 1.10 — 09/11/2026
 
-**Trạng thái:** Tự hủy đơn VNPay quá hạn thanh toán; không đổi schema (Flyway vẫn V13, 24 bảng)
+**Trạng thái:** Cho mở khóa PRESET chưa phát sinh tồn, giỏ hay đơn; không đổi schema (Flyway V16, 24 bảng)
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.10
+
+- PRESET đã `READY` được Admin **mở khóa về `DRAFT`** để sửa thành phần khi **cả bốn** điều kiện đều đúng: SKU GIFT_SET đang ngừng bán, chưa có tồn thành phẩm hay lịch sử kho, không nằm trong giỏ hàng nào và chưa được đơn nào tham chiếu. Server kiểm tra lại các điều kiện này trong cùng giao dịch khi mở khóa.
+- Khi PRESET đã đóng hộp, đã bán hoặc đã được tham chiếu, cấu hình vẫn **bất biến** như trước. Admin có thể **tạo bản sao** hộp quà: hệ thống tạo SKU GIFT_SET mới (ngừng bán) và PRESET `DRAFT` mới chép sẵn vỏ hộp và danh sách bánh để sửa; hộp quà cũ giữ nguyên.
+- Không thêm bảng hay cột.
 
 ### Thay đổi chính trong phiên bản 1.9
 
@@ -135,7 +141,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - `BOX_CONFIGURATION.configuration_type = PRESET`: cấu hình do cửa hàng định nghĩa, có `preset_variant_id` trỏ đến SKU `GIFT_SET`, **không gắn giỏ khách** (`cart_id IS NULL`).
 - `BOX_CONFIGURATION.configuration_type = CUSTOM`: cấu hình do khách tạo, gắn với `CART` chủ sở hữu (`cart_id` có giá trị), **không gắn SKU PRESET** (`preset_variant_id IS NULL`).
 - `BOX_CONFIGURATION_ITEM` liệt kê SKU bánh `MOONCAKE` và `quantity_per_box`. Không dùng SKU hộp rỗng hoặc SKU GIFT_SET làm bánh bên trong.
-- PRESET chỉ được chỉnh trong giai đoạn chuẩn bị trước khi chuyển `READY`. Khi PRESET đã `READY`, SKU GIFT_SET đã được mở bán, đã có tồn thành phẩm hoặc đã được lịch sử tham chiếu, cấu hình và các `BOX_CONFIGURATION_ITEM` của nó là **bất biến**; không chuyển ngược về `DRAFT` để sửa thành phần.
+- PRESET chỉ được chỉnh ở trạng thái `DRAFT`. Từ v1.10, PRESET `READY` được mở khóa về `DRAFT` nếu SKU GIFT_SET đang ngừng bán, chưa có tồn thành phẩm hay lịch sử kho, không nằm trong giỏ hàng và chưa được đơn nào tham chiếu. Khi SKU GIFT_SET đã được mở bán, đã có tồn thành phẩm hoặc đã được giỏ/lịch sử tham chiếu, cấu hình và các `BOX_CONFIGURATION_ITEM` của nó là **bất biến**; muốn đổi thành phần phải tạo SKU GIFT_SET và PRESET mới (có thể dùng chức năng tạo bản sao).
 - Nếu công thức hộp PRESET thay đổi, Admin phải tạo **SKU GIFT_SET mới + BOX_CONFIGURATION PRESET mới + danh sách component mới**. SKU/config cũ được giữ nguyên để bán hết tồn phù hợp hoặc chuyển `is_active = 0`; không gắn thành phần mới lên SKU của hàng đã đóng sẵn.
 - Database hiện bảo vệ quan hệ một PRESET trên mỗi `preset_variant_id`, nhưng không dùng trigger để cấm `UPDATE`. Quy tắc bất biến PRESET phải được bảo vệ tại Admin/Service và bằng quyền truy cập database; không cho người dùng nghiệp vụ sửa trực tiếp các bảng cấu hình.
 - Cấu hình CUSTOM ở trạng thái nháp (`DRAFT`) có thể chưa đủ bánh. Chỉ được đánh dấu sẵn sàng (`READY`), cho vào checkout và đặt hàng khi **tổng `quantity_per_box` bằng `BOX.capacity_cakes`**.
@@ -351,7 +357,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Checkout transaction: kiểm tra và trừ tồn có điều kiện, tạo đơn/items/components/payment/movements, rollback hoàn toàn nếu thất bại.
 - Checkout phải claim giỏ bằng conditional update `WHERE cart_status = 'ACTIVE'` và yêu cầu affected-row count bằng 1 trước mọi thay đổi có tác động; request không claim được phải dừng ngay.
 - Các thao tác thêm/xóa/đổi số lượng và sửa CUSTOM configuration cũng phải xác minh giỏ còn `ACTIVE`; unique index chỉ chống dòng trùng, không thay thế kiểm tra trạng thái giỏ.
-- Admin/Service không cho sửa PRESET đã `READY`; thay đổi composition luôn tạo SKU/configuration mới và giữ nguyên recipe cũ.
+- Admin/Service không cho sửa PRESET đã `READY`. Chỉ được mở khóa về `DRAFT` khi chưa có tồn, lịch sử kho, giỏ hàng hay đơn tham chiếu (v1.10); ngoài trường hợp đó, thay đổi composition luôn tạo SKU/configuration mới và giữ nguyên recipe cũ.
 - Kiểm tra tier active không chồng khoảng; áp dụng công thức làm tròn v1.1 nhất quán trên từng đơn vị và tổng đơn.
 - Customer cancellation phải dùng POST có CSRF, xác minh đơn thuộc khách hiện tại và chỉ nhận `PLACED`; Admin cancellation nhận `PLACED`/`PROCESSING`. Cả hai gọi cùng một service/transaction hủy, không sao chép logic hoàn kho.
 - Customer delivery update phải dùng POST có CSRF, lấy ownership từ principal và conditional update `WHERE order_status = 'PLACED'`; không được nhận `customer_id` từ form hoặc thay đổi các snapshot tài chính/sản phẩm.
@@ -392,7 +398,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-26 | Giá 101 VND được giảm 5% | Giảm đơn vị 5 VND theo HALF_UP; giá cuối 96 VND; tổng dòng bằng số lượng × 96 |
 | BR-27 | Tạo/activate SKU có quản lý tồn nhưng chưa có balance | Từ chối mở bán cho đến khi có đúng một `INVENTORY_BALANCE` |
 | BR-28 | Hai request đồng thời checkout cùng một giỏ `ACTIVE` | Chỉ một request claim được giỏ và tạo đúng một đơn; request còn lại không tạo order/payment/movement và không trừ tồn |
-| BR-29 | Admin sửa component của PRESET đã `READY`/đã có tồn | Từ chối; yêu cầu tạo SKU GIFT_SET và PRESET configuration mới, recipe cũ không đổi |
+| BR-29 | Admin sửa component của PRESET đã `READY`/đã có tồn | Từ chối; yêu cầu tạo SKU GIFT_SET và PRESET configuration mới, recipe cũ không đổi. PRESET `READY` chưa có tồn, lịch sử kho, giỏ hay đơn thì được mở khóa về `DRAFT` (v1.10) |
 | BR-30 | Đăng ký bằng email mới hợp lệ | Tạo đúng một ACCOUNT CUSTOMER ACTIVE và một CUSTOMER liên kết trong cùng transaction; mật khẩu chỉ lưu dạng hash |
 | BR-31 | Đăng ký lại email đã tồn tại | Từ chối thân thiện; không tạo ACCOUNT/CUSTOMER rác hoặc bản ghi một nửa |
 | BR-32 | Khách đã đăng nhập thêm cùng SKU hai lần | Dùng giỏ ACTIVE của chính khách; một CART_ITEM và quantity tăng đúng |

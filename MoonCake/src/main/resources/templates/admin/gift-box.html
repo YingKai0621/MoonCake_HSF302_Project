@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Hộp quà')}"></head>
+<body class="page-gift-box">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main th:with="detail=${page.detail},product=${page.detail.product},sku=${page.sku},recipe=${page.recipe},giftBox=${true}">
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <a class="back-link" th:href="@{/admin/gift-boxes}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại danh sách hộp quà
+    </a>
+    <div class="detail-header">
+        <div>
+            <span class="eyebrow">Hộp quà</span>
+            <h1 th:text="${product.name}">Hộp quà Kim Phúc</h1>
+        </div>
+        <span class="badge badge--large badge--dot" th:classappend="${'badge--' + detail.webTone}"
+              th:text="${detail.webLabel}">Đang ẩn</span>
+    </div>
+
+    <nav class="step-tabs" data-step-tabs th:attr="data-default=${page.currentPanel}" aria-label="Các bước">
+        <button type="button" th:each="step, stat : ${page.steps}" class="step-tabs__item"
+                th:with="ready=${stat.index == 0 or page.steps[stat.index - 1].done}"
+                th:classappend="${step.done} ? 'is-done'" th:attr="data-panel=${step.panel}"
+                th:disabled="${!ready}"
+                th:title="${ready ? null : 'Làm xong bước ' + stat.index + ' trước'}">
+            <span class="step-tabs__number">
+                <svg th:if="${step.done}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                <th:block th:unless="${step.done}" th:text="${step.number}">1</th:block>
+            </span>
+            <span th:text="${step.label}">Thông tin &amp; giá</span>
+        </button>
+    </nav>
+
+    <div class="step-panel" data-step-panel="info" id="info">
+        <section>
+            <h2>Thông tin hộp quà</h2>
+            <p th:replace="~{admin/product-forms :: alert('info')}"></p>
+            <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, true)}"></form>
+        </section>
+
+        <section th:if="${sku != null}" th:id="${'sku-' + sku.form.id}">
+            <h2>Giá bán &amp; ảnh</h2>
+            <p th:replace="~{admin/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
+            <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
+
+            <div th:replace="~{admin/product-forms :: imageManager(${sku}, ${product.id})}"></div>
+        </section>
+
+        <section th:if="${sku == null}" id="sku-new">
+            <h2>Giá bán</h2>
+            <p th:replace="~{admin/product-forms :: alert('sku-new')}"></p>
+            <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
+        </section>
+
+        <div id="danger" class="delete-row">
+            <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
+            <form th:if="${detail.deleteBlocker == null}"
+                  th:action="@{/admin/catalog/products/{id}/delete(id=${product.id},giftBox=true)}"
+                  th:attr="data-confirm-message=${'Xóa vĩnh viễn hộp quà “' + product.name + '” cùng giá, ảnh và danh sách bánh? Không thể hoàn tác.'}"
+                  method="post">
+                <button type="submit" class="danger small-button">Xóa hộp quà</button>
+            </form>
+            <span th:if="${detail.deleteBlocker != null}" class="muted" th:text="${detail.deleteBlocker}">Không xóa được.</span>
+        </div>
+    </div>
+
+    <div class="step-panel" data-step-panel="recipe" id="recipe" hidden>
+        <section>
+            <p th:replace="~{admin/product-forms :: alert('recipe')}"></p>
+            <p th:if="${sku == null}" class="muted">Nhập giá bán ở bước 1 trước.</p>
+
+            <th:block th:if="${sku != null and recipe == null}">
+                <h2>Chọn vỏ hộp</h2>
+                <form th:replace="~{admin/recipe-forms :: boxPicker(null, ${sku.form.id}, ${product.id})}"></form>
+            </th:block>
+
+            <th:block th:if="${recipe != null and recipe.draft()}">
+                <div class="section-heading">
+                    <h2 th:text="${'Chọn ' + recipe.capacity + ' bánh cho hộp'}">Chọn bánh</h2>
+                </div>
+                <form th:replace="~{admin/recipe-forms :: cakePicker(${recipe}, ${product.id})}"></form>
+
+                <details class="url-option">
+                    <summary>Đổi vỏ hộp khác</summary>
+                    <form th:replace="~{admin/recipe-forms :: boxPicker(${recipe}, ${sku.form.id}, ${product.id})}"></form>
+                </details>
+            </th:block>
+
+            <th:block th:if="${recipe != null and !recipe.draft()}">
+                <div class="section-heading">
+                    <h2 th:text="${'Bánh trong ' + recipe.boxName}">Bánh trong hộp</h2>
+                    <span class="badge badge--dot badge--success">Đã khóa</span>
+                </div>
+                <div class="locked-actions">
+                    <form th:if="${page.canUnlock}" th:action="@{/admin/gift-boxes/{id}/unlock(id=${product.id})}" method="post">
+                        <input type="hidden" name="recipeId" th:value="${recipe.id}">
+                        <button type="submit" class="secondary">Mở khóa để sửa</button>
+                    </form>
+                    <form th:unless="${page.canUnlock}" th:action="@{/admin/gift-boxes/{id}/copy(id=${product.id})}" method="post"
+                          th:attr="data-confirm-message=${'Tạo hộp quà mới chép từ “' + product.name + '” để đổi bánh? Hộp quà hiện tại giữ nguyên.'}">
+                        <button type="submit" class="secondary">Tạo bản sao để đổi bánh</button>
+                    </form>
+                </div>
+                <div class="pick-grid">
+                    <div th:each="c : ${recipe.components}" class="pick-card is-picked is-static"
+                         th:with="match=${options.cakes.?[id == __${c.variantId}__]}">
+                        <span class="pick-card__image">
+                            <img th:if="${!match.isEmpty() and match[0].imageUrl != null}" th:src="${match[0].imageUrl}" alt="" loading="lazy">
+                            <span class="pick-card__count" th:text="${c.quantity}">2</span>
+                        </span>
+                        <span class="pick-card__text">
+                            <strong th:text="${c.name}">Bánh</strong>
+                        </span>
+                    </div>
+                </div>
+            </th:block>
+        </section>
+    </div>
+
+    <div class="step-panel" data-step-panel="sale" id="sale" hidden>
+        <section>
+            <h2>Đóng hộp &amp; mở bán</h2>
+            <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+            <div class="pack-row" th:if="${recipe != null and !recipe.draft()}">
+                <div class="stat-line">
+                    <span class="muted">Đang có trong kho</span>
+                    <strong th:text="${sku.stock + ' hộp'}">0 hộp</strong>
+                </div>
+                <a class="button secondary" th:href="@{/admin/inventory(pack=${sku.form.id},giftBox=${product.id})}">Đóng thêm hộp ở trang Tồn kho</a>
+            </div>
+            <div class="sale-card" th:classappend="${page.onSale} ? 'is-on'">
+                <div class="sale-card__info">
+                    <strong th:text="${page.onSale} ? 'Hộp quà đang bán trên cửa hàng' : 'Hộp quà chưa bán'">Hộp quà chưa bán</strong>
+                    <span class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
+                </div>
+                <div class="sale-card__actions">
+                    <a th:if="${page.onSale}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
+                    <form th:action="@{/admin/gift-boxes/{id}/sale(id=${product.id})}" method="post"
+                          th:attr="data-confirm-message=${page.onSale ? 'Ngừng bán “' + product.name + '”? Khách sẽ không đặt được hộp quà này nữa.' : null}">
+                        <input type="hidden" name="onSale" th:value="${!page.onSale}">
+                        <button type="submit" th:classappend="${page.onSale} ? 'stop-sale'"
+                                th:text="${page.onSale} ? 'Ngừng bán' : 'Mở bán ngay'">Mở bán ngay</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+<script th:src="@{/js/pages/admin-product.js}" defer></script>
+<script th:src="@{/js/pages/admin-gift-box.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
+</body>
+</html>

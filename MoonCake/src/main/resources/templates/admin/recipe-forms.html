@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<form th:fragment="boxPicker(recipe, giftSetVariantId, productId)" th:action="@{/admin/presets}" method="post" class="box-picker">
+    <input type="hidden" name="productId" th:value="${productId}">
+    <input type="hidden" name="giftSetVariantId" th:value="${giftSetVariantId}">
+    <input type="hidden" name="id" th:if="${recipe != null}" th:value="${recipe.id}">
+    <div class="pick-grid">
+        <label th:each="box : ${options.boxes}" class="pick-card">
+            <input type="radio" name="boxId" th:value="${box.id}" required
+                   th:checked="${recipe != null and recipe.boxId == box.id}">
+            <span class="pick-card__image">
+                <img th:if="${box.imageUrl != null}" th:src="${box.imageUrl}" alt="" loading="lazy">
+            </span>
+            <span class="pick-card__text">
+                <strong th:text="${box.label}">Vỏ hộp Kim Phúc 4 bánh</strong>
+                <small th:text="${'Kho: ' + box.stock + ' vỏ'}">Kho: 98 vỏ</small>
+            </span>
+        </label>
+    </div>
+    <div class="box-picker__actions">
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${recipe == null ? 'Dùng vỏ hộp đã chọn' : 'Đổi sang vỏ hộp đã chọn'}">Dùng vỏ hộp đã chọn</button>
+    </div>
+</form>
+
+<form th:fragment="cakePicker(recipe, productId)" th:action="@{/admin/gift-boxes/{id}/cakes(id=${productId})}" method="post"
+      class="cake-picker" th:attr="data-capacity=${recipe.capacity}" data-cake-picker>
+    <input type="hidden" name="recipeId" th:value="${recipe.id}">
+    <input type="hidden" name="lock" value="false" data-lock-input>
+    <div class="pick-grid pick-grid--focus">
+        <th:block th:each="cake : ${options.cakes}" th:with="current=${recipe.components.?[variantId == __${cake.id}__]}">
+        <div th:if="${cake.selling or !current.isEmpty()}" class="pick-card pick-card--cake"
+             th:classappend="${(!current.isEmpty() ? 'is-picked ' : '') + (cake.selling ? '' : 'is-unavailable')}">
+            <span class="pick-card__image">
+                <img th:if="${cake.imageUrl != null}" th:src="${cake.imageUrl}" alt="" loading="lazy">
+                <span class="pick-card__count" data-cake-count th:text="${current.isEmpty() ? 0 : current[0].quantity}">0</span>
+            </span>
+            <span class="pick-card__text">
+                <strong th:text="${cake.label}">Bánh Kim Sa</strong>
+                <small th:text="${cake.detail}">Bánh 80g</small>
+                <small class="pick-card__stock" th:classappend="${cake.stock <= 0} ? 'is-empty'"
+                       th:text="${!cake.selling ? 'Ngừng bán' : (cake.stock <= 0 ? 'Kho đang hết' : 'Kho: ' + cake.stock)}">Kho: 120</small>
+            </span>
+            <span class="stepper">
+                <button type="button" class="stepper__button" data-step="-1" th:attr="aria-label=${'Bớt ' + cake.label}">−</button>
+                <input type="number" min="0" th:max="${recipe.capacity}" class="stepper__value" data-cake-input
+                       th:name="${'quantities[' + cake.id + ']'}"
+                       th:value="${current.isEmpty() ? 0 : current[0].quantity}"
+                       th:attr="aria-label=${'Số ' + cake.label}">
+                <button type="button" class="stepper__button" data-step="1" th:disabled="${!cake.selling}"
+                        th:attr="aria-label=${'Thêm ' + cake.label}">+</button>
+            </span>
+        </div>
+        </th:block>
+    </div>
+    <div class="picker-bar">
+        <span class="fill-meter" data-fill-meter>
+            <span class="fill-meter__track"><span class="fill-meter__bar" data-fill-bar></span></span>
+            <span class="fill-meter__text" data-fill-text>0/4 bánh</span>
+        </span>
+        <span class="picker-bar__hint" data-fill-hint></span>
+        <span class="picker-bar__actions">
+            <button type="submit" class="secondary" data-save-draft>Lưu lại, làm tiếp sau</button>
+            <button type="submit" data-save-lock
+                    th:attr="data-lock-message=${'Chốt danh sách bánh này? Sau khi chốt chỉ mở lại được khi hộp quà chưa đóng hộp, chưa bán.'}">Xong, chốt danh sách</button>
+        </span>
+    </div>
+</form>
+
+</body>
+</html>

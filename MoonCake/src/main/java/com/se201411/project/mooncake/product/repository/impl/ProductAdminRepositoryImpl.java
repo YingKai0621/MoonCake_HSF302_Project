@@ -127,10 +127,15 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
 
     @Override
     public long recipeCount(long productId) {
-        long asGiftSet = em.createQuery(
-                "select count(c) from BoxConfiguration c where c.presetVariant.product.id = :id", Long.class)
+        long ownRecipeInCarts = em.createQuery(
+                "select count(i) from CartItem i where i.configuration.presetVariant.product.id = :id", Long.class)
             .setParameter("id", productId)
             .getSingleResult();
+        long ownRecipeInOrders = em.createQuery(
+                "select count(i) from OrderItem i where i.configuration.presetVariant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        long asGiftSet = ownRecipeInCarts + ownRecipeInOrders;
         long asBox = em.createQuery(
                 "select count(c) from BoxConfiguration c where c.box.emptyBoxVariant.product.id = :id", Long.class)
             .setParameter("id", productId)
@@ -145,6 +150,13 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     @Override
     public void deleteProduct(long productId) {
         String variantIds = "select v.id from ProductVariant v where v.product.id = :id";
+        String ownRecipes = "select c.id from BoxConfiguration c where c.presetVariant.product.id = :id";
+        em.createQuery("delete from BoxConfigurationItem i where i.configuration.id in (" + ownRecipes + ")")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from BoxConfiguration c where c.presetVariant.product.id = :id")
+            .setParameter("id", productId)
+            .executeUpdate();
         em.createQuery("delete from ProductImage i where i.variant.id in (" + variantIds + ")")
             .setParameter("id", productId)
             .executeUpdate();
@@ -295,7 +307,7 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
 
     private <T> T require(Class<T> type, long id) {
         T value = em.find(type, id, LockModeType.PESSIMISTIC_WRITE);
-        if (value == null) throw new ResourceNotFoundException("Không tìm thấy dữ liệu catalog.");
+        if (value == null) throw new ResourceNotFoundException("Không tìm thấy dữ liệu, có thể đã bị xóa. Hãy tải lại trang.");
         return value;
     }
 

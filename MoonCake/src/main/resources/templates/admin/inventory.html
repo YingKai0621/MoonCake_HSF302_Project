@@ -127,7 +127,7 @@
         </form>
     </dialog>
 
-    <dialog class="modal" id="pack-dialog" th:attr="data-reopen=${dialogId == 'pack-dialog' ? 'true' : null}">
+    <dialog class="modal" id="pack-dialog" th:attr="data-reopen=${dialogId == 'pack-dialog' or packVariant != null ? 'true' : null}">
         <form th:action="@{/admin/inventory/pack}" method="post" class="modal__panel">
             <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -136,13 +136,14 @@
                 <h2>Đóng hộp quà</h2>
                 <p class="modal__error" role="alert" th:if="${dialogId == 'pack-dialog'}" th:text="${dialogError}">Lỗi</p>
                 <input type="hidden" name="operationKey" th:value="${packKey}">
+                <input th:if="${returnGiftBox != null}" type="hidden" name="returnGiftBox" th:value="${returnGiftBox}">
                 <label>Hộp quà
                     <select name="variantId" required>
                         <option value="">Chọn hộp quà…</option>
                         <th:block th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}">
                             <option th:each="b : ${allBalances}" th:if="${b.variantId == p.giftSetVariantId}"
                                     th:value="${b.variantId}"
-                                    th:selected="${dialogId == 'pack-dialog' and dialogForm.variantId == b.variantId}"
+                                    th:selected="${(dialogId == 'pack-dialog' and dialogForm.variantId == b.variantId) or packVariant == b.variantId}"
                                     th:text="${b.productName + ' · ' + b.name + ' (đang có ' + b.quantity + ' hộp)'}">Hộp quà</option>
                         </th:block>
                     </select>

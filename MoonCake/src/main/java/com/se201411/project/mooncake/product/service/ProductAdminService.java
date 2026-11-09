@@ -39,6 +39,10 @@ public interface ProductAdminService {
 
     long duplicateProduct(long productId);
 
+    void setProductVisible(long productId, boolean visible);
+
+    long setVariantOnSale(long variantId, boolean onSale);
+
     void saveVariant(VariantForm form);
 
     long saveBox(BoxForm form);

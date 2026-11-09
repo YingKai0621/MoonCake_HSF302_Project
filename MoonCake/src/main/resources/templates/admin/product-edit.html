@@ -3,7 +3,7 @@
 <head th:replace="~{admin/layout :: head('Sửa sản phẩm')}"></head>
 <body class="page-catalog">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main th:with="product=${detail.product}">
+<main th:with="product=${detail.product},hideSaleSwitch=${true}">
     <div th:replace="~{admin/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/catalog}">
@@ -18,6 +18,23 @@
         <span class="badge badge--large badge--dot" th:classappend="${'badge--' + detail.webTone}"
               th:text="${detail.webLabel}">Đang bán trên web</span>
     </div>
+
+    <section id="sale" class="sale-card" th:classappend="${product.active} ? 'is-on'">
+        <div class="sale-card__info">
+            <strong th:text="${product.active} ? 'Đang hiện trên cửa hàng' : 'Đang ẩn khỏi cửa hàng'">Đang ẩn khỏi cửa hàng</strong>
+            <span class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
+        </div>
+        <div class="sale-card__actions">
+            <a th:if="${product.active}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
+            <form th:action="@{/admin/catalog/products/{id}/visibility(id=${product.id})}" method="post"
+                  th:attr="data-confirm-message=${product.active ? 'Ẩn “' + product.name + '” khỏi cửa hàng? Khách sẽ không thấy và không đặt được sản phẩm này.' : null}">
+                <input type="hidden" name="visible" th:value="${!product.active}">
+                <button type="submit" th:classappend="${product.active} ? 'stop-sale'"
+                        th:text="${product.active} ? 'Ẩn khỏi cửa hàng' : 'Hiện trên cửa hàng'">Hiện trên cửa hàng</button>
+            </form>
+        </div>
+        <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+    </section>
 
     <nav class="jump-links" aria-label="Đi tới phần">
         <a href="#info">Thông tin</a>
@@ -40,8 +57,8 @@
 
 
         <div class="sku-list">
-            <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
-                     th:open="${#lists.size(detail.skus) <= 3 or formTarget == 'sku-' + sku.form.id}">
+            <details th:each="sku, stat : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
+                     th:open="${stat.index == 0 or formTarget == 'sku-' + sku.form.id}">
                 <summary class="sku-card__summary">
                     <span class="product-thumb">
                         <img th:if="${sku.imageUrl != null}" th:src="${sku.imageUrl}" alt="" loading="lazy" width="48" height="48">
@@ -57,6 +74,16 @@
                 </summary>
 
                 <div class="sku-card__body">
+                    <div class="sku-tools">
+                        <a class="button secondary small-button" th:href="@{/admin/inventory(receive=${sku.form.id},returnProduct=${product.id})}">Nhập kho</a>
+                        <form th:action="@{/admin/variants/{id}/sale(id=${sku.form.id})}" method="post"
+                              th:attr="data-confirm-message=${sku.form.active ? 'Ngừng bán phiên bản “' + sku.form.name + '”?' : null}">
+                            <input type="hidden" name="productId" th:value="${product.id}">
+                            <input type="hidden" name="onSale" th:value="${!sku.form.active}">
+                            <button type="submit" class="small-button" th:classappend="${sku.form.active} ? 'stop-sale' : ''"
+                                    th:text="${sku.form.active} ? 'Ngừng bán phiên bản' : 'Mở bán phiên bản'">Mở bán phiên bản</button>
+                        </form>
+                    </div>
                     <p th:replace="~{admin/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
                     <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
 
@@ -122,25 +149,16 @@
         </div>
     </section>
 
-    <section id="danger" class="danger-zone">
-        <div>
-            <h2>Xóa sản phẩm</h2>
-            <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
-            <p th:if="${detail.deleteBlocker == null}" class="muted">
-                Xóa hẳn sản phẩm cùng mọi phiên bản và ảnh. Không thể hoàn tác.
-            </p>
-            <p th:if="${detail.deleteBlocker != null}" class="muted">
-                <span th:text="${detail.deleteBlocker}">Sản phẩm đã có đơn hàng.</span>
-            </p>
-        </div>
+    <div id="danger" class="delete-row">
+        <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
         <form th:if="${detail.deleteBlocker == null}"
               th:action="@{/admin/catalog/products/{id}/delete(id=${product.id})}"
-              th:attr="data-confirm-message=${'Xóa vĩnh viễn sản phẩm “' + product.name + '”? Mọi phiên bản và ảnh của sản phẩm sẽ bị xóa và không thể hoàn tác.'}"
+              th:attr="data-confirm-message=${'Xóa vĩnh viễn sản phẩm “' + product.name + '” cùng mọi phiên bản và ảnh? Không thể hoàn tác.'}"
               method="post">
-            <button type="submit" class="danger">Xóa sản phẩm</button>
+            <button type="submit" class="danger small-button">Xóa sản phẩm</button>
         </form>
-        <a th:if="${detail.deleteBlocker != null}" class="button secondary" href="#info">Tới phần hiển thị</a>
-    </section>
+        <span th:if="${detail.deleteBlocker != null}" class="muted" th:text="${detail.deleteBlocker}">Không xóa được.</span>
+    </div>
 
     <th:block th:if="false">
         <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form"

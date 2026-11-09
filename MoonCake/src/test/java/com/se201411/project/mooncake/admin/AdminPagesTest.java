@@ -165,8 +165,10 @@ class AdminPagesTest {
             .andExpect(content().string(containsString("name=\"_active\"")));
         mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("name=\"_active\"")))
-            .andExpect(content().string(containsString("name=\"_primary\"")));
+            .andExpect(content().string(containsString("name=\"_primary\"")))
+            .andExpect(content().string(containsString("/admin/catalog/products/1/visibility")))
+            .andExpect(content().string(containsString("/admin/variants/1/sale")))
+            .andExpect(content().string(containsString("receive=1")));
     }
 
     @Test

@@ -76,6 +76,37 @@ public class AdminCatalogController {
         return "redirect:/admin/catalog";
     }
 
+    @PostMapping("/catalog/products/{id}/visibility")
+    public String visibility(@PathVariable long id, @RequestParam boolean visible, RedirectAttributes flash) {
+        try {
+            catalog.setProductVisible(id, visible);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(id), "sale", null, message(ex));
+        }
+        if (visible) {
+            flash.addFlashAttribute("success", "Sản phẩm đã hiện trên cửa hàng.");
+        } else {
+            flash.addFlashAttribute("success", "Đã ẩn sản phẩm khỏi cửa hàng.");
+        }
+        return "redirect:" + productPage(id);
+    }
+
+    @PostMapping("/variants/{id}/sale")
+    public String variantSale(@PathVariable long id, @RequestParam boolean onSale,
+                              @RequestParam long productId, RedirectAttributes flash) {
+        try {
+            catalog.setVariantOnSale(id, onSale);
+        } catch (MoonCakeException | DataAccessException ex) {
+            return failed(flash, productPage(productId), "sku-" + id, null, message(ex));
+        }
+        if (onSale) {
+            flash.addFlashAttribute("success", "Đã mở bán phiên bản.");
+        } else {
+            flash.addFlashAttribute("success", "Đã ngừng bán phiên bản.");
+        }
+        return "redirect:" + productPage(productId) + "#sku-" + id;
+    }
+
     @PostMapping("/variants/{id}/delete")
     public String deleteVariant(@PathVariable long id, @RequestParam long productId, RedirectAttributes flash) {
         try {

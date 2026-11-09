@@ -76,8 +76,8 @@
     <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
     <div th:replace="~{admin/product-forms :: productFields(${f}, ${typeLocked})}"></div>
     <div class="form-footer">
-        <input th:if="${giftBox == true}" type="hidden" name="active" th:value="${f != null and f.active}">
-        <label class="switch-card" th:unless="${giftBox == true}">
+        <input th:if="${giftBox == true or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${giftBox == true or hideSaleSwitch == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">
@@ -116,8 +116,8 @@
         </label>
     </div>
     <div class="form-footer">
-        <input th:if="${giftBox == true}" type="hidden" name="active" th:value="${f != null and f.active}">
-        <label class="switch-card" th:unless="${giftBox == true}">
+        <input th:if="${giftBox == true or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${giftBox == true or hideSaleSwitch == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">

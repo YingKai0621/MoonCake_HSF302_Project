@@ -209,6 +209,7 @@ small,
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   width: 100%;
   padding: 9px 12px;
@@ -234,7 +235,8 @@ small,
   stroke-linejoin: round;
 }
 
-.admin-nav__link:hover {
+.admin-nav__link:hover,
+button.admin-nav__link:hover {
   background: var(--sidebar-hover);
   color: var(--sidebar-text-strong);
 }

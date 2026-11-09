@@ -39,6 +39,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,6 +68,8 @@ class CustomerOrderServiceImplTest {
     @BeforeEach
     void setUp() {
         when(vnpayProcessor.method()).thenReturn(PaymentMethod.VNPAY);
+        lenient().when(vnpayProcessor.isOnline()).thenReturn(true);
+        lenient().when(vnpayProcessor.displayName()).thenReturn("VNPay");
         customerOrderService = new CustomerOrderServiceImpl(
             orderRepository,
             itemRepository,

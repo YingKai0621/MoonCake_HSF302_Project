@@ -342,9 +342,12 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     }
 
     private boolean isAwaitingOnlinePayment(SalesOrder order, Payment payment) {
+        if (payment == null) {
+            return false;
+        }
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
         return order.getStatus() == OrderStatus.PLACED
-            && payment != null
-            && payment.getMethod() == PaymentMethod.VNPAY
+            && paymentProcessor.isOnline()
             && payment.getStatus() == PaymentStatus.UNPAID;
     }
 
@@ -372,10 +375,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     }
 
     private String paymentMethodLabel(PaymentMethod method) {
-        if (method == PaymentMethod.VNPAY) {
-            return "VNPay";
-        }
-        return "COD";
+        return paymentProcessorRegistry.forMethod(method).displayName();
     }
 
     private String paymentStatusLabel(PaymentStatus status) {

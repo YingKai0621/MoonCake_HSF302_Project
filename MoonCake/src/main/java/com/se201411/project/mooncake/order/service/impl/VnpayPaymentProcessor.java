@@ -70,6 +70,16 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
+    public String displayName() {
+        return "VNPay";
+    }
+
+    @Override
+    public boolean isOnline() {
+        return true;
+    }
+
+    @Override
     public boolean isAvailable() {
         return gateway.enabled();
     }

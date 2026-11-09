@@ -12,6 +12,10 @@ import java.util.Optional;
 public interface PaymentProcessor {
     PaymentMethod method();
 
+    String displayName();
+
+    boolean isOnline();
+
     boolean isAvailable();
 
     Optional<String> startPayment(SalesOrder order, String clientIp);

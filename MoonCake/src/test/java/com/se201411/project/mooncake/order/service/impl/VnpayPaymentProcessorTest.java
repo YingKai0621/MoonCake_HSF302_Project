@@ -8,6 +8,7 @@ import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
+import com.se201411.project.mooncake.order.dto.VnpayAttemptView;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
@@ -423,7 +424,7 @@ class VnpayPaymentProcessorTest {
         when(order.getTotalAmount()).thenReturn(AMOUNT);
         when(order.getStatus()).thenReturn(orderStatus);
         when(order.getOrderCode()).thenReturn("MC-1");
-        when(vnpayRepository.findAttempt("ref")).thenReturn(new VnpayRepository.Attempt(
+        when(vnpayRepository.findAttempt("ref")).thenReturn(new VnpayAttemptView(
             "ref",
             1L,
             AMOUNT,
@@ -516,8 +517,8 @@ class VnpayPaymentProcessorTest {
         return payment;
     }
 
-    private VnpayRepository.Attempt pendingCreatedAt(int hour, int minute, int second) {
-        return new VnpayRepository.Attempt(
+    private VnpayAttemptView pendingCreatedAt(int hour, int minute, int second) {
+        return new VnpayAttemptView(
             "ref",
             7L,
             AMOUNT,
@@ -526,8 +527,8 @@ class VnpayPaymentProcessorTest {
         );
     }
 
-    private VnpayRepository.Attempt pendingCreatedAt(int hour, int minute) {
-        return new VnpayRepository.Attempt(
+    private VnpayAttemptView pendingCreatedAt(int hour, int minute) {
+        return new VnpayAttemptView(
             "ref",
             7L,
             AMOUNT,

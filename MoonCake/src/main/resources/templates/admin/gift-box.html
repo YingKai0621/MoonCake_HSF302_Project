@@ -162,26 +162,13 @@
     <div class="step-panel" data-step-panel="pack" id="pack" hidden>
         <section>
             <h2>Đóng hộp</h2>
-            <p th:replace="~{admin/product-forms :: alert('pack')}"></p>
             <p th:if="${recipe == null or recipe.draft()}" class="muted">Khóa danh sách bánh ở bước 2 trước.</p>
             <th:block th:if="${recipe != null and !recipe.draft()}">
                 <div class="stat-line">
                     <span class="muted">Đang có trong kho</span>
                     <strong th:text="${sku.stock + ' hộp'}">0 hộp</strong>
                 </div>
-                <form th:action="@{/admin/inventory/pack}" method="post" class="recipe-add">
-                    <input type="hidden" name="giftBoxId" th:value="${product.id}">
-                    <input type="hidden" name="operationKey" th:value="${packKey}">
-                    <input type="hidden" name="variantId" th:value="${sku.form.id}">
-                    <label>Số hộp cần đóng
-                        <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 10"
-                               data-min-error="Số hộp phải lớn hơn 0.">
-                    </label>
-                    <label>Ghi chú
-                        <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Đóng hộp cho đợt giao 15/9">
-                    </label>
-                    <button type="submit" data-loading-text="Đang đóng hộp…">Đóng hộp</button>
-                </form>
+                <a class="button" th:href="@{/admin/inventory(pack=${sku.form.id})}">Đóng hộp ở trang Tồn kho</a>
             </th:block>
         </section>
     </div>

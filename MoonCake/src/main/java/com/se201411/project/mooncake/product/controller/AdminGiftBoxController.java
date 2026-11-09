@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.UUID;
-
 @Controller
 @RequestMapping("/admin/gift-boxes")
 public class AdminGiftBoxController {
@@ -40,7 +38,7 @@ public class AdminGiftBoxController {
 
     @GetMapping("/new")
     public String newGiftBox(Model model) {
-        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("categories", catalog.categoriesFor(true));
         model.addAttribute("productTypes", catalog.productTypes());
         model.addAttribute("giftBox", true);
         return "admin/product-new";
@@ -49,10 +47,9 @@ public class AdminGiftBoxController {
     @GetMapping("/{id}")
     public String page(@PathVariable long id, Model model) {
         model.addAttribute("page", giftBoxes.page(id));
-        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("categories", catalog.categoriesFor(true));
         model.addAttribute("productTypes", catalog.productTypes());
         model.addAttribute("options", recipes.presetOptions());
-        model.addAttribute("packKey", UUID.randomUUID().toString());
         return "admin/gift-box";
     }
 

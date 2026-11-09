@@ -27,6 +27,8 @@ public interface ProductAdminService {
 
     List<CategoryForm> categories();
 
+    List<CategoryForm> categoriesFor(boolean giftBoxes);
+
     List<ProductTypeOption> productTypes();
 
     void saveCategory(CategoryForm form);

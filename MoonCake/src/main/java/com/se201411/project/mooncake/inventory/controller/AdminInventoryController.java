@@ -29,7 +29,8 @@ public class AdminInventoryController {
     }
 
     @GetMapping
-    public String inventory(@RequestParam(defaultValue = "ALL") StockFilter filter, Model model) {
+    public String inventory(@RequestParam(defaultValue = "ALL") StockFilter filter,
+                            @RequestParam(required = false) Long pack, Model model) {
         model.addAttribute("balances", inventory.balances(filter));
         model.addAttribute("tabs", inventory.stockTabs(filter));
         model.addAttribute("filter", filter);
@@ -38,6 +39,7 @@ public class AdminInventoryController {
         model.addAttribute("receiveKey", UUID.randomUUID().toString());
         model.addAttribute("adjustKey", UUID.randomUUID().toString());
         model.addAttribute("packKey", UUID.randomUUID().toString());
+        model.addAttribute("packVariant", pack);
         return "admin/inventory";
     }
 
@@ -75,30 +77,14 @@ public class AdminInventoryController {
     }
 
     @PostMapping("/pack")
-    public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
-                       @RequestParam(required = false) Long giftBoxId, RedirectAttributes flash) {
-        String error = null;
+    public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            error = FormErrors.first(result);
-        } else {
-            try {
-                packing.pack(form);
-            } catch (MoonCakeException ex) {
-                error = ex.getMessage();
-            }
+            return reopen(flash, "pack-dialog", form, FormErrors.first(result));
         }
-        if (giftBoxId != null) {
-            String page = "redirect:/admin/gift-boxes/" + giftBoxId + "#pack";
-            if (error != null) {
-                flash.addFlashAttribute("formTarget", "pack");
-                flash.addFlashAttribute("formError", error);
-                return page;
-            }
-            flash.addFlashAttribute("success", "Đã đóng " + form.quantity() + " hộp.");
-            return page;
-        }
-        if (error != null) {
-            return reopen(flash, "pack-dialog", form, error);
+        try {
+            packing.pack(form);
+        } catch (MoonCakeException ex) {
+            return reopen(flash, "pack-dialog", form, ex.getMessage());
         }
         return done(flash);
     }

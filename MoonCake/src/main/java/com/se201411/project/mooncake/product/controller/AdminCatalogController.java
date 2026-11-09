@@ -43,7 +43,7 @@ public class AdminCatalogController {
 
     @GetMapping("/catalog/products/new")
     public String newProduct(Model model) {
-        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("categories", catalog.categoriesFor(false));
         model.addAttribute("productTypes", catalog.productTypes());
         return "admin/product-new";
     }
@@ -55,7 +55,7 @@ public class AdminCatalogController {
             return "redirect:/admin/gift-boxes/" + id;
         }
         model.addAttribute("detail", detail);
-        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("categories", catalog.categoriesFor(false));
         model.addAttribute("productTypes", catalog.productTypes());
         return "admin/product-edit";
     }

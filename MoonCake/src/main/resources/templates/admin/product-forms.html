@@ -9,7 +9,8 @@
     <label class="span-2">Tên sản phẩm
         <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="220" data-slug-source>
     </label>
-    <label>Danh mục
+    <input th:if="${#lists.size(categories) == 1}" type="hidden" name="categoryId" th:value="${categories[0].id}">
+    <label th:unless="${#lists.size(categories) == 1}">Danh mục
         <select name="categoryId" required>
             <option value="">Chọn danh mục…</option>
             <option th:each="category : ${categories}"

@@ -227,6 +227,33 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<CategoryForm> categoriesFor(boolean giftBoxes) {
+        access.requireAdmin();
+        Set<Long> withGiftBoxes = new HashSet<>();
+        Set<Long> withOtherProducts = new HashSet<>();
+        for (Product product : repo.products()) {
+            long categoryId = product.getCategory().getId();
+            if (product.getProductType() == ProductType.GIFT_SET) {
+                withGiftBoxes.add(categoryId);
+            } else {
+                withOtherProducts.add(categoryId);
+            }
+        }
+        List<CategoryForm> result = new ArrayList<>();
+        for (CategoryForm category : categoryForms()) {
+            boolean empty = !withGiftBoxes.contains(category.id()) && !withOtherProducts.contains(category.id());
+            boolean matches = giftBoxes
+                ? withGiftBoxes.contains(category.id())
+                : withOtherProducts.contains(category.id());
+            if (matches || empty) {
+                result.add(category);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public List<ProductTypeOption> productTypes() {
         List<ProductTypeOption> options = new ArrayList<>();
         for (ProductType type : List.of(ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {

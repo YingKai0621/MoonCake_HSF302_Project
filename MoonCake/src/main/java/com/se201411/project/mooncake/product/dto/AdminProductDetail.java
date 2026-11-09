@@ -14,6 +14,7 @@ public record AdminProductDetail(
     boolean emptyBox,
     String webLabel,
     String webTone,
+    String deleteBlocker,
     List<Sku> skus,
     List<BoxForm> boxes
 ) {

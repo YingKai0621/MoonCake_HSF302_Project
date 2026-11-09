@@ -104,6 +104,7 @@ class AdminPagesTest {
                 false,
                 "Đang bán trên web",
                 "success",
+                null,
                 List.of(new AdminProductDetail.Sku(
                         new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
                         "/images/cake.png",
@@ -223,6 +224,24 @@ class AdminPagesTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog/products/4#sku-2"));
         verify(catalog).uploadImage(any());
+    }
+
+    @Test
+    void deletingProductReturnsToListWithItsName() throws Exception {
+        when(catalog.deleteProduct(5)).thenReturn("Bánh thử");
+        mvc.perform(post("/admin/catalog/products/5/delete")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog"))
+            .andExpect(flash().attribute("success", "Đã xóa sản phẩm Bánh thử."));
+    }
+
+    @Test
+    void editPageOffersDeleteOnlyWithoutBlocker() throws Exception {
+        mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/admin/catalog/products/1/delete")));
     }
 
     @Test

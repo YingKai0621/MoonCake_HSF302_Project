@@ -206,6 +206,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             product.getProductType() == ProductType.EMPTY_BOX,
             productStatus.label(),
             productStatus.tone(),
+            deleteBlocker(productId),
             skus,
             boxes
         );
@@ -401,6 +402,38 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         String imageUrl = imageStorage.store(f.imageFile());
         ImageForm image = new ImageForm(null, f.variantId(), imageUrl, f.altText(), f.sortOrder(), f.primary());
         return saveImage(image);
+    }
+
+    @Override
+    public String deleteProduct(long productId) {
+        access.requireAdmin();
+        Product product = repo.product(productId);
+        String blocker = deleteBlocker(productId);
+        if (blocker != null) {
+            throw new BusinessRuleViolationException(blocker);
+        }
+        String name = product.getName();
+        repo.deleteProduct(productId);
+        return name;
+    }
+
+    private String deleteBlocker(long productId) {
+        long orders = repo.orderCount(productId);
+        if (orders > 0) {
+            return "Sản phẩm đã có trong " + orders + " đơn hàng nên không xóa được.";
+        }
+        long cartItems = repo.cartItemCount(productId);
+        if (cartItems > 0) {
+            return "Sản phẩm đang nằm trong giỏ hàng của " + cartItems + " khách nên không xóa được.";
+        }
+        long recipes = repo.recipeCount(productId);
+        if (recipes > 0) {
+            return "Sản phẩm đang được dùng trong công thức hộp quà hoặc hộp khách tự chọn nên không xóa được.";
+        }
+        if (repo.stockHistoryCount(productId) > 0 || repo.stockOnHand(productId) > 0) {
+            return "Sản phẩm đã có lịch sử nhập xuất kho nên không xóa được.";
+        }
+        return null;
     }
 
     private Map<Long, Integer> stockByVariant() {

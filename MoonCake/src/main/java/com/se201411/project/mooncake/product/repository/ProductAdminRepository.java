@@ -23,6 +23,18 @@ public interface ProductAdminRepository {
 
     List<Box> boxesOf(long productId);
 
+    long orderCount(long productId);
+
+    long cartItemCount(long productId);
+
+    long stockHistoryCount(long productId);
+
+    long stockOnHand(long productId);
+
+    long recipeCount(long productId);
+
+    void deleteProduct(long productId);
+
     Category category(long id);
 
     Product product(long id);

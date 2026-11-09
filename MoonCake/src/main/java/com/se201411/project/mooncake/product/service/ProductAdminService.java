@@ -44,4 +44,6 @@ public interface ProductAdminService {
     long uploadImage(ImageUploadForm form);
 
     long removeImage(long imageId);
+
+    String deleteProduct(long productId);
 }

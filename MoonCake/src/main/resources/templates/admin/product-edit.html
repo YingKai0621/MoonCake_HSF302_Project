@@ -164,6 +164,27 @@
         </div>
     </section>
 
+    <section id="danger" class="danger-zone">
+        <div>
+            <h2>Xóa sản phẩm</h2>
+            <p th:if="${detail.deleteBlocker == null}" class="muted">
+                Sản phẩm chưa phát sinh đơn hàng, giỏ hàng hay nhập xuất kho nên có thể xóa hẳn.
+                Mọi phiên bản và ảnh của sản phẩm cũng bị xóa theo. Không thể hoàn tác.
+            </p>
+            <p th:if="${detail.deleteBlocker != null}" class="muted">
+                <span th:text="${detail.deleteBlocker}">Sản phẩm đã có đơn hàng.</span>
+                Hãy tắt "Hiển thị trên cửa hàng" ở phần Thông tin để ẩn sản phẩm khỏi cửa hàng.
+            </p>
+        </div>
+        <form th:if="${detail.deleteBlocker == null}"
+              th:action="@{/admin/catalog/products/{id}/delete(id=${product.id})}"
+              th:attr="data-confirm-message=${'Xóa vĩnh viễn sản phẩm “' + product.name + '”? Mọi phiên bản và ảnh của sản phẩm sẽ bị xóa và không thể hoàn tác.'}"
+              method="post">
+            <button type="submit" class="danger">Xóa sản phẩm</button>
+        </form>
+        <a th:if="${detail.deleteBlocker != null}" class="button secondary" href="#info">Tới phần hiển thị</a>
+    </section>
+
     <th:block th:if="false">
         <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form">
             <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">

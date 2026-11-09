@@ -2490,3 +2490,32 @@ input.switch:focus-visible {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+.danger-zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-color: var(--danger);
+}
+
+.danger-zone h2 {
+  margin-bottom: 6px;
+  color: var(--danger);
+}
+
+.danger-zone p {
+  max-width: 720px;
+  margin: 0;
+}
+
+.danger-zone .danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.danger-zone .danger:hover {
+  filter: brightness(1.08);
+}

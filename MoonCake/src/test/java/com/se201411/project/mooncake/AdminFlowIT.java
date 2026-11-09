@@ -147,6 +147,35 @@ class AdminFlowIT {
     }
 
     @Test
+    void deletesUnusedProductWithItsSkuImageAndBalance() {
+        tx.executeWithoutResult(status -> {
+            String key = "it-delete-" + UUID.randomUUID();
+            catalog.saveCategory(new CategoryForm(null, key, key, true));
+            long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
+            long product = catalog.createProduct(new NewProductForm(
+                category, ProductType.MOONCAKE, key, key, "Test product", null, null, null, null, false,
+                key, key, BigDecimal.TEN, "/images/products/test.png", null));
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_IMAGE i JOIN dbo.PRODUCT_VARIANT v ON v.variant_id=i.variant_id WHERE v.product_id=?", Integer.class, product)).isEqualTo(1);
+
+            catalog.deleteProduct(product);
+
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT WHERE product_id=?", Integer.class, product)).isZero();
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_VARIANT WHERE sku=?", Integer.class, key)).isZero();
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
+    void refusesToDeleteProductWithStockHistory() {
+        tx.executeWithoutResult(status -> {
+            long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT_VARIANT WHERE sku=?", Long.class, "MC-KSPM-080");
+            assertThatThrownBy(() -> catalog.deleteProduct(product)).isInstanceOf(RuntimeException.class);
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT WHERE product_id=?", Integer.class, product)).isEqualTo(1);
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
     void draftRecipeCanBecomeReadyAndThenRejectsCompositionChanges() {
         tx.executeWithoutResult(status -> {
             String key = "it-preset-" + UUID.randomUUID();

@@ -80,6 +80,93 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
+    public long orderCount(long productId) {
+        long direct = em.createQuery(
+                "select count(distinct i.order.id) from OrderItem i where i.variant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        long asComponent = em.createQuery(
+                "select count(c) from OrderItemComponent c where c.componentVariant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        return direct + asComponent;
+    }
+
+    @Override
+    public long cartItemCount(long productId) {
+        return em.createQuery(
+                "select count(i) from CartItem i where i.variant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+    }
+
+    @Override
+    public long stockHistoryCount(long productId) {
+        long movements = em.createQuery(
+                "select count(m) from StockMovement m where m.variant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        long batches = em.createQuery(
+                "select count(b) from StockBatch b where b.variant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        return movements + batches;
+    }
+
+    @Override
+    public long stockOnHand(long productId) {
+        Long total = em.createQuery(
+                "select sum(b.availableQuantity) from InventoryBalance b where b.variant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        if (total == null) {
+            return 0;
+        }
+        return total;
+    }
+
+    @Override
+    public long recipeCount(long productId) {
+        long asGiftSet = em.createQuery(
+                "select count(c) from BoxConfiguration c where c.presetVariant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        long asBox = em.createQuery(
+                "select count(c) from BoxConfiguration c where c.box.emptyBoxVariant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        long asCake = em.createQuery(
+                "select count(i) from BoxConfigurationItem i where i.mooncakeVariant.product.id = :id", Long.class)
+            .setParameter("id", productId)
+            .getSingleResult();
+        return asGiftSet + asBox + asCake;
+    }
+
+    @Override
+    public void deleteProduct(long productId) {
+        String variantIds = "select v.id from ProductVariant v where v.product.id = :id";
+        em.createQuery("delete from ProductImage i where i.variant.id in (" + variantIds + ")")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from InventoryBalance b where b.variantId in (" + variantIds + ")")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from Box b where b.emptyBoxVariant.id in (" + variantIds + ")")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from ProductVariant v where v.product.id = :id")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from ProductVideo v where v.product.id = :id")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.createQuery("delete from Product p where p.id = :id")
+            .setParameter("id", productId)
+            .executeUpdate();
+        em.clear();
+    }
+
+    @Override
     public Category category(long id) {
         return require(Category.class, id);
     }

@@ -264,5 +264,9 @@
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/order-detail.js}" src="/js/pages/order-detail.js"></script>
   <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <th:block th:if="${celebrate}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script th:src="@{/js/celebrate.js}" src="/js/celebrate.js"></script>
+  </th:block>
 </body>
 </html>

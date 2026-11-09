@@ -81,6 +81,7 @@ public class VnpayController {
         }
         if (result.paid()) {
             flash.addFlashAttribute("successMessage", "Thanh toán thành công. Cửa hàng sẽ sớm chuẩn bị đơn hàng của bạn.");
+            flash.addFlashAttribute("celebrate", true);
         } else if (result.completedOnGateway()) {
             flash.addFlashAttribute("successMessage", "Đang chờ VNPay xác nhận thanh toán. Vui lòng tải lại trang sau ít phút.");
         } else {

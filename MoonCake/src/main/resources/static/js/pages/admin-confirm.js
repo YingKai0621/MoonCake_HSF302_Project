@@ -1,4 +1,7 @@
 function confirmationMessage(form) {
+  if (form.dataset.confirmMessage) {
+    return form.dataset.confirmMessage;
+  }
   const targetInput = form.querySelector('input[name="target"]');
   const target = targetInput === null ? "" : targetInput.value;
   const action = form.action;
@@ -53,6 +56,9 @@ function setUpConfirmations() {
   });
 
   document.addEventListener("submit", function (event) {
+    if (event.defaultPrevented) {
+      return;
+    }
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) {
       return;

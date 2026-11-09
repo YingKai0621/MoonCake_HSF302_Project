@@ -200,7 +200,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         List<Payment> payments = paymentRepository.findByOrderId(orderId);
         if (payments.size() != 1) {
             throw new BusinessRuleViolationException(
-                "Đơn phải có đúng một bản ghi thanh toán; không thể hủy."
+                "Đơn phải có đúng một bản ghi thanh toán. Không thể hủy."
             );
         }
         return payments.get(0);
@@ -215,7 +215,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             if (item.getInventorySourceSnapshot() == InventorySource.STOCKED_SKU) {
                 if (item.getVariant() == null) {
                     throw new BusinessRuleViolationException(
-                        "Đơn thiếu SKU snapshot; không thể hoàn kho."
+                        "Đơn thiếu SKU snapshot. Không thể hoàn kho."
                     );
                 }
                 addQuantity(
@@ -229,7 +229,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             List<OrderItemComponent> components = componentsByItem.get(item.getId());
             if (components == null || components.isEmpty()) {
                 throw new BusinessRuleViolationException(
-                    "Đơn thiếu snapshot thành phần; không thể hoàn kho."
+                    "Đơn thiếu snapshot thành phần. Không thể hoàn kho."
                 );
             }
 
@@ -248,7 +248,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
 
         if (quantities.isEmpty()) {
             throw new BusinessRuleViolationException(
-                "Đơn thiếu sản phẩm; không thể hoàn kho."
+                "Đơn thiếu sản phẩm. Không thể hoàn kho."
             );
         }
 

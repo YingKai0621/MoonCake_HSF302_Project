@@ -147,7 +147,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         List<Payment> orderPayments = payments.findByOrderId(orderId);
         if (orderPayments.size() != 1) {
             throw new BusinessRuleViolationException(
-                "Đơn phải có đúng một bản ghi thanh toán; không thể chuyển trạng thái."
+                "Đơn phải có đúng một bản ghi thanh toán. Không thể chuyển trạng thái."
             );
         }
         return orderPayments.get(0);

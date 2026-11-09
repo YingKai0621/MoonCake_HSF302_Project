@@ -30,6 +30,7 @@
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
   <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
   <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
 </head>
 <body class="min-h-screen flex flex-col justify-between">
   <header th:replace="~{fragments/header :: header('orders')}"></header>
@@ -287,5 +288,6 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script th:src="@{/js/celebrate.js}" src="/js/celebrate.js"></script>
   </th:block>
+  <script th:src="@{/js/form-validation.js}" defer></script>
 </body>
 </html>

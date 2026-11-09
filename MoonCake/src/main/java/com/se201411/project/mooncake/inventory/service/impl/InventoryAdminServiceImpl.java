@@ -86,7 +86,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         long admin = access.requireAdmin();
         validation.validate(f);
         if (f.quantity() == 0 || (type == StockMovementType.RECEIVE && f.quantity() < 0))
-            throw new BusinessRuleViolationException("Số lượng nhập phải dương; điều chỉnh phải khác 0.");
+            throw new BusinessRuleViolationException("Số lượng nhập phải dương. Điều chỉnh phải khác 0.");
         if (repo.isGiftSet(f.variantId())) presets.requireReadyPreset(f.variantId());
         String group = type + ":" + f.operationKey();
         requireNew(group);
@@ -121,7 +121,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     private void requireNew(String group) {
         repo.lockOperation(group);
         if (repo.operationExists(group))
-            throw new BusinessRuleViolationException("Thao tác đã được ghi nhận; không thay đổi tồn lần nữa.");
+            throw new BusinessRuleViolationException("Thao tác đã được ghi nhận. Không thay đổi tồn lần nữa.");
     }
 
     private void apply(long variant, long admin, int delta, StockMovementType type, String reason, String group, String key) {

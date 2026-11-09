@@ -33,6 +33,7 @@
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
   <link rel="stylesheet" th:href="@{/css/pages/custom-box.css}" href="/css/pages/custom-box.css">
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
 </head>
 <body class="min-h-screen flex flex-col bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('custom-box')}"></header>
@@ -203,5 +204,6 @@
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/custom-box.js}" src="/js/pages/custom-box.js"></script>
   <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
 </body>
 </html>

@@ -15,6 +15,44 @@ public interface ProductAdminRepository {
 
     List<ProductImage> images();
 
+    Product productForView(long id);
+
+    List<ProductVariant> variantsOf(long productId);
+
+    List<ProductImage> imagesOf(long productId);
+
+    List<Box> boxesOf(long productId);
+
+    long orderCount(long productId);
+
+    long cartItemCount(long productId);
+
+    long stockHistoryCount(long productId);
+
+    long stockOnHand(long productId);
+
+    long recipeCount(long productId);
+
+    void deleteProduct(long productId);
+
+    long variantOrderCount(long variantId);
+
+    long variantCartCount(long variantId);
+
+    long variantRecipeCount(long variantId);
+
+    long variantStockHistoryCount(long variantId);
+
+    long variantStockOnHand(long variantId);
+
+    void deleteVariant(long variantId);
+
+    boolean skuExists(String sku);
+
+    boolean productSlugUsed(String slug, Long exceptProductId);
+
+    boolean categorySlugUsed(String slug, Long exceptCategoryId);
+
     Category category(long id);
 
     Product product(long id);

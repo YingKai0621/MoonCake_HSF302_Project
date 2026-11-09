@@ -29,6 +29,7 @@
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
   <link rel="stylesheet" th:href="@{/css/pages/checkout.css}" href="/css/pages/checkout.css">
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
 </head>
 <body class="min-h-screen flex flex-col justify-between">
   <header th:replace="~{fragments/header :: header('checkout')}"></header>
@@ -77,7 +78,7 @@
             <div>
               <label for="recipientPhone" class="block text-sm mb-2">Số điện thoại <span class="text-gold">*</span></label>
               <input id="recipientPhone" type="tel" th:field="*{recipientPhone}"
-                     inputmode="numeric" maxlength="10" pattern="0[0-9]{9}"
+                     inputmode="numeric" maxlength="10" pattern="0[0-9]{9}" data-error="Số điện thoại gồm 10 số và bắt đầu bằng 0."
                      class="w-full px-4 py-3 rounded" autocomplete="tel" required>
               <p th:if="${#fields.hasErrors('recipientPhone')}" th:errors="*{recipientPhone}"
                  class="text-xs text-red-300 mt-1">Số điện thoại không hợp lệ</p>
@@ -221,5 +222,6 @@
   <script th:src="@{/js/pages/checkout-address.js}" src="/js/pages/checkout-address.js"></script>
   <script th:src="@{/js/pages/checkout-payment.js}" src="/js/pages/checkout-payment.js"></script>
   <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
 </body>
 </html>

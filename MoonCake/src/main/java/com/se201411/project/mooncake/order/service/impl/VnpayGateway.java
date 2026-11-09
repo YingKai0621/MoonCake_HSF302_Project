@@ -170,7 +170,7 @@ public class VnpayGateway {
             return response;
         } catch (RestClientException exception) {
             throw new BusinessRuleViolationException(
-                "Chưa kết nối được VNPay. Vui lòng kiểm tra lại sau; không cần đặt đơn mới."
+                "Chưa kết nối được VNPay. Vui lòng kiểm tra lại sau. Không cần đặt đơn mới."
             );
         }
     }

@@ -47,6 +47,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
@@ -90,6 +92,28 @@ class AdminPagesTest {
                 List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true)),
                 List.of(new BoxForm(1L, 1, 4, null, null, true)),
                 List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true))));
+        when(catalog.productRows(null)).thenReturn(List.of(new AdminProductRow(
+                1L, "Cake", "Category", "Bánh lẻ", 1, BigDecimal.TEN, BigDecimal.TEN, "/images/cake.png", "Đang bán trên web", "success")));
+        when(catalog.productTabs(null)).thenReturn(List.of(new AdminProductTab(null, "Tất cả", 1, true)));
+        when(catalog.categories()).thenReturn(List.of(new CategoryForm(1L, "Category", "category", true)));
+        when(catalog.productTypes()).thenReturn(List.of(new ProductTypeOption(ProductType.MOONCAKE, "Bánh lẻ")));
+        when(catalog.productDetail(1)).thenReturn(new AdminProductDetail(
+                new ProductForm(1L, 1, ProductType.MOONCAKE, "Cake", "cake", "Description", null, null, null, null, true),
+                "Bánh lẻ",
+                true,
+                false,
+                "Đang bán trên web",
+                "success",
+                null,
+                List.of(new AdminProductDetail.Sku(
+                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
+                        "/images/cake.png",
+                        List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)),
+                        12,
+                        "Đang bán trên web",
+                        "success",
+                        null)),
+                List.of()));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of())));
@@ -102,7 +126,7 @@ class AdminPagesTest {
 
     @Test
     void rendersAllPagesWithRealThymeleafAndCsrf() throws Exception {
-        for (String path : List.of("/admin/catalog", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
+        for (String path : List.of("/admin/catalog", "/admin/catalog/products/new", "/admin/catalog/products/1", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
             mvc.perform(get(path).with(user("admin").roles("ADMIN")))
                     .andExpect(status().isOk()).andExpect(content().string(containsString("_csrf")));
     }
@@ -129,8 +153,123 @@ class AdminPagesTest {
     void catalogRendersMarkersForUncheckedCheckboxes() throws Exception {
         mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
+            .andExpect(content().string(containsString("name=\"_active\"")));
+        mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
             .andExpect(content().string(containsString("name=\"_active\"")))
             .andExpect(content().string(containsString("name=\"_primary\"")));
+    }
+
+    @Test
+    void productListLinksToSeparateEditPage() throws Exception {
+        mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/admin/catalog/products/1")))
+            .andExpect(content().string(containsString("Đang bán trên web")))
+            .andExpect(content().string(containsString("tabs__count")));
+    }
+
+    @Test
+    void creatingProductWithPriceAndImageRedirectsToEditPage() throws Exception {
+        when(catalog.createProduct(any())).thenReturn(9L);
+        mvc.perform(post("/admin/catalog/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "GIFT_SET")
+                .param("name", "Hộp quà mới")
+                .param("slug", "hop-qua-moi")
+                .param("shortDescription", "Mô tả")
+                .param("_active", "on")
+                .param("variantName", "Hộp 4 bánh")
+                .param("unitPrice", "450000")
+                .param("sku", "GIFT-NEW")
+                .param("imageUrl", "/images/products/gift.png"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/9"));
+        verify(catalog).createProduct(new NewProductForm(
+            1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
+    }
+
+    @Test
+    void creatingProductRejectsBadImageUrl() throws Exception {
+        mvc.perform(post("/admin/catalog/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "GIFT_SET")
+                .param("name", "Hộp quà mới")
+                .param("slug", "hop-qua-moi")
+                .param("shortDescription", "Mô tả")
+                .param("_active", "on")
+                .param("variantName", "Hộp 4 bánh")
+                .param("unitPrice", "450000")
+                .param("sku", "GIFT-NEW")
+                .param("imageUrl", "javascript:alert(1)"))
+            .andExpect(status().isBadRequest());
+        verify(catalog, never()).createProduct(any());
+    }
+
+    @Test
+    void uploadingImageReturnsToTheSkuOnItsProductPage() throws Exception {
+        when(catalog.uploadImage(any())).thenReturn(4L);
+        MockMultipartFile photo = new MockMultipartFile("imageFile", "cake.png", "image/png", new byte[] {1, 2, 3});
+        mvc.perform(multipart("/admin/images/upload")
+                .file(photo)
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "2")
+                .param("sortOrder", "1")
+                .param("_primary", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/4#sku-2"));
+        verify(catalog).uploadImage(any());
+    }
+
+    @Test
+    void deletingProductReturnsToListWithItsName() throws Exception {
+        when(catalog.deleteProduct(5)).thenReturn("Bánh thử");
+        mvc.perform(post("/admin/catalog/products/5/delete")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog"))
+            .andExpect(flash().attribute("success", "Đã xóa sản phẩm Bánh thử."));
+    }
+
+    @Test
+    void deletingVariantReturnsToItsProduct() throws Exception {
+        when(catalog.deleteVariant(8)).thenReturn(3L);
+        mvc.perform(post("/admin/variants/8/delete")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/3#skus"));
+    }
+
+    @Test
+    void editPageOffersDeleteOnlyWithoutBlocker() throws Exception {
+        mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/admin/catalog/products/1/delete")))
+            .andExpect(content().string(containsString("/admin/variants/1/delete")));
+    }
+
+    @Test
+    void savingProductRedirectsToItsEditPage() throws Exception {
+        when(catalog.saveProduct(any())).thenReturn(7L);
+        mvc.perform(post("/admin/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "MOONCAKE")
+                .param("name", "New Product")
+                .param("slug", "new-product")
+                .param("shortDescription", "Description")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/7"));
     }
 
     @Test

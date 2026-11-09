@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="productFields(f, typeLocked)" class="form-grid">
+    <label class="span-2">Tên sản phẩm
+        <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="220" data-slug-source>
+    </label>
+    <label>Danh mục
+        <select name="categoryId" required>
+            <option value="">Chọn danh mục…</option>
+            <option th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name}"
+                    th:selected="${f != null and f.categoryId == category.id}">Danh mục</option>
+        </select>
+    </label>
+    <label>Loại sản phẩm
+        <select name="productType" required th:if="${!typeLocked}">
+            <option th:each="option : ${productTypes}"
+                    th:value="${option.value}"
+                    th:text="${option.label}"
+                    th:selected="${f != null and f.productType == option.value}">Hộp quà</option>
+        </select>
+        <th:block th:if="${typeLocked}">
+            <input type="hidden" name="productType" th:value="${f.productType}">
+            <input type="text" th:value="${detail.typeLabel}" readonly>
+            <small class="field-hint">Đã có SKU nên không đổi được loại.</small>
+        </th:block>
+    </label>
+    <label class="span-2">Đường dẫn trên web
+        <input type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="180"
+               pattern="[a-z0-9]+(-[a-z0-9]+)*" data-error="Chỉ dùng chữ thường không dấu, số và dấu gạch ngang, ví dụ: banh-nuong." data-slug-target>
+    </label>
+    <label class="span-2">Mô tả ngắn
+        <textarea name="shortDescription" required maxlength="600" rows="3" th:text="${f != null ? f.shortDescription : ''}"></textarea>
+    </label>
+    <label class="span-2">Mô tả chi tiết
+        <textarea name="detailedDescription" rows="5" th:text="${f != null ? f.detailedDescription : ''}"></textarea>
+    </label>
+    <label class="span-2">Thành phần chính
+        <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
+    </label>
+    <label>Hạn sử dụng
+        <textarea name="shelfLifeInfo" maxlength="350" rows="2" placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất"
+                  th:text="${f != null ? f.shelfLifeInfo : ''}"></textarea>
+    </label>
+    <label>Cách bảo quản
+        <textarea name="storageGuidance" maxlength="600" rows="2" placeholder="Ví dụ: Nơi khô ráo, tránh nắng"
+                  th:text="${f != null ? f.storageGuidance : ''}"></textarea>
+    </label>
+</div>
+
+<form th:fragment="product(f, typeLocked)" th:action="@{/admin/products}" method="post" class="product-form" data-slug-form>
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <div th:replace="~{admin/product-forms :: productFields(${f}, ${typeLocked})}"></div>
+    <div class="form-footer">
+        <label class="switch-card">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
+            <span class="switch-card__text">
+                <strong>Hiển thị trên cửa hàng</strong>
+            </span>
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Tạo sản phẩm' : 'Lưu thông tin'}">Lưu</button>
+    </div>
+</form>
+
+<form th:fragment="sku(f, productId)" th:action="@{/admin/variants}" method="post" class="product-form">
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <input type="hidden" name="productId" th:value="${productId}">
+    <div class="form-grid" th:with="cake=${detail.product.productType.name() == 'MOONCAKE'}">
+        <label>Mã SKU
+            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${f != null}"
+                   pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
+        </label>
+        <label>Tên phiên bản
+            <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="200"
+                   placeholder="Ví dụ: Hộp 4 bánh">
+        </label>
+        <label>Giá bán (đ)
+            <input type="number" name="unitPrice" th:value="${f != null ? f.unitPrice : ''}"
+                   required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
+        </label>
+        <label>Khối lượng (g)
+            <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" th:required="${cake}"
+                   min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
+        </label>
+        <label class="span-2">Nhân bánh
+            <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
+                   th:required="${cake}" placeholder="Ví dụ: Thập cẩm lạp xưởng">
+        </label>
+    </div>
+    <div class="form-footer">
+        <label class="switch-card">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
+            <span class="switch-card__text">
+                <strong>Mở bán phiên bản này</strong>
+            </span>
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Thêm phiên bản' : 'Lưu phiên bản'}">Lưu</button>
+    </div>
+</form>
+
+<form th:fragment="category(f)" th:action="@{/admin/categories}" method="post" class="product-form">
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <div class="form-grid">
+        <label class="span-2">Tên danh mục
+            <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="160" data-slug-source>
+        </label>
+        <label class="span-2">Đường dẫn trên web
+            <input type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="160"
+                   pattern="[a-z0-9]+(-[a-z0-9]+)*" data-error="Chỉ dùng chữ thường không dấu, số và dấu gạch ngang, ví dụ: banh-nuong." data-slug-target>
+        </label>
+    </div>
+    <div class="form-footer">
+        <label class="switch-card">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
+            <span class="switch-card__text">
+                <strong>Hiển thị trên cửa hàng</strong>
+            </span>
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…">Lưu danh mục</button>
+    </div>
+</form>
+
+<label th:fragment="dropzone(required)" class="dropzone" data-dropzone>
+    <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" th:required="${required}" data-dropzone-input>
+    <span class="dropzone__preview" hidden>
+        <img alt="">
+        <span class="dropzone__change">Bấm hoặc kéo ảnh khác để đổi</span>
+    </span>
+    <span class="dropzone__empty">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <strong>Kéo thả ảnh vào đây</strong>
+        <small>hoặc bấm để chọn · JPG, PNG, WebP, tối đa 5MB</small>
+    </span>
+    <span class="dropzone__error" hidden data-dropzone-error></span>
+</label>
+
+</body>
+</html>

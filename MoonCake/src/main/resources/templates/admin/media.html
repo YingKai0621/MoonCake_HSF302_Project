@@ -5,11 +5,10 @@
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <h1>Ảnh &amp; video sản phẩm</h1>
-    <p>
-        Thêm nhiều ảnh trong <a th:href="@{/admin/catalog#images}">Sản phẩm → Ảnh sản phẩm</a>.
-        Video dùng đường dẫn trực tiếp MP4 hoặc WebM.
-    </p>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Sản phẩm</span>
+        <h1>Video sản phẩm</h1>
+    </div>
 
     <section>
         <h2>Thêm video</h2>
@@ -23,7 +22,7 @@
                     </select>
                 </label>
                 <label>Đường dẫn video
-                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4">
+                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4" pattern="(https://\S+|/images/\S+)\.(mp4|webm)(\?\S*)?" data-error="Đường dẫn video phải là link https:// hoặc /images/ tới file .mp4 hoặc .webm.">
                 </label>
                 <label>Mô tả
                     <input name="caption" required maxlength="250">

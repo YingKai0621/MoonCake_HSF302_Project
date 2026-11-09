@@ -5,11 +5,10 @@
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <h1>Quản lý lô hàng</h1>
-    <p>
-        Mỗi lần nhập hoặc đóng hộp tạo một lô. Xuất trước lô gần hết hạn; đơn hủy hoàn lại đúng lô đã xuất.
-        Lô chưa có hạn dùng vẫn được xử lý theo ngày nhập: hãy bổ sung thông tin trước khi bán.
-    </p>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Kho</span>
+        <h1>Lô hàng</h1>
+    </div>
     <a th:href="@{/admin/inventory}">Nhập hàng và đóng hộp →</a>
 
     <section class="table-scroll">

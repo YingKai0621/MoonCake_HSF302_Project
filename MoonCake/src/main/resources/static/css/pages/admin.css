@@ -3134,11 +3134,38 @@ tr.is-low .stock-number {
   border-radius: 14px;
 }
 
-.sale-card > div {
+.sale-card__info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+}
+
+.sale-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sale-card__actions form {
+  margin: 0;
+}
+
+.sale-card__actions .button.secondary {
+  background: var(--surface);
+}
+
+button.stop-sale {
+  border-color: var(--danger);
+  background: var(--surface);
+  color: var(--danger);
+}
+
+button.stop-sale:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
 }
 
 .sale-card strong {

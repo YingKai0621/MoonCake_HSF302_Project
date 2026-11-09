@@ -170,16 +170,19 @@
                 <a class="button secondary" th:href="@{/admin/inventory(pack=${sku.form.id},giftBox=${product.id})}">Đóng thêm hộp ở trang Tồn kho</a>
             </div>
             <div class="sale-card" th:classappend="${page.onSale} ? 'is-on'">
-                <div>
+                <div class="sale-card__info">
                     <strong th:text="${page.onSale} ? 'Hộp quà đang bán trên cửa hàng' : 'Hộp quà chưa bán'">Hộp quà chưa bán</strong>
                     <span class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
                 </div>
-                <a th:if="${page.onSale}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
-                <form th:action="@{/admin/gift-boxes/{id}/sale(id=${product.id})}" method="post">
-                    <input type="hidden" name="onSale" th:value="${!page.onSale}">
-                    <button type="submit" th:classappend="${page.onSale} ? 'secondary'"
-                            th:text="${page.onSale} ? 'Ngừng bán' : 'Mở bán ngay'">Mở bán ngay</button>
-                </form>
+                <div class="sale-card__actions">
+                    <a th:if="${page.onSale}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
+                    <form th:action="@{/admin/gift-boxes/{id}/sale(id=${product.id})}" method="post"
+                          th:attr="data-confirm-message=${page.onSale ? 'Ngừng bán “' + product.name + '”? Khách sẽ không đặt được hộp quà này nữa.' : null}">
+                        <input type="hidden" name="onSale" th:value="${!page.onSale}">
+                        <button type="submit" th:classappend="${page.onSale} ? 'stop-sale'"
+                                th:text="${page.onSale} ? 'Ngừng bán' : 'Mở bán ngay'">Mở bán ngay</button>
+                    </form>
+                </div>
             </div>
         </section>
     </div>

@@ -17,6 +17,9 @@ function setUpProductGallery() {
     const nextAlt = thumbnail.dataset.galleryAlt || "Ảnh sản phẩm";
     const loader = new Image();
     loader.onload = function () {
+      if (thumbnails[currentIndex].dataset.gallerySrc !== nextSource) {
+        return;
+      }
       mainImage.src = nextSource;
       mainImage.alt = nextAlt;
       mainImage.classList.remove("is-switching");

@@ -8,6 +8,7 @@ import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
+import com.se201411.project.mooncake.order.dto.VnpayAttemptView;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import org.springframework.stereotype.Service;
@@ -93,7 +94,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             );
         }
 
-        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(order.getId());
+        VnpayAttemptView pending = vnpayRepository.findPendingAttempt(order.getId());
         if (pending != null) {
             if (!isExpired(pending)) {
                 Instant createdAt = pending.createdAt().toInstant(ZoneOffset.UTC);
@@ -119,7 +120,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (payment.getStatus() == PaymentStatus.PAID) {
             return;
         }
-        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(orderId);
+        VnpayAttemptView pending = vnpayRepository.findPendingAttempt(orderId);
         if (pending == null) {
             return;
         }
@@ -142,7 +143,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
 
     @Override
     public void refreshPaymentStatus(long orderId) {
-        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(orderId);
+        VnpayAttemptView pending = vnpayRepository.findPendingAttempt(orderId);
         if (pending == null) {
             return;
         }
@@ -155,7 +156,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             return Optional.empty();
         }
         LocalDateTime deadline = order.getCreatedAt().plusMinutes(gateway.unpaidOrderLifetimeMinutes());
-        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(order.getId());
+        VnpayAttemptView pending = vnpayRepository.findPendingAttempt(order.getId());
         if (pending != null) {
             LocalDateTime attemptEnd = pending.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
             if (attemptEnd.isAfter(deadline)) {
@@ -165,7 +166,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         return Optional.of(deadline);
     }
 
-    private void refreshFromVnpay(VnpayRepository.Attempt pending) {
+    private void refreshFromVnpay(VnpayAttemptView pending) {
         Map<String, String> result = queryVnpay(pending);
         QueryOutcome outcome = outcomeOf(result);
         if (outcome == QueryOutcome.PAID) {
@@ -192,7 +193,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (!gateway.valid(params)) {
             return PaymentReturnResult.unverified();
         }
-        VnpayRepository.Attempt attempt = vnpayRepository.findAttempt(params.get("vnp_TxnRef"));
+        VnpayAttemptView attempt = vnpayRepository.findAttempt(params.get("vnp_TxnRef"));
         if (attempt == null) {
             return PaymentReturnResult.unverified();
         }
@@ -212,7 +213,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         return new PaymentReturnResult(true, orderCode, completedOnGateway, paid);
     }
 
-    private void closeUnpaidAttempt(VnpayRepository.Attempt pending) {
+    private void closeUnpaidAttempt(VnpayAttemptView pending) {
         if (isPaidAtVnpay(pending)) {
             throw new BusinessRuleViolationException(
                 "Đơn đã được thanh toán qua VNPay. Vui lòng tải lại trang hoặc liên hệ cửa hàng để được hỗ trợ."
@@ -221,7 +222,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         vnpayRepository.markFailed(pending.transactionRef());
     }
 
-    private boolean isPaidAtVnpay(VnpayRepository.Attempt pending) {
+    private boolean isPaidAtVnpay(VnpayAttemptView pending) {
         try {
             Map<String, String> result = queryVnpay(pending);
             return outcomeOf(result) == QueryOutcome.PAID;
@@ -230,7 +231,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         }
     }
 
-    private Map<String, String> queryVnpay(VnpayRepository.Attempt pending) {
+    private Map<String, String> queryVnpay(VnpayAttemptView pending) {
         Map<String, String> result = gateway.query(
             pending.transactionRef(),
             pending.createdAt(),
@@ -260,7 +261,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         return QueryOutcome.UNKNOWN;
     }
 
-    private boolean isExpired(VnpayRepository.Attempt attempt) {
+    private boolean isExpired(VnpayAttemptView attempt) {
         LocalDateTime expiresAt = attempt.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
         return !LocalDateTime.now(clock).isBefore(expiresAt);
     }
@@ -270,13 +271,13 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (transactionRef == null) {
             return response(RSP_ORDER_NOT_FOUND, "Order not found");
         }
-        VnpayRepository.Attempt attemptBeforeLock = vnpayRepository.findAttempt(transactionRef);
+        VnpayAttemptView attemptBeforeLock = vnpayRepository.findAttempt(transactionRef);
         if (attemptBeforeLock == null) {
             return response(RSP_ORDER_NOT_FOUND, "Order not found");
         }
 
         SalesOrder order = vnpayRepository.lockOrder(attemptBeforeLock.orderId());
-        VnpayRepository.Attempt attempt = vnpayRepository.findAttempt(transactionRef);
+        VnpayAttemptView attempt = vnpayRepository.findAttempt(transactionRef);
 
         BigDecimal receivedAmount;
         try {

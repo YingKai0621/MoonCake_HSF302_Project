@@ -114,9 +114,9 @@ h3 {
 }
 
 h1 {
-  font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(26px, 3vw, 32px);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 h2 {
@@ -171,9 +171,9 @@ small,
 
 .admin-brand strong {
   display: block;
-  font-family: "Playfair Display", Georgia, serif;
   font-size: 20px;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   color: var(--brand-gold);
 }
 
@@ -941,8 +941,8 @@ main > nav a[aria-current="page"] {
   }
 
   .admin-mobile-title {
-    font-family: "Playfair Display", Georgia, serif;
     font-size: 18px;
+    font-weight: 700;
     color: var(--brand-gold);
   }
 

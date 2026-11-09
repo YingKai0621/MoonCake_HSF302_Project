@@ -127,6 +127,25 @@ public class BatchStockServiceImpl implements BatchStockService {
         }
     }
 
+    @Override
+    @Transactional
+    public void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn) {
+        boolean hasCode = code != null && !code.isBlank();
+        if (hasCode && code.trim().length() > MAX_CODE_LENGTH) {
+            throw new BusinessRuleViolationException("Mã lô tối đa 80 ký tự.");
+        }
+        if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
+            throw new BusinessRuleViolationException("Hạn dùng phải sau ngày sản xuất.");
+        }
+        for (StockBatch batch : batchAllocationRepository.findBatchesCreatedBy(operationKey)) {
+            if (hasCode) {
+                batch.setBatchCode(code.trim());
+            }
+            batch.setProducedOn(producedOn);
+            batch.setExpiresOn(expiresOn);
+        }
+    }
+
     private void addStock(long variantId, int quantity, String operationKey, Long orderId, StockMovementType type) {
         List<BatchQuantity> originalBatches = List.of();
         if (type == StockMovementType.CANCEL_RETURN && orderId != null) {

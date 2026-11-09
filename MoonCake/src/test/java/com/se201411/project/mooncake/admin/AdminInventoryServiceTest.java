@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.impl.InventoryAdminServiceImpl;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
@@ -29,6 +30,29 @@ class AdminInventoryServiceTest {
     void setup() {
         when(access.requireAdmin()).thenReturn(7L);
         when(repo.change(anyLong(), anyInt())).thenReturn(1);
+    }
+
+    @Test
+    void receiveLabelsTheNewBatchWithCodeAndDates() {
+        BatchStockService batches = mock(BatchStockService.class);
+        service.setBatchStock(batches);
+        LocalDate produced = LocalDate.of(2026, 9, 1);
+        LocalDate expiry = LocalDate.of(2026, 10, 1);
+
+        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), "LO-0901", produced, expiry);
+
+        verify(repo).change(11, 20);
+        verify(batches).labelReceivedBatch("RECEIVE:" + key + ":11", "LO-0901", produced, expiry);
+    }
+
+    @Test
+    void receiveWithoutBatchInfoKeepsTheAutomaticBatch() {
+        BatchStockService batches = mock(BatchStockService.class);
+        service.setBatchStock(batches);
+
+        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), " ", null, null);
+
+        verify(batches, never()).labelReceivedBatch(anyString(), any(), any(), any());
     }
 
     @Test

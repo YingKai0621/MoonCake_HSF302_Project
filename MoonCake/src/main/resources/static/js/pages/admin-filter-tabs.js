@@ -10,7 +10,8 @@ function setUpFilterTabs() {
   function apply(filter) {
     let visible = 0;
     for (let i = 0; i < items.length; i++) {
-      const show = filter === "all" || items[i].dataset.group === filter;
+      const groups = items[i].dataset.group.split(" ");
+      const show = filter === "all" || groups.includes(filter);
       items[i].hidden = !show;
       if (show) {
         visible++;

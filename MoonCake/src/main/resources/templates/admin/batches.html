@@ -3,7 +3,7 @@
 <head th:replace="~{admin/layout :: head('Lô hàng')}"></head>
 <body class="page-batches">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main th:with="soon=${batches.?[statusTone == 'warning']},expired=${batches.?[statusTone == 'danger']},missing=${batches.?[statusTone == 'muted']}">
+<main th:with="active=${batches.?[remainingQuantity > 0]},soon=${active.?[statusTone == 'warning']},expired=${active.?[statusTone == 'danger']},missing=${active.?[statusTone == 'muted']},used=${batches.?[remainingQuantity == 0]}">
     <div th:replace="~{admin/layout :: flash}"></div>
     <div class="page-heading page-heading--simple page-heading--with-action">
         <div>
@@ -14,9 +14,9 @@
     </div>
 
     <nav class="tabs" aria-label="Lọc lô hàng" data-filter-tabs>
-        <a href="#" class="tabs__item is-active" data-filter="all">
-            <span>Tất cả</span>
-            <span class="tabs__count" th:text="${#lists.size(batches)}">0</span>
+        <a href="#" class="tabs__item is-active" data-filter="available">
+            <span>Còn hàng</span>
+            <span class="tabs__count" th:text="${#lists.size(active)}">0</span>
         </a>
         <a href="#" class="tabs__item" data-filter="warning">
             <span>Sắp hết hạn</span>
@@ -29,6 +29,10 @@
         <a href="#" class="tabs__item" data-filter="muted">
             <span>Chưa có hạn dùng</span>
             <span class="tabs__count" th:text="${#lists.size(missing)}">0</span>
+        </a>
+        <a href="#" class="tabs__item" data-filter="empty">
+            <span>Đã dùng hết</span>
+            <span class="tabs__count" th:text="${#lists.size(used)}">0</span>
         </a>
     </nav>
 
@@ -46,7 +50,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="batch : ${batches}" th:attr="data-group=${batch.statusTone}">
+            <tr th:each="batch : ${batches}" th:attr="data-group=${batch.remainingQuantity > 0 ? 'available ' + batch.statusTone : 'empty'}">
                 <td>
                     <strong th:text="${batch.productName}">Bánh</strong>
                     <small class="muted"><code th:text="${batch.sku}">SKU</code></small>

@@ -15,6 +15,14 @@ public interface ProductAdminRepository {
 
     List<ProductImage> images();
 
+    Product productForView(long id);
+
+    List<ProductVariant> variantsOf(long productId);
+
+    List<ProductImage> imagesOf(long productId);
+
+    List<Box> boxesOf(long productId);
+
     Category category(long id);
 
     Product product(long id);

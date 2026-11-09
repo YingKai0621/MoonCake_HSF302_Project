@@ -90,6 +90,21 @@ class AdminPagesTest {
                 List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true)),
                 List.of(new BoxForm(1L, 1, 4, null, null, true)),
                 List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true))));
+        when(catalog.productRows(null)).thenReturn(List.of(new AdminProductRow(
+                1L, "Cake", "Category", "Bánh lẻ", 1, BigDecimal.TEN, BigDecimal.TEN, "/images/cake.png", true)));
+        when(catalog.productTabs(null)).thenReturn(List.of(new AdminProductTab(null, "Tất cả", 1, true)));
+        when(catalog.categories()).thenReturn(List.of(new CategoryForm(1L, "Category", "category", true)));
+        when(catalog.productTypes()).thenReturn(List.of(new ProductTypeOption(ProductType.MOONCAKE, "Bánh lẻ")));
+        when(catalog.productDetail(1)).thenReturn(new AdminProductDetail(
+                new ProductForm(1L, 1, ProductType.MOONCAKE, "Cake", "cake", "Description", null, null, null, null, true),
+                "Bánh lẻ",
+                true,
+                false,
+                List.of(new AdminProductDetail.Sku(
+                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
+                        "/images/cake.png",
+                        List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)))),
+                List.of()));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of())));
@@ -102,7 +117,7 @@ class AdminPagesTest {
 
     @Test
     void rendersAllPagesWithRealThymeleafAndCsrf() throws Exception {
-        for (String path : List.of("/admin/catalog", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
+        for (String path : List.of("/admin/catalog", "/admin/catalog/products/new", "/admin/catalog/products/1", "/admin/presets", "/admin/inventory", "/admin/orders", "/admin/orders/1"))
             mvc.perform(get(path).with(user("admin").roles("ADMIN")))
                     .andExpect(status().isOk()).andExpect(content().string(containsString("_csrf")));
     }
@@ -129,8 +144,35 @@ class AdminPagesTest {
     void catalogRendersMarkersForUncheckedCheckboxes() throws Exception {
         mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
+            .andExpect(content().string(containsString("name=\"_active\"")));
+        mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
             .andExpect(content().string(containsString("name=\"_active\"")))
             .andExpect(content().string(containsString("name=\"_primary\"")));
+    }
+
+    @Test
+    void productListLinksToSeparateEditPage() throws Exception {
+        mvc.perform(get("/admin/catalog").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/admin/catalog/products/1")))
+            .andExpect(content().string(containsString("tabs__count")));
+    }
+
+    @Test
+    void savingProductRedirectsToItsEditPage() throws Exception {
+        when(catalog.saveProduct(any())).thenReturn(7L);
+        mvc.perform(post("/admin/products")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("categoryId", "1")
+                .param("productType", "MOONCAKE")
+                .param("name", "New Product")
+                .param("slug", "new-product")
+                .param("shortDescription", "Description")
+                .param("_active", "on"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/7"));
     }
 
     @Test

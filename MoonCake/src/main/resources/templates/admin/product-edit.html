@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Sửa sản phẩm')}"></head>
+<body class="page-catalog">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main th:with="product=${detail.product}">
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <a class="back-link" th:href="@{/admin/catalog}">← Sản phẩm</a>
+    <div class="detail-header">
+        <div>
+            <span class="eyebrow" th:text="${detail.typeLabel}">Hộp quà</span>
+            <h1 th:text="${product.name}">Tên sản phẩm</h1>
+        </div>
+        <span class="badge badge--large" th:classappend="${product.active} ? 'badge--success' : 'badge--muted'"
+              th:text="${product.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
+    </div>
+
+    <nav class="jump-links" aria-label="Đi tới phần">
+        <a href="#info">Thông tin</a>
+        <a href="#skus" th:text="${'Phiên bản & giá (' + #lists.size(detail.skus) + ')'}">Phiên bản &amp; giá</a>
+        <a th:if="${detail.emptyBox}" href="#boxes">Mẫu hộp</a>
+    </nav>
+
+    <section id="info">
+        <h2>Thông tin sản phẩm</h2>
+        <form th:replace="~{admin/product-forms :: product(${product}, ${detail.typeLocked})}"></form>
+    </section>
+
+    <section id="skus">
+        <div class="section-heading">
+            <div>
+                <h2>Phiên bản &amp; giá</h2>
+                <p class="muted">Mỗi phiên bản có mã SKU, giá bán và ảnh riêng. Bấm vào một phiên bản để sửa.</p>
+            </div>
+        </div>
+
+        <p th:if="${product.productType.name() == 'GIFT_SET'}" class="note">
+            Hộp quà chỉ mở bán được khi đã có công thức sẵn sàng ở trang
+            <a th:href="@{/admin/presets}">Công thức hộp quà</a>.
+        </p>
+
+        <div class="sku-list">
+            <details th:each="sku : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}">
+                <summary class="sku-card__summary">
+                    <span class="product-thumb">
+                        <img th:if="${sku.imageUrl != null}" th:src="${sku.imageUrl}" alt="" loading="lazy" width="48" height="48">
+                    </span>
+                    <span class="sku-card__title">
+                        <strong th:text="${sku.form.name}">Hộp 4 bánh</strong>
+                        <code th:text="${sku.form.sku}">SKU</code>
+                    </span>
+                    <span class="sku-card__price" th:text="${#numbers.formatDecimal(sku.form.unitPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
+                    <span class="badge" th:classappend="${sku.form.active} ? 'badge--success' : 'badge--muted'"
+                          th:text="${sku.form.active} ? 'Đang bán' : 'Ngừng bán'">Đang bán</span>
+                </summary>
+
+                <div class="sku-card__body">
+                    <form th:replace="~{admin/product-forms :: sku(${sku.form}, ${product.id})}"></form>
+
+                    <h3 th:text="${'Ảnh (' + #lists.size(sku.images) + ')'}">Ảnh</h3>
+                    <ul class="image-grid">
+                        <li th:each="image : ${sku.images}" class="image-tile">
+                            <img th:src="${image.imageUrl}" th:alt="${image.altText}" loading="lazy">
+                            <span th:if="${image.primary}" class="badge badge--success image-tile__flag">Ảnh chính</span>
+                            <div class="image-tile__actions">
+                                <form th:unless="${image.primary}" th:action="@{/admin/images}" method="post">
+                                    <input type="hidden" name="id" th:value="${image.id}">
+                                    <input type="hidden" name="variantId" th:value="${image.variantId}">
+                                    <input type="hidden" name="imageUrl" th:value="${image.imageUrl}">
+                                    <input type="hidden" name="altText" th:value="${image.altText}">
+                                    <input type="hidden" name="sortOrder" th:value="${image.sortOrder}">
+                                    <input type="hidden" name="primary" value="true">
+                                    <button type="submit" class="secondary small-button">Đặt làm ảnh chính</button>
+                                </form>
+                                <form th:action="@{/admin/images/{id}/remove(id=${image.id})}" method="post">
+                                    <button type="submit" class="danger small-button">Xóa</button>
+                                </form>
+                            </div>
+                        </li>
+                    </ul>
+                    <p th:if="${sku.images.isEmpty()}" class="muted">Phiên bản này chưa có ảnh.</p>
+
+                    <form th:action="@{/admin/images}" method="post" class="image-add">
+                        <input type="hidden" name="variantId" th:value="${sku.form.id}">
+                        <input type="hidden" name="sortOrder" th:value="${#lists.size(sku.images)}">
+                        <label>Thêm ảnh: đường dẫn
+                            <input type="text" name="imageUrl" required maxlength="1000"
+                                   pattern="(https?://\S+|/images/\S+)" placeholder="/images/products/... hoặc https://...">
+                        </label>
+                        <label>Mô tả ảnh
+                            <input type="text" name="altText" maxlength="250" placeholder="Ví dụ: Hộp quà mở nắp">
+                        </label>
+                        <label class="checkbox">
+                            <input type="hidden" name="_primary" value="on">
+                            <input type="checkbox" name="primary" value="true" th:checked="${sku.images.isEmpty()}">
+                            Làm ảnh chính
+                        </label>
+                        <button type="submit" class="secondary" data-loading-text="Đang thêm…">Thêm ảnh</button>
+                    </form>
+                </div>
+            </details>
+
+            <details class="sku-card sku-card--new" th:open="${detail.skus.isEmpty()}">
+                <summary class="sku-card__summary">
+                    <span class="sku-card__plus" aria-hidden="true">+</span>
+                    <strong>Thêm phiên bản mới</strong>
+                </summary>
+                <div class="sku-card__body">
+                    <form th:replace="~{admin/product-forms :: sku(null, ${product.id})}"></form>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section id="boxes" th:if="${detail.emptyBox}">
+        <div class="section-heading">
+            <div>
+                <h2>Mẫu hộp</h2>
+                <p class="muted">Sức chứa của hộp dùng khi khách tự chọn bánh. Mẫu đã có khách dùng thì không đổi được sức chứa.</p>
+            </div>
+        </div>
+        <div class="sku-list">
+            <details th:each="box : ${detail.boxes}" class="sku-card">
+                <summary class="sku-card__summary">
+                    <span class="sku-card__title">
+                        <strong th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</strong>
+                        <small class="muted" th:text="${box.material}">Chất liệu</small>
+                    </span>
+                    <span class="badge" th:classappend="${box.active} ? 'badge--success' : 'badge--muted'"
+                          th:text="${box.active} ? 'Đang dùng' : 'Ngừng dùng'">Đang dùng</span>
+                </summary>
+                <div class="sku-card__body">
+                    <form th:replace="~{this :: boxForm(${box})}"></form>
+                </div>
+            </details>
+            <details class="sku-card sku-card--new" th:if="${!detail.skus.isEmpty()}">
+                <summary class="sku-card__summary">
+                    <span class="sku-card__plus" aria-hidden="true">+</span>
+                    <strong>Thêm mẫu hộp</strong>
+                </summary>
+                <div class="sku-card__body">
+                    <form th:replace="~{this :: boxForm(null)}"></form>
+                </div>
+            </details>
+            <p th:if="${detail.skus.isEmpty()}" class="muted">Thêm phiên bản (SKU) cho hộp trước, sau đó tạo mẫu hộp.</p>
+        </div>
+    </section>
+
+    <th:block th:if="false">
+        <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form">
+            <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+            <div class="form-grid">
+                <label th:if="${f != null}">Phiên bản hộp
+                    <input type="hidden" name="variantId" th:value="${f.variantId}">
+                    <input type="text" th:value="${'SKU #' + f.variantId}" readonly>
+                </label>
+                <label th:if="${f == null}">Phiên bản hộp
+                    <select name="variantId" required>
+                        <option th:each="sku : ${detail.skus}"
+                                th:value="${sku.form.id}"
+                                th:text="${sku.form.name + ' (' + sku.form.sku + ')'}">Hộp</option>
+                    </select>
+                </label>
+                <label>Sức chứa (số bánh)
+                    <input type="number" name="capacityCakes" th:value="${f != null ? f.capacityCakes : ''}" required min="1">
+                </label>
+                <label>Chất liệu
+                    <input type="text" name="material" th:value="${f != null ? f.material : ''}" maxlength="180"
+                           placeholder="Ví dụ: Giấy kraft">
+                </label>
+                <label>Ghi chú
+                    <input type="text" name="notes" th:value="${f != null ? f.notes : ''}" maxlength="500">
+                </label>
+            </div>
+            <div class="form-footer">
+                <label class="checkbox">
+                    <input type="hidden" name="_active" value="on">
+                    <input type="checkbox" name="active" value="true" th:checked="${f != null and f.active}">
+                    Đang dùng
+                </label>
+                <button type="submit" data-loading-text="Đang lưu…">Lưu mẫu hộp</button>
+            </div>
+        </form>
+    </th:block>
+</main>
+<script th:src="@{/js/pages/admin-product.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
+</body>
+</html>

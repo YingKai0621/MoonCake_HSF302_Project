@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.controller;
 
+import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.service.*;
 import com.se201411.project.mooncake.product.dto.*;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
@@ -26,9 +27,26 @@ public class AdminCatalogController {
     }
 
     @GetMapping("/catalog")
-    public String catalog(Model model) {
-        model.addAttribute("catalog", catalog.catalog());
+    public String catalog(@RequestParam(required = false) ProductType type, Model model) {
+        model.addAttribute("products", catalog.productRows(type));
+        model.addAttribute("tabs", catalog.productTabs(type));
+        model.addAttribute("categories", catalog.categories());
         return "admin/catalog";
+    }
+
+    @GetMapping("/catalog/products/new")
+    public String newProduct(Model model) {
+        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("productTypes", catalog.productTypes());
+        return "admin/product-new";
+    }
+
+    @GetMapping("/catalog/products/{id}")
+    public String editProduct(@PathVariable long id, Model model) {
+        model.addAttribute("detail", catalog.productDetail(id));
+        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("productTypes", catalog.productTypes());
+        return "admin/product-edit";
     }
 
     @PostMapping("/categories")
@@ -39,32 +57,33 @@ public class AdminCatalogController {
 
     @PostMapping("/products")
     public String product(@Valid @ModelAttribute ProductForm form, RedirectAttributes flash) {
-        catalog.saveProduct(form);
-        return saved(flash, "catalog#products");
+        long productId = catalog.saveProduct(form);
+        return savedProduct(flash, productId, "");
     }
 
     @PostMapping("/variants")
     public String variant(@Valid @ModelAttribute VariantForm form, RedirectAttributes flash) {
         catalog.saveVariant(form);
-        return saved(flash, "catalog#variants");
+        return savedProduct(flash, form.productId(), "#skus");
     }
 
     @PostMapping("/boxes")
     public String box(@Valid @ModelAttribute BoxForm form, RedirectAttributes flash) {
-        catalog.saveBox(form);
-        return saved(flash, "catalog#boxes");
+        long productId = catalog.saveBox(form);
+        return savedProduct(flash, productId, "#boxes");
     }
 
     @PostMapping("/images")
     public String image(@Valid @ModelAttribute ImageForm form, RedirectAttributes flash) {
-        catalog.saveImage(form);
-        return saved(flash, "catalog#images");
+        long productId = catalog.saveImage(form);
+        return savedProduct(flash, productId, "#sku-" + form.variantId());
     }
 
     @PostMapping("/images/{id}/remove")
     public String removeImage(@PathVariable long id, RedirectAttributes flash) {
-        catalog.removeImage(id);
-        return saved(flash, "catalog#images");
+        long productId = catalog.removeImage(id);
+        flash.addFlashAttribute("success", "Đã xóa ảnh.");
+        return "redirect:/admin/catalog/products/" + productId + "#skus";
     }
 
     @GetMapping("/presets")
@@ -92,8 +111,13 @@ public class AdminCatalogController {
         return saved(flash, "presets#preset-" + id);
     }
 
+    private String savedProduct(RedirectAttributes flash, long productId, String anchor) {
+        flash.addFlashAttribute("success", "Đã lưu thay đổi.");
+        return "redirect:/admin/catalog/products/" + productId + anchor;
+    }
+
     private String saved(RedirectAttributes flash, String path) {
-        flash.addFlashAttribute("success", "Đã lưu thành công.");
+        flash.addFlashAttribute("success", "Đã lưu thay đổi.");
         return "redirect:/admin/" + path;
     }
 }

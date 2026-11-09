@@ -43,6 +43,43 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
+    public Product productForView(long id) {
+        List<Product> found = em.createQuery(
+                "from Product p join fetch p.category where p.id = :id", Product.class)
+            .setParameter("id", id)
+            .getResultList();
+        if (found.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy sản phẩm.");
+        }
+        return found.get(0);
+    }
+
+    @Override
+    public List<ProductVariant> variantsOf(long productId) {
+        return em.createQuery(
+                "from ProductVariant v where v.product.id = :id order by v.id", ProductVariant.class)
+            .setParameter("id", productId)
+            .getResultList();
+    }
+
+    @Override
+    public List<ProductImage> imagesOf(long productId) {
+        return em.createQuery(
+                "from ProductImage i join fetch i.variant v where v.product.id = :id order by i.sortOrder, i.id",
+                ProductImage.class)
+            .setParameter("id", productId)
+            .getResultList();
+    }
+
+    @Override
+    public List<Box> boxesOf(long productId) {
+        return em.createQuery(
+                "from Box b join fetch b.emptyBoxVariant v where v.product.id = :id order by b.id", Box.class)
+            .setParameter("id", productId)
+            .getResultList();
+    }
+
+    @Override
     public Category category(long id) {
         return require(Category.class, id);
     }

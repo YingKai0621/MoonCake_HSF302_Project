@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Thêm sản phẩm')}"></head>
+<body class="page-catalog">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main class="narrow-main">
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <a class="back-link" th:href="@{/admin/catalog}">← Sản phẩm</a>
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Sản phẩm</span>
+        <h1>Thêm sản phẩm</h1>
+        <p>Nhập thông tin chung trước. Sau khi tạo, bạn thêm phiên bản, giá bán và ảnh ở trang tiếp theo.</p>
+    </div>
+
+    <section>
+        <form th:replace="~{admin/product-forms :: product(null, false)}"></form>
+    </section>
+</main>
+<script th:src="@{/js/pages/admin-product.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
+</body>
+</html>

@@ -1,55 +1,114 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Quản lý catalog')}"></head>
+<head th:replace="~{admin/layout :: head('Sản phẩm')}"></head>
 <body class="page-catalog">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading"><span class="eyebrow">BỘ SƯU TẬP & SẢN PHẨM</span><h1>Quản lý sản phẩm</h1><p>Tạo danh mục, nhập thông tin bánh, giá bán từng SKU, ảnh và sức chứa hộp rỗng. SKU là mã của từng phiên bản sản phẩm được bán và quản lý tồn kho.</p></div>
-    <p>Quản lý danh mục → sản phẩm → SKU → mẫu hộp/ảnh. SKU hộp quà mới cần để ngừng bán, tạo công thức rồi mới mở
-        bán.</p>
-<nav class="catalog-tabs" aria-label="Nhóm dữ liệu"><a href="#products">Sản phẩm</a><a href="#variants">SKU & giá</a><a href="#categories">Danh mục</a><a href="#boxes">Hộp rỗng</a><a href="#images">Ảnh sản phẩm</a></nav>
-<section class="catalog-panel" id="products" aria-label="Sản phẩm">
- <div class="catalog-toolbar"><div><h2>Sản phẩm <span class="count" th:text="${#lists.size(catalog.products)}"></span></h2><p class="muted">Tên, mô tả và thông tin bánh.</p></div><button type="button" data-editor="new-products">Thêm mới</button></div>
- <label class="catalog-search">Tìm trong sản phẩm<input type="search" placeholder="Nhập tên hoặc mã để tìm…" autocomplete="off"></label>
- <dialog id="new-products" class="catalog-editor"><div class="editor-heading"><h2>Thêm sản phẩm</h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: products(null)}"></form></dialog>
- <div class="catalog-list">
- <div class="catalog-row" th:each="f : ${catalog.products}"><div class="catalog-thumbnail" th:with="photo=${catalog.productImage(f.id)}"><img th:if="${photo != null}" th:src="${photo}" alt="Ảnh minh họa sản phẩm" loading="lazy" width="72" height="72"><span class="thumbnail-fallback" th:hidden="${photo != null}">Chưa có ảnh</span></div><span class="row-label" th:text="${f.name}"></span><button type="button" class="edit-button" th:attr="data-editor=${'products-' + f.id}">Sửa</button>
- <dialog class="catalog-editor" th:id="${'products-' + f.id}"><div class="editor-heading"><h2 th:text="${f.name}"></h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: products(${f})}"></form>
-</dialog></div></div><p class="catalog-empty muted" hidden>Không có bản ghi phù hợp.</p></section>
-<section class="catalog-panel" id="variants" aria-label="SKU & giá">
- <div class="catalog-toolbar"><div><h2>SKU & giá <span class="count" th:text="${#lists.size(catalog.variants)}"></span></h2><p class="muted">Mã phiên bản, giá bán và trạng thái mở bán.</p></div><button type="button" data-editor="new-variants">Thêm mới</button></div>
- <label class="catalog-search">Tìm trong sku & giá<input type="search" placeholder="Nhập tên hoặc mã để tìm…" autocomplete="off"></label>
- <dialog id="new-variants" class="catalog-editor"><div class="editor-heading"><h2>Thêm sku & giá</h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: variants(null)}"></form></dialog>
- <div class="catalog-list">
- <div class="catalog-row" th:each="f : ${catalog.variants}"><div class="catalog-thumbnail" th:with="photo=${catalog.variantImage(f.id)}"><img th:if="${photo != null}" th:src="${photo}" alt="Ảnh minh họa sản phẩm" loading="lazy" width="72" height="72"><span class="thumbnail-fallback" th:hidden="${photo != null}">Chưa có ảnh</span></div><span class="row-label" th:text="${f.sku}"></span><button type="button" class="edit-button" th:attr="data-editor=${'variants-' + f.id}">Sửa</button>
- <dialog class="catalog-editor" th:id="${'variants-' + f.id}"><div class="editor-heading"><h2 th:text="${f.sku}"></h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: variants(${f})}"></form>
-</dialog></div></div><p class="catalog-empty muted" hidden>Không có bản ghi phù hợp.</p></section>
-<section class="catalog-panel" id="categories" aria-label="Danh mục">
- <div class="catalog-toolbar"><div><h2>Danh mục <span class="count" th:text="${#lists.size(catalog.categories)}"></span></h2><p class="muted">Các nhóm sản phẩm trên cửa hàng.</p></div><button type="button" data-editor="new-categories">Thêm mới</button></div>
- <label class="catalog-search">Tìm trong danh mục<input type="search" placeholder="Nhập tên hoặc mã để tìm…" autocomplete="off"></label>
- <dialog id="new-categories" class="catalog-editor"><div class="editor-heading"><h2>Thêm danh mục</h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: categories(null)}"></form></dialog>
- <div class="catalog-list">
- <div class="catalog-row" th:each="f : ${catalog.categories}"><span class="row-label" th:text="${f.name}"></span><button type="button" class="edit-button" th:attr="data-editor=${'categories-' + f.id}">Sửa</button>
- <dialog class="catalog-editor" th:id="${'categories-' + f.id}"><div class="editor-heading"><h2 th:text="${f.name}"></h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: categories(${f})}"></form>
-</dialog></div></div><p class="catalog-empty muted" hidden>Không có bản ghi phù hợp.</p></section>
-<section class="catalog-panel" id="boxes" aria-label="Hộp rỗng">
- <div class="catalog-toolbar"><div><h2>Hộp rỗng <span class="count" th:text="${#lists.size(catalog.boxes)}"></span></h2><p class="muted">Mẫu hộp và sức chứa bánh.</p></div><button type="button" data-editor="new-boxes">Thêm mới</button></div>
- <label class="catalog-search">Tìm trong hộp rỗng<input type="search" placeholder="Nhập tên hoặc mã để tìm…" autocomplete="off"></label>
- <dialog id="new-boxes" class="catalog-editor"><div class="editor-heading"><h2>Thêm hộp rỗng</h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: boxes(null)}"></form></dialog>
- <div class="catalog-list">
- <div class="catalog-row" th:each="f : ${catalog.boxes}"><div class="catalog-thumbnail" th:with="photo=${catalog.variantImage(f.variantId)}"><img th:if="${photo != null}" th:src="${photo}" alt="Ảnh minh họa sản phẩm" loading="lazy" width="72" height="72"><span class="thumbnail-fallback" th:hidden="${photo != null}">Chưa có ảnh</span></div><span class="row-label" th:text="${'Hộp #' + f.id + ' · SKU #' + f.variantId + ' · ' + f.capacityCakes + ' bánh'}"></span><button type="button" class="edit-button" th:attr="data-editor=${'boxes-' + f.id}">Sửa</button>
- <dialog class="catalog-editor" th:id="${'boxes-' + f.id}"><div class="editor-heading"><h2 th:text="${'Hộp #' + f.id + ' · SKU #' + f.variantId + ' · ' + f.capacityCakes + ' bánh'}"></h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: boxes(${f})}"></form>
-</dialog></div></div><p class="catalog-empty muted" hidden>Không có bản ghi phù hợp.</p></section>
-<section class="catalog-panel" id="images" aria-label="Ảnh sản phẩm">
- <div class="catalog-toolbar"><div><h2>Ảnh sản phẩm <span class="count" th:text="${#lists.size(catalog.images)}"></span></h2><p class="muted">Ảnh hiển thị theo từng SKU.</p></div><button type="button" data-editor="new-images">Thêm mới</button></div>
- <label class="catalog-search">Tìm trong ảnh sản phẩm<input type="search" placeholder="Nhập tên hoặc mã để tìm…" autocomplete="off"></label>
- <dialog id="new-images" class="catalog-editor"><div class="editor-heading"><h2>Thêm ảnh sản phẩm</h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: images(null)}"></form></dialog>
- <div class="catalog-list">
- <div class="catalog-row" th:each="f : ${catalog.images}"><div class="catalog-thumbnail" th:with="photo=${f.imageUrl}"><img th:if="${photo != null}" th:src="${photo}" alt="Ảnh minh họa sản phẩm" loading="lazy" width="72" height="72"><span class="thumbnail-fallback" th:hidden="${photo != null}">Chưa có ảnh</span></div><span class="row-label" th:text="${'Ảnh #' + f.id + ' · SKU #' + f.variantId}"></span><button type="button" class="edit-button" th:attr="data-editor=${'images-' + f.id}">Sửa</button>
- <dialog class="catalog-editor" th:id="${'images-' + f.id}"><div class="editor-heading"><h2 th:text="${'Ảnh #' + f.id + ' · SKU #' + f.variantId}"></h2><button type="button" data-close aria-label="Đóng biểu mẫu">Đóng</button></div><form th:replace="~{admin/catalog-forms :: images(${f})}"></form>
-<form th:action="@{/admin/images/{id}/remove(id=${f.id})}" method="post" class="actions"><button class="danger">Xóa ảnh</button></form></dialog></div></div><p class="catalog-empty muted" hidden>Không có bản ghi phù hợp.</p></section>
+
+    <div class="page-heading page-heading--simple page-heading--with-action">
+        <div>
+            <span class="eyebrow">Sản phẩm</span>
+            <h1>Sản phẩm</h1>
+        </div>
+        <a class="button" th:href="@{/admin/catalog/products/new}">+ Thêm sản phẩm</a>
+    </div>
+
+    <nav class="tabs" aria-label="Lọc theo loại sản phẩm">
+        <a th:each="tab : ${tabs}"
+           class="tabs__item"
+           th:classappend="${tab.selected} ? 'is-active'"
+           th:attr="aria-current=${tab.selected ? 'page' : null}"
+           th:href="${tab.type == null} ? @{/admin/catalog} : @{/admin/catalog(type=${tab.type})}">
+            <span th:text="${tab.label}">Tất cả</span>
+            <span class="tabs__count" th:text="${tab.count}">0</span>
+        </a>
+    </nav>
+
+    <section class="table-scroll">
+        <table data-search-table>
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Loại</th>
+                <th class="numeric">Số phiên bản</th>
+                <th class="numeric">Giá bán</th>
+                <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td>
+                    <a class="product-cell" th:href="@{/admin/catalog/products/{id}(id=${product.id})}">
+                        <span class="product-thumb">
+                            <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" alt="" loading="lazy" width="48" height="48">
+                        </span>
+                        <span class="product-cell__text">
+                            <strong th:text="${product.name}">Bánh nướng</strong>
+                            <small class="muted" th:text="${product.categoryName}">Danh mục</small>
+                        </span>
+                    </a>
+                </td>
+                <td th:text="${product.typeLabel}">Hộp quà</td>
+                <td class="numeric" th:text="${product.skuCount}">1</td>
+                <td class="numeric">
+                    <span th:if="${product.minPrice == null}" class="muted">Chưa có giá</span>
+                    <span th:if="${product.minPrice != null and product.minPrice.compareTo(product.maxPrice) == 0}"
+                          th:text="${#numbers.formatDecimal(product.minPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
+                    <span th:if="${product.minPrice != null and product.minPrice.compareTo(product.maxPrice) != 0}"
+                          th:text="${#numbers.formatDecimal(product.minPrice, 0, 'POINT', 0, 'COMMA') + ' – ' + #numbers.formatDecimal(product.maxPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
+                </td>
+                <td>
+                    <span class="badge" th:classappend="${product.active} ? 'badge--success' : 'badge--muted'"
+                          th:text="${product.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${products.isEmpty()}" class="empty-state">
+            <p><strong>Chưa có sản phẩm nào ở nhóm này.</strong></p>
+            <a th:href="@{/admin/catalog/products/new}">Thêm sản phẩm đầu tiên</a>
+        </div>
+    </section>
+
+    <section id="categories">
+        <div class="section-heading">
+            <div>
+                <h2>Danh mục</h2>
+                <p class="muted">Nhóm sản phẩm khách thấy trên cửa hàng.</p>
+            </div>
+            <button type="button" class="secondary" data-batch-dialog="category-new">+ Thêm danh mục</button>
+        </div>
+        <ul class="category-list">
+            <li th:each="category : ${categories}">
+                <span>
+                    <strong th:text="${category.name}">Danh mục</strong>
+                    <small class="muted" th:text="${'/' + category.slug}">/slug</small>
+                </span>
+                <span class="category-list__end">
+                    <span class="badge" th:classappend="${category.active} ? 'badge--success' : 'badge--muted'"
+                          th:text="${category.active} ? 'Đang hiển thị' : 'Đang ẩn'">Đang hiển thị</span>
+                    <button type="button" class="secondary small-button" th:attr="data-batch-dialog=${'category-' + category.id}">Sửa</button>
+                </span>
+                <dialog class="catalog-editor" th:id="${'category-' + category.id}">
+                    <div class="editor-heading">
+                        <h2 th:text="${'Sửa danh mục: ' + category.name}">Sửa danh mục</h2>
+                        <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
+                    </div>
+                    <form th:replace="~{admin/product-forms :: category(${category})}"></form>
+                </dialog>
+            </li>
+        </ul>
+        <dialog class="catalog-editor" id="category-new">
+            <div class="editor-heading">
+                <h2>Thêm danh mục</h2>
+                <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
+            </div>
+            <form th:replace="~{admin/product-forms :: category(null)}"></form>
+        </dialog>
+    </section>
 </main>
-<script th:src="@{/js/pages/admin-catalog.js}" defer></script>
+<script th:src="@{/js/pages/admin-product.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
 </body>
 </html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<form th:fragment="product(f, typeLocked)" th:action="@{/admin/products}" method="post" class="product-form" data-slug-form>
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <div class="form-grid">
+        <label class="span-2">Tên sản phẩm
+            <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="220" data-slug-source>
+        </label>
+        <label>Danh mục
+            <select name="categoryId" required>
+                <option value="">Chọn danh mục…</option>
+                <option th:each="category : ${categories}"
+                        th:value="${category.id}"
+                        th:text="${category.name}"
+                        th:selected="${f != null and f.categoryId == category.id}">Danh mục</option>
+            </select>
+        </label>
+        <label>Loại sản phẩm
+            <select name="productType" required th:if="${!typeLocked}">
+                <option th:each="option : ${productTypes}"
+                        th:value="${option.value}"
+                        th:text="${option.label}"
+                        th:selected="${f != null and f.productType == option.value}">Hộp quà</option>
+            </select>
+            <th:block th:if="${typeLocked}">
+                <input type="hidden" name="productType" th:value="${f.productType}">
+                <input type="text" th:value="${detail.typeLabel}" readonly>
+                <small class="field-hint">Đã có SKU nên không đổi được loại.</small>
+            </th:block>
+        </label>
+        <label class="span-2">Đường dẫn trên web
+            <input type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="180"
+                   pattern="[a-z0-9]+(-[a-z0-9]+)*" data-slug-target>
+            <small class="field-hint">Chỉ dùng chữ thường không dấu, số và dấu gạch ngang, ví dụ: banh-nuong-thap-cam.</small>
+        </label>
+        <label class="span-2">Mô tả ngắn
+            <textarea name="shortDescription" required maxlength="600" rows="3" th:text="${f != null ? f.shortDescription : ''}"></textarea>
+            <small class="field-hint">Hiện ở danh sách sản phẩm và đầu trang chi tiết.</small>
+        </label>
+        <label class="span-2">Mô tả chi tiết
+            <textarea name="detailedDescription" rows="5" th:text="${f != null ? f.detailedDescription : ''}"></textarea>
+        </label>
+        <label class="span-2">Thành phần chính
+            <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
+        </label>
+        <label>Hạn sử dụng
+            <input type="text" name="shelfLifeInfo" maxlength="350" th:value="${f != null ? f.shelfLifeInfo : ''}"
+                   placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất">
+        </label>
+        <label>Cách bảo quản
+            <textarea name="storageGuidance" maxlength="600" rows="2" th:text="${f != null ? f.storageGuidance : ''}"></textarea>
+        </label>
+    </div>
+    <div class="form-footer">
+        <label class="checkbox">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" name="active" value="true" th:checked="${f != null and f.active}">
+            Hiển thị trên cửa hàng
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Tạo sản phẩm' : 'Lưu thông tin'}">Lưu</button>
+    </div>
+</form>
+
+<form th:fragment="sku(f, productId)" th:action="@{/admin/variants}" method="post" class="product-form">
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <input type="hidden" name="productId" th:value="${productId}">
+    <div class="form-grid">
+        <label>Mã SKU
+            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${f != null}">
+            <small class="field-hint" th:if="${f != null}">Mã SKU cố định sau khi tạo.</small>
+            <small class="field-hint" th:if="${f == null}">Mã nội bộ để quản lý kho, ví dụ: GIFT-4-TRANG.</small>
+        </label>
+        <label>Tên phiên bản
+            <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="200"
+                   placeholder="Ví dụ: Hộp 4 bánh">
+        </label>
+        <label>Giá bán (đ)
+            <input type="number" name="unitPrice" th:value="${f != null ? f.unitPrice : ''}" required min="0" step="1000">
+        </label>
+        <label>Khối lượng (g)
+            <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" min="1">
+        </label>
+        <label class="span-2">Nhân bánh
+            <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
+                   placeholder="Ví dụ: Thập cẩm lạp xưởng">
+        </label>
+    </div>
+    <div class="form-footer">
+        <label class="checkbox">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" name="active" value="true" th:checked="${f != null and f.active}">
+            Mở bán
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Thêm phiên bản' : 'Lưu phiên bản'}">Lưu</button>
+    </div>
+</form>
+
+<form th:fragment="category(f)" th:action="@{/admin/categories}" method="post" class="product-form">
+    <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
+    <div class="form-grid">
+        <label class="span-2">Tên danh mục
+            <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="160" data-slug-source>
+        </label>
+        <label class="span-2">Đường dẫn trên web
+            <input type="text" name="slug" th:value="${f != null ? f.slug : ''}" required maxlength="160"
+                   pattern="[a-z0-9]+(-[a-z0-9]+)*" data-slug-target>
+            <small class="field-hint">Chữ thường không dấu, số và dấu gạch ngang.</small>
+        </label>
+    </div>
+    <div class="form-footer">
+        <label class="checkbox">
+            <input type="hidden" name="_active" value="on">
+            <input type="checkbox" name="active" value="true" th:checked="${f != null and f.active}">
+            Hiển thị trên cửa hàng
+        </label>
+        <button type="submit" data-loading-text="Đang lưu…">Lưu danh mục</button>
+    </div>
+</form>
+
+</body>
+</html>

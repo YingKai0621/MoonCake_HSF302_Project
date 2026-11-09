@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.product.service;
 import com.se201411.project.mooncake.product.dto.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PresetConfigurationAdminService {
     List<AdminPresetView> presets();
@@ -14,6 +15,8 @@ public interface PresetConfigurationAdminService {
     void saveDraft(AdminPresetForm form);
 
     void setComponent(long configurationId, long variantId, int quantity);
+
+    void setComponents(long configurationId, Map<Long, Integer> quantities);
 
     void activate(long configurationId);
 }

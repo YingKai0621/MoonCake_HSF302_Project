@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.common.exception;
 
 import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
 import com.se201411.project.mooncake.product.controller.AdminCatalogController;
+import com.se201411.project.mooncake.product.controller.AdminGiftBoxController;
 import com.se201411.project.mooncake.inventory.controller.AdminInventoryController;
 import com.se201411.project.mooncake.inventory.controller.BatchController;
 import com.se201411.project.mooncake.product.controller.ProductMediaController;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @ControllerAdvice(assignableTypes = {
     AdminCatalogController.class,
+    AdminGiftBoxController.class,
     AdminInventoryController.class,
     AdminOrderController.class,
     AdminFeedbackController.class,

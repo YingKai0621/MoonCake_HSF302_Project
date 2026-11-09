@@ -18,7 +18,9 @@
                     th:selected="${f != null and f.categoryId == category.id}">Danh mục</option>
         </select>
     </label>
-    <label>Loại sản phẩm
+    <input th:if="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}"
+           type="hidden" name="productType" value="GIFT_SET">
+    <label th:unless="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">Loại sản phẩm
         <select name="productType" required th:if="${!typeLocked}">
             <option th:each="option : ${productTypes}"
                     th:value="${option.value}"

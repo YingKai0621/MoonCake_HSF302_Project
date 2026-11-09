@@ -113,6 +113,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
 
         List<AdminProductRow> rows = new ArrayList<>();
         for (Product product : repo.products()) {
+            if (type == null && product.getProductType() == ProductType.GIFT_SET) {
+                continue;
+            }
             if (type != null && product.getProductType() != type) {
                 continue;
             }
@@ -152,12 +155,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<ProductType, Long> counts = new HashMap<>();
         long total = 0;
         for (Product product : repo.products()) {
+            if (product.getProductType() == ProductType.GIFT_SET) {
+                continue;
+            }
             counts.merge(product.getProductType(), 1L, Long::sum);
             total++;
         }
         List<AdminProductTab> tabs = new ArrayList<>();
         tabs.add(new AdminProductTab(null, "Tất cả", total, selected == null));
-        for (ProductType type : List.of(ProductType.GIFT_SET, ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
+        for (ProductType type : List.of(ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
             tabs.add(new AdminProductTab(type, typeLabel(type), counts.getOrDefault(type, 0L), type == selected));
         }
         return tabs;
@@ -223,7 +229,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public List<ProductTypeOption> productTypes() {
         List<ProductTypeOption> options = new ArrayList<>();
-        for (ProductType type : List.of(ProductType.GIFT_SET, ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
+        for (ProductType type : List.of(ProductType.MOONCAKE, ProductType.EMPTY_BOX)) {
             options.add(new ProductTypeOption(type, typeLabel(type)));
         }
         return options;

@@ -80,25 +80,36 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         for (BoxConfiguration configuration : repo.all()) {
             giftSetsWithRecipe.add(configuration.getPresetVariant().getId());
         }
+        Map<Long, String> pictures = coverPictures();
         List<AdminPresetOptions.Option> giftSets = new ArrayList<>();
         List<AdminPresetOptions.Option> cakes = new ArrayList<>();
         for (ProductVariant variant : products.variants()) {
             ProductType type = variant.getProduct().getProductType();
             if (type == ProductType.MOONCAKE) {
-                cakes.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant)));
+                cakes.add(new AdminPresetOptions.Option(
+                    variant.getId(),
+                    variant.getProduct().getName(),
+                    variant.getName(),
+                    pictures.get(variant.getId())
+                ));
             }
             boolean freeGiftSet = type == ProductType.GIFT_SET
                 && !variant.isActive()
                 && !giftSetsWithRecipe.contains(variant.getId())
                 && !inventory.hasStockOrHistory(variant.getId());
             if (freeGiftSet) {
-                giftSets.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant)));
+                giftSets.add(new AdminPresetOptions.Option(variant.getId(), variantLabel(variant), null, pictures.get(variant.getId())));
             }
         }
         List<AdminPresetOptions.Option> boxes = new ArrayList<>();
         for (Box box : products.boxes()) {
             if (box.isActive()) {
-                boxes.add(new AdminPresetOptions.Option(box.getId(), boxLabel(box)));
+                boxes.add(new AdminPresetOptions.Option(
+                    box.getId(),
+                    boxLabel(box),
+                    box.getCapacityCakes() + " bánh",
+                    pictures.get(box.getEmptyBoxVariant().getId())
+                ));
             }
         }
         return new AdminPresetOptions(giftSets, boxes, cakes);
@@ -118,6 +129,38 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
             }
         }
         return result;
+    }
+
+    @Override
+    public void setComponents(long id, Map<Long, Integer> quantities) {
+        access.requireAdmin();
+        BoxConfiguration configuration = repo.lock(id);
+        requireMutable(configuration);
+        int total = 0;
+        for (Integer quantity : quantities.values()) {
+            if (quantity == null || quantity < 0) {
+                throw new BusinessRuleViolationException("Số bánh không được âm.");
+            }
+            total = Math.addExact(total, quantity);
+        }
+        int capacity = configuration.getBox().getCapacityCakes();
+        if (total > capacity) {
+            throw new BusinessRuleViolationException("Hộp chỉ chứa " + capacity + " bánh, đang chọn " + total + " bánh.");
+        }
+        for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
+            setComponent(id, entry.getKey(), entry.getValue());
+        }
+    }
+
+    private Map<Long, String> coverPictures() {
+        Map<Long, String> pictures = new HashMap<>();
+        for (ProductImage image : products.images()) {
+            long variantId = image.getVariant().getId();
+            if (image.isPrimary() || !pictures.containsKey(variantId)) {
+                pictures.put(variantId, image.getImageUrl());
+            }
+        }
+        return pictures;
     }
 
     private String variantLabel(ProductVariant variant) {

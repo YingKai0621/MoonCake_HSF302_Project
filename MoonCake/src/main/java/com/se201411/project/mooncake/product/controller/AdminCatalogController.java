@@ -32,6 +32,9 @@ public class AdminCatalogController {
 
     @GetMapping("/catalog")
     public String catalog(@RequestParam(required = false) ProductType type, Model model) {
+        if (type == ProductType.GIFT_SET) {
+            return "redirect:/admin/gift-boxes";
+        }
         model.addAttribute("products", catalog.productRows(type));
         model.addAttribute("tabs", catalog.productTabs(type));
         model.addAttribute("categories", catalog.categories());
@@ -48,25 +51,28 @@ public class AdminCatalogController {
     @GetMapping("/catalog/products/{id}")
     public String editProduct(@PathVariable long id, Model model) {
         AdminProductDetail detail = catalog.productDetail(id);
+        if (detail.product().productType() == ProductType.GIFT_SET) {
+            return "redirect:/admin/gift-boxes/" + id;
+        }
         model.addAttribute("detail", detail);
         model.addAttribute("categories", catalog.categories());
         model.addAttribute("productTypes", catalog.productTypes());
-        if (detail.product().productType() == ProductType.GIFT_SET) {
-            model.addAttribute("recipes", presets.presetsForProduct(id));
-            model.addAttribute("options", presets.presetOptions());
-        }
         return "admin/product-edit";
     }
 
     @PostMapping("/catalog/products/{id}/delete")
-    public String deleteProduct(@PathVariable long id, RedirectAttributes flash) {
+    public String deleteProduct(@PathVariable long id, @RequestParam(defaultValue = "false") boolean giftBox,
+                                RedirectAttributes flash) {
         String name;
         try {
             name = catalog.deleteProduct(id);
         } catch (MoonCakeException | DataAccessException ex) {
             return failed(flash, productPage(id), "danger", null, message(ex));
         }
-        flash.addFlashAttribute("success", "Đã xóa sản phẩm " + name + ".");
+        flash.addFlashAttribute("success", "Đã xóa " + name + ".");
+        if (giftBox) {
+            return "redirect:/admin/gift-boxes";
+        }
         return "redirect:/admin/catalog";
     }
 
@@ -116,6 +122,9 @@ public class AdminCatalogController {
     @PostMapping("/catalog/products")
     public String createProduct(@Valid @ModelAttribute NewProductForm form, BindingResult result, RedirectAttributes flash) {
         String newPage = "/admin/catalog/products/new";
+        if (form.productType() == ProductType.GIFT_SET) {
+            newPage = "/admin/gift-boxes/new";
+        }
         if (result.hasErrors()) {
             return failed(flash, newPage, "new-product", withoutFile(form), FormErrors.first(result));
         }
@@ -127,7 +136,7 @@ public class AdminCatalogController {
         }
         if (form.productType() == ProductType.GIFT_SET) {
             flash.addFlashAttribute("success", "Đã tạo hộp quà. Bước tiếp theo: chọn bánh cho hộp.");
-            return "redirect:" + productPage(productId) + "#recipe";
+            return "redirect:/admin/gift-boxes/" + productId + "#recipe";
         }
         flash.addFlashAttribute("success", "Đã tạo sản phẩm. Bạn có thể thêm phiên bản và ảnh khác bên dưới.");
         return "redirect:" + productPage(productId);
@@ -208,7 +217,7 @@ public class AdminCatalogController {
 
     @GetMapping("/presets")
     public String presets() {
-        return "redirect:/admin/catalog?type=GIFT_SET";
+        return "redirect:/admin/gift-boxes";
     }
 
     @PostMapping("/presets")

@@ -48,6 +48,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.Mockito.*;
@@ -76,6 +77,7 @@ class AdminPagesTest {
     OrderCancellationService cancellations;
     @Autowired com.se201411.project.mooncake.order.service.OperationsService operations;
     @Autowired DashboardService dashboards;
+    @Autowired GiftBoxAdminService giftBoxes;
     @Autowired ProductMediaService media;
     @Autowired BatchStockService batches;
     MockMvc mvc;
@@ -116,9 +118,9 @@ class AdminPagesTest {
                         null)),
                 List.of()));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
-                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh")),
-                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc · 4 bánh")),
-                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa · 80g"))));
+                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null)),
+                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png")),
+                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png"))));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")), "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc · 4 bánh"),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of(), "Hộp quà Lam Phúc · Hộp 6 bánh", "Vỏ hộp Lam Phúc · 6 bánh")));
@@ -193,7 +195,7 @@ class AdminPagesTest {
                 .param("sku", "GIFT-NEW")
                 .param("imageUrl", "/images/products/gift.png"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/catalog/products/9#recipe"));
+            .andExpect(redirectedUrl("/admin/gift-boxes/9#recipe"));
         verify(catalog).createProduct(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
             "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
@@ -215,7 +217,7 @@ class AdminPagesTest {
                 .param("sku", "GIFT-NEW")
                 .param("imageUrl", "javascript:alert(1)"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/catalog/products/new#new-product"))
+            .andExpect(redirectedUrl("/admin/gift-boxes/new#new-product"))
             .andExpect(flash().attribute("formError", "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/."))
             .andExpect(flash().attributeExists("formValues"));
         verify(catalog, never()).createProduct(any());
@@ -246,7 +248,7 @@ class AdminPagesTest {
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog"))
-            .andExpect(flash().attribute("success", "Đã xóa sản phẩm Bánh thử."));
+            .andExpect(flash().attribute("success", "Đã xóa Bánh thử."));
     }
 
     @Test
@@ -484,8 +486,8 @@ class AdminPagesTest {
     }
 
     @Test
-    void giftBoxPageShowsStepsRecipeAndInlineErrors() throws Exception {
-        when(catalog.productDetail(2)).thenReturn(new AdminProductDetail(
+    void giftBoxPageShowsStepTabsCakeCardsAndInlineErrors() throws Exception {
+        AdminProductDetail detail = new AdminProductDetail(
                 new ProductForm(2L, 1, ProductType.GIFT_SET, "Hộp quà Kim Phúc", "hop-qua-kim-phuc", "Mô tả", null, null, null, null, false),
                 "Hộp quà",
                 true,
@@ -501,34 +503,51 @@ class AdminPagesTest {
                         "Ngừng bán",
                         "muted",
                         null)),
-                List.of()));
-        when(presets.presetsForProduct(2)).thenReturn(List.of(new AdminPresetView(
+                List.of());
+        AdminPresetView recipe = new AdminPresetView(
                 1, 1, "GIFT-KP-4", 1, 4, ConfigurationStatus.DRAFT,
-                List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")),
-                "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc 4 bánh")));
-        mvc.perform(get("/admin/catalog/products/2").with(user("admin").roles("ADMIN")))
+                List.of(new AdminPresetView.Component(1, "CAKE", 3, "Bánh Kim Sa · Bánh 80g")),
+                "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc 4 bánh");
+        when(giftBoxes.page(2)).thenReturn(new GiftBoxPage(
+                detail,
+                detail.skus().get(0),
+                recipe,
+                List.of(
+                        new GiftBoxPage.Step(1, "Thông tin & giá", "info", true),
+                        new GiftBoxPage.Step(2, "Chọn bánh cho hộp", "recipe", false),
+                        new GiftBoxPage.Step(3, "Đóng hộp", "pack", false),
+                        new GiftBoxPage.Step(4, "Mở bán", "sale", false)),
+                "recipe",
+                false));
+        mvc.perform(get("/admin/gift-boxes/2").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Chọn bánh cho hộp")))
-            .andExpect(content().string(containsString("Bánh trong hộp")))
-            .andExpect(content().string(containsString("4/4 bánh")))
-            .andExpect(content().string(containsString("Khóa danh sách bánh")));
+            .andExpect(content().string(containsString("data-default=\"recipe\"")))
+            .andExpect(content().string(containsString("name=\"quantities[1]\"")))
+            .andExpect(content().string(containsString("/images/cake.png")))
+            .andExpect(content().string(containsString("Cần đủ 4 bánh để khóa")));
 
-        doThrow(new BusinessRuleViolationException("Tổng số bánh phải bằng sức chứa của hộp."))
-            .when(presets).activate(1L);
-        mvc.perform(post("/admin/presets/1/activate")
+        when(catalog.productDetail(2)).thenReturn(detail);
+        mvc.perform(get("/admin/catalog/products/2").with(user("admin").roles("ADMIN")))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/gift-boxes/2"));
+
+        doThrow(new BusinessRuleViolationException("Hộp chỉ chứa 4 bánh, đang chọn 5 bánh."))
+            .when(presets).setComponents(eq(1L), any());
+        mvc.perform(post("/admin/gift-boxes/2/cakes")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
-                .param("productId", "2"))
+                .param("recipeId", "1")
+                .param("quantities[1]", "5"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/catalog/products/2#recipe"))
-            .andExpect(flash().attribute("formError", "Tổng số bánh phải bằng sức chứa của hộp."));
+            .andExpect(redirectedUrl("/admin/gift-boxes/2#recipe"))
+            .andExpect(flash().attribute("formError", "Hộp chỉ chứa 4 bánh, đang chọn 5 bánh."));
     }
 
     @Test
     void oldRecipePageRedirectsToGiftBoxes() throws Exception {
         mvc.perform(get("/admin/presets").with(user("admin").roles("ADMIN")))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/admin/catalog?type=GIFT_SET"));
+            .andExpect(redirectedUrl("/admin/gift-boxes"));
     }
 
     @Test
@@ -601,9 +620,10 @@ class AdminPagesTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
+        @Bean GiftBoxAdminService giftBoxAdminService(){return mock(GiftBoxAdminService.class);}
         @Bean DashboardService dashboardService(){return mock(DashboardService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
         @Bean BatchStockService batches(){return mock(BatchStockService.class);}

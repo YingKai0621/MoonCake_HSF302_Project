@@ -19,29 +19,9 @@
               th:text="${detail.webLabel}">Đang bán trên web</span>
     </div>
 
-    <ol class="order-steps gift-steps" th:if="${product.productType.name() == 'GIFT_SET'}"
-        th:with="hasSku=${!detail.skus.isEmpty()},
-                 locked=${recipes != null and !recipes.?[status.name() == 'READY'].isEmpty()},
-                 stocked=${!detail.skus.?[stock > 0].isEmpty()},
-                 selling=${!detail.skus.?[form.active].isEmpty()}">
-        <li class="order-steps__step" th:classappend="${hasSku} ? 'is-done' : 'is-current'">
-            <span>1</span>Thông tin &amp; giá
-        </li>
-        <li class="order-steps__step" th:classappend="${locked} ? 'is-done' : (${hasSku} ? 'is-current' : '')">
-            <span>2</span><a href="#recipe">Chọn bánh cho hộp</a>
-        </li>
-        <li class="order-steps__step" th:classappend="${stocked} ? 'is-done' : (${locked} ? 'is-current' : '')">
-            <span>3</span><a th:href="@{/admin/inventory}">Đóng hộp ở kho</a>
-        </li>
-        <li class="order-steps__step" th:classappend="${selling} ? 'is-done' : (${stocked} ? 'is-current' : '')">
-            <span>4</span><a href="#skus">Mở bán</a>
-        </li>
-    </ol>
-
     <nav class="jump-links" aria-label="Đi tới phần">
         <a href="#info">Thông tin</a>
         <a href="#skus" th:text="${'Phiên bản & giá (' + #lists.size(detail.skus) + ')'}">Phiên bản &amp; giá</a>
-        <a th:if="${product.productType.name() == 'GIFT_SET'}" href="#recipe">Bánh trong hộp</a>
         <a th:if="${detail.emptyBox}" href="#boxes">Mẫu hộp</a>
     </nav>
 
@@ -161,23 +141,6 @@
                 </div>
             </details>
         </div>
-    </section>
-
-    <section id="recipe" th:if="${product.productType.name() == 'GIFT_SET'}">
-        <div class="section-heading">
-            <h2>Bánh trong hộp</h2>
-        </div>
-        <p th:replace="~{admin/product-forms :: alert('recipe')}"></p>
-        <p th:if="${detail.skus.isEmpty()}" class="muted">Thêm phiên bản và giá ở phần trên trước.</p>
-        <th:block th:each="sku : ${detail.skus}" th:with="skuRecipes=${recipes.?[giftSetVariantId == __${sku.form.id}__]}">
-            <h3 th:if="${#lists.size(detail.skus) > 1}" class="recipe__sku" th:text="${sku.form.name}">Hộp 4 bánh</h3>
-            <th:block th:each="p : ${skuRecipes}">
-                <div th:replace="~{admin/recipe-forms :: card(${p}, ${product.id})}"></div>
-            </th:block>
-            <th:block th:if="${skuRecipes.isEmpty() and !sku.form.active}">
-                <form th:replace="~{admin/recipe-forms :: create(${sku.form.id}, ${product.id})}"></form>
-            </th:block>
-        </th:block>
     </section>
 
     <section id="boxes" th:if="${detail.emptyBox}">

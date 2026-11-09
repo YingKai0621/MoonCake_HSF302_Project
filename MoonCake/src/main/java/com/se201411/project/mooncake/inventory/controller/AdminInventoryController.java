@@ -75,14 +75,30 @@ public class AdminInventoryController {
     }
 
     @PostMapping("/pack")
-    public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
+    public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
+                       @RequestParam(required = false) Long giftBoxId, RedirectAttributes flash) {
+        String error = null;
         if (result.hasErrors()) {
-            return reopen(flash, "pack-dialog", form, FormErrors.first(result));
+            error = FormErrors.first(result);
+        } else {
+            try {
+                packing.pack(form);
+            } catch (MoonCakeException ex) {
+                error = ex.getMessage();
+            }
         }
-        try {
-            packing.pack(form);
-        } catch (MoonCakeException ex) {
-            return reopen(flash, "pack-dialog", form, ex.getMessage());
+        if (giftBoxId != null) {
+            String page = "redirect:/admin/gift-boxes/" + giftBoxId + "#pack";
+            if (error != null) {
+                flash.addFlashAttribute("formTarget", "pack");
+                flash.addFlashAttribute("formError", error);
+                return page;
+            }
+            flash.addFlashAttribute("success", "Đã đóng " + form.quantity() + " hộp.");
+            return page;
+        }
+        if (error != null) {
+            return reopen(flash, "pack-dialog", form, error);
         }
         return done(flash);
     }

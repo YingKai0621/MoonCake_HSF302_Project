@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Hộp quà')}"></head>
+<body class="page-gift-boxes">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <div class="page-heading page-heading--simple page-heading--with-action">
+        <div>
+            <span class="eyebrow">Sản phẩm</span>
+            <h1>Hộp quà</h1>
+        </div>
+        <a class="button" th:href="@{/admin/gift-boxes/new}">+ Thêm hộp quà</a>
+    </div>
+
+    <div class="gift-grid">
+        <a th:each="box : ${giftBoxes}" class="gift-card" th:href="@{/admin/gift-boxes/{id}(id=${box.id})}">
+            <span class="gift-card__image">
+                <img th:if="${box.imageUrl != null}" th:src="${box.imageUrl}" alt="" loading="lazy">
+            </span>
+            <span class="gift-card__body">
+                <strong th:text="${box.name}">Hộp quà Kim Phúc</strong>
+                <span class="gift-card__price" th:if="${box.price != null}"
+                      th:text="${#numbers.formatDecimal(box.price, 0, 'POINT', 0, 'COMMA') + 'đ'}">590.000đ</span>
+                <span class="gift-card__progress">
+                    <span class="gift-card__dots">
+                        <span th:each="i : ${#numbers.sequence(1, 4)}" class="gift-card__dot"
+                              th:classappend="${i <= box.doneSteps} ? 'is-done'"></span>
+                    </span>
+                    <small th:text="${box.doneSteps == 4 ? 'Đã xong 4/4 bước' : 'Bước ' + (box.doneSteps + 1) + '/4'}">Bước 2/4</small>
+                </span>
+                <span class="badge badge--dot" th:classappend="${'badge--' + box.webTone}" th:text="${box.webLabel}">Đang bán trên web</span>
+            </span>
+        </a>
+    </div>
+
+    <section th:if="${giftBoxes.isEmpty()}" class="empty-state">
+        <p><strong>Chưa có hộp quà nào.</strong></p>
+        <a class="button" th:href="@{/admin/gift-boxes/new}">Thêm hộp quà đầu tiên</a>
+    </section>
+</main>
+</body>
+</html>

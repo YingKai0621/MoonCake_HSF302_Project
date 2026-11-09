@@ -81,7 +81,10 @@ class ProductWebStatusTest {
         Product gift = product(2L, ProductType.GIFT_SET, true);
         variant(21L, gift, true, 10);
 
-        assertThat(onlyRow().webLabel()).isEqualTo("Chưa có công thức");
+        List<AdminProductRow> rows = service.productRows(ProductType.GIFT_SET);
+        assertThat(rows).hasSize(1);
+        assertThat(rows.get(0).webLabel()).isEqualTo("Chưa có công thức");
+        assertThat(service.productRows(null)).isEmpty();
     }
 
     @Test

@@ -1,6 +1,8 @@
 package com.se201411.project.mooncake.order.repository;
 
 import com.se201411.project.mooncake.entity.Payment;
+import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -26,6 +28,18 @@ public interface PaymentRepository extends Repository<Payment, Long> {
         where payment.order.id in :orderIds
         """)
     List<Payment> findByOrderIds(@Param("orderIds") List<Long> orderIds);
+
+    @Query("""
+        select payment.order.id
+        from Payment payment
+        where payment.order.status = :orderStatus
+          and payment.status = :paymentStatus
+        order by payment.order.createdAt
+        """)
+    List<Long> findOrderIdsByStatus(
+        @Param("orderStatus") OrderStatus orderStatus,
+        @Param("paymentStatus") PaymentStatus paymentStatus
+    );
 
     @Modifying(flushAutomatically = true)
     @Query(nativeQuery = true, value = """

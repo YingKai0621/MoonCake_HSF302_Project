@@ -5,4 +5,6 @@ public interface OrderCancellationService {
     void cancelCurrentCustomerOrder(String orderCode);
 
     void cancelForAdmin(long orderId);
+
+    boolean cancelIfPaymentExpired(long orderId);
 }

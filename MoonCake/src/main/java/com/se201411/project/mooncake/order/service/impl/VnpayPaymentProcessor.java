@@ -26,6 +26,7 @@ import java.util.UUID;
 @Service
 public class VnpayPaymentProcessor implements PaymentProcessor {
     private static final long ATTEMPT_LIFETIME_SECONDS = 900;
+    private static final long UNPAID_ORDER_LIFETIME_MINUTES = 30;
     private static final String SERVER_IP = "127.0.0.1";
 
     private static final String RSP_SUCCESS = "00";
@@ -148,6 +149,22 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             return;
         }
         refreshFromVnpay(pending);
+    }
+
+    @Override
+    public Optional<LocalDateTime> autoCancelAt(SalesOrder order, Payment payment) {
+        if (order.getStatus() != OrderStatus.PLACED || payment.getStatus() != PaymentStatus.UNPAID) {
+            return Optional.empty();
+        }
+        LocalDateTime deadline = order.getCreatedAt().plusMinutes(UNPAID_ORDER_LIFETIME_MINUTES);
+        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(order.getId());
+        if (pending != null) {
+            LocalDateTime attemptEnd = pending.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS);
+            if (attemptEnd.isAfter(deadline)) {
+                deadline = attemptEnd;
+            }
+        }
+        return Optional.of(deadline);
     }
 
     private void refreshFromVnpay(VnpayRepository.Attempt pending) {

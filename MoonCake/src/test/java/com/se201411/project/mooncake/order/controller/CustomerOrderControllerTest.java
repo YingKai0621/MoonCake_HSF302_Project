@@ -96,6 +96,7 @@ class CustomerOrderControllerTest {
             "Chưa thanh toán",
             "COD",
             false,
+            null,
             List.of(),
             0,
             "590.000đ",

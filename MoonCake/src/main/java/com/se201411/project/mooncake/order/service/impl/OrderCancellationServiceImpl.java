@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 @Service
@@ -107,6 +108,37 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         }
 
         cancelOrder(order, currentStatus, false);
+    }
+
+    @Override
+    @Transactional
+    public boolean cancelIfPaymentExpired(long orderId) {
+        Optional<SalesOrder> foundOrder = orderRepository.findById(orderId);
+        if (foundOrder.isEmpty()) {
+            return false;
+        }
+        SalesOrder order = foundOrder.get();
+        if (order.getStatus() != OrderStatus.PLACED) {
+            return false;
+        }
+
+        Payment payment = requireSinglePayment(orderId);
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
+            payment.getMethod()
+        );
+        Optional<LocalDateTime> deadline = paymentProcessor.autoCancelAt(order, payment);
+        LocalDateTime now = LocalDateTime.now(clock);
+        if (deadline.isEmpty() || now.isBefore(deadline.get())) {
+            return false;
+        }
+
+        paymentProcessor.refreshPaymentStatus(orderId);
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            return false;
+        }
+
+        cancelOrder(order, OrderStatus.PLACED, false);
+        return true;
     }
 
     private void cancelOrder(

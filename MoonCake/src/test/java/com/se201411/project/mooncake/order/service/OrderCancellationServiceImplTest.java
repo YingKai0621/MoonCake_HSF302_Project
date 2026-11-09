@@ -28,12 +28,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.doAnswer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -285,6 +287,94 @@ class OrderCancellationServiceImplTest {
             any()
         );
         verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void expiredUnpaidVnpayOrderIsCancelledAndStockReturned() {
+        SalesOrder order = order(20L, OrderStatus.PLACED);
+        Payment payment = payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID);
+        when(orderRepository.findById(20L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(20L)).thenReturn(List.of(payment));
+        when(vnpayProcessor.autoCancelAt(order, payment))
+            .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 22, 9, 59)));
+        when(orderRepository.cancelFromStatus(
+            eq(20L), eq(OrderStatus.PLACED), eq(OrderStatus.CANCELLED), any()
+        )).thenReturn(1);
+        OrderItem standard = item(201L, InventorySource.STOCKED_SKU, 1);
+        standard.setVariant(variant(30L));
+        when(itemRepository.findByOrderId(20L)).thenReturn(List.of(standard));
+
+        boolean cancelled = service.cancelIfPaymentExpired(20L);
+
+        assertThat(cancelled).isTrue();
+        InOrder inOrder = inOrder(vnpayProcessor, orderRepository, inventoryService);
+        inOrder.verify(vnpayProcessor).refreshPaymentStatus(20L);
+        inOrder.verify(orderRepository).cancelFromStatus(eq(20L), any(), any(), any());
+        inOrder.verify(inventoryService).restoreForCancellation(any());
+    }
+
+    @Test
+    void unpaidVnpayOrderBeforeDeadlineIsKept() {
+        SalesOrder order = order(21L, OrderStatus.PLACED);
+        Payment payment = payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID);
+        when(orderRepository.findById(21L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(21L)).thenReturn(List.of(payment));
+        when(vnpayProcessor.autoCancelAt(order, payment))
+            .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 22, 10, 5)));
+
+        boolean cancelled = service.cancelIfPaymentExpired(21L);
+
+        assertThat(cancelled).isFalse();
+        verify(vnpayProcessor, never()).refreshPaymentStatus(anyLong());
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+    }
+
+    @Test
+    void orderPaidAtVnpayDuringCheckIsKept() {
+        SalesOrder order = order(22L, OrderStatus.PLACED);
+        Payment payment = payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID);
+        when(orderRepository.findById(22L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(22L)).thenReturn(List.of(payment));
+        when(vnpayProcessor.autoCancelAt(order, payment))
+            .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 22, 9, 0)));
+        doAnswer(invocation -> {
+            payment.setStatus(PaymentStatus.PAID);
+            return null;
+        }).when(vnpayProcessor).refreshPaymentStatus(22L);
+
+        boolean cancelled = service.cancelIfPaymentExpired(22L);
+
+        assertThat(cancelled).isFalse();
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+        verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void vnpayUnreachableLeavesOrderForNextRun() {
+        SalesOrder order = order(23L, OrderStatus.PLACED);
+        Payment payment = payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID);
+        when(orderRepository.findById(23L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(23L)).thenReturn(List.of(payment));
+        when(vnpayProcessor.autoCancelAt(order, payment))
+            .thenReturn(Optional.of(LocalDateTime.of(2026, 10, 22, 9, 0)));
+        doThrow(new BusinessRuleViolationException("offline"))
+            .when(vnpayProcessor).refreshPaymentStatus(23L);
+
+        assertThatThrownBy(() -> service.cancelIfPaymentExpired(23L))
+            .isInstanceOf(BusinessRuleViolationException.class);
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
+    }
+
+    @Test
+    void codOrderIsNeverAutoCancelled() {
+        SalesOrder order = order(24L, OrderStatus.PLACED);
+        when(orderRepository.findById(24L)).thenReturn(Optional.of(order));
+
+        boolean cancelled = service.cancelIfPaymentExpired(24L);
+
+        assertThat(cancelled).isFalse();
+        verify(orderRepository, never()).findByIdForUpdate(anyLong());
+        verify(orderRepository, never()).cancelFromStatus(anyLong(), any(), any(), any());
     }
 
     private SalesOrder order(long id, OrderStatus status) {

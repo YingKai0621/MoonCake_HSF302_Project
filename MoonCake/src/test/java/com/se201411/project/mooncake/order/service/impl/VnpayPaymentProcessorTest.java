@@ -439,6 +439,44 @@ class VnpayPaymentProcessorTest {
         return payment;
     }
 
+    @Test
+    void unpaidOrderIsCancelledThirtyMinutesAfterItWasPlaced() {
+        SalesOrder order = placedAt(2, 0);
+        when(vnpayRepository.findPendingAttempt(7L)).thenReturn(null);
+
+        Optional<LocalDateTime> deadline = processor.autoCancelAt(order, payment(PaymentStatus.UNPAID));
+
+        assertThat(deadline).contains(LocalDateTime.of(2026, 11, 8, 2, 30));
+    }
+
+    @Test
+    void openAttemptPushesTheDeadlineToItsExpiry() {
+        SalesOrder order = placedAt(2, 0);
+        when(vnpayRepository.findPendingAttempt(7L)).thenReturn(pendingCreatedAt(2, 25));
+
+        Optional<LocalDateTime> deadline = processor.autoCancelAt(order, payment(PaymentStatus.UNPAID));
+
+        assertThat(deadline).contains(LocalDateTime.of(2026, 11, 8, 2, 40));
+    }
+
+    @Test
+    void paidOrderHasNoDeadline() {
+        SalesOrder order = mock(SalesOrder.class);
+        when(order.getStatus()).thenReturn(OrderStatus.PLACED);
+
+        Optional<LocalDateTime> deadline = processor.autoCancelAt(order, payment(PaymentStatus.PAID));
+
+        assertThat(deadline).isEmpty();
+    }
+
+    private SalesOrder placedAt(int hour, int minute) {
+        SalesOrder order = mock(SalesOrder.class);
+        when(order.getId()).thenReturn(7L);
+        when(order.getStatus()).thenReturn(OrderStatus.PLACED);
+        when(order.getCreatedAt()).thenReturn(LocalDateTime.of(2026, 11, 8, hour, minute));
+        return order;
+    }
+
     private SalesOrder givenOrderSeven(PaymentMethod method) {
         SalesOrder order = mock(SalesOrder.class);
         when(order.getId()).thenReturn(7L);

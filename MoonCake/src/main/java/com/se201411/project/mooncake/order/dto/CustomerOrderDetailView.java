@@ -15,6 +15,7 @@ public record CustomerOrderDetailView(
     String paymentStatusLabel,
     String paymentMethodLabel,
     boolean awaitingOnlinePayment,
+    AutoCancelView autoCancel,
     List<CustomerOrderItemView> items,
     int totalQuantity,
     String formattedSubtotal,

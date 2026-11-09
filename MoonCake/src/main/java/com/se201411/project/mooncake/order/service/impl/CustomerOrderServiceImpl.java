@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.AutoCancelView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderComponentView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
 import com.se201411.project.mooncake.order.dto.CustomerOrderItemView;
@@ -37,8 +38,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     private static final ZoneId VIETNAM_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter TIME_FORMAT =
+        DateTimeFormatter.ofPattern("HH:mm");
 
     private final SalesOrderRepository orderRepository;
     private final OrderItemRepository itemRepository;
@@ -152,6 +155,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             paymentStatusLabel(payment.getStatus()),
             paymentMethodLabel(payment.getMethod()),
             awaitingOnlinePayment,
+            autoCancelView(order, payment),
             itemViews,
             totalQuantity,
             formatVnd(order.getSubtotalAmount()),
@@ -393,6 +397,30 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             return null;
         }
         return "Giảm " + discountPercent.stripTrailingZeros().toPlainString() + "%";
+    }
+
+    private AutoCancelView autoCancelView(SalesOrder order, Payment payment) {
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        Optional<LocalDateTime> deadline = paymentProcessor.autoCancelAt(order, payment);
+        if (deadline.isEmpty()) {
+            return null;
+        }
+        return new AutoCancelView(
+            formatTime(deadline.get()),
+            toEpochMillis(deadline.get()),
+            toEpochMillis(order.getCreatedAt())
+        );
+    }
+
+    private String formatTime(LocalDateTime dateTime) {
+        return dateTime
+            .atZone(ZoneOffset.UTC)
+            .withZoneSameInstant(VIETNAM_TIME_ZONE)
+            .format(TIME_FORMAT);
+    }
+
+    private long toEpochMillis(LocalDateTime utcDateTime) {
+        return utcDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
     private String formatDateTime(LocalDateTime dateTime) {

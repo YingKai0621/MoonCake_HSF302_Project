@@ -45,11 +45,28 @@
              role="status">
       <div class="flex flex-col md:flex-row md:items-center gap-5">
         <div class="flex items-start gap-4 flex-1">
-          <span class="material-symbols-outlined shrink-0 w-12 h-12 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-[28px]"
+          <span th:if="${order.autoCancel == null}"
+                class="material-symbols-outlined shrink-0 w-12 h-12 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-[28px]"
                 aria-hidden="true">schedule</span>
+          <div th:if="${order.autoCancel != null}"
+               class="countdown-ring"
+               data-countdown
+               th:attr="data-deadline=${order.autoCancel.deadlineEpochMillis},data-start=${order.autoCancel.startEpochMillis}"
+               aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <circle class="countdown-ring__track" cx="32" cy="32" r="28"></circle>
+              <circle class="countdown-ring__progress" cx="32" cy="32" r="28" data-countdown-progress></circle>
+            </svg>
+            <span class="countdown-ring__time" data-countdown-time>--:--</span>
+          </div>
           <div>
             <h2 class="text-lg font-semibold text-amber-200">Đơn hàng đang chờ thanh toán</h2>
             <p class="text-sm text-sand mt-1">Hàng đã được giữ cho bạn. Cửa hàng sẽ chuẩn bị đơn ngay sau khi nhận được thanh toán.</p>
+            <p th:if="${order.autoCancel != null}"
+               class="text-sm text-amber-200/90 mt-2"
+               data-countdown-message>
+              Đơn sẽ tự hủy lúc <strong th:text="${order.autoCancel.formattedTime}">11:30</strong> nếu chưa thanh toán.
+            </p>
           </div>
         </div>
         <div class="flex items-center justify-between md:justify-end gap-5">
@@ -264,6 +281,7 @@
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/order-detail.js}" src="/js/pages/order-detail.js"></script>
   <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <script th:if="${order.autoCancel != null}" th:src="@{/js/pages/order-countdown.js}" src="/js/pages/order-countdown.js"></script>
   <th:block th:if="${celebrate}">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script th:src="@{/js/celebrate.js}" src="/js/celebrate.js"></script>

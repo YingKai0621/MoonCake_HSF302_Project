@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.security.service.impl.AdminAccessServiceImpl;
+import com.se201411.project.mooncake.security.service.impl.AdminBootstrapServiceImpl;
 import com.se201411.project.mooncake.security.service.*;
 import com.se201411.project.mooncake.security.repository.*;
 import com.se201411.project.mooncake.security.auth.MoonCakeUserPrincipal;
@@ -21,7 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class AdminAccessAndBootstrapTest {
     AccountRepository accounts = mock(AccountRepository.class);
-    AdminAccessService access = new AdminAccessService(accounts);
+    AdminAccessService access = new AdminAccessServiceImpl(accounts);
 
     @AfterEach
     void clear() {
@@ -54,7 +56,7 @@ class AdminAccessAndBootstrapTest {
         var repo = mock(AdminBootstrapRepository.class);
         var encoder = mock(PasswordEncoder.class);
         try (var factory = Validation.buildDefaultValidatorFactory()) {
-            var service = new AdminBootstrapService(repo, encoder, factory.getValidator(), Clock.systemUTC());
+            var service = new AdminBootstrapServiceImpl(repo, encoder, factory.getValidator(), Clock.systemUTC());
             when(repo.adminExistsUnderLock()).thenReturn(true);
             assertThat(service.createIfAbsent(null, null)).isFalse();
             verifyNoInteractions(encoder);
@@ -67,7 +69,7 @@ class AdminAccessAndBootstrapTest {
         var repo = mock(AdminBootstrapRepository.class);
         var encoder = mock(PasswordEncoder.class);
         try (var factory = Validation.buildDefaultValidatorFactory()) {
-            var service = new AdminBootstrapService(repo, encoder, factory.getValidator(), Clock.systemUTC());
+            var service = new AdminBootstrapServiceImpl(repo, encoder, factory.getValidator(), Clock.systemUTC());
             when(repo.emailExists("admin@example.test")).thenReturn(true);
             assertThatThrownBy(() -> service.createIfAbsent(" ADMIN@example.test ", "test-only-password")).isInstanceOf(IllegalStateException.class);
             verifyNoInteractions(encoder);
@@ -83,7 +85,7 @@ class AdminAccessAndBootstrapTest {
         var repo = mock(AdminBootstrapRepository.class);
         var encoder = mock(PasswordEncoder.class);
         try (var factory = Validation.buildDefaultValidatorFactory()) {
-            var service = new AdminBootstrapService(repo, encoder, factory.getValidator(), Clock.systemUTC());
+            var service = new AdminBootstrapServiceImpl(repo, encoder, factory.getValidator(), Clock.systemUTC());
             assertThatThrownBy(() -> service.createIfAbsent("admin@example.test", "密".repeat(30))).isInstanceOf(IllegalArgumentException.class);
             verifyNoInteractions(encoder);
         }

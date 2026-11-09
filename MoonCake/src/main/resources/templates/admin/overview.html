@@ -1,1 +1,59 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{admin/layout :: head('Tổng quan')}"></head><body><header th:replace="~{admin/layout :: nav}"></header><main><div class="page-heading"><span class="eyebrow">MOONCAKE ADMIN</span><h1>Tổng quan cửa hàng</h1><p>Số liệu toàn thời gian. Doanh thu là tổng tiền các đơn đã hoàn tất.</p></div><div class="grid"><section><small>Tổng đơn</small><h2 th:text="${stats[0]}"></h2></section><section><small>Chờ xử lý</small><h2 th:text="${stats[1]}"></h2></section><section><small>Doanh thu hoàn tất (VND)</small><h2 th:text="${#numbers.formatDecimal(stats[2],0,'POINT',0,'COMMA')}"></h2></section><section><small>Đã hủy</small><h2 th:text="${stats[3]}"></h2></section></div><section class="table-scroll"><h2>Danh sách doanh nghiệp</h2><table data-search-table><thead><tr><th>Tên</th><th>Liên hệ</th><th>Email</th><th>Điện thoại</th><th>Số đơn</th><th>Tổng giá trị đơn (VND)</th></tr></thead><tbody><tr th:each="b:${businesses}"><td th:text="${b[1]}"></td><td th:text="${b[2]}"></td><td th:text="${b[3]}"></td><td th:text="${b[4]}"></td><td th:text="${b[5]}"></td><td th:text="${b[6]}"></td></tr></tbody></table></section></main></body></html>
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Tổng quan')}"></head>
+<body>
+<header th:replace="~{admin/layout :: nav}"></header>
+<main>
+    <div class="page-heading">
+        <span class="eyebrow">MOONCAKE ADMIN</span>
+        <h1>Tổng quan cửa hàng</h1>
+        <p>Số liệu toàn thời gian. Doanh thu là tổng tiền các đơn đã hoàn tất.</p>
+    </div>
+
+    <div class="grid">
+        <section>
+            <small>Tổng đơn</small>
+            <h2 th:text="${stats.totalOrders}">0</h2>
+        </section>
+        <section>
+            <small>Chờ xử lý</small>
+            <h2 th:text="${stats.placedOrders}">0</h2>
+        </section>
+        <section>
+            <small>Doanh thu hoàn tất (VND)</small>
+            <h2 th:text="${#numbers.formatDecimal(stats.completedRevenue, 0, 'POINT', 0, 'COMMA')}">0</h2>
+        </section>
+        <section>
+            <small>Đã hủy</small>
+            <h2 th:text="${stats.cancelledOrders}">0</h2>
+        </section>
+    </div>
+
+    <section class="table-scroll">
+        <h2>Danh sách doanh nghiệp</h2>
+        <table data-search-table>
+            <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Liên hệ</th>
+                <th>Email</th>
+                <th>Điện thoại</th>
+                <th>Số đơn</th>
+                <th>Tổng giá trị đơn (VND)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="business : ${businesses}">
+                <td th:text="${business.name}">Doanh nghiệp</td>
+                <td th:text="${business.contactName}">Người liên hệ</td>
+                <td th:text="${business.contactEmail}">Email</td>
+                <td th:text="${business.contactPhone}">Điện thoại</td>
+                <td th:text="${business.orderCount}">0</td>
+                <td th:text="${#numbers.formatDecimal(business.totalOrderValue, 0, 'POINT', 0, 'COMMA')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

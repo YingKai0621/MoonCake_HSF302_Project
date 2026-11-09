@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.order.dto.BusinessSummaryView;
+import com.se201411.project.mooncake.order.dto.OverviewStatsView;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
 import com.se201411.project.mooncake.inventory.dto.AdminBatchView;
 import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
@@ -69,7 +71,7 @@ class AdminPagesTest {
     @BeforeEach
     void setup() {
         reset(catalog, presets, inventory, orders, cancellations);
-        when(operations.statistics()).thenReturn(new Object[]{1,1,BigDecimal.TEN,0});
+        when(operations.statistics()).thenReturn(new OverviewStatsView(1L, 1L, BigDecimal.TEN, 0L));
         when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "LOT", null, null, 3, "Chưa có hạn dùng")));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
@@ -257,8 +259,8 @@ class AdminPagesTest {
     @Test
     void overviewRendersStatisticsAndBusiness() throws Exception {
         var operations=context.getBean(com.se201411.project.mooncake.order.service.OperationsService.class);
-        when(operations.statistics()).thenReturn(new Object[]{12,3,new BigDecimal("100000"),2});
-        when(operations.businesses()).thenReturn(java.util.Collections.singletonList(new Object[]{1,"Business","Contact","a@example.test","000",2,100000}));
+        when(operations.statistics()).thenReturn(new OverviewStatsView(12L, 3L, new BigDecimal("100000"), 2L));
+        when(operations.businesses()).thenReturn(List.of(new BusinessSummaryView(1L, "Business", "Contact", "a@example.test", "000", 2L, new BigDecimal("100000"))));
         mvc.perform(get("/admin/overview").with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk()).andExpect(content().string(containsString("Business")));
     }

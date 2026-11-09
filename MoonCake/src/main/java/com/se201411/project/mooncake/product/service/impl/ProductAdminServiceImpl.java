@@ -233,6 +233,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     public void saveCategory(CategoryForm f) {
         access.requireAdmin();
         validation.validate(f);
+        if (repo.categorySlugUsed(f.slug(), f.id())) {
+            throw new BusinessRuleViolationException("Đường dẫn này đã được danh mục khác dùng.");
+        }
         Category v = f.id() == null ? new Category() : repo.category(f.id());
         v.setName(f.name().trim());
         v.setSlug(f.slug());
@@ -246,6 +249,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         access.requireAdmin();
         validation.validate(f);
         Product v = f.id() == null ? new Product() : repo.product(f.id());
+        if (repo.productSlugUsed(f.slug(), f.id())) {
+            throw new BusinessRuleViolationException("Đường dẫn này đã được sản phẩm khác dùng.");
+        }
         if (f.id() != null && v.getProductType() != f.productType() && repo.hasVariants(f.id())) {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
@@ -288,8 +294,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             productId,
             f.sku().trim(),
             f.variantName(),
-            null,
-            null,
+            f.weightGrams(),
+            f.fillingLabel(),
             f.unitPrice(),
             false
         );
@@ -316,8 +322,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         if (f.id() != null && (!v.getProduct().getId().equals(f.productId()) || !v.getSku().equals(f.sku()))) {
             throw new BusinessRuleViolationException("Không đổi được mã SKU hoặc sản phẩm của SKU đã tạo. Hãy tạo SKU mới.");
         }
-        v.setProduct(repo.product(f.productId()));
-        v.setSku(f.sku());
+        Product product = repo.product(f.productId());
+        String sku = f.sku().trim();
+        if (f.id() == null) {
+            sku = sku.toUpperCase();
+            checkNewSku(sku);
+        }
+        checkVariantDetails(product, f);
+        v.setProduct(product);
+        v.setSku(sku);
         v.setName(f.name().trim());
         v.setWeightGrams(f.weightGrams());
         v.setFillingLabel(f.fillingLabel());
@@ -429,6 +442,31 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
         repo.deleteVariant(variantId);
         return productId;
+    }
+
+    private void checkNewSku(String sku) {
+        if (!sku.matches("[A-Z0-9]+(?:[-_][A-Z0-9]+)*")) {
+            throw new BusinessRuleViolationException("Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.");
+        }
+        if (repo.skuExists(sku)) {
+            throw new BusinessRuleViolationException("Mã SKU " + sku + " đã tồn tại.");
+        }
+    }
+
+    private void checkVariantDetails(Product product, VariantForm f) {
+        BigDecimal thousand = BigDecimal.valueOf(1000);
+        if (f.unitPrice().remainder(thousand).signum() != 0) {
+            throw new BusinessRuleViolationException("Giá bán phải là bội số của 1.000đ.");
+        }
+        if (product.getProductType() != ProductType.MOONCAKE) {
+            return;
+        }
+        if (f.weightGrams() == null) {
+            throw new BusinessRuleViolationException("Bánh lẻ cần nhập khối lượng.");
+        }
+        if (f.fillingLabel() == null || f.fillingLabel().isBlank()) {
+            throw new BusinessRuleViolationException("Bánh lẻ cần nhập nhân bánh.");
+        }
     }
 
     private String variantDeleteBlocker(long variantId) {

@@ -29,10 +29,18 @@
                         <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh">
                     </label>
                     <label>Giá bán (đ)
-                        <input type="number" name="unitPrice" required min="0" step="1" placeholder="Ví dụ: 450000">
+                        <input type="number" name="unitPrice" placeholder="Ví dụ: 450000"
+                               required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
                     </label>
                     <label>Mã SKU
-                        <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG">
+                        <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"
+                               pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
+                    </label>
+                    <label data-cake-only hidden>Khối lượng (g)
+                        <input type="number" name="weightGrams" placeholder="Ví dụ: 150" min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
+                    </label>
+                    <label data-cake-only hidden>Nhân bánh
+                        <input type="text" name="fillingLabel" maxlength="180" placeholder="Ví dụ: Thập cẩm lạp xưởng">
                     </label>
                 </div>
             </section>

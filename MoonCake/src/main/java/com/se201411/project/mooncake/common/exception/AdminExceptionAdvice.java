@@ -50,9 +50,9 @@ public class AdminExceptionAdvice {
     public String validation(MethodArgumentNotValidException ex, Model model) {
         List<String> errors = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.add(error.getField() + ": " + error.getDefaultMessage());
+            errors.add(error.getDefaultMessage());
         }
-        model.addAttribute("message", String.join("; ", errors));
+        model.addAttribute("message", String.join(" ", errors));
         return "admin/error";
     }
 

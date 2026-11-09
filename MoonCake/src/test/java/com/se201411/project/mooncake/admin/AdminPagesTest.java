@@ -189,7 +189,7 @@ class AdminPagesTest {
             .andExpect(redirectedUrl("/admin/catalog/products/9"));
         verify(catalog).createProduct(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
-            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), "/images/products/gift.png", null));
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
     }
 
     @Test

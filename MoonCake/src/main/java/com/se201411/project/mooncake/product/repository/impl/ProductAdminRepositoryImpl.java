@@ -244,6 +244,31 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
+    public boolean skuExists(String sku) {
+        return em.createQuery("select count(v) from ProductVariant v where upper(v.sku) = upper(:sku)", Long.class)
+            .setParameter("sku", sku)
+            .getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean productSlugUsed(String slug, Long exceptProductId) {
+        long except = exceptProductId == null ? -1 : exceptProductId;
+        return em.createQuery("select count(p) from Product p where p.slug = :slug and p.id <> :except", Long.class)
+            .setParameter("slug", slug)
+            .setParameter("except", except)
+            .getSingleResult() > 0;
+    }
+
+    @Override
+    public boolean categorySlugUsed(String slug, Long exceptCategoryId) {
+        long except = exceptCategoryId == null ? -1 : exceptCategoryId;
+        return em.createQuery("select count(c) from Category c where c.slug = :slug and c.id <> :except", Long.class)
+            .setParameter("slug", slug)
+            .setParameter("except", except)
+            .getSingleResult() > 0;
+    }
+
+    @Override
     public Category category(long id) {
         return require(Category.class, id);
     }

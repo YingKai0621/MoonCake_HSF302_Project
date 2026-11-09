@@ -22,7 +22,7 @@
                     </select>
                 </label>
                 <label>Đường dẫn video
-                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4">
+                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4" pattern="(https://\S+|/images/\S+)\.(mp4|webm)(\?\S*)?" data-error="Đường dẫn video phải là link https:// hoặc /images/ tới file .mp4 hoặc .webm.">
                 </label>
                 <label>Mô tả
                     <input name="caption" required maxlength="250">

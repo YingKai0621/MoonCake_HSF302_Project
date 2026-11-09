@@ -69,23 +69,26 @@
 <form th:fragment="sku(f, productId)" th:action="@{/admin/variants}" method="post" class="product-form">
     <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
     <input type="hidden" name="productId" th:value="${productId}">
-    <div class="form-grid">
+    <div class="form-grid" th:with="cake=${detail.product.productType.name() == 'MOONCAKE'}">
         <label>Mã SKU
-            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${f != null}">
+            <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${f != null}"
+                   pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
         </label>
         <label>Tên phiên bản
             <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="200"
                    placeholder="Ví dụ: Hộp 4 bánh">
         </label>
         <label>Giá bán (đ)
-            <input type="number" name="unitPrice" th:value="${f != null ? f.unitPrice : ''}" required min="0" step="1">
+            <input type="number" name="unitPrice" th:value="${f != null ? f.unitPrice : ''}"
+                   required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
         </label>
         <label>Khối lượng (g)
-            <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" min="1">
+            <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" th:required="${cake}"
+                   min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
         </label>
         <label class="span-2">Nhân bánh
             <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
-                   placeholder="Ví dụ: Thập cẩm lạp xưởng">
+                   th:required="${cake}" placeholder="Ví dụ: Thập cẩm lạp xưởng">
         </label>
     </div>
     <div class="form-footer">

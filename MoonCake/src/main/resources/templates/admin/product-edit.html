@@ -203,7 +203,7 @@
                     </select>
                 </label>
                 <label>Sức chứa (số bánh)
-                    <input type="number" name="capacityCakes" th:value="${f != null ? f.capacityCakes : ''}" required min="1">
+                    <input type="number" name="capacityCakes" th:value="${f != null ? f.capacityCakes : ''}" required min="1" max="24" data-max-error="Sức chứa tối đa 24 bánh.">
                 </label>
                 <label>Chất liệu
                     <input type="text" name="material" th:value="${f != null ? f.material : ''}" maxlength="180"

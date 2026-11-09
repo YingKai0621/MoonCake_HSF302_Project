@@ -47,6 +47,12 @@ public interface ProductAdminRepository {
 
     void deleteVariant(long variantId);
 
+    boolean skuExists(String sku);
+
+    boolean productSlugUsed(String slug, Long exceptProductId);
+
+    boolean categorySlugUsed(String slug, Long exceptCategoryId);
+
     Category category(long id);
 
     Product product(long id);

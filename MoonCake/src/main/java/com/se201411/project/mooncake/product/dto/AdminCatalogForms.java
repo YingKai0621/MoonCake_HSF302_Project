@@ -1,58 +1,183 @@
 package com.se201411.project.mooncake.product.dto;
 
-import jakarta.validation.constraints.*;
 import com.se201411.project.mooncake.enums.ProductType;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
 public final class AdminCatalogForms {
+    public static final String SLUG_PATTERN = "[a-z0-9]+(?:-[a-z0-9]+)*";
+    public static final String SLUG_MESSAGE = "Đường dẫn chỉ dùng chữ thường không dấu, số và dấu gạch ngang.";
+    public static final String IMAGE_URL_MESSAGE = "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/.";
+    public static final String PRICE_MIN_MESSAGE = "Giá bán thấp nhất là 1.000đ.";
+    public static final String PRICE_MAX_MESSAGE = "Giá bán cao nhất là 100.000.000đ.";
+    public static final String PRICE_DIGITS_MESSAGE = "Giá bán phải là số nguyên.";
+
     private AdminCatalogForms() {
     }
 
-    public record CategoryForm(Long id, @NotBlank @Size(max = 160) String name,
-                               @NotBlank @Size(max = 160) @Pattern(regexp = "[a-z0-9]+(?:-[a-z0-9]+)*") String slug,
-                               boolean active) {
+    public record CategoryForm(
+        Long id,
+        @NotBlank(message = "Vui lòng nhập tên danh mục.")
+        @Size(max = 160, message = "Tên danh mục tối đa 160 ký tự.")
+        String name,
+        @NotBlank(message = "Vui lòng nhập đường dẫn.")
+        @Size(max = 160, message = "Đường dẫn tối đa 160 ký tự.")
+        @Pattern(regexp = SLUG_PATTERN, message = SLUG_MESSAGE)
+        String slug,
+        boolean active
+    ) {
     }
 
-    public record ProductForm(Long id, @Positive long categoryId, @NotNull ProductType productType,
-                              @NotBlank @Size(max = 220) String name,
-                              @NotBlank @Size(max = 180) @Pattern(regexp = "[a-z0-9]+(?:-[a-z0-9]+)*") String slug,
-                              @NotBlank @Size(max = 600) String shortDescription, String detailedDescription,
-                              @Size(max = 700) String mainIngredients, @Size(max = 350) String shelfLifeInfo,
-                              @Size(max = 600) String storageGuidance, boolean active) {
+    public record ProductForm(
+        Long id,
+        @Positive(message = "Vui lòng chọn danh mục.")
+        long categoryId,
+        @NotNull(message = "Vui lòng chọn loại sản phẩm.")
+        ProductType productType,
+        @NotBlank(message = "Vui lòng nhập tên sản phẩm.")
+        @Size(max = 220, message = "Tên sản phẩm tối đa 220 ký tự.")
+        String name,
+        @NotBlank(message = "Vui lòng nhập đường dẫn.")
+        @Size(max = 180, message = "Đường dẫn tối đa 180 ký tự.")
+        @Pattern(regexp = SLUG_PATTERN, message = SLUG_MESSAGE)
+        String slug,
+        @NotBlank(message = "Vui lòng nhập mô tả ngắn.")
+        @Size(max = 600, message = "Mô tả ngắn tối đa 600 ký tự.")
+        String shortDescription,
+        @Size(max = 4000, message = "Mô tả chi tiết tối đa 4.000 ký tự.")
+        String detailedDescription,
+        @Size(max = 700, message = "Thành phần chính tối đa 700 ký tự.")
+        String mainIngredients,
+        @Size(max = 350, message = "Hạn sử dụng tối đa 350 ký tự.")
+        String shelfLifeInfo,
+        @Size(max = 600, message = "Cách bảo quản tối đa 600 ký tự.")
+        String storageGuidance,
+        boolean active
+    ) {
     }
 
-    public record NewProductForm(@Positive long categoryId, @NotNull ProductType productType,
-                                 @NotBlank @Size(max = 220) String name,
-                                 @NotBlank @Size(max = 180) @Pattern(regexp = "[a-z0-9]+(?:-[a-z0-9]+)*") String slug,
-                                 @NotBlank @Size(max = 600) String shortDescription, String detailedDescription,
-                                 @Size(max = 700) String mainIngredients, @Size(max = 350) String shelfLifeInfo,
-                                 @Size(max = 600) String storageGuidance, boolean active,
-                                 @NotBlank @Size(max = 80) String sku,
-                                 @NotBlank @Size(max = 200) String variantName,
-                                 @NotNull @DecimalMin("0") @Digits(integer = 18, fraction = 0) BigDecimal unitPrice,
-                                 @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)?") String imageUrl,
-                                 MultipartFile imageFile) {
+    public record NewProductForm(
+        @Positive(message = "Vui lòng chọn danh mục.")
+        long categoryId,
+        @NotNull(message = "Vui lòng chọn loại sản phẩm.")
+        ProductType productType,
+        @NotBlank(message = "Vui lòng nhập tên sản phẩm.")
+        @Size(max = 220, message = "Tên sản phẩm tối đa 220 ký tự.")
+        String name,
+        @NotBlank(message = "Vui lòng nhập đường dẫn.")
+        @Size(max = 180, message = "Đường dẫn tối đa 180 ký tự.")
+        @Pattern(regexp = SLUG_PATTERN, message = SLUG_MESSAGE)
+        String slug,
+        @NotBlank(message = "Vui lòng nhập mô tả ngắn.")
+        @Size(max = 600, message = "Mô tả ngắn tối đa 600 ký tự.")
+        String shortDescription,
+        @Size(max = 4000, message = "Mô tả chi tiết tối đa 4.000 ký tự.")
+        String detailedDescription,
+        @Size(max = 700, message = "Thành phần chính tối đa 700 ký tự.")
+        String mainIngredients,
+        @Size(max = 350, message = "Hạn sử dụng tối đa 350 ký tự.")
+        String shelfLifeInfo,
+        @Size(max = 600, message = "Cách bảo quản tối đa 600 ký tự.")
+        String storageGuidance,
+        boolean active,
+        @NotBlank(message = "Vui lòng nhập mã SKU.")
+        @Size(max = 80, message = "Mã SKU tối đa 80 ký tự.")
+        String sku,
+        @NotBlank(message = "Vui lòng nhập tên phiên bản.")
+        @Size(max = 200, message = "Tên phiên bản tối đa 200 ký tự.")
+        String variantName,
+        @NotNull(message = "Vui lòng nhập giá bán.")
+        @DecimalMin(value = "1000", message = PRICE_MIN_MESSAGE)
+        @DecimalMax(value = "100000000", message = PRICE_MAX_MESSAGE)
+        @Digits(integer = 9, fraction = 0, message = PRICE_DIGITS_MESSAGE)
+        BigDecimal unitPrice,
+        @Min(value = 1, message = "Khối lượng phải lớn hơn 0.")
+        @Max(value = 5000, message = "Khối lượng tối đa 5.000g.")
+        Integer weightGrams,
+        @Size(max = 180, message = "Nhân bánh tối đa 180 ký tự.")
+        String fillingLabel,
+        @Size(max = 1000, message = "Đường dẫn ảnh tối đa 1.000 ký tự.")
+        @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)?", message = IMAGE_URL_MESSAGE)
+        String imageUrl,
+        MultipartFile imageFile
+    ) {
     }
 
-    public record ImageUploadForm(@Positive long variantId, MultipartFile imageFile,
-                                  @Size(max = 250) String altText, @Min(0) int sortOrder, boolean primary) {
+    public record ImageUploadForm(
+        @Positive(message = "Phiên bản không hợp lệ.")
+        long variantId,
+        MultipartFile imageFile,
+        @Size(max = 250, message = "Mô tả ảnh tối đa 250 ký tự.")
+        String altText,
+        @Min(value = 0, message = "Thứ tự ảnh không hợp lệ.")
+        int sortOrder,
+        boolean primary
+    ) {
     }
 
-    public record VariantForm(Long id, @Positive long productId, @NotBlank @Size(max = 80) String sku,
-                              @NotBlank @Size(max = 200) String name, @Positive Integer weightGrams,
-                              @Size(max = 180) String fillingLabel,
-                              @NotNull @DecimalMin("0") @Digits(integer = 18, fraction = 0) BigDecimal unitPrice,
-                              boolean active) {
+    public record VariantForm(
+        Long id,
+        @Positive(message = "Sản phẩm không hợp lệ.")
+        long productId,
+        @NotBlank(message = "Vui lòng nhập mã SKU.")
+        @Size(max = 80, message = "Mã SKU tối đa 80 ký tự.")
+        String sku,
+        @NotBlank(message = "Vui lòng nhập tên phiên bản.")
+        @Size(max = 200, message = "Tên phiên bản tối đa 200 ký tự.")
+        String name,
+        @Min(value = 1, message = "Khối lượng phải lớn hơn 0.")
+        @Max(value = 5000, message = "Khối lượng tối đa 5.000g.")
+        Integer weightGrams,
+        @Size(max = 180, message = "Nhân bánh tối đa 180 ký tự.")
+        String fillingLabel,
+        @NotNull(message = "Vui lòng nhập giá bán.")
+        @DecimalMin(value = "1000", message = PRICE_MIN_MESSAGE)
+        @DecimalMax(value = "100000000", message = PRICE_MAX_MESSAGE)
+        @Digits(integer = 9, fraction = 0, message = PRICE_DIGITS_MESSAGE)
+        BigDecimal unitPrice,
+        boolean active
+    ) {
     }
 
-    public record BoxForm(Long id, @Positive long variantId, @Positive int capacityCakes,
-                          @Size(max = 180) String material, @Size(max = 500) String notes, boolean active) {
+    public record BoxForm(
+        Long id,
+        @Positive(message = "Vui lòng chọn phiên bản hộp.")
+        long variantId,
+        @Min(value = 1, message = "Sức chứa phải từ 1 bánh.")
+        @Max(value = 24, message = "Sức chứa tối đa 24 bánh.")
+        int capacityCakes,
+        @Size(max = 180, message = "Chất liệu tối đa 180 ký tự.")
+        String material,
+        @Size(max = 500, message = "Ghi chú tối đa 500 ký tự.")
+        String notes,
+        boolean active
+    ) {
     }
 
-    public record ImageForm(Long id, @Positive long variantId,
-                            @NotBlank @Size(max = 1000) @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)") String imageUrl,
-                            @Size(max = 250) String altText, @Min(0) int sortOrder, boolean primary) {
+    public record ImageForm(
+        Long id,
+        @Positive(message = "Phiên bản không hợp lệ.")
+        long variantId,
+        @NotBlank(message = "Vui lòng nhập đường dẫn ảnh.")
+        @Size(max = 1000, message = "Đường dẫn ảnh tối đa 1.000 ký tự.")
+        @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)", message = IMAGE_URL_MESSAGE)
+        String imageUrl,
+        @Size(max = 250, message = "Mô tả ảnh tối đa 250 ký tự.")
+        String altText,
+        @Min(value = 0, message = "Thứ tự ảnh không hợp lệ.")
+        int sortOrder,
+        boolean primary
+    ) {
     }
 }

@@ -28,13 +28,13 @@ function errorMessage(field) {
     return "Tối đa " + field.maxLength + " ký tự.";
   }
   if (state.rangeUnderflow) {
-    return "Giá trị nhỏ nhất là " + field.min + ".";
+    return field.dataset.minError || "Giá trị nhỏ nhất là " + field.min + ".";
   }
   if (state.rangeOverflow) {
-    return "Giá trị lớn nhất là " + field.max + ".";
+    return field.dataset.maxError || "Giá trị lớn nhất là " + field.max + ".";
   }
   if (state.stepMismatch) {
-    return "Vui lòng nhập số nguyên.";
+    return field.dataset.stepError || "Vui lòng nhập số nguyên.";
   }
   return "Giá trị chưa hợp lệ.";
 }

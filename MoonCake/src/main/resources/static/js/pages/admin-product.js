@@ -118,7 +118,43 @@ function setUpDropzones() {
   }
 }
 
+function setUpCakeOnlyFields() {
+  const typeSelect = document.querySelector('select[name="productType"]');
+  const cakeFields = document.querySelectorAll("[data-cake-only]");
+  if (typeSelect === null || cakeFields.length === 0) {
+    return;
+  }
+
+  function update() {
+    const isCake = typeSelect.value === "MOONCAKE";
+    for (let i = 0; i < cakeFields.length; i++) {
+      const wrapper = cakeFields[i];
+      const input = wrapper.querySelector("input");
+      wrapper.hidden = !isCake;
+      input.required = isCake;
+      input.disabled = !isCake;
+    }
+  }
+
+  typeSelect.addEventListener("change", update);
+  update();
+}
+
+function setUpUppercaseFields() {
+  const fields = document.querySelectorAll("[data-uppercase]");
+  for (let i = 0; i < fields.length; i++) {
+    const field = fields[i];
+    field.addEventListener("input", function () {
+      const start = field.selectionStart;
+      field.value = field.value.toUpperCase();
+      field.setSelectionRange(start, start);
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  setUpCakeOnlyFields();
+  setUpUppercaseFields();
   setUpDropzones();
   setUpSlugFields();
   openSectionFromHash();

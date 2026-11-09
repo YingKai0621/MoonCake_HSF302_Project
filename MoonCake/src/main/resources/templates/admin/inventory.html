@@ -34,7 +34,7 @@
             <div class="grid"><label>SKU<select name="variantId" required>
                 <option th:each="b : ${balances}" th:value="${b.variantId}"
                         th:text="${b.sku + ' — ' + b.name}"></option>
-            </select></label><label>Số lượng<input type="number" name="quantity" required min="1"></label><label>Lý do /
+            </select></label><label>Số lượng<input type="number" name="quantity" required min="1" max="100000"></label><label>Lý do /
                 ghi chú<input name="reason" required maxlength="500"></label></div>
             <div class="actions">
                 <button>Nhập kho</button>
@@ -47,7 +47,7 @@
             <div class="grid"><label>SKU<select name="variantId" required>
                 <option th:each="b : ${balances}" th:value="${b.variantId}"
                         th:text="${b.sku + ' — ' + b.name}"></option>
-            </select></label><label>Số tăng/giảm (ví dụ -2)<input type="number" name="quantity" required></label><label>Lý
+            </select></label><label>Số tăng/giảm (ví dụ -2)<input type="number" name="quantity" required min="-100000" max="100000"></label><label>Lý
                 do / ghi chú<input name="reason" required maxlength="500"></label></div>
             <div class="actions">
                 <button>Điều chỉnh kho</button>
@@ -60,7 +60,7 @@
             <div class="grid"><label>SKU<select name="variantId" required>
                 <option th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}" th:value="${p.giftSetVariantId}"
                         th:text="${p.sku}"></option>
-            </select></label><label>Số lượng<input type="number" name="quantity" required min="1"></label><label>Lý do /
+            </select></label><label>Số lượng<input type="number" name="quantity" required min="1" max="100000"></label><label>Lý do /
                 ghi chú<input name="reason" required maxlength="500"></label></div>
             <div class="actions">
                 <button>Đóng hộp PRESET</button>

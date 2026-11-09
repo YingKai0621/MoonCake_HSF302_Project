@@ -56,6 +56,13 @@ public class AdminCatalogController {
         return "redirect:/admin/catalog";
     }
 
+    @PostMapping("/variants/{id}/delete")
+    public String deleteVariant(@PathVariable long id, RedirectAttributes flash) {
+        long productId = catalog.deleteVariant(id);
+        flash.addFlashAttribute("success", "Đã xóa phiên bản.");
+        return "redirect:/admin/catalog/products/" + productId + "#skus";
+    }
+
     @PostMapping("/categories")
     public String category(@Valid @ModelAttribute CategoryForm form, RedirectAttributes flash) {
         catalog.saveCategory(form);

@@ -46,4 +46,6 @@ public interface ProductAdminService {
     long removeImage(long imageId);
 
     String deleteProduct(long productId);
+
+    long deleteVariant(long variantId);
 }

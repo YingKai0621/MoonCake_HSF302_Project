@@ -110,6 +110,16 @@
                             <button type="submit" class="secondary">Thêm ảnh</button>
                         </form>
                     </details>
+
+                    <div class="sku-delete">
+                        <form th:if="${sku.deleteBlocker == null}"
+                              th:action="@{/admin/variants/{id}/delete(id=${sku.form.id})}"
+                              th:attr="data-confirm-message=${'Xóa phiên bản “' + sku.form.name + '” cùng ảnh của nó? Không thể hoàn tác.'}"
+                              method="post">
+                            <button type="submit" class="danger small-button">Xóa phiên bản</button>
+                        </form>
+                        <p th:if="${sku.deleteBlocker != null}" class="muted" th:text="${sku.deleteBlocker}">Không xóa được.</p>
+                    </div>
                 </div>
             </details>
 

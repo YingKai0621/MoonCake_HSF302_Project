@@ -111,7 +111,8 @@ class AdminPagesTest {
                         List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)),
                         12,
                         "Đang bán trên web",
-                        "success")),
+                        "success",
+                        null)),
                 List.of()));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4))),
@@ -238,10 +239,21 @@ class AdminPagesTest {
     }
 
     @Test
+    void deletingVariantReturnsToItsProduct() throws Exception {
+        when(catalog.deleteVariant(8)).thenReturn(3L);
+        mvc.perform(post("/admin/variants/8/delete")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/catalog/products/3#skus"));
+    }
+
+    @Test
     void editPageOffersDeleteOnlyWithoutBlocker() throws Exception {
         mvc.perform(get("/admin/catalog/products/1").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("/admin/catalog/products/1/delete")));
+            .andExpect(content().string(containsString("/admin/catalog/products/1/delete")))
+            .andExpect(content().string(containsString("/admin/variants/1/delete")));
     }
 
     @Test

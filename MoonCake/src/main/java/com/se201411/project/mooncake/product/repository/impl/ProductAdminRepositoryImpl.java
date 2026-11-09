@@ -167,6 +167,83 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
+    public long variantOrderCount(long variantId) {
+        long direct = em.createQuery(
+                "select count(distinct i.order.id) from OrderItem i where i.variant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        long asComponent = em.createQuery(
+                "select count(c) from OrderItemComponent c where c.componentVariant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        return direct + asComponent;
+    }
+
+    @Override
+    public long variantCartCount(long variantId) {
+        return em.createQuery("select count(i) from CartItem i where i.variant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+    }
+
+    @Override
+    public long variantRecipeCount(long variantId) {
+        long asGiftSet = em.createQuery(
+                "select count(c) from BoxConfiguration c where c.presetVariant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        long asBox = em.createQuery(
+                "select count(c) from BoxConfiguration c where c.box.emptyBoxVariant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        long asCake = em.createQuery(
+                "select count(i) from BoxConfigurationItem i where i.mooncakeVariant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        return asGiftSet + asBox + asCake;
+    }
+
+    @Override
+    public long variantStockHistoryCount(long variantId) {
+        long movements = em.createQuery("select count(m) from StockMovement m where m.variant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        long batches = em.createQuery("select count(b) from StockBatch b where b.variant.id = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        return movements + batches;
+    }
+
+    @Override
+    public long variantStockOnHand(long variantId) {
+        Long total = em.createQuery(
+                "select sum(b.availableQuantity) from InventoryBalance b where b.variantId = :id", Long.class)
+            .setParameter("id", variantId)
+            .getSingleResult();
+        if (total == null) {
+            return 0;
+        }
+        return total;
+    }
+
+    @Override
+    public void deleteVariant(long variantId) {
+        em.createQuery("delete from ProductImage i where i.variant.id = :id")
+            .setParameter("id", variantId)
+            .executeUpdate();
+        em.createQuery("delete from InventoryBalance b where b.variantId = :id")
+            .setParameter("id", variantId)
+            .executeUpdate();
+        em.createQuery("delete from Box b where b.emptyBoxVariant.id = :id")
+            .setParameter("id", variantId)
+            .executeUpdate();
+        em.createQuery("delete from ProductVariant v where v.id = :id")
+            .setParameter("id", variantId)
+            .executeUpdate();
+        em.clear();
+    }
+
+    @Override
     public Category category(long id) {
         return require(Category.class, id);
     }

@@ -35,6 +35,18 @@ public interface ProductAdminRepository {
 
     void deleteProduct(long productId);
 
+    long variantOrderCount(long variantId);
+
+    long variantCartCount(long variantId);
+
+    long variantRecipeCount(long variantId);
+
+    long variantStockHistoryCount(long variantId);
+
+    long variantStockOnHand(long variantId);
+
+    void deleteVariant(long variantId);
+
     Category category(long id);
 
     Product product(long id);

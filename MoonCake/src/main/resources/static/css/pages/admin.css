@@ -2519,3 +2519,20 @@ input.switch:focus-visible {
 .danger-zone .danger:hover {
   filter: brightness(1.08);
 }
+
+.sku-delete {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.sku-delete form {
+  margin: 0;
+}
+
+.sku-delete p {
+  margin: 0;
+  font-size: 13px;
+}

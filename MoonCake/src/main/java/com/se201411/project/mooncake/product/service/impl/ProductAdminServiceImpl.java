@@ -189,7 +189,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                 images,
                 quantity,
                 status.label(),
-                status.tone()
+                status.tone(),
+                variantDeleteBlocker(variant.getId())
             ));
         }
         WebStatus productStatus = productStatus(product, variants, readyGiftSets, stock);
@@ -415,6 +416,36 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         String name = product.getName();
         repo.deleteProduct(productId);
         return name;
+    }
+
+    @Override
+    public long deleteVariant(long variantId) {
+        access.requireAdmin();
+        ProductVariant variant = repo.variant(variantId);
+        long productId = variant.getProduct().getId();
+        String blocker = variantDeleteBlocker(variantId);
+        if (blocker != null) {
+            throw new BusinessRuleViolationException(blocker);
+        }
+        repo.deleteVariant(variantId);
+        return productId;
+    }
+
+    private String variantDeleteBlocker(long variantId) {
+        long orders = repo.variantOrderCount(variantId);
+        if (orders > 0) {
+            return "Phiên bản đã có trong " + orders + " đơn hàng nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+        }
+        if (repo.variantCartCount(variantId) > 0) {
+            return "Phiên bản đang nằm trong giỏ hàng của khách nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+        }
+        if (repo.variantRecipeCount(variantId) > 0) {
+            return "Phiên bản đang được dùng trong công thức hộp quà nên không xóa được.";
+        }
+        if (repo.variantStockHistoryCount(variantId) > 0 || repo.variantStockOnHand(variantId) > 0) {
+            return "Phiên bản đã có lịch sử nhập xuất kho nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+        }
+        return null;
     }
 
     private String deleteBlocker(long productId) {

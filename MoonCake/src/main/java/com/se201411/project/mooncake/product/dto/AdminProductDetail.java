@@ -24,7 +24,8 @@ public record AdminProductDetail(
         List<ImageForm> images,
         int stock,
         String webLabel,
-        String webTone
+        String webTone,
+        String deleteBlocker
     ) {
     }
 }

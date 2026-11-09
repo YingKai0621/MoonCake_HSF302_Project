@@ -25,7 +25,6 @@ import java.util.UUID;
 
 @Service
 public class VnpayPaymentProcessor implements PaymentProcessor {
-    private static final long ATTEMPT_LIFETIME_SECONDS = 900;
     private static final String SERVER_IP = "127.0.0.1";
 
     private static final String RSP_SUCCESS = "00";
@@ -84,7 +83,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             && order.getTotalAmount().signum() > 0;
         if (!canPayOnline) {
             throw new BusinessRuleViolationException(
-                "Chỉ thanh toán online cho đơn chờ xử lý, chưa trả tiền."
+                "Đơn hàng này không còn chờ thanh toán. Vui lòng tải lại trang."
             );
         }
         if (payment.getMethod() != PaymentMethod.VNPAY) {
@@ -148,6 +147,22 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
             return;
         }
         refreshFromVnpay(pending);
+    }
+
+    @Override
+    public Optional<LocalDateTime> autoCancelAt(SalesOrder order, Payment payment) {
+        if (order.getStatus() != OrderStatus.PLACED || payment.getStatus() != PaymentStatus.UNPAID) {
+            return Optional.empty();
+        }
+        LocalDateTime deadline = order.getCreatedAt().plusMinutes(gateway.unpaidOrderLifetimeMinutes());
+        VnpayRepository.Attempt pending = vnpayRepository.findPendingAttempt(order.getId());
+        if (pending != null) {
+            LocalDateTime attemptEnd = pending.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
+            if (attemptEnd.isAfter(deadline)) {
+                deadline = attemptEnd;
+            }
+        }
+        return Optional.of(deadline);
     }
 
     private void refreshFromVnpay(VnpayRepository.Attempt pending) {
@@ -246,7 +261,7 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     private boolean isExpired(VnpayRepository.Attempt attempt) {
-        LocalDateTime expiresAt = attempt.createdAt().plusSeconds(ATTEMPT_LIFETIME_SECONDS);
+        LocalDateTime expiresAt = attempt.createdAt().plusSeconds(gateway.attemptLifetimeSeconds());
         return !LocalDateTime.now(clock).isBefore(expiresAt);
     }
 

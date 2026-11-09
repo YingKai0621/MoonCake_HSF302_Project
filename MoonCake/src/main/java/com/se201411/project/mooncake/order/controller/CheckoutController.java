@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.controller;
 import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
+import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
 import com.se201411.project.mooncake.order.dto.CheckoutLineView;
 import com.se201411.project.mooncake.order.dto.CheckoutPageView;
@@ -60,6 +61,12 @@ public class CheckoutController {
             CheckoutForm form = createDefaultForm(preparation);
             addCheckoutModel(model, preparation, form);
             return "checkout";
+        } catch (ResourceNotFoundException exception) {
+            redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Giỏ hàng của bạn đã được đặt thành đơn. Bạn có thể theo dõi hoặc thanh toán đơn ở danh sách bên dưới."
+            );
+            return "redirect:/orders";
         } catch (MoonCakeException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
             return "redirect:/cart";

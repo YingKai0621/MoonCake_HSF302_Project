@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -73,6 +75,17 @@ class CheckoutControllerTest {
                 BigDecimal.valueOf(30_000)
             )
         );
+    }
+
+    @Test
+    void checkoutWithoutActiveCartSendsCustomerToOrders() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(checkoutService.prepareCheckout(CUSTOMER))
+            .thenThrow(new ResourceNotFoundException("Không tìm thấy giỏ hàng đang hoạt động"));
+
+        mockMvc.perform(get("/checkout"))
+            .andExpect(redirectedUrl("/orders"))
+            .andExpect(flash().attributeExists("successMessage"));
     }
 
     @Test

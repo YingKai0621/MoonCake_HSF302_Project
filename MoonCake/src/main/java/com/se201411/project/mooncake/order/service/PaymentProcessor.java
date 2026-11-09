@@ -24,6 +24,8 @@ public interface PaymentProcessor {
 
     void refreshPaymentStatus(long orderId);
 
+    Optional<LocalDateTime> autoCancelAt(SalesOrder order, Payment payment);
+
     Map<String, String> handleNotification(Map<String, String> params);
 
     PaymentReturnResult handleReturn(Map<String, String> params);

@@ -129,7 +129,15 @@ public class VnpayGateway {
         p.put("vnp_OrderInfo","Thanh toan MoonCake "+ref); p.put("vnp_OrderType","other");
         p.put("vnp_Locale","vn"); p.put("vnp_IpAddr",ip);
         p.put("vnp_ReturnUrl",returnUrl());
-        p.put("vnp_CreateDate",format.format(now)); p.put("vnp_ExpireDate",format.format(now.plusSeconds(900)));
+        p.put("vnp_CreateDate",format.format(now)); p.put("vnp_ExpireDate",format.format(now.plusSeconds(attemptLifetimeSeconds())));
         return env.getProperty("VNPAY_PAY_URL","https://sandbox.vnpayment.vn/paymentv2/vpcpay.html")+"?"+canonical(p)+"&vnp_SecureHash="+signature(p);
+    }
+
+    public long attemptLifetimeSeconds() {
+        return env.getProperty("VNPAY_ATTEMPT_SECONDS", Long.class, 900L);
+    }
+
+    public long unpaidOrderLifetimeMinutes() {
+        return env.getProperty("UNPAID_ORDER_CANCEL_MINUTES", Long.class, 30L);
     }
 }

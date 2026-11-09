@@ -57,6 +57,14 @@ public class CustomerOrderController {
         Model model
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
+        try {
+            orderCancellationService.cancelOwnOrderIfPaymentExpired(orderCode);
+        } catch (MoonCakeException exception) {
+            model.addAttribute(
+                "errorMessage",
+                "Chưa kiểm tra được thanh toán với VNPay. Vui lòng tải lại trang sau ít phút."
+            );
+        }
         CustomerOrderDetailView order = customerOrderService.requireOrder(
             orderCode,
             customer

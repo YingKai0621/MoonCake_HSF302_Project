@@ -37,6 +37,11 @@ public class CodPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
+    public Optional<LocalDateTime> autoCancelAt(SalesOrder order, Payment payment) {
+        return Optional.empty();
+    }
+
+    @Override
     public void checkCanCancel(long orderId, Payment payment) {
     }
 

@@ -18,7 +18,7 @@ If the sources conflict, stop and report the conflict. Do not invent a business 
 ## Non-negotiable scope
 
 - Spring Boot MVC + Thymeleaf SSR and Microsoft SQL Server.
-- Payment methods are COD and VNPay Sandbox (Business Rules v1.7, section 6). Do not add payOS, VietQR, another gateway, automatic refunds, reservation, payment approval, or unrelated features without a new Business Rules version.
+- Payment methods are COD and VNPay Sandbox (Business Rules v1.9, section 6). Do not add payOS, VietQR, another gateway, automatic refunds, reservation, payment approval, or unrelated features without a new Business Rules version.
 - Visitors may browse the catalog, but registration/login is required before cart, CUSTOM-box, checkout, or customer-order operations. Customer self-registration is in scope.
 - The schema has 24 tables after Flyway V13. Add tables only through a reviewed new migration.
 - Never edit an applied/shared migration (`V1__...` through `V13__...`). Use a new version after team approval.

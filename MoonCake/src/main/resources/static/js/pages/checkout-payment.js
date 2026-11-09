@@ -26,4 +26,11 @@ function setUpPaymentOptions() {
   updateSubmitLabel();
 }
 
+function reloadWhenRestoredFromHistory(event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+}
+
 document.addEventListener("DOMContentLoaded", setUpPaymentOptions);
+window.addEventListener("pageshow", reloadWhenRestoredFromHistory);

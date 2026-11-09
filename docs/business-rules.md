@@ -1,14 +1,22 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.8 — 08/11/2026
+**Phiên bản tài liệu:** 1.9 — 09/11/2026
 
-**Trạng thái:** Bổ sung đánh giá có số sao và Admin duyệt trước khi hiển thị; Flyway V13 thêm cột cho `FEEDBACK`, schema vẫn 24 bảng
+**Trạng thái:** Tự hủy đơn VNPay quá hạn thanh toán; không đổi schema (Flyway vẫn V13, 24 bảng)
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.9
+
+- Đơn VNPay chưa thanh toán **tự hủy** khi đã quá **30 phút** kể từ lúc đặt **và** không còn giao dịch VNPay nào trong hạn 15 phút. Nếu khách bấm thanh toán lại sát giờ, hạn hủy lùi tới lúc giao dịch đó hết hạn, nên đơn không bao giờ bị hủy khi khách đang ở cổng thanh toán.
+- Hệ thống kiểm tra 5 phút một lần. Trước khi hủy luôn hỏi VNPay (`querydr`): đã trả thì ghi `PAID` và giữ đơn; không kết nối được VNPay thì để lại, lần kiểm tra sau thử lại. Hủy đi qua đúng luồng hủy hiện có nên hoàn tồn đúng một lần.
+- Đơn COD không bao giờ tự hủy.
+- Trang chi tiết đơn VNPay chờ thanh toán hiển thị giờ tự hủy và đồng hồ đếm ngược.
+- Không thêm bảng hay cột; dùng thời điểm đặt đơn và `VNPAY_ATTEMPT` sẵn có.
 
 ### Thay đổi chính trong phiên bản 1.8
 
@@ -197,7 +205,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Mỗi đơn có tối đa một khoản `PAID`. Không tạo `PAYMENT` mới cho các lần thử thanh toán; các lần thử VNPay được lưu trong `VNPAY_ATTEMPT`.
 - Tồn kho được trừ khi checkout thành công với **cả hai** phương thức; đơn VNPay chưa trả tiền vẫn giữ hàng cho đến khi được thanh toán hoặc bị hủy.
 - Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
-- Không chuyển khoản thủ công, không upload biên lai và không tự động hủy theo lịch (scheduler) trong MVP.
+- Không chuyển khoản thủ công, không upload biên lai. Từ v1.9, chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch (mục Thay đổi 1.9); đơn COD không tự hủy.
 
 ### 6.2. COD
 
@@ -245,7 +253,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 
 ### 6.4. Tương lai, không triển khai hiện tại
 
-- payOS/VietQR hoặc cổng thanh toán khác, hoàn tiền tự động qua API, tự động hủy đơn chưa thanh toán theo lịch, nhiều lần `PAID` một phần — thêm bằng migration và phiên bản tài liệu mới khi thật sự triển khai.
+- payOS/VietQR hoặc cổng thanh toán khác, hoàn tiền tự động qua API, nhiều lần `PAID` một phần — thêm bằng migration và phiên bản tài liệu mới khi thật sự triển khai.
 
 ## 7. Chiết khấu số lượng — hai nhóm tách biệt
 
@@ -414,6 +422,11 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |
 | BR-57 | Đơn COD | Không có nút thanh toán VNPay; không thể đổi sang VNPay |
 | BR-58 | Hoàn tất đơn VNPay đã `PAID` | `SHIPPING → COMPLETED`; không thu COD, payment không đổi |
+| BR-59 | Đơn VNPay `PLACED`/`UNPAID` quá 30 phút, không còn attempt trong hạn | Lần kiểm tra kế tiếp hủy đơn, attempt `FAILED`, hoàn tồn một lần |
+| BR-60 | Đơn VNPay quá 30 phút nhưng khách vừa mở attempt mới còn hạn | Chưa hủy; hạn hủy lùi tới lúc attempt hết hạn |
+| BR-61 | Đến hạn hủy nhưng `querydr` xác nhận đã thanh toán | Ghi `PAID`; giữ đơn `PLACED` |
+| BR-62 | Đến hạn hủy nhưng không kết nối được VNPay | Không hủy; lần kiểm tra sau thử lại |
+| BR-63 | Đơn COD chưa thanh toán lâu ngày | Không bao giờ tự hủy |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

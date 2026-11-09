@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -38,6 +39,8 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -59,16 +62,18 @@ class CustomerOrderServiceImplTest {
     private DeliveryAddressService deliveryAddressService;
 
     private CustomerOrderService customerOrderService;
+    private final PaymentProcessor vnpayProcessor = mock(PaymentProcessor.class);
 
     @BeforeEach
     void setUp() {
+        when(vnpayProcessor.method()).thenReturn(PaymentMethod.VNPAY);
         customerOrderService = new CustomerOrderServiceImpl(
             orderRepository,
             itemRepository,
             componentRepository,
             paymentRepository,
             deliveryAddressService,
-            new PaymentProcessorRegistryImpl(List.of(new CodPaymentProcessor(paymentRepository))),
+            new PaymentProcessorRegistryImpl(List.of(new CodPaymentProcessor(paymentRepository), vnpayProcessor)),
             Clock.fixed(Instant.parse("2026-10-21T08:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -219,6 +224,33 @@ class CustomerOrderServiceImplTest {
         assertThat(views.get(0).awaitingPayment()).isTrue();
         assertThat(views.get(1).statusLabel()).isEqualTo("Đã tiếp nhận");
         assertThat(views.get(1).awaitingPayment()).isFalse();
+    }
+
+    @Test
+    void unpaidVnpayOrderShowsWhenItWillBeCancelled() {
+        LocalDateTime deadline = LocalDateTime.of(2026, 11, 8, 4, 30);
+        when(vnpayProcessor.autoCancelAt(any(), any())).thenReturn(Optional.of(deadline));
+
+        CustomerOrderDetailView view = placedOrderView(
+            PaymentMethod.VNPAY,
+            PaymentStatus.UNPAID
+        );
+
+        assertThat(view.autoCancel().formattedTime()).isEqualTo("11:30");
+        assertThat(view.autoCancel().deadlineEpochMillis())
+            .isEqualTo(Instant.parse("2026-11-08T04:30:00Z").toEpochMilli());
+        assertThat(view.autoCancel().startEpochMillis())
+            .isEqualTo(Instant.parse("2026-11-08T04:00:00Z").toEpochMilli());
+    }
+
+    @Test
+    void codOrderHasNoAutoCancel() {
+        CustomerOrderDetailView view = placedOrderView(
+            PaymentMethod.COD,
+            PaymentStatus.UNPAID
+        );
+
+        assertThat(view.autoCancel()).isNull();
     }
 
     @Test

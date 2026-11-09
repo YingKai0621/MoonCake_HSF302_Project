@@ -493,3 +493,59 @@ select option {
   outline: 2px solid #EDC565;
   outline-offset: 2px;
 }
+
+.countdown-ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+}
+
+.countdown-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.countdown-ring circle {
+  fill: none;
+  stroke-width: 4;
+}
+
+.countdown-ring__track {
+  stroke: rgba(251, 191, 36, 0.18);
+}
+
+.countdown-ring__progress {
+  stroke: #FBBF24;
+  stroke-linecap: round;
+  stroke-dasharray: 175.93;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1000ms linear;
+}
+
+.countdown-ring__time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FDE68A;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-ring.is-urgent .countdown-ring__progress {
+  stroke: #F87171;
+}
+
+.countdown-ring.is-urgent .countdown-ring__time {
+  color: #FCA5A5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-ring__progress {
+    transition: none;
+  }
+}

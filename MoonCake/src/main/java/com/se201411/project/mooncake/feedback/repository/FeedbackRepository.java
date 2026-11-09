@@ -17,5 +17,5 @@ public interface FeedbackRepository extends Repository<Feedback, Long> {
     List<Feedback> findTop100ByOrderByIdDesc();
 
     @EntityGraph(attributePaths = "customer")
-    List<Feedback> findTop20ByPublishedTrueOrderByCreatedAtDesc();
+    List<Feedback> findTop20ByPublishedTrueAndRatingGreaterThanEqualOrderByCreatedAtDesc(int minimumRating);
 }

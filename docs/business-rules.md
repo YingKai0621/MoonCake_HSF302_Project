@@ -14,7 +14,7 @@
 
 - Góp ý của khách kèm **số sao từ 1 đến 5**. Khách phải đăng nhập để gửi; hệ thống lấy khách từ tài khoản đang đăng nhập, không nhận `customer_id` từ form.
 - Góp ý mới luôn ở trạng thái **ẩn**. Chỉ Admin được bấm **Hiển thị** hoặc **Ẩn**; góp ý cũ chưa có số sao không thể hiển thị.
-- Trang chủ hiển thị tối đa 20 đánh giá đã được duyệt, mới nhất trước, gồm số sao, nội dung và tên khách. Form góp ý báo trước cho khách rằng đánh giá được duyệt có thể hiển thị kèm tên.
+- Trang chủ hiển thị tối đa 20 đánh giá đã được duyệt **và từ 4 sao trở lên**, mới nhất trước, gồm số sao, nội dung và tên khách. Trang chủ không hiển thị điểm trung bình, vì danh sách đã được lọc. Admin vẫn xem được mọi góp ý, kể cả đánh giá thấp. Form góp ý báo trước cho khách rằng đánh giá được duyệt có thể hiển thị kèm tên.
 - Flyway V13 thêm `FEEDBACK.rating` (`INT NULL`, kiểm tra 1–5) và `FEEDBACK.is_published` (`BIT NOT NULL`, mặc định 0). Không thêm bảng; schema vẫn **24 bảng**.
 
 ### Thay đổi chính trong phiên bản 1.7

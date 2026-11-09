@@ -234,6 +234,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             order.getRoundingAdjustment(),
             order.getTotalAmount(),
             formatTime(order.getCreatedAt()),
+            order.getUpdatedAt() == null ? null : formatTime(order.getUpdatedAt()),
             lines,
             paymentLines,
             actions(order.getStatus(), orderPayments)

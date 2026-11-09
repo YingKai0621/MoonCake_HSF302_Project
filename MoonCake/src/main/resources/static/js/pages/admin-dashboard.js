@@ -122,6 +122,7 @@ function drawChart() {
           backgroundColor: accent,
           borderRadius: 6,
           maxBarThickness: 36,
+          order: 2,
           yAxisID: "money"
         },
         {
@@ -130,8 +131,12 @@ function drawChart() {
           data: data.orders,
           borderColor: info,
           backgroundColor: info,
-          tension: 0.35,
-          pointRadius: 3,
+          cubicInterpolationMode: "monotone",
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+          order: 1,
           yAxisID: "count"
         }
       ]

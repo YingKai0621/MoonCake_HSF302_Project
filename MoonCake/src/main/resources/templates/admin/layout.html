@@ -3,34 +3,130 @@
 <head th:fragment="head(title)">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${title} + ' | MoonCake Admin'"></title>
+    <title th:text="${title} + ' | MoonCake Admin'">MoonCake Admin</title>
+    <script>
+        (function () {
+            var saved = null;
+            try {
+                saved = localStorage.getItem("mc-admin-theme");
+            } catch (error) {
+                saved = null;
+            }
+            var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            var theme = saved || (prefersDark ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+            var collapsed = null;
+            try {
+                collapsed = localStorage.getItem("mc-admin-sidebar");
+            } catch (error) {
+                collapsed = null;
+            }
+            if (collapsed === "collapsed") {
+                document.documentElement.classList.add("sidebar-collapsed");
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/pages/admin.css}">
     <link rel="stylesheet" th:href="@{/css/flash-message.css}">
     <script th:src="@{/js/flash-message.js}" defer></script>
+    <script th:src="@{/js/pages/admin-ui.js}" defer></script>
     <script th:src="@{/js/pages/admin-confirm.js}" defer></script>
     <script th:src="@{/js/pages/admin-tables.js}" defer></script>
 </head>
 <body>
-<header th:fragment="nav">
-    <div class="brand-bar">
-        <a class="brand" th:href="@{/admin}"><img th:src="@{/images/branding/mooncake_luxury_emblem_v4.svg}" alt="" width="48" height="48"><span>MOONCAKE<small>KHÔNG GIAN QUẢN TRỊ</small></span></a>
-        <div class="brand-actions"><a th:href="@{/products}">Xem cửa hàng ↗</a><form th:action="@{/logout}" method="post"><button class="logout">Đăng xuất</button></form></div>
+<aside th:fragment="nav" class="admin-sidebar" data-admin-sidebar>
+    <div class="page-progress" data-page-progress aria-hidden="true"></div>
+    <div class="admin-mobile-bar">
+        <button type="button" class="icon-button" data-sidebar-toggle aria-label="Mở menu quản trị" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="admin-mobile-title">MoonCake Admin</span>
     </div>
-    <nav class="admin-nav" aria-label="Quản trị"><a th:href="@{/admin/overview}">Tổng quan &amp; doanh nghiệp</a>
-        <a class="nav-orders" th:href="@{/admin/orders}"><span>01</span> Đơn hàng</a>
-        <a class="nav-catalog" th:href="@{/admin/catalog}"><span>02</span> Sản phẩm &amp; danh mục</a>
-        <a class="nav-presets" th:href="@{/admin/presets}"><span>03</span> Công thức hộp quà</a>
-        <a class="nav-inventory" th:href="@{/admin/inventory}"><span>04</span> Kho &amp; đóng hộp</a>
-    <a th:href="@{/admin/media}">Ảnh &amp; video</a><a th:href="@{/admin/batches}">Lô hàng</a><a th:href="@{/admin/feedback}">Đánh giá</a></nav>
-</header>
+
+    <div class="admin-sidebar__panel">
+        <a class="admin-brand" th:href="@{/admin/overview}">
+            <img th:src="@{/images/branding/mooncake_luxury_emblem_v4.svg}" alt="" width="40" height="40">
+            <span>
+                <strong>MoonCake</strong>
+                <small>Quản trị cửa hàng</small>
+            </span>
+        </a>
+
+        <nav class="admin-nav" aria-label="Quản trị">
+            <a class="admin-nav__link" th:href="@{/admin/overview}" data-nav-path="/admin/overview">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span>Tổng quan</span>
+            </a>
+
+            <p class="admin-nav__group">Bán hàng</p>
+            <a class="admin-nav__link" th:href="@{/admin/orders}" data-nav-path="/admin/orders">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span>Đơn hàng</span>
+            </a>
+            <a class="admin-nav__link" th:href="@{/admin/feedback}" data-nav-path="/admin/feedback">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01Z"/></svg>
+                <span>Đánh giá</span>
+            </a>
+
+            <p class="admin-nav__group">Sản phẩm</p>
+            <a class="admin-nav__link" th:href="@{/admin/catalog}" data-nav-path="/admin/catalog">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <span>Sản phẩm &amp; danh mục</span>
+            </a>
+            <a class="admin-nav__link" th:href="@{/admin/presets}" data-nav-path="/admin/presets">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+                <span>Công thức hộp quà</span>
+            </a>
+            <a class="admin-nav__link" th:href="@{/admin/media}" data-nav-path="/admin/media">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+                <span>Ảnh &amp; video</span>
+            </a>
+
+            <p class="admin-nav__group">Kho</p>
+            <a class="admin-nav__link" th:href="@{/admin/inventory}" data-nav-path="/admin/inventory">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/></svg>
+                <span>Tồn kho &amp; đóng hộp</span>
+            </a>
+            <a class="admin-nav__link" th:href="@{/admin/batches}" data-nav-path="/admin/batches">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span>Lô hàng</span>
+            </a>
+        </nav>
+
+        <div class="admin-sidebar__footer">
+            <a class="admin-nav__link" th:href="@{/products}" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                <span>Xem cửa hàng</span>
+            </a>
+            <button type="button" class="admin-nav__link admin-collapse" data-sidebar-collapse title="Thu gọn menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 15l-3-3 3-3"/></svg>
+                <span>Thu gọn menu</span>
+            </button>
+            <button type="button" class="admin-nav__link" data-theme-toggle>
+                <svg class="theme-icon theme-icon--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                <svg class="theme-icon theme-icon--light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                <span data-theme-label>Giao diện tối</span>
+            </button>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="admin-nav__link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="admin-sidebar__scrim" data-sidebar-close></div>
+</aside>
+
 <p th:fragment="flash"
    th:if="${success}"
    class="flash-message notice"
    data-flash-message
    data-flash-timeout="5000"
    role="status"
-   th:text="${success}"></p></body>
+   th:text="${success}">Đã lưu.</p>
+</body>
 </html>

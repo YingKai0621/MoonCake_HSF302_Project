@@ -27,6 +27,7 @@ import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.AdminExceptionAdvice;
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.security.config.SecurityConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -417,6 +418,23 @@ class AdminPagesTest {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("Nhập kho")))
             .andExpect(content().string(containsString("+3")));
+    }
+
+    @Test
+    void stockErrorReopensTheDialogInsteadOfErrorPage() throws Exception {
+        doThrow(new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."))
+            .when(inventory).adjust(any());
+        mvc.perform(post("/admin/inventory/adjust")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("variantId", "1")
+                .param("quantity", "0")
+                .param("reason", "Kiểm kê")
+                .param("operationKey", "123e4567-e89b-12d3-a456-426614174000"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/inventory"))
+            .andExpect(flash().attribute("dialogId", "adjust-dialog"))
+            .andExpect(flash().attribute("dialogError", "Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."));
     }
 
     @Test

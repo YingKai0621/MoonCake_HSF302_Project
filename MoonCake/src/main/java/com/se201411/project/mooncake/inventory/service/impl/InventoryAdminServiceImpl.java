@@ -161,8 +161,12 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     private void change(AdminStockForm f, StockMovementType type) {
         long admin = access.requireAdmin();
         validation.validate(f);
-        if (f.quantity() == 0 || (type == StockMovementType.RECEIVE && f.quantity() < 0))
-            throw new BusinessRuleViolationException("Số lượng nhập phải dương. Điều chỉnh phải khác 0.");
+        if (type == StockMovementType.RECEIVE && f.quantity() <= 0) {
+            throw new BusinessRuleViolationException("Số lượng nhập phải lớn hơn 0.");
+        }
+        if (f.quantity() == 0) {
+            throw new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3.");
+        }
         if (repo.isGiftSet(f.variantId())) presets.requireReadyPreset(f.variantId());
         String group = type + ":" + f.operationKey();
         requireNew(group);

@@ -36,6 +36,9 @@ function errorMessage(field) {
   if (state.stepMismatch) {
     return field.dataset.stepError || "Vui lòng nhập số nguyên.";
   }
+  if (state.customError) {
+    return field.validationMessage;
+  }
   return "Giá trị chưa hợp lệ.";
 }
 
@@ -95,7 +98,19 @@ function clearFieldError(field) {
   field.removeAttribute("aria-describedby");
 }
 
+function applyCustomRules(field) {
+  if (field.dataset.notZero === undefined) {
+    return;
+  }
+  if (field.value !== "" && Number(field.value) === 0) {
+    field.setCustomValidity(field.dataset.notZero);
+  } else {
+    field.setCustomValidity("");
+  }
+}
+
 function checkField(field) {
+  applyCustomRules(field);
   if (field.checkValidity()) {
     clearFieldError(field);
     return true;

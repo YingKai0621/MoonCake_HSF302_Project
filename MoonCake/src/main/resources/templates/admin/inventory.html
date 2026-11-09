@@ -69,7 +69,7 @@
         </div>
     </section>
 
-    <dialog class="modal" id="receive-dialog">
+    <dialog class="modal" id="receive-dialog" th:attr="data-reopen=${dialogId == 'receive-dialog' ? 'true' : null}">
         <form th:action="@{/admin/inventory/receive}" method="post" class="modal__panel">
             <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -77,13 +77,18 @@
             <div class="modal__body">
                 <h2>Nhập kho</h2>
                 <p class="modal__subject" data-modal-subject></p>
-                <input type="hidden" name="variantId" data-modal-variant>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'receive-dialog'}" th:text="${dialogError}">Lỗi</p>
+                <input type="hidden" name="variantId" data-modal-variant
+                       th:value="${dialogId == 'receive-dialog' ? dialogForm.variantId : ''}">
                 <input type="hidden" name="operationKey" th:value="${receiveKey}">
                 <label>Số lượng nhập thêm
-                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 20">
+                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 20"
+                           data-min-error="Số lượng nhập phải lớn hơn 0."
+                           th:value="${dialogId == 'receive-dialog' ? dialogForm.quantity : ''}">
                 </label>
                 <label>Ghi chú
-                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Nhận hàng từ xưởng">
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Nhận hàng từ xưởng"
+                           th:value="${dialogId == 'receive-dialog' ? dialogForm.reason : ''}">
                 </label>
             </div>
             <div class="modal__footer">
@@ -93,7 +98,7 @@
         </form>
     </dialog>
 
-    <dialog class="modal" id="adjust-dialog">
+    <dialog class="modal" id="adjust-dialog" th:attr="data-reopen=${dialogId == 'adjust-dialog' ? 'true' : null}">
         <form th:action="@{/admin/inventory/adjust}" method="post" class="modal__panel">
             <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -101,13 +106,18 @@
             <div class="modal__body">
                 <h2>Điều chỉnh kho</h2>
                 <p class="modal__subject" data-modal-subject></p>
-                <input type="hidden" name="variantId" data-modal-variant>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'adjust-dialog'}" th:text="${dialogError}">Lỗi</p>
+                <input type="hidden" name="variantId" data-modal-variant
+                       th:value="${dialogId == 'adjust-dialog' ? dialogForm.variantId : ''}">
                 <input type="hidden" name="operationKey" th:value="${adjustKey}">
                 <label>Số tăng hoặc giảm
-                    <input type="number" name="quantity" required min="-100000" max="100000" placeholder="Ví dụ: -2">
+                    <input type="number" name="quantity" required min="-100000" max="100000" placeholder="Ví dụ: -2"
+                           data-not-zero="Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."
+                           th:value="${dialogId == 'adjust-dialog' ? dialogForm.quantity : ''}">
                 </label>
                 <label>Lý do
-                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Kiểm kê thiếu 2 bánh">
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Kiểm kê thiếu 2 bánh"
+                           th:value="${dialogId == 'adjust-dialog' ? dialogForm.reason : ''}">
                 </label>
             </div>
             <div class="modal__footer">
@@ -117,26 +127,34 @@
         </form>
     </dialog>
 
-    <dialog class="modal" id="pack-dialog">
+    <dialog class="modal" id="pack-dialog" th:attr="data-reopen=${dialogId == 'pack-dialog' ? 'true' : null}">
         <form th:action="@{/admin/inventory/pack}" method="post" class="modal__panel">
             <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
             <div class="modal__body">
                 <h2>Đóng hộp quà</h2>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'pack-dialog'}" th:text="${dialogError}">Lỗi</p>
                 <input type="hidden" name="operationKey" th:value="${packKey}">
                 <label>Hộp quà
                     <select name="variantId" required>
                         <option value="">Chọn hộp quà…</option>
-                        <option th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}"
-                                th:value="${p.giftSetVariantId}" th:text="${p.sku}">GIFT</option>
+                        <th:block th:each="p : ${presets}" th:if="${p.status.name() == 'READY'}">
+                            <option th:each="b : ${allBalances}" th:if="${b.variantId == p.giftSetVariantId}"
+                                    th:value="${b.variantId}"
+                                    th:selected="${dialogId == 'pack-dialog' and dialogForm.variantId == b.variantId}"
+                                    th:text="${b.productName + ' · ' + b.name + ' (đang có ' + b.quantity + ' hộp)'}">Hộp quà</option>
+                        </th:block>
                     </select>
                 </label>
                 <label>Số hộp cần đóng
-                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 10">
+                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 10"
+                           data-min-error="Số hộp phải lớn hơn 0."
+                           th:value="${dialogId == 'pack-dialog' ? dialogForm.quantity : ''}">
                 </label>
                 <label>Ghi chú
-                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Đóng hộp cho đợt giao 15/9">
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Đóng hộp cho đợt giao 15/9"
+                           th:value="${dialogId == 'pack-dialog' ? dialogForm.reason : ''}">
                 </label>
             </div>
             <div class="modal__footer">

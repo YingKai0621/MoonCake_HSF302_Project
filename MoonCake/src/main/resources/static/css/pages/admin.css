@@ -2712,3 +2712,14 @@ tr.is-low .stock-number {
     animation: none;
   }
 }
+
+.modal__error {
+  margin: -4px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--danger);
+  border-radius: var(--radius-small);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 500;
+}

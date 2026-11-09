@@ -1,52 +1,64 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/layout :: head('Đánh giá khách hàng')}"></head>
-<body>
+<body class="page-feedback">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main>
+<main th:with="waiting=${feedbacks.?[!published and rating != null]},shown=${feedbacks.?[published]}">
     <div th:replace="~{admin/layout :: flash}"></div>
     <div class="page-heading page-heading--simple">
         <span class="eyebrow">Bán hàng</span>
         <h1>Đánh giá khách hàng</h1>
     </div>
 
-    <p th:if="${#lists.isEmpty(feedbacks)}" class="muted">Chưa có góp ý nào.</p>
+    <nav class="tabs" aria-label="Lọc đánh giá" data-filter-tabs>
+        <a href="#" class="tabs__item is-active" data-filter="waiting">
+            <span>Chờ duyệt</span>
+            <span class="tabs__count" th:text="${#lists.size(waiting)}">0</span>
+        </a>
+        <a href="#" class="tabs__item" data-filter="shown">
+            <span>Đang hiện trên trang chủ</span>
+            <span class="tabs__count" th:text="${#lists.size(shown)}">0</span>
+        </a>
+        <a href="#" class="tabs__item" data-filter="all">
+            <span>Tất cả</span>
+            <span class="tabs__count" th:text="${#lists.size(feedbacks)}">0</span>
+        </a>
+    </nav>
 
-    <section th:unless="${#lists.isEmpty(feedbacks)}" class="table-scroll">
-        <table data-search-table>
-            <thead>
-            <tr>
-                <th>Khách hàng</th>
-                <th>Số sao</th>
-                <th>Nội dung</th>
-                <th>Thời gian</th>
-                <th>Trang chủ</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="feedback : ${feedbacks}">
-                <td th:text="${feedback.customerName}">Khách hàng</td>
-                <td th:text="${feedback.rating == null ? '—' : feedback.rating + ' ★'}">5 ★</td>
-                <td style="white-space: pre-wrap" th:text="${feedback.content}">Nội dung</td>
-                <td th:text="${feedback.formattedCreatedAt}">02/11/2026 10:00</td>
-                <td th:text="${feedback.published ? 'Đang hiển thị' : 'Ẩn'}">Ẩn</td>
-                <td>
-                    <form th:if="${!feedback.published and feedback.rating != null}"
-                          th:action="@{/admin/feedback/{id}/publish(id=${feedback.id})}"
-                          method="post">
-                        <button type="submit">Hiển thị</button>
-                    </form>
-                    <form th:if="${feedback.published}"
-                          th:action="@{/admin/feedback/{id}/hide(id=${feedback.id})}"
-                          method="post">
-                        <button type="submit" class="secondary">Ẩn</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+    <div class="review-grid">
+        <article th:each="feedback : ${feedbacks}" class="review-card"
+                 th:attr="data-group=${feedback.published ? 'shown' : (feedback.rating != null ? 'waiting' : 'old')}">
+            <header class="review-card__head">
+                <div>
+                    <strong class="review-card__name" th:text="${feedback.customerName}">Khách hàng</strong>
+                    <span class="review-card__time" th:text="${feedback.formattedCreatedAt}">02/11/2026 10:00</span>
+                </div>
+                <span th:if="${feedback.rating != null}" class="review-card__stars"
+                      th:attr="aria-label=${feedback.rating + ' trên 5 sao'}">
+                    <span th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= feedback.rating} ? 'is-on'">★</span>
+                </span>
+                <span th:if="${feedback.rating == null}" class="badge badge--muted">Góp ý cũ, không có sao</span>
+            </header>
+            <p class="review-card__content" th:text="${feedback.content}">Nội dung</p>
+            <footer class="review-card__foot">
+                <span class="badge badge--dot" th:classappend="${feedback.published} ? 'badge--success' : 'badge--muted'"
+                      th:text="${feedback.published} ? 'Đang hiện trên trang chủ' : 'Đang ẩn'">Đang ẩn</span>
+                <form th:if="${!feedback.published and feedback.rating != null}"
+                      th:action="@{/admin/feedback/{id}/publish(id=${feedback.id})}" method="post">
+                    <button type="submit" class="small-button">Hiện trên trang chủ</button>
+                </form>
+                <form th:if="${feedback.published}"
+                      th:action="@{/admin/feedback/{id}/hide(id=${feedback.id})}" method="post">
+                    <button type="submit" class="secondary small-button">Ẩn khỏi trang chủ</button>
+                </form>
+            </footer>
+        </article>
+    </div>
+
+    <section class="empty-state" data-filter-empty hidden>
+        <p><strong>Không có đánh giá nào ở mục này.</strong></p>
     </section>
 </main>
+<script th:src="@{/js/pages/admin-filter-tabs.js}" defer></script>
 </body>
 </html>

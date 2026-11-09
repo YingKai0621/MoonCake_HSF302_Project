@@ -1,65 +1,75 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Ảnh & video')}"></head>
-<body>
+<head th:replace="~{admin/layout :: head('Video sản phẩm')}"></head>
+<body class="page-media">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading page-heading--simple">
-        <span class="eyebrow">Sản phẩm</span>
-        <h1>Video sản phẩm</h1>
+    <div class="page-heading page-heading--simple page-heading--with-action">
+        <div>
+            <span class="eyebrow">Sản phẩm</span>
+            <h1>Video sản phẩm</h1>
+        </div>
+        <button type="button" data-open-modal="video-new">+ Thêm video</button>
     </div>
 
-    <section>
-        <h2>Thêm video</h2>
-        <form th:action="@{/admin/media}" method="post">
-            <div class="grid">
+    <div class="video-grid">
+        <article th:each="video : ${videos}" class="video-card">
+            <video controls preload="metadata" playsinline th:src="${video.url}"></video>
+            <div class="video-card__body">
+                <strong th:text="${video.productName}">Sản phẩm</strong>
+                <p th:text="${video.caption}">Mô tả</p>
+                <form th:action="@{/admin/media/{id}/remove(id=${video.id})}" method="post"
+                      th:attr="data-confirm-message=${'Xóa video “' + video.caption + '” của ' + video.productName + '?'}">
+                    <button type="submit" class="image-tile__button image-tile__button--danger" aria-label="Xóa video" title="Xóa video">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                    </button>
+                </form>
+            </div>
+        </article>
+    </div>
+
+    <section th:if="${videos.isEmpty()}" class="empty-state">
+        <p><strong>Chưa có video nào.</strong></p>
+        <button type="button" class="secondary" data-open-modal="video-new">Thêm video đầu tiên</button>
+    </section>
+
+    <dialog class="modal" id="video-new" th:attr="data-reopen=${dialogId == 'video-new' ? 'true' : null}">
+        <form th:action="@{/admin/media}" method="post" class="modal__panel">
+            <button type="button" class="modal__close" data-dialog-close aria-label="Đóng">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <div class="modal__body">
+                <h2>Thêm video</h2>
+                <p class="modal__error" role="alert" th:if="${dialogId == 'video-new'}" th:text="${dialogError}">Lỗi</p>
                 <label>Sản phẩm
                     <select name="productId" required>
+                        <option value="">Chọn sản phẩm…</option>
                         <option th:each="product : ${catalog.products}"
                                 th:value="${product.id}"
+                                th:selected="${videoProductId != null and videoProductId == product.id}"
                                 th:text="${product.name}">Sản phẩm</option>
                     </select>
                 </label>
                 <label>Đường dẫn video
-                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4" pattern="(https://\S+|/images/\S+)\.(mp4|webm)(\?\S*)?" data-error="Đường dẫn video phải là link https:// hoặc /images/ tới file .mp4 hoặc .webm.">
+                    <input name="url" required maxlength="1000" placeholder="https://…/video.mp4"
+                           th:value="${videoUrl}"
+                           pattern="(https://\S+|/images/\S+)\.(mp4|webm)(\?\S*)?"
+                           data-error="Đường dẫn video phải là link https:// hoặc /images/ tới file .mp4 hoặc .webm.">
                 </label>
                 <label>Mô tả
-                    <input name="caption" required maxlength="250">
+                    <input name="caption" required maxlength="250" placeholder="Ví dụ: Cắt bánh xem nhân"
+                           th:value="${videoCaption}">
                 </label>
             </div>
-            <div class="actions">
-                <button type="submit">Thêm video</button>
+            <div class="modal__footer">
+                <button type="button" class="secondary" data-dialog-close>Hủy</button>
+                <button type="submit" data-loading-text="Đang thêm…">Thêm video</button>
             </div>
         </form>
-    </section>
-
-    <section class="table-scroll">
-        <h2>Video hiện có</h2>
-        <table data-search-table>
-            <thead>
-            <tr>
-                <th>Sản phẩm</th>
-                <th>Xem trước</th>
-                <th>Mô tả</th>
-                <th>Thao tác</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="video : ${videos}">
-                <td th:text="${video.productName}">Sản phẩm</td>
-                <td><video controls preload="none" width="220" th:src="${video.url}"></video></td>
-                <td th:text="${video.caption}">Mô tả</td>
-                <td>
-                    <form th:action="@{/admin/media/{id}/remove(id=${video.id})}" method="post">
-                        <button type="submit" class="danger">Xóa video</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <p th:if="${#lists.isEmpty(videos)}" class="muted">Chưa có video. Thêm đường dẫn ở biểu mẫu phía trên.</p>
-    </section>
+    </dialog>
 </main>
+<script th:src="@{/js/pages/admin-modal.js}" defer></script>
+<script th:src="@{/js/loading-button.js}" defer></script>
 </body>
 </html>

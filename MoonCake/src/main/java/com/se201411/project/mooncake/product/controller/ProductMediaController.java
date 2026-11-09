@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.product.controller;
 
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.service.ProductMediaService;
+import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +39,16 @@ public class ProductMediaController {
         @RequestParam String caption,
         RedirectAttributes flash
     ) {
-        productMediaService.addVideo(productId, url, caption);
+        try {
+            productMediaService.addVideo(productId, url, caption);
+        } catch (MoonCakeException ex) {
+            flash.addFlashAttribute("dialogId", "video-new");
+            flash.addFlashAttribute("dialogError", ex.getMessage());
+            flash.addFlashAttribute("videoProductId", productId);
+            flash.addFlashAttribute("videoUrl", url);
+            flash.addFlashAttribute("videoCaption", caption);
+            return "redirect:/admin/media";
+        }
         flash.addFlashAttribute("success", "Đã thêm video.");
         return "redirect:/admin/media";
     }

@@ -1,36 +1,123 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/layout :: head('Tổng quan')}"></head>
-<body>
+<body class="page-dashboard">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
-    <div class="page-heading">
-        <span class="eyebrow">MOONCAKE ADMIN</span>
-        <h1>Tổng quan cửa hàng</h1>
-        <p>Số liệu toàn thời gian. Doanh thu là tổng tiền các đơn đã hoàn tất.</p>
+    <div class="dashboard-header">
+        <div>
+            <span class="eyebrow">Tổng quan cửa hàng</span>
+            <h1 class="text-generate" data-text-generate>Chào bạn, đây là tình hình kinh doanh của MoonCake</h1>
+        </div>
+
+        <nav class="segmented" aria-label="Chọn kỳ thống kê" data-segmented>
+            <span class="segmented__pill" aria-hidden="true"></span>
+            <a th:each="option : ${periods}"
+               class="segmented__item"
+               th:href="@{/admin/overview(period=${option})}"
+               th:classappend="${option == dashboard.period} ? 'is-active'"
+               th:attr="aria-current=${option == dashboard.period ? 'page' : null}"
+               th:text="${option.label}">Ngày</a>
+        </nav>
     </div>
 
-    <div class="grid">
-        <section>
-            <small>Tổng đơn</small>
-            <h2 th:text="${stats.totalOrders}">0</h2>
+    <div class="kpi-grid">
+        <article th:each="kpi : ${dashboard.kpis}" class="kpi-card" data-spotlight>
+            <p class="kpi-card__label" th:text="${kpi.label}">Doanh thu</p>
+            <p class="kpi-card__value">
+                <span data-count-to th:attr="data-count-to=${kpi.value},data-money=${kpi.money}" th:text="${kpi.value}">0</span><span th:if="${kpi.money}" class="kpi-card__unit">đ</span>
+            </p>
+            <p class="kpi-card__change">
+                <span class="trend" th:classappend="${'trend--' + kpi.trend()}">
+                    <th:block th:if="${kpi.trend() == 'up'}" th:text="${'▲ ' + kpi.changePercent + '%'}">▲ 12%</th:block>
+                    <th:block th:if="${kpi.trend() == 'down'}" th:text="${'▼ ' + (-kpi.changePercent) + '%'}">▼ 5%</th:block>
+                    <th:block th:if="${kpi.trend() == 'flat'}">0%</th:block>
+                    <th:block th:if="${kpi.trend() == 'new'}">Mới</th:block>
+                </span>
+                <span class="muted" th:text="${kpi.compareLabel}">so với hôm qua</span>
+            </p>
+        </article>
+    </div>
+
+    <div class="dashboard-grid">
+        <section class="dashboard-chart">
+            <div class="section-heading">
+                <h2 th:text="${'Doanh thu và đơn hàng theo ' + #strings.toLowerCase(dashboard.period.label)}">Doanh thu</h2>
+                <span class="muted">Doanh thu tính trên đơn đã hoàn tất</span>
+            </div>
+            <div class="chart-box">
+                <canvas id="revenueChart" aria-label="Biểu đồ doanh thu và số đơn" role="img"></canvas>
+            </div>
         </section>
-        <section>
-            <small>Chờ xử lý</small>
-            <h2 th:text="${stats.placedOrders}">0</h2>
+
+        <section class="dashboard-tasks">
+            <div class="section-heading">
+                <h2>Việc cần làm</h2>
+            </div>
+            <ul class="task-list">
+                <li th:each="task : ${dashboard.tasks}">
+                    <a class="task-item" th:href="@{${task.url}}" th:classappend="${task.count == 0} ? 'is-done'">
+                        <span class="task-dot" th:classappend="${'task-dot--' + task.tone}"></span>
+                        <span class="task-label" th:text="${task.label}">Đơn chờ xử lý</span>
+                        <span class="task-count" th:text="${task.count == 0 ? 'Xong' : task.count}">0</span>
+                    </a>
+                </li>
+            </ul>
         </section>
-        <section>
-            <small>Doanh thu hoàn tất (VND)</small>
-            <h2 th:text="${#numbers.formatDecimal(stats.completedRevenue, 0, 'POINT', 0, 'COMMA')}">0</h2>
+
+        <section class="dashboard-recent">
+            <div class="section-heading">
+                <h2>Đơn hàng mới nhất</h2>
+                <a th:href="@{/admin/orders}">Xem tất cả →</a>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Người nhận</th>
+                        <th>Tổng</th>
+                        <th>Trạng thái</th>
+                        <th>Lúc đặt</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="order : ${dashboard.recentOrders}">
+                        <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">MC-1</a></td>
+                        <td th:text="${order.recipientName}">Người nhận</td>
+                        <td th:text="${order.formattedTotal}">0đ</td>
+                        <td><span class="badge" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span></td>
+                        <td class="muted" th:text="${order.formattedCreatedAt}">01/01 10:00</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${#lists.isEmpty(dashboard.recentOrders)}" class="muted">Chưa có đơn hàng nào.</p>
         </section>
-        <section>
-            <small>Đã hủy</small>
-            <h2 th:text="${stats.cancelledOrders}">0</h2>
+
+        <section class="dashboard-top">
+            <div class="section-heading">
+                <h2>Bán chạy 30 ngày</h2>
+            </div>
+            <ol class="top-list" th:with="best=${#lists.isEmpty(dashboard.topProducts) ? 1 : dashboard.topProducts[0].quantity}">
+                <li th:each="product : ${dashboard.topProducts}">
+                    <div class="top-list__row">
+                        <span class="top-list__name" th:text="${product.name}">Bánh</span>
+                        <span class="top-list__quantity" th:text="${product.quantity + ' cái'}">0 cái</span>
+                    </div>
+                    <div class="top-list__bar">
+                        <span th:style="${'--bar-width:' + (product.quantity * 100 / best) + '%'}"></span>
+                    </div>
+                </li>
+            </ol>
+            <p th:if="${#lists.isEmpty(dashboard.topProducts)}" class="muted">Chưa có sản phẩm bán ra trong 30 ngày.</p>
         </section>
     </div>
 
     <section class="table-scroll">
-        <h2>Danh sách doanh nghiệp</h2>
+        <div class="section-heading">
+            <h2>Khách hàng doanh nghiệp</h2>
+        </div>
         <table data-search-table>
             <thead>
             <tr>
@@ -53,7 +140,18 @@
             </tr>
             </tbody>
         </table>
+        <p th:if="${#lists.isEmpty(businesses)}" class="muted">Chưa có khách hàng doanh nghiệp.</p>
     </section>
+
+    <script th:inline="javascript">
+        window.dashboardChart = {
+            labels: /*[[${dashboard.chartLabels}]]*/ [],
+            revenue: /*[[${dashboard.chartRevenue}]]*/ [],
+            orders: /*[[${dashboard.chartOrders}]]*/ []
+        };
+    </script>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:src="@{/js/pages/admin-dashboard.js}"></script>
 </body>
 </html>

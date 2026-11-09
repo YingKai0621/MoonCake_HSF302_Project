@@ -1,7 +1,13 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
+import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
+import com.se201411.project.mooncake.dashboard.dto.DashboardView;
+import com.se201411.project.mooncake.dashboard.dto.KpiView;
+import com.se201411.project.mooncake.dashboard.dto.RecentOrderView;
+import com.se201411.project.mooncake.dashboard.dto.TopProductView;
+import com.se201411.project.mooncake.dashboard.service.DashboardService;
 import com.se201411.project.mooncake.order.dto.BusinessSummaryView;
-import com.se201411.project.mooncake.order.dto.OverviewStatsView;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
 import com.se201411.project.mooncake.inventory.dto.AdminBatchView;
 import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
@@ -39,6 +45,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
@@ -64,6 +71,7 @@ class AdminPagesTest {
     @Autowired
     OrderCancellationService cancellations;
     @Autowired com.se201411.project.mooncake.order.service.OperationsService operations;
+    @Autowired DashboardService dashboards;
     @Autowired ProductMediaService media;
     @Autowired BatchStockService batches;
     MockMvc mvc;
@@ -71,7 +79,7 @@ class AdminPagesTest {
     @BeforeEach
     void setup() {
         reset(catalog, presets, inventory, orders, cancellations);
-        when(operations.statistics()).thenReturn(new OverviewStatsView(1L, 1L, BigDecimal.TEN, 0L));
+        when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
         when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "LOT", null, null, 3, "Chưa có hạn dùng")));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
@@ -257,12 +265,16 @@ class AdminPagesTest {
     }
 
     @Test
-    void overviewRendersStatisticsAndBusiness() throws Exception {
+    void overviewRendersDashboardAndBusinesses() throws Exception {
         var operations=context.getBean(com.se201411.project.mooncake.order.service.OperationsService.class);
-        when(operations.statistics()).thenReturn(new OverviewStatsView(12L, 3L, new BigDecimal("100000"), 2L));
         when(operations.businesses()).thenReturn(List.of(new BusinessSummaryView(1L, "Business", "Contact", "a@example.test", "000", 2L, new BigDecimal("100000"))));
-        mvc.perform(get("/admin/overview").with(user("admin").roles("ADMIN")))
-          .andExpect(status().isOk()).andExpect(content().string(containsString("Business")));
+        mvc.perform(get("/admin/overview").param("period", "MONTH").with(user("admin").roles("ADMIN")))
+          .andExpect(status().isOk())
+          .andExpect(content().string(containsString("Business")))
+          .andExpect(content().string(containsString("Đơn chờ xử lý")))
+          .andExpect(content().string(containsString("Bánh Tôm Hùm")))
+          .andExpect(content().string(containsString("&lt;b&gt;Khách&lt;/b&gt;")))
+          .andExpect(content().string(containsString("09\\/11")));
     }
 
     @Test
@@ -284,6 +296,19 @@ class AdminPagesTest {
             .andExpect(content().string(containsString("/admin/feedback/5/publish")));
     }
 
+    static DashboardView sampleDashboard() {
+        return new DashboardView(
+            DashboardPeriod.DAY,
+            List.of(new KpiView("Doanh thu", 620000L, true, 12.5, "so với hôm qua")),
+            List.of("08/11", "09/11"),
+            List.of(0L, 620000L),
+            List.of(0L, 1L),
+            List.of(new DashboardTaskView("Đơn chờ xử lý", 3L, "/admin/orders?status=PLACED", "warning")),
+            List.of(new RecentOrderView(1L, "MC-1", "<b>Khách</b>", "620.000đ", "Chờ xử lý", "warning", "09/11 10:00")),
+            List.of(new TopProductView("Bánh Tôm Hùm", 4L, new BigDecimal("440000")))
+        );
+    }
+
     static AdminOrderView order(OrderStatus status) {
         return new AdminOrderView(1, "ORDER", status, "Recipient", "0901234567", "Address", null,
                 BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
@@ -297,6 +322,7 @@ class AdminPagesTest {
     @Import({AdminCatalogController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
+        @Bean DashboardService dashboardService(){return mock(DashboardService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
         @Bean BatchStockService batches(){return mock(BatchStockService.class);}
         @Bean com.se201411.project.mooncake.order.service.OperationsService operations() {

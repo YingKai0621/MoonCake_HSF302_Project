@@ -14,6 +14,7 @@ function updateThemeLabel() {
 function toggleTheme() {
   const nextTheme = currentTheme() === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", nextTheme);
+  document.dispatchEvent(new CustomEvent("admin-theme-change"));
   try {
     localStorage.setItem(THEME_KEY, nextTheme);
   } catch (error) {

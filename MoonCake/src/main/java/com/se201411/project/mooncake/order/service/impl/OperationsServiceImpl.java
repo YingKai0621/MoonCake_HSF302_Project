@@ -1,8 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
-import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.order.dto.BusinessSummaryView;
-import com.se201411.project.mooncake.order.dto.OverviewStatsView;
 import com.se201411.project.mooncake.order.repository.AdminOverviewRepository;
 import com.se201411.project.mooncake.order.service.OperationsService;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
@@ -23,17 +21,6 @@ public class OperationsServiceImpl implements OperationsService {
     ) {
         this.adminOverviewRepository = adminOverviewRepository;
         this.adminAccessService = adminAccessService;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public OverviewStatsView statistics() {
-        adminAccessService.requireAdmin();
-        return adminOverviewRepository.statistics(
-            OrderStatus.PLACED,
-            OrderStatus.COMPLETED,
-            OrderStatus.CANCELLED
-        );
     }
 
     @Override

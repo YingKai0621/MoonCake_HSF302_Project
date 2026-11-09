@@ -313,7 +313,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         validation.validate(f);
         ProductVariant v = f.id() == null ? new ProductVariant() : repo.variant(f.id());
         if (f.id() != null && (!v.getProduct().getId().equals(f.productId()) || !v.getSku().equals(f.sku()))) {
-            throw new BusinessRuleViolationException("Không đổi được mã SKU hoặc sản phẩm của SKU đã tạo; hãy tạo SKU mới.");
+            throw new BusinessRuleViolationException("Không đổi được mã SKU hoặc sản phẩm của SKU đã tạo. Hãy tạo SKU mới.");
         }
         v.setProduct(repo.product(f.productId()));
         v.setSku(f.sku());
@@ -343,7 +343,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             boolean variantChanged = !v.getEmptyBoxVariant().getId().equals(f.variantId());
             boolean capacityChanged = v.getCapacityCakes() != f.capacityCakes();
             if (variantChanged || (capacityChanged && repo.boxReferenced(f.id()))) {
-                throw new BusinessRuleViolationException("Mẫu hộp đã được dùng nên không đổi được SKU hoặc sức chứa; hãy tạo mẫu mới.");
+                throw new BusinessRuleViolationException("Mẫu hộp đã được dùng nên không đổi được SKU hoặc sức chứa. Hãy tạo mẫu mới.");
             }
         }
         ProductVariant variant = repo.variant(f.variantId());

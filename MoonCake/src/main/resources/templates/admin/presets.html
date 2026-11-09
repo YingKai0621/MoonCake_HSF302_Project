@@ -10,10 +10,10 @@
         <p><strong>Công thức quy định bên trong một hộp có gì.</strong> Ví dụ: hộp 4 bánh gồm 2 bánh Kim Sa + 2 bánh Thập Cẩm. Tạo công thức chưa làm tăng số hộp trong kho.</p>
         <ol><li>Ở <a th:href="@{/admin/catalog}">Sản phẩm &amp; danh mục</a>, tạo SKU hộp quà (GIFT_SET) chưa mở bán và mẫu hộp rỗng có sức chứa phù hợp.</li>
         <li>Tại đây, chọn SKU hộp quà và mẫu hộp để tạo bản nháp <strong>DRAFT</strong>.</li>
-        <li>Chọn từng SKU bánh và nhập số bánh trong <strong>một hộp</strong>. Lưu lại cùng SKU sẽ thay số lượng; nhập 0 để bỏ loại bánh đó.</li>
-        <li>Khi tổng số bánh đúng bằng sức chứa hộp, kiểm tra rồi chuyển <strong>READY</strong>. Công thức sẽ khóa; đổi thành phần sau đó phải tạo SKU hộp quà mới.</li>
+        <li>Chọn từng SKU bánh và nhập số bánh trong <strong>một hộp</strong>. Lưu lại cùng SKU sẽ thay số lượng. Nhập 0 để bỏ loại bánh đó.</li>
+        <li>Khi tổng số bánh đúng bằng sức chứa hộp, kiểm tra rồi chuyển <strong>READY</strong>. Công thức sẽ khóa. Đổi thành phần sau đó phải tạo SKU hộp quà mới.</li>
         <li>Sang <a th:href="@{/admin/inventory}">Kho &amp; đóng hộp</a> để nhập linh kiện và đóng hộp, rồi mở bán SKU trong trang Sản phẩm.</li></ol>
-        <p class="muted">PRESET là hộp bán sẵn do Admin định nghĩa. CUSTOM là hộp khách tự chọn bánh trong giỏ hàng; không tạo công thức CUSTOM ở trang này.</p>
+        <p class="muted">PRESET là hộp bán sẵn do Admin định nghĩa. CUSTOM là hộp khách tự chọn bánh trong giỏ hàng. Không tạo công thức CUSTOM ở trang này.</p>
     </details>
     <section><h2>Tạo công thức nháp</h2>
         <form th:action="@{/admin/presets}" method="post">

@@ -99,7 +99,6 @@
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">
                 <strong>Mở bán phiên bản này</strong>
-                <small>Bật khi đã nhập kho; hộp quà cần có công thức trước.</small>
             </span>
         </label>
         <button type="submit" data-loading-text="Đang lưu…" th:text="${f == null ? 'Thêm phiên bản' : 'Lưu phiên bản'}">Lưu</button>

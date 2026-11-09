@@ -85,7 +85,7 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         access.requireAdmin();
         var c = repo.lock(id);
         requireMutable(c);
-        if (quantity < 0) throw new BusinessRuleViolationException("Số bánh không được âm; dùng 0 để bỏ thành phần.");
+        if (quantity < 0) throw new BusinessRuleViolationException("Số bánh không được âm. Dùng 0 để bỏ thành phần.");
         ProductVariant cake = products.variant(variantId);
         if (cake.getProduct().getProductType() != ProductType.MOONCAKE)
             throw new BusinessRuleViolationException("Thành phần phải là SKU MOONCAKE.");

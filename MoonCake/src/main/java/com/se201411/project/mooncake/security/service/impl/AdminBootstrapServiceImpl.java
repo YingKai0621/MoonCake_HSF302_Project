@@ -43,7 +43,7 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
                 || password.getBytes(StandardCharsets.UTF_8).length > 72)
             throw new IllegalArgumentException("Cần BOOTSTRAP_ADMIN_EMAIL hợp lệ và BOOTSTRAP_ADMIN_PASSWORD 8–64 ký tự, tối đa 72 byte UTF-8.");
         if (repo.emailExists(normalized))
-            throw new IllegalStateException("Email đã được sử dụng; không thay đổi quyền tài khoản hiện có.");
+            throw new IllegalStateException("Email đã được sử dụng. Không thay đổi quyền tài khoản hiện có.");
         Account account = new Account();
         account.setEmail(normalized);
         account.setPasswordHash(encoder.encode(password));

@@ -62,7 +62,7 @@ public class BatchStockServiceImpl implements BatchStockService {
         }
         if (before < tracked) {
             throw new BusinessRuleViolationException(
-                "Tồn lô không khớp tồn tổng; cần kiểm kê SKU #" + variantId
+                "Tồn lô không khớp tồn tổng. Cần kiểm kê SKU #" + variantId
             );
         }
 
@@ -114,7 +114,7 @@ public class BatchStockServiceImpl implements BatchStockService {
         boolean invalidDates = producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn);
         if (invalidCode || invalidDates) {
             throw new BusinessRuleViolationException(
-                "Mã lô tối đa 80 ký tự; hạn dùng phải sau ngày sản xuất."
+                "Mã lô tối đa 80 ký tự. Hạn dùng phải sau ngày sản xuất."
             );
         }
         int changed = stockBatchRepository.updateTraceability(batchId, code.trim(), producedOn, expiresOn);

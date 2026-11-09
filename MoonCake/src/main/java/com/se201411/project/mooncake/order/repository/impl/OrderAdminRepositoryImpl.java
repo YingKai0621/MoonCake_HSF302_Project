@@ -26,6 +26,13 @@ public class OrderAdminRepositoryImpl implements OrderAdminRepository {
     }
 
     @Override
+    public long count(OrderStatus status) {
+        return em.createQuery("select count(o) from SalesOrder o where (:status is null or o.status = :status)", Long.class)
+            .setParameter("status", status)
+            .getSingleResult();
+    }
+
+    @Override
     public SalesOrder require(long id) {
         var order = em.find(SalesOrder.class, id);
         if (order == null) throw new ResourceNotFoundException("Không tìm thấy đơn hàng.");

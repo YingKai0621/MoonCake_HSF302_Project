@@ -60,6 +60,11 @@ public class CodPaymentProcessor implements PaymentProcessor {
     }
 
     @Override
+    public boolean canFulfil(Payment payment) {
+        return true;
+    }
+
+    @Override
     public void completeDelivery(long orderId, Payment payment, LocalDateTime now) {
         int changedRows = paymentRepository.collectCashOnDelivery(orderId, now);
         if (changedRows != 1) {

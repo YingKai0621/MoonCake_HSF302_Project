@@ -6,6 +6,8 @@ import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.order.repository.OrderAdminRepository;
 import com.se201411.project.mooncake.order.repository.OrderItemComponentRepository;
@@ -20,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +33,9 @@ import java.util.Map;
 @Service
 @Transactional(readOnly = true)
 public class OrderManagementServiceImpl implements OrderManagementService {
+    private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private final OrderAdminRepository orders;
     private final OrderItemRepository items;
     private final OrderItemComponentRepository components;
@@ -53,11 +61,24 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         access.requireAdmin();
         int safePage = Math.max(0, Math.min(page, 100000));
         List<SalesOrder> orderPage = orders.orders(status, safePage);
+        Map<Long, List<Payment>> paymentsByOrder = loadPayments(orderPage);
         List<AdminOrderView> result = new ArrayList<>();
         for (SalesOrder order : orderPage) {
-            result.add(view(order, List.of(), List.of()));
+            List<Payment> orderPayments = paymentsByOrder.getOrDefault(order.getId(), List.of());
+            result.add(view(order, List.of(), orderPayments));
         }
         return List.copyOf(result);
+    }
+
+    @Override
+    public List<AdminOrderTab> statusTabs(OrderStatus selected) {
+        access.requireAdmin();
+        List<AdminOrderTab> tabs = new ArrayList<>();
+        tabs.add(new AdminOrderTab(null, "Tất cả", orders.count(null), selected == null));
+        for (OrderStatus status : OrderStatus.values()) {
+            tabs.add(new AdminOrderTab(status, statusLabel(status), orders.count(status), status == selected));
+        }
+        return tabs;
     }
 
     public AdminOrderView detail(long id) {
@@ -88,15 +109,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
                 List.copyOf(parts)
             ));
         }
-        List<AdminOrderView.Cod> codPayments = new ArrayList<>();
-        for (Payment payment : payments.findByOrderId(id)) {
-            codPayments.add(new AdminOrderView.Cod(
-                payment.getStatus(),
-                payment.getAmount(),
-                payment.getPaidAt(), payment.getMethod()
-            ));
-        }
-        return view(order, List.copyOf(lines), List.copyOf(codPayments));
+        return view(order, List.copyOf(lines), payments.findByOrderId(id));
     }
 
     @Transactional
@@ -167,15 +180,50 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         return result;
     }
 
-    private AdminOrderView view(
-        SalesOrder order,
-        List<AdminOrderView.Item> lines,
-        List<AdminOrderView.Cod> codPayments
-    ) {
+    private Map<Long, List<Payment>> loadPayments(List<SalesOrder> orderPage) {
+        Map<Long, List<Payment>> result = new HashMap<>();
+        if (orderPage.isEmpty()) {
+            return result;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (SalesOrder order : orderPage) {
+            ids.add(order.getId());
+        }
+        for (Payment payment : payments.findByOrderIds(ids)) {
+            long orderId = payment.getOrder().getId();
+            List<Payment> orderPayments = result.get(orderId);
+            if (orderPayments == null) {
+                orderPayments = new ArrayList<>();
+                result.put(orderId, orderPayments);
+            }
+            orderPayments.add(payment);
+        }
+        return result;
+    }
+
+    private AdminOrderView view(SalesOrder order, List<AdminOrderView.Item> lines, List<Payment> orderPayments) {
+        List<AdminOrderView.PaymentLine> paymentLines = new ArrayList<>();
+        for (Payment payment : orderPayments) {
+            PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
+            boolean paid = payment.getStatus() == PaymentStatus.PAID;
+            String paidAt = null;
+            if (payment.getPaidAt() != null) {
+                paidAt = formatTime(payment.getPaidAt());
+            }
+            paymentLines.add(new AdminOrderView.PaymentLine(
+                processor.displayName(),
+                paid ? "Đã thanh toán" : "Chưa thanh toán",
+                paid,
+                payment.getAmount(),
+                paidAt
+            ));
+        }
         return new AdminOrderView(
             order.getId(),
             order.getOrderCode(),
             order.getStatus(),
+            statusLabel(order.getStatus()),
+            statusTone(order.getStatus()),
             order.getRecipientName(),
             order.getRecipientPhone(),
             order.getShippingAddressSnapshot(),
@@ -185,9 +233,62 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             order.getShippingFee(),
             order.getRoundingAdjustment(),
             order.getTotalAmount(),
-            order.getCreatedAt(),
+            formatTime(order.getCreatedAt()),
             lines,
-            codPayments
+            paymentLines,
+            actions(order.getStatus(), orderPayments)
         );
+    }
+
+    private AdminOrderView.Actions actions(OrderStatus status, List<Payment> orderPayments) {
+        if (orderPayments.size() != 1) {
+            return new AdminOrderView.Actions(false, false, false, false, false, false, false);
+        }
+        Payment payment = orderPayments.get(0);
+        PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        boolean paid = payment.getStatus() == PaymentStatus.PAID;
+        boolean placed = status == OrderStatus.PLACED;
+        return new AdminOrderView.Actions(
+            placed && processor.canFulfil(payment),
+            status == OrderStatus.PROCESSING,
+            status == OrderStatus.SHIPPING,
+            placed || status == OrderStatus.PROCESSING,
+            placed && !paid && processor.isOnline(),
+            status == OrderStatus.CANCELLED && paid,
+            paid && processor.isOnline()
+        );
+    }
+
+    private String formatTime(LocalDateTime utcTime) {
+        return utcTime.atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME);
+    }
+
+    private String statusLabel(OrderStatus status) {
+        if (status == OrderStatus.PLACED) {
+            return "Chờ xử lý";
+        }
+        if (status == OrderStatus.PROCESSING) {
+            return "Đang chuẩn bị";
+        }
+        if (status == OrderStatus.SHIPPING) {
+            return "Đang giao";
+        }
+        if (status == OrderStatus.COMPLETED) {
+            return "Hoàn tất";
+        }
+        return "Đã hủy";
+    }
+
+    private String statusTone(OrderStatus status) {
+        if (status == OrderStatus.PLACED) {
+            return "warning";
+        }
+        if (status == OrderStatus.COMPLETED) {
+            return "success";
+        }
+        if (status == OrderStatus.CANCELLED) {
+            return "danger";
+        }
+        return "info";
     }
 }

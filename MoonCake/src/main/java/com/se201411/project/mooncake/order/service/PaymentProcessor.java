@@ -24,6 +24,8 @@ public interface PaymentProcessor {
 
     void checkCanFulfil(Payment payment);
 
+    boolean canFulfil(Payment payment);
+
     void completeDelivery(long orderId, Payment payment, LocalDateTime now);
 
     void refreshPaymentStatus(long orderId);

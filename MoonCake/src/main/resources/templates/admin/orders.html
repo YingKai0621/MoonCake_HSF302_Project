@@ -1,21 +1,29 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Quản lý đơn hàng')}"></head>
+<head th:replace="~{admin/layout :: head('Đơn hàng')}"></head>
 <body class="page-orders">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
-    <div class="page-heading"><span class="eyebrow">CHĂM SÓC TỪNG ĐƠN HÀNG</span><h1>Quản lý đơn hàng</h1><p>Lọc đơn theo trạng thái, mở mã đơn để xem người nhận, sản phẩm và thanh toán. Nhận xử lý, chuyển giao hàng và xác nhận đã thu tiền COD khi hoàn tất.</p></div>
-    <p class="muted">Quy trình tham khảo — chọn trạng thái bên dưới để lọc; mở mã đơn để thực hiện chuyển bước.</p>
-    <div class="workflow" aria-label="Quy trình đơn hàng"><span>01 · Chờ xử lý</span><span>02 · Đang chuẩn bị</span><span>03 · Đang giao</span><span>04 · Hoàn tất &amp; thu COD</span></div>
-    <p class="muted">Chỉ hủy trước khi giao hàng. Khi hủy, hệ thống hoàn lại tồn kho của đơn.</p>
-    <form method="get" th:action="@{/admin/orders}" class="actions"><label>Trạng thái<select name="status">
-        <option value="">Tất cả</option>
-        <option th:each="s : ${T(com.se201411.project.mooncake.enums.OrderStatus).values()}" th:value="${s}"
-                th:text="${s}" th:selected="${s == status}"></option>
-    </select></label>
-        <button>Lọc</button>
-    </form>
+
+    <div class="page-heading">
+        <span class="eyebrow">Bán hàng</span>
+        <h1>Đơn hàng</h1>
+        <p>Mở một đơn để xem chi tiết và chuyển bước: nhận xử lý → bàn giao vận chuyển → xác nhận hoàn tất.</p>
+    </div>
+
+    <nav class="tabs" aria-label="Lọc theo trạng thái" data-tabs>
+        <span class="tabs__indicator" aria-hidden="true"></span>
+        <a th:each="tab : ${tabs}"
+           class="tabs__item"
+           th:classappend="${tab.selected} ? 'is-active'"
+           th:attr="aria-current=${tab.selected ? 'page' : null}"
+           th:href="${tab.status == null} ? @{/admin/orders} : @{/admin/orders(status=${tab.status})}">
+            <span th:text="${tab.label}">Tất cả</span>
+            <span class="tabs__count" th:text="${tab.count}">0</span>
+        </a>
+    </nav>
+
     <section class="table-scroll">
         <table data-search-table>
             <thead>
@@ -23,27 +31,41 @@
                 <th>Mã đơn</th>
                 <th>Người nhận</th>
                 <th>Trạng thái</th>
-                <th>Tổng tiền (VND)</th>
-                <th>Ngày đặt (UTC)</th>
+                <th>Thanh toán</th>
+                <th class="numeric">Tổng tiền</th>
+                <th>Đặt lúc</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="o : ${orders}">
-                <td><a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="${o.code}"></a></td>
-                <td th:text="${o.recipient}"></td>
-                <td th:text="${o.status}"></td>
-                <td th:text="${#numbers.formatDecimal(o.total,0,'POINT',0,'COMMA')}"></td>
-                <td th:text="${o.createdAt}"></td>
-            </tr>
-            <tr th:if="${orders.isEmpty()}">
-                <td colspan="5">Chưa có đơn phù hợp.</td>
+            <tr th:each="order : ${orders}">
+                <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.code}">MC-1</a></td>
+                <td th:text="${order.recipient}">Người nhận</td>
+                <td>
+                    <span class="badge" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span>
+                    <span th:if="${order.actions.needsRefund}" class="badge badge--danger">Cần hoàn tiền</span>
+                </td>
+                <td>
+                    <th:block th:each="payment : ${order.payments}">
+                        <span th:text="${payment.methodLabel}">COD</span>
+                        <span class="muted" th:text="${' · ' + payment.statusLabel}"> · Chưa thanh toán</span>
+                    </th:block>
+                </td>
+                <td class="numeric" th:text="${#numbers.formatDecimal(order.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</td>
+                <td class="muted" th:text="${order.formattedCreatedAt}">01/01/2026 10:00</td>
             </tr>
             </tbody>
         </table>
+        <div th:if="${orders.isEmpty()}" class="empty-state">
+            <p><strong>Không có đơn nào ở trạng thái này.</strong></p>
+            <a th:href="@{/admin/orders}">Xem tất cả đơn hàng</a>
+        </div>
     </section>
-    <div class="actions"><a th:if="${page > 0}" th:href="@{/admin/orders(page=${page-1},status=${status})}">Trang
-        trước</a><a th:if="${orders.size() == 50}" th:href="@{/admin/orders(page=${page+1},status=${status})}">Trang
-        sau</a></div>
+
+    <div class="pager" th:if="${page > 0 or orders.size() == 50}">
+        <a th:if="${page > 0}" class="button secondary" th:href="@{/admin/orders(page=${page - 1},status=${status})}">← Trang trước</a>
+        <a th:if="${orders.size() == 50}" class="button secondary" th:href="@{/admin/orders(page=${page + 1},status=${status})}">Trang sau →</a>
+    </div>
 </main>
+<script th:src="@{/js/pages/admin-tabs.js}"></script>
 </body>
 </html>

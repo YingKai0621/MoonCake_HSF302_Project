@@ -26,6 +26,7 @@ public class AdminOrderController {
     @GetMapping
     public String orders(@RequestParam(required = false) OrderStatus status, @RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("orders", orders.orders(status, page));
+        model.addAttribute("tabs", orders.statusTabs(status));
         model.addAttribute("status", status);
         model.addAttribute("page", Math.max(0, page));
         return "admin/orders";

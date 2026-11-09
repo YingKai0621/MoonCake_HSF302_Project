@@ -23,6 +23,7 @@ import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.product.dto.*;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.*;
+import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.AdminExceptionAdvice;
@@ -96,6 +97,7 @@ class AdminPagesTest {
         when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now())));
         when(orders.orders(null, 0)).thenReturn(List.of(order(OrderStatus.PLACED)));
         when(orders.detail(1)).thenReturn(order(OrderStatus.PLACED));
+        when(orders.statusTabs(null)).thenReturn(List.of(new AdminOrderTab(null, "Tất cả", 1, true)));
     }
 
     @Test
@@ -257,6 +259,14 @@ class AdminPagesTest {
     }
 
     @Test
+    void ordersPageShowsStatusTabsAndPaymentColumn() throws Exception {
+        mvc.perform(get("/admin/orders").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("tabs__count")))
+                .andExpect(content().string(containsString("Chưa thanh toán")));
+    }
+
+    @Test
     void shippingShowsOnlyDeliveryAction() throws Exception {
         when(orders.detail(1)).thenReturn(order(OrderStatus.SHIPPING));
         mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
@@ -310,11 +320,18 @@ class AdminPagesTest {
     }
 
     static AdminOrderView order(OrderStatus status) {
-        return new AdminOrderView(1, "ORDER", status, "Recipient", "0901234567", "Address", null,
+        boolean placed = status == OrderStatus.PLACED;
+        boolean processing = status == OrderStatus.PROCESSING;
+        boolean shipping = status == OrderStatus.SHIPPING;
+        AdminOrderView.Actions actions = new AdminOrderView.Actions(
+                placed, processing, shipping, placed || processing, false, false, false);
+        return new AdminOrderView(1, "ORDER", status, "Chờ xử lý", "warning",
+                "Recipient", "0901234567", "Address", null,
                 BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.TEN, LocalDateTime.now(),
+                BigDecimal.TEN, "09/11/2026 10:00",
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
-                List.of(new AdminOrderView.Cod(PaymentStatus.UNPAID, BigDecimal.TEN, null)));
+                List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
+                actions);
     }
 
     @Configuration

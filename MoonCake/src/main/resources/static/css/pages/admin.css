@@ -2776,7 +2776,12 @@ tr.is-low .stock-number {
 }
 
 .component-box__title {
-  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  cursor: pointer;
+  list-style: none;
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
@@ -2869,4 +2874,31 @@ tr.is-low .stock-number {
 .page-orders .action-stack button {
   min-height: 44px;
   font-size: 15px;
+}
+
+.component-box__title::-webkit-details-marker {
+  display: none;
+}
+
+.component-box__title::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--motion-fast) ease-out;
+}
+
+.component-box[open] > .component-box__title {
+  margin-bottom: 8px;
+}
+
+.component-box[open] > .component-box__title::after {
+  transform: rotate(-135deg);
+}
+
+.component-box__title:hover {
+  color: var(--text);
 }

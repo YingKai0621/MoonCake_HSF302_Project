@@ -42,15 +42,15 @@
                             </div>
                             <strong class="line-item__total" th:text="${#numbers.formatDecimal(item.total, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</strong>
                         </div>
-                        <div th:if="${!#lists.isEmpty(item.components)}" class="component-box">
-                            <p class="component-box__title" th:text="${'Trong mỗi hộp (' + #lists.size(item.components) + ')'}">Trong mỗi hộp</p>
+                        <details th:if="${!#lists.isEmpty(item.components)}" class="component-box">
+                            <summary class="component-box__title" th:text="${'Trong mỗi hộp (' + #lists.size(item.components) + ')'}">Trong mỗi hộp</summary>
                             <ul class="component-list">
                                 <li th:each="component : ${item.components}">
                                     <span th:text="${component.name}">Bánh</span>
                                     <span class="component-list__qty" th:text="${'× ' + component.quantity}">× 1</span>
                                 </li>
                             </ul>
-                        </div>
+                        </details>
                     </li>
                 </ul>
             </section>

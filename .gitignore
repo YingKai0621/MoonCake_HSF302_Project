@@ -10,3 +10,10 @@
 !/MoonCake/
 !/mooncake/
 !/docs/
+
+# Local notes and unused thumbnails that came with the generated product photos
+MoonCake/src/main/resources/static/images/products/**/README.txt
+MoonCake/src/main/resources/static/images/products/**/manifest.json
+MoonCake/src/main/resources/static/images/products/**/gallery-map.json
+MoonCake/src/main/resources/static/images/products/**/thumbnails/
+MoonCake/src/main/resources/static/images/products/**/*-thumb.webp

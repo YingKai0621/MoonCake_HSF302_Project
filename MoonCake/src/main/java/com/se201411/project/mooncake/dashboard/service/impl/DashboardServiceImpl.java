@@ -213,7 +213,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private List<TopProductView> topProducts(LocalDate today) {
         LocalDateTime from = toUtc(today.minusDays(TOP_PRODUCT_DAYS - 1L));
-        return dashboardRepository.findTopProducts(from, OrderStatus.CANCELLED, PageRequest.of(0, 5));
+        return dashboardRepository.findTopProducts(from, OrderStatus.COMPLETED, PageRequest.of(0, 5));
     }
 
     private KpiView kpi(String label, long current, long previous, boolean money, DashboardPeriod period) {

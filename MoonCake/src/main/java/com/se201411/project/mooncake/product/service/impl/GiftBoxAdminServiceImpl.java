@@ -34,7 +34,8 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
     @Override
     @Transactional(readOnly = true)
     public List<GiftBoxRow> giftBoxes() {
-        List<GiftBoxRow> rows = new ArrayList<>();
+        List<GiftBoxRow> unfinished = new ArrayList<>();
+        List<GiftBoxRow> finished = new ArrayList<>();
         for (AdminProductRow row : products.productRows(ProductType.GIFT_SET)) {
             GiftBoxPage page = page(row.id());
             int done = 0;
@@ -43,7 +44,7 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
                     done++;
                 }
             }
-            rows.add(new GiftBoxRow(
+            GiftBoxRow giftBox = new GiftBoxRow(
                 row.id(),
                 row.name(),
                 row.imageUrl(),
@@ -51,8 +52,15 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
                 row.webLabel(),
                 row.webTone(),
                 done
-            ));
+            );
+            if (done < page.steps().size()) {
+                unfinished.add(giftBox);
+            } else {
+                finished.add(giftBox);
+            }
         }
+        List<GiftBoxRow> rows = new ArrayList<>(unfinished);
+        rows.addAll(finished);
         return rows;
     }
 

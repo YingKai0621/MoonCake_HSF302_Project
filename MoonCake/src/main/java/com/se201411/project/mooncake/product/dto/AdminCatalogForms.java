@@ -42,7 +42,7 @@ public final class AdminCatalogForms {
     ) {
 
         /** Entity -> DTO: fills the edit form from a saved category. */
-        public static CategoryForm fromEntity(Category category) {
+        public static CategoryForm entityToDto(Category category) {
             return new CategoryForm(
                 category.getId(),
                 category.getName(),
@@ -52,7 +52,7 @@ public final class AdminCatalogForms {
         }
 
         /** DTO -> Entity: copies only the plain fields; the service loads the entity and checks rules. */
-        public void applyTo(Category category) {
+        public void dtoToEntity(Category category) {
             category.setName(name.trim());
             category.setSlug(slug);
             category.setActive(active);
@@ -87,7 +87,7 @@ public final class AdminCatalogForms {
     ) {
 
         /** Entity -> DTO: fills the edit form from a saved product. */
-        public static ProductForm fromEntity(Product product) {
+        public static ProductForm entityToDto(Product product) {
             return new ProductForm(
                 product.getId(),
                 product.getCategory().getId(),
@@ -107,7 +107,7 @@ public final class AdminCatalogForms {
          * DTO -> Entity: copies only the plain fields. The service sets the category itself,
          * because it must load it from the database instead of trusting the submitted ID.
          */
-        public void applyTo(Product product) {
+        public void dtoToEntity(Product product) {
             product.setProductType(productType);
             product.setName(name.trim());
             product.setSlug(slug);
@@ -203,7 +203,7 @@ public final class AdminCatalogForms {
     ) {
 
         /** Entity -> DTO: fills the edit form from a saved SKU. */
-        public static VariantForm fromEntity(ProductVariant variant) {
+        public static VariantForm entityToDto(ProductVariant variant) {
             return new VariantForm(
                 variant.getId(),
                 variant.getProduct().getId(),
@@ -220,7 +220,7 @@ public final class AdminCatalogForms {
          * DTO -> Entity: copies only the plain fields. SKU, parent product and the
          * on-sale flag stay in the service because they follow extra business rules.
          */
-        public void applyTo(ProductVariant variant) {
+        public void dtoToEntity(ProductVariant variant) {
             variant.setName(name.trim());
             variant.setWeightGrams(weightGrams);
             variant.setFillingLabel(fillingLabel);

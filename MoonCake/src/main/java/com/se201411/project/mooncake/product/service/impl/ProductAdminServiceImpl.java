@@ -76,11 +76,11 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         access.requireAdmin();
         List<ProductForm> products = new ArrayList<>();
         for (Product product : repo.products()) {
-            products.add(ProductForm.fromEntity(product));
+            products.add(ProductForm.entityToDto(product));
         }
         List<VariantForm> variants = new ArrayList<>();
         for (ProductVariant variant : repo.variants()) {
-            variants.add(VariantForm.fromEntity(variant));
+            variants.add(VariantForm.entityToDto(variant));
         }
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxes()) {
@@ -190,7 +190,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             int quantity = stock.getOrDefault(variant.getId(), 0);
             WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
             skus.add(new AdminProductDetail.Sku(
-                VariantForm.fromEntity(variant),
+                VariantForm.entityToDto(variant),
                 coverImage(images),
                 images,
                 quantity,
@@ -207,7 +207,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
 
         return new AdminProductDetail(
-            ProductForm.fromEntity(product),
+            ProductForm.entityToDto(product),
             typeLabel(product.getProductType()),
             !skus.isEmpty(),
             product.getProductType() == ProductType.EMPTY_BOX,
@@ -270,7 +270,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Đường dẫn này đã được danh mục khác dùng.");
         }
         Category v = f.id() == null ? new Category() : repo.category(f.id());
-        f.applyTo(v);
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
     }
@@ -287,7 +287,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
         v.setCategory(repo.category(f.categoryId()));
-        f.applyTo(v);
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return v.getId();
@@ -296,7 +296,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public void setProductVisible(long productId, boolean visible) {
         access.requireAdmin();
-        ProductForm current = ProductForm.fromEntity(repo.product(productId));
+        ProductForm current = ProductForm.entityToDto(repo.product(productId));
         saveProduct(new ProductForm(
             current.id(),
             current.categoryId(),
@@ -315,7 +315,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public long setVariantOnSale(long variantId, boolean onSale) {
         access.requireAdmin();
-        VariantForm current = VariantForm.fromEntity(repo.variant(variantId));
+        VariantForm current = VariantForm.entityToDto(repo.variant(variantId));
         saveVariant(new VariantForm(
             current.id(),
             current.productId(),
@@ -456,7 +456,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         checkVariantDetails(product, f);
         v.setProduct(product);
         v.setSku(sku);
-        f.applyTo(v);
+        f.dtoToEntity(v);
         v.setActive(false);
         repo.save(v);
         inventory.initializeBalance(v.getId());
@@ -725,7 +725,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private List<CategoryForm> categoryForms() {
         List<CategoryForm> categories = new ArrayList<>();
         for (Category category : repo.categories()) {
-            categories.add(CategoryForm.fromEntity(category));
+            categories.add(CategoryForm.entityToDto(category));
         }
         return categories;
     }

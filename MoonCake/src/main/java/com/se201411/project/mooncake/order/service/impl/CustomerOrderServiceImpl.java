@@ -30,8 +30,6 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,14 +39,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class CustomerOrderServiceImpl implements CustomerOrderService {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
     private static final ZoneId VIETNAM_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -364,13 +360,6 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         return "Bánh";
     }
 
-    private String discountLabel(BigDecimal discountPercent) {
-        if (discountPercent == null || discountPercent.signum() == 0) {
-            return null;
-        }
-        return "Giảm " + discountPercent.stripTrailingZeros().toPlainString() + "%";
-    }
-
     private AutoCancelView autoCancelView(SalesOrder order, Payment payment) {
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
         Optional<LocalDateTime> deadline = paymentProcessor.autoCancelAt(order, payment);
@@ -400,19 +389,5 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             .atZone(ZoneOffset.UTC)
             .withZoneSameInstant(VIETNAM_TIME_ZONE)
             .format(DATE_TIME_FORMAT);
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

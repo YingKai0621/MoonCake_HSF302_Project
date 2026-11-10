@@ -311,11 +311,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                 itemComponents = new ArrayList<>();
                 result.put(itemId, itemComponents);
             }
-            itemComponents.add(new CustomerOrderComponentView(
-                componentRoleLabel(component.getComponentRole()),
-                component.getComponentNameSnapshot(),
-                component.getQuantityPerSet()
-            ));
+            String roleLabel = componentRoleLabel(component.getComponentRole());
+            itemComponents.add(CustomerOrderComponentView.entityToDto(component, roleLabel));
         }
         return result;
     }

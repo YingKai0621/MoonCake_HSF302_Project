@@ -132,15 +132,14 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                 }
             }
             WebStatus status = productStatus(product, variants, readyGiftSets, stock);
-            rows.add(new AdminProductRow(
-                product.getId(),
-                product.getName(),
-                product.getCategory().getName(),
+            String imageUrl = coverImage(imagesByProduct.getOrDefault(product.getId(), List.of()));
+            rows.add(AdminProductRow.entityToDto(
+                product,
                 typeLabel(product.getProductType()),
                 variants.size(),
                 minPrice,
                 maxPrice,
-                coverImage(imagesByProduct.getOrDefault(product.getId(), List.of())),
+                imageUrl,
                 status.label(),
                 status.tone()
             ));

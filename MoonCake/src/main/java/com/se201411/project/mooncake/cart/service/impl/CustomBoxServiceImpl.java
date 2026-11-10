@@ -34,22 +34,17 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class CustomBoxServiceImpl implements CustomBoxService {
-
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CustomBoxRepository customBoxRepository;
     private final CustomBoxConfigurationRepository configurationRepository;
@@ -391,10 +386,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
 
     private LocalDateTime now() {
         return LocalDateTime.now(clock);
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
     }
 
     private record ValidatedCustomBox(

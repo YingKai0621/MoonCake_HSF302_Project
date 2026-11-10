@@ -168,7 +168,14 @@ class AdminFlowIT {
     @Test
     void refusesToDeleteProductWithStockHistory() {
         tx.executeWithoutResult(status -> {
-            long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT_VARIANT WHERE sku=?", Long.class, "MC-KSPM-080");
+            long variant = sku("MC-KSPM-080");
+            long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT_VARIANT WHERE variant_id=?", Long.class, variant);
+            String key = "it-history-" + UUID.randomUUID();
+            jdbc.update("""
+                    INSERT INTO dbo.STOCK_MOVEMENT(variant_id, performed_by_account_id, movement_type, quantity_delta,
+                        reason, operation_key, operation_group_key, created_at)
+                    VALUES (?, ?, 'ADJUST', 1, 'IT history', ?, ?, SYSUTCDATETIME())
+                    """, variant, adminId, key + ":" + variant, key);
             assertThatThrownBy(() -> catalog.deleteProduct(product)).isInstanceOf(RuntimeException.class);
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT WHERE product_id=?", Integer.class, product)).isEqualTo(1);
             status.setRollbackOnly();

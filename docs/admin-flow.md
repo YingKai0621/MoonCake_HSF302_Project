@@ -77,7 +77,7 @@ Admin order reads and non-cancellation transitions use `OrderManagementService`;
 - `mvnw.cmd -v`: Maven wrapper works on JDK 21.
 - `mvn test`: 106 unit/MVC tests passed after merging current `main` into the Admin branch. This includes focused tests for shared cancellation routing, conditional cancellation, snapshot-based restoration, service authorization, bootstrap, PRESET immutability/capacity, PACK aggregation/replay, order state transitions, real Thymeleaf rendering, form binding and CSRF/role checks.
 - `mvnw.cmd -DskipTests test-compile`: compile gate for SQL Server integration tests.
-- `AdminFlowIT` covers real SQL Server catalog/balance creation, DRAFT→READY immutability, PACK/operation locks, failed PACK rollback, concurrent COD completion, and completion rollback for missing payment. These tests are **not yet executed** because this workspace has no `TEST_DB_*` credentials or configured IDE database connection.
+- `AdminFlowIT` covers real SQL Server catalog/balance creation, DRAFT→READY immutability, PACK/operation locks, failed PACK rollback, concurrent COD completion, and completion rollback for missing payment. These tests run against the local `MoonCakeTestDB` with `.\mvnw.cmd -Pintegration verify`; last run 2026-11-10: 19 integration tests passed.
 
 Run the database suite only after configuring the dedicated `MoonCakeTestDB`:
 

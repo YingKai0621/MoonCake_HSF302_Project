@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.dashboard.service.impl;
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
 import com.se201411.project.mooncake.dashboard.dto.DashboardView;
+import com.se201411.project.mooncake.dashboard.dto.DiscountSummaryView;
 import com.se201411.project.mooncake.dashboard.dto.KpiView;
 import com.se201411.project.mooncake.dashboard.dto.PaidAmount;
 import com.se201411.project.mooncake.dashboard.dto.RecentOrderView;
@@ -66,6 +67,8 @@ public class DashboardServiceImpl implements DashboardService {
         long[] orderCount = new long[bucketCount];
         long[] orderValue = new long[bucketCount];
         long[] collected = new long[bucketCount];
+        long[] discountedOrders = new long[bucketCount];
+        long[] discountTotal = new long[bucketCount];
 
         LocalDateTime from = toUtc(bucketStarts.get(0));
         for (SalesOrder order : dashboardRepository.findByCreatedAtGreaterThanEqual(from)) {
@@ -76,6 +79,10 @@ public class DashboardServiceImpl implements DashboardService {
             long total = order.getTotalAmount().longValue();
             orderCount[index]++;
             orderValue[index] += total;
+            if (order.getDiscountAmount() != null && order.getDiscountAmount().signum() > 0) {
+                discountedOrders[index]++;
+                discountTotal[index] += order.getDiscountAmount().longValue();
+            }
             if (order.getStatus() == OrderStatus.COMPLETED) {
                 revenue[index] += total;
             }
@@ -118,8 +125,39 @@ public class DashboardServiceImpl implements DashboardService {
             orderSeries,
             tasks(today),
             recentOrders(),
-            topProducts(today)
+            topProducts(today),
+            discounts(period, discountedOrders[current], discountTotal[current])
         );
+    }
+
+    private DiscountSummaryView discounts(DashboardPeriod period, long orderCount, long totalDiscount) {
+        List<DiscountSummaryView.Order> recent = new ArrayList<>();
+        List<SalesOrder> orders = dashboardRepository
+            .findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(BigDecimal.ZERO, OrderStatus.CANCELLED);
+        for (SalesOrder order : orders) {
+            recent.add(new DiscountSummaryView.Order(
+                order.getId(),
+                order.getOrderCode(),
+                order.getRecipientName(),
+                formatMoney(order.getDiscountAmount()),
+                formatMoney(order.getTotalAmount()),
+                order.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
+            ));
+        }
+        return new DiscountSummaryView(currentLabel(period), orderCount, totalDiscount, recent);
+    }
+
+    private String currentLabel(DashboardPeriod period) {
+        if (period == DashboardPeriod.DAY) {
+            return "Hôm nay";
+        }
+        if (period == DashboardPeriod.MONTH) {
+            return "Tháng này";
+        }
+        if (period == DashboardPeriod.QUARTER) {
+            return "Quý này";
+        }
+        return "Năm nay";
     }
 
     private List<DashboardTaskView> tasks(LocalDate today) {

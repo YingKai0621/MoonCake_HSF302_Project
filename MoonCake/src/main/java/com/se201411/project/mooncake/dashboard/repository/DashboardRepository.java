@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
@@ -83,5 +84,10 @@ public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
         @Param("from") LocalDateTime from,
         @Param("cancelled") OrderStatus cancelled,
         Pageable pageable
+    );
+
+    List<SalesOrder> findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(
+        BigDecimal discount,
+        OrderStatus status
     );
 }

@@ -114,33 +114,42 @@
         </section>
     </div>
 
-    <section class="table-scroll">
+    <section class="discount-panel" th:with="d=${dashboard.discounts}">
         <div class="section-heading">
-            <h2>Khách hàng doanh nghiệp</h2>
+            <h2>Đơn được chiết khấu số lượng</h2>
+            <span class="muted" th:text="${d.periodLabel}">Hôm nay</span>
         </div>
-        <table data-search-table>
+        <div class="discount-stats">
+            <div>
+                <span class="muted">Số đơn</span>
+                <strong th:text="${d.orderCount}">0</strong>
+            </div>
+            <div>
+                <span class="muted">Tổng tiền đã giảm</span>
+                <strong th:text="${#numbers.formatInteger(d.totalDiscount, 1, 'POINT') + 'đ'}">0đ</strong>
+            </div>
+        </div>
+        <table th:if="${!d.recentOrders.isEmpty()}">
             <thead>
             <tr>
-                <th>Tên</th>
-                <th>Liên hệ</th>
-                <th>Email</th>
-                <th>Điện thoại</th>
-                <th>Số đơn</th>
-                <th>Tổng giá trị đơn (VND)</th>
+                <th>Mã đơn</th>
+                <th>Người nhận</th>
+                <th class="numeric">Được giảm</th>
+                <th class="numeric">Tổng tiền</th>
+                <th>Đặt lúc</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="business : ${businesses}">
-                <td th:text="${business.name}">Doanh nghiệp</td>
-                <td th:text="${business.contactName}">Người liên hệ</td>
-                <td th:text="${business.contactEmail}">Email</td>
-                <td th:text="${business.contactPhone}">Điện thoại</td>
-                <td th:text="${business.orderCount}">0</td>
-                <td th:text="${#numbers.formatDecimal(business.totalOrderValue, 0, 'POINT', 0, 'COMMA')}">0</td>
+            <tr th:each="o : ${d.recentOrders}">
+                <td><a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="${o.orderCode}">MC-1</a></td>
+                <td th:text="${o.recipientName}">Khách</td>
+                <td class="numeric discount-amount" th:text="${'−' + o.formattedDiscount}">−50.000đ</td>
+                <td class="numeric" th:text="${o.formattedTotal}">500.000đ</td>
+                <td class="muted" th:text="${o.formattedCreatedAt}">09/11 10:00</td>
             </tr>
             </tbody>
         </table>
-        <p th:if="${#lists.isEmpty(businesses)}" class="muted">Chưa có khách hàng doanh nghiệp.</p>
+        <p th:if="${d.recentOrders.isEmpty()}" class="muted">Chưa có đơn nào được chiết khấu.</p>
     </section>
 
     <script th:inline="javascript">

@@ -146,27 +146,12 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     }
 
     private Movement toMovement(StockMovement movement) {
-        Long orderId = null;
-        if (movement.getOrder() != null) {
-            orderId = movement.getOrder().getId();
-        }
-        String productName = movement.getVariant().getProduct().getName() + " · " + movement.getVariant().getName();
         String formattedCreatedAt = movement.getCreatedAt()
             .atOffset(ZoneOffset.UTC)
             .atZoneSameInstant(VIETNAM)
             .format(DATE_TIME);
-        return new Movement(
-            movement.getVariant().getSku(),
-            movement.getMovementType(),
-            movement.getQuantityDelta(),
-            movement.getReason(),
-            movement.getOperationGroupKey(),
-            orderId,
-            movement.getCreatedAt(),
-            productName,
-            movementLabel(movement.getMovementType()),
-            formattedCreatedAt
-        );
+        String typeLabel = movementLabel(movement.getMovementType());
+        return Movement.entityToDto(movement, typeLabel, formattedCreatedAt);
     }
 
     @Override

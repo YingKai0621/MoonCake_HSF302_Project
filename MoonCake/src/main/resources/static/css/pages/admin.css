@@ -3778,6 +3778,139 @@ td .muted {
   font-size: 14px;
 }
 
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 18px;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.review-card[hidden] {
+  display: none;
+}
+
+.review-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-card__name {
+  display: block;
+  font-size: 17px;
+}
+
+.review-card__time {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.review-card__stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--border-strong);
+  font-size: 20px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.review-card__stars .is-on {
+  color: var(--accent);
+}
+
+.review-card__content {
+  flex: 1;
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.review-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.review-card__foot form {
+  margin: 0;
+}
+
+tr[hidden] {
+  display: none;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.video-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.video-card video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  object-fit: contain;
+}
+
+.video-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  padding: 14px 16px 16px;
+}
+
+.video-card__body strong {
+  font-size: 16px;
+}
+
+.video-card__body p {
+  grid-column: 1;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.video-card__body form {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .review-grid,
+  .video-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .discount-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

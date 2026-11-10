@@ -154,6 +154,16 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         change(f, StockMovementType.RECEIVE);
     }
 
+    @Override
+    public void receive(AdminStockForm f, String batchCode, LocalDate producedOn, LocalDate expiresOn) {
+        change(f, StockMovementType.RECEIVE);
+        boolean hasInfo = (batchCode != null && !batchCode.isBlank()) || producedOn != null || expiresOn != null;
+        if (hasInfo && batchStock != null) {
+            String key = StockMovementType.RECEIVE + ":" + f.operationKey() + ":" + f.variantId();
+            batchStock.labelReceivedBatch(key, batchCode, producedOn, expiresOn);
+        }
+    }
+
     public void adjust(AdminStockForm f) {
         change(f, StockMovementType.ADJUST);
     }

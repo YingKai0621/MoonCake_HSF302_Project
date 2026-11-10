@@ -25,7 +25,8 @@ public record CartItemView(
     Long configurationId,
     boolean custom,
     int capacityCakes,
-    List<CustomCartComponentView> components
+    List<CustomCartComponentView> components,
+    int stock
 ) {
     public CartItemView(
         long cartItemId,
@@ -42,7 +43,8 @@ public record CartItemView(
         String formattedUnitPrice,
         BigDecimal lineTotal,
         String formattedLineTotal,
-        boolean currentlySellable
+        boolean currentlySellable,
+        int stock
     ) {
         this(
             cartItemId,
@@ -63,8 +65,22 @@ public record CartItemView(
             null,
             false,
             0,
-            List.of()
+            List.of(),
+            stock
         );
+    }
+
+    public String stockWarning() {
+        if (custom || stock < 0 || !currentlySellable) {
+            return null;
+        }
+        if (stock == 0) {
+            return "Sản phẩm này vừa hết hàng. Hãy xóa khỏi giỏ để đặt các món khác.";
+        }
+        if (stock < quantity) {
+            return "Chỉ còn " + stock + " sản phẩm. Hãy giảm số lượng để đặt hàng.";
+        }
+        return null;
     }
 
     public CartItemView {
@@ -123,7 +139,8 @@ public record CartItemView(
             configurationId,
             true,
             capacityCakes,
-            components
+            components,
+            -1
         );
     }
 }

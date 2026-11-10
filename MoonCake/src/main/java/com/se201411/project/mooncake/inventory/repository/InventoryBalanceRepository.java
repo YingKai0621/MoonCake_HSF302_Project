@@ -1,6 +1,9 @@
 package com.se201411.project.mooncake.inventory.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Collection;
+import java.util.List;
 import com.se201411.project.mooncake.entity.InventoryBalance;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +13,8 @@ public interface InventoryBalanceRepository
     extends JpaRepository<InventoryBalance, Long> {
 
     boolean existsById(Long variantId);
+
+    List<InventoryBalance> findByVariantIdIn(Collection<Long> variantIds);
 
     @Query("select b.availableQuantity from InventoryBalance b where b.variantId=:id")
     Integer available(@Param("id") long id);

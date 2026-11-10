@@ -239,6 +239,15 @@ public final class CatalogProductView {
         return "Hộp " + boxCount + " bánh";
     }
 
+    public boolean isSoldOut() {
+        for (CatalogVariantView variant : getVariants()) {
+            if (!variant.soldOut()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public boolean isMultipleVariants() {
         return variants.size() > 1;
     }

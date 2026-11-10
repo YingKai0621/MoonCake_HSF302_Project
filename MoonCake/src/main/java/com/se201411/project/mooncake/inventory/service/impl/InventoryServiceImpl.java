@@ -16,6 +16,10 @@ import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.repository.InventoryBalanceRepository;
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import com.se201411.project.mooncake.entity.InventoryBalance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +57,19 @@ public class InventoryServiceImpl implements InventoryService {
         this.productVariantRepository = productVariantRepository;
         this.salesOrderRepository = salesOrderRepository;
         this.clock = clock;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> availableQuantities(Collection<Long> variantIds) {
+        Map<Long, Integer> result = new HashMap<>();
+        if (variantIds.isEmpty()) {
+            return result;
+        }
+        for (InventoryBalance balance : balanceRepository.findByVariantIdIn(variantIds)) {
+            result.put(balance.getVariantId(), balance.getAvailableQuantity());
+        }
+        return result;
     }
 
     @Override

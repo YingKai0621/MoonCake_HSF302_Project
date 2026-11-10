@@ -145,7 +145,33 @@ function initVariantSelector() {
     }
   }
 
+  function applyStock() {
+    const option = select.options[select.selectedIndex];
+    if (!option) {
+      return;
+    }
+    const stock = Number(option.dataset.stock);
+    const hint = document.querySelector('[data-stock-hint]');
+    const button = document.querySelector('[data-add-button]');
+    const label = document.querySelector('[data-add-label]');
+    const soldOut = stock === 0;
+    const low = stock > 0 && stock <= 5;
+    if (hint) {
+      hint.hidden = !soldOut && !low;
+      hint.textContent = soldOut ? 'Tạm hết hàng' : 'Chỉ còn ' + stock + ' sản phẩm';
+      hint.classList.toggle('text-red-300', soldOut);
+      hint.classList.toggle('text-gold', !soldOut);
+    }
+    if (button) {
+      button.disabled = soldOut;
+    }
+    if (label) {
+      label.textContent = soldOut ? 'Tạm hết hàng' : 'Thêm vào giỏ hàng';
+    }
+  }
+
   select.addEventListener('change', applySelectedVariant);
+  select.addEventListener('change', applyStock);
   select.addEventListener('change', function () {
     const label = document.querySelector('[data-price-label]');
     if (label) {

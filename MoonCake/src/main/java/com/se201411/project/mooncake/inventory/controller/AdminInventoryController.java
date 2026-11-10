@@ -13,6 +13,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Controller
@@ -62,13 +65,16 @@ public class AdminInventoryController {
 
     @PostMapping("/receive")
     public String receive(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
+                          @RequestParam(required = false) String batchCode,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate producedOn,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiresOn,
                           @RequestParam(required = false) Long returnProduct, RedirectAttributes flash) {
         String error = null;
         if (result.hasErrors()) {
             error = FormErrors.first(result);
         } else {
             try {
-                inventory.receive(form);
+                inventory.receive(form, batchCode, producedOn, expiresOn);
             } catch (MoonCakeException ex) {
                 error = ex.getMessage();
             }

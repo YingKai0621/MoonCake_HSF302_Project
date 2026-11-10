@@ -91,6 +91,17 @@
                     <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Nhận hàng từ xưởng"
                            th:value="${dialogId == 'receive-dialog' ? dialogForm.reason : ''}">
                 </label>
+                <label>Mã lô
+                    <input type="text" name="batchCode" maxlength="80" placeholder="Để trống thì hệ thống tự đặt">
+                </label>
+                <div class="form-grid">
+                    <label>Ngày sản xuất
+                        <input type="date" name="producedOn">
+                    </label>
+                    <label>Hạn dùng
+                        <input type="date" name="expiresOn">
+                    </label>
+                </div>
             </div>
             <div class="modal__footer">
                 <button type="button" class="secondary" data-dialog-close>Hủy</button>

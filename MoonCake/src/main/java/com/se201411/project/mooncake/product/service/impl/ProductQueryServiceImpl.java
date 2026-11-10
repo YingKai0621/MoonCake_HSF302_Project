@@ -212,18 +212,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 variantViews.add(variantView);
             }
 
-            result.add(new CatalogProductView(
-                product.getId(),
-                product.getSlug(),
-                product.getProductType(),
-                product.getName(),
-                product.getShortDescription(),
-                product.getDetailedDescription(),
-                product.getMainIngredients(),
-                product.getShelfLifeInfo(),
-                product.getStorageGuidance(),
-                variantViews
-            ));
+            result.add(CatalogProductView.entityToDto(product, variantViews));
         }
         return List.copyOf(result);
     }

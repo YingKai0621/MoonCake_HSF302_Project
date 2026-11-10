@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.dto;
 
+import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -255,5 +256,21 @@ public final class CatalogProductView {
             textValues.add(String.valueOf(value));
         }
         return String.join("|", textValues);
+    }
+
+    /** Entity -> DTO. The service maps the SKUs and passes them in. */
+    public static CatalogProductView entityToDto(Product product, List<CatalogVariantView> variants) {
+        return new CatalogProductView(
+            product.getId(),
+            product.getSlug(),
+            product.getProductType(),
+            product.getName(),
+            product.getShortDescription(),
+            product.getDetailedDescription(),
+            product.getMainIngredients(),
+            product.getShelfLifeInfo(),
+            product.getStorageGuidance(),
+            variants
+        );
     }
 }

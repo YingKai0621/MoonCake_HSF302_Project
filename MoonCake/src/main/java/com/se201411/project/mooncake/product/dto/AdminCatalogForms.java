@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.product.dto;
 
 import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ProductType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -200,6 +201,31 @@ public final class AdminCatalogForms {
         BigDecimal unitPrice,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved SKU. */
+        public static VariantForm fromEntity(ProductVariant variant) {
+            return new VariantForm(
+                variant.getId(),
+                variant.getProduct().getId(),
+                variant.getSku(),
+                variant.getName(),
+                variant.getWeightGrams(),
+                variant.getFillingLabel(),
+                variant.getUnitPrice(),
+                variant.isActive()
+            );
+        }
+
+        /**
+         * DTO -> Entity: copies only the plain fields. SKU, parent product and the
+         * on-sale flag stay in the service because they follow extra business rules.
+         */
+        public void applyTo(ProductVariant variant) {
+            variant.setName(name.trim());
+            variant.setWeightGrams(weightGrams);
+            variant.setFillingLabel(fillingLabel);
+            variant.setUnitPrice(unitPrice);
+        }
     }
 
     public record BoxForm(

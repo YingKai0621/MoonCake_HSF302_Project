@@ -80,7 +80,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
         List<VariantForm> variants = new ArrayList<>();
         for (ProductVariant variant : repo.variants()) {
-            variants.add(variantForm(variant));
+            variants.add(VariantForm.fromEntity(variant));
         }
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxes()) {
@@ -190,7 +190,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             int quantity = stock.getOrDefault(variant.getId(), 0);
             WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
             skus.add(new AdminProductDetail.Sku(
-                variantForm(variant),
+                VariantForm.fromEntity(variant),
                 coverImage(images),
                 images,
                 quantity,
@@ -315,7 +315,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public long setVariantOnSale(long variantId, boolean onSale) {
         access.requireAdmin();
-        VariantForm current = variantForm(repo.variant(variantId));
+        VariantForm current = VariantForm.fromEntity(repo.variant(variantId));
         saveVariant(new VariantForm(
             current.id(),
             current.productId(),
@@ -456,10 +456,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         checkVariantDetails(product, f);
         v.setProduct(product);
         v.setSku(sku);
-        v.setName(f.name().trim());
-        v.setWeightGrams(f.weightGrams());
-        v.setFillingLabel(f.fillingLabel());
-        v.setUnitPrice(f.unitPrice());
+        f.applyTo(v);
         v.setActive(false);
         repo.save(v);
         inventory.initializeBalance(v.getId());
@@ -731,19 +728,6 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             categories.add(CategoryForm.fromEntity(category));
         }
         return categories;
-    }
-
-    private VariantForm variantForm(ProductVariant variant) {
-        return new VariantForm(
-            variant.getId(),
-            variant.getProduct().getId(),
-            variant.getSku(),
-            variant.getName(),
-            variant.getWeightGrams(),
-            variant.getFillingLabel(),
-            variant.getUnitPrice(),
-            variant.isActive()
-        );
     }
 
     private BoxForm boxForm(Box box) {

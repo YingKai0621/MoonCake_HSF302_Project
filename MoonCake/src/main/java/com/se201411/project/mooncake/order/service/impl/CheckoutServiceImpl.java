@@ -10,14 +10,10 @@ import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.cart.service.PricingService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
-import com.se201411.project.mooncake.entity.BoxConfiguration;
-import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
-import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.SalesOrder;
-import com.se201411.project.mooncake.entity.VolumeDiscountTier;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.OrderType;
@@ -345,13 +341,6 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
-    }
-
-    private String normalizeOptional(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
     }
 
     private String generateOrderCode() {

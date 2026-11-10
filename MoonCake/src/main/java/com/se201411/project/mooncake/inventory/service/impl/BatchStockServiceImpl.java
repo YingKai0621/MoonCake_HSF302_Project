@@ -97,17 +97,10 @@ public class BatchStockServiceImpl implements BatchStockService {
         LocalDate today = LocalDate.now(clock);
         List<AdminBatchView> views = new ArrayList<>();
         for (StockBatch batch : stockBatchRepository.findAllByOrderByIdDesc()) {
-            views.add(new AdminBatchView(
-                batch.getId(),
-                batch.getVariant().getSku(),
-                batch.getVariant().getProduct().getName() + " · " + batch.getVariant().getName(),
-                batchCodeLabel(batch.getBatchCode()),
-                batch.getProducedOn(),
-                batch.getExpiresOn(),
-                batch.getRemainingQuantity(),
-                statusLabel(batch.getExpiresOn(), today),
-                statusTone(batch.getExpiresOn(), today)
-            ));
+            String codeLabel = batchCodeLabel(batch.getBatchCode());
+            String status = statusLabel(batch.getExpiresOn(), today);
+            String tone = statusTone(batch.getExpiresOn(), today);
+            views.add(AdminBatchView.entityToDto(batch, codeLabel, status, tone));
         }
         return views;
     }

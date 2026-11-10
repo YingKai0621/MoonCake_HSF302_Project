@@ -11,7 +11,6 @@ import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.dto.VnpayAttemptView;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
-import com.se201411.project.mooncake.order.service.VnpayGateway;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

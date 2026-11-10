@@ -44,7 +44,7 @@ class VnpayPaymentProcessorTest {
 
     private final VnpayRepository vnpayRepository = mock(VnpayRepository.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
-    private final VnpayGatewayImpl gateway = spy(new VnpayGatewayImpl(new MockEnvironment()
+    private final VnpayGateway gateway = spy(new VnpayGateway(new MockEnvironment()
         .withProperty("VNPAY_ENABLED", "true")
         .withProperty("VNPAY_TMN_CODE", "TESTCODE")
         .withProperty("VNPAY_HASH_SECRET", "test-only-secret")));
@@ -337,7 +337,7 @@ class VnpayPaymentProcessorTest {
 
     @Test
     void publicUrlBuildsReturnUrl() {
-        VnpayGatewayImpl publicGateway = new VnpayGatewayImpl(new MockEnvironment()
+        VnpayGateway publicGateway = new VnpayGateway(new MockEnvironment()
             .withProperty("APP_PUBLIC_URL", "https://demo.example.test/"));
 
         assertThat(publicGateway.returnUrl()).isEqualTo("https://demo.example.test/payments/vnpay/return");
@@ -345,7 +345,7 @@ class VnpayPaymentProcessorTest {
 
     @Test
     void enabledWithoutCredentialsFailsAtStartup() {
-        VnpayGatewayImpl incompleteGateway = new VnpayGatewayImpl(new MockEnvironment()
+        VnpayGateway incompleteGateway = new VnpayGateway(new MockEnvironment()
             .withProperty("VNPAY_ENABLED", "true"));
 
         assertThatThrownBy(incompleteGateway::validateStartup)
@@ -354,7 +354,7 @@ class VnpayPaymentProcessorTest {
 
     @Test
     void disabledGatewayRejectsCallbackWithoutException() {
-        VnpayGatewayImpl disabledGateway = new VnpayGatewayImpl(new MockEnvironment());
+        VnpayGateway disabledGateway = new VnpayGateway(new MockEnvironment());
 
         assertThat(disabledGateway.valid(signedIpn())).isFalse();
     }
@@ -462,7 +462,7 @@ class VnpayPaymentProcessorTest {
 
     @Test
     void shorterLifetimesCanBeConfiguredForTesting() {
-        VnpayGatewayImpl quickGateway = new VnpayGatewayImpl(new MockEnvironment()
+        VnpayGateway quickGateway = new VnpayGateway(new MockEnvironment()
             .withProperty("UNPAID_ORDER_CANCEL_MINUTES", "2")
             .withProperty("VNPAY_ATTEMPT_SECONDS", "60"));
         VnpayPaymentProcessor quickProcessor = new VnpayPaymentProcessor(

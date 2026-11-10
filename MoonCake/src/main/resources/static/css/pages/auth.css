@@ -275,6 +275,29 @@
   outline-offset: 3px;
 }
 
+.auth-forgot {
+  margin: 8px 0 0;
+  font-size: 14px;
+  text-align: right;
+}
+
+.auth-forgot a {
+  color: var(--auth-gold-light);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-forgot a:hover {
+  color: var(--auth-ivory);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.auth-forgot a:focus-visible {
+  outline: 2px solid var(--auth-gold-light);
+  outline-offset: 3px;
+}
+
 @media (max-width: 720px) {
   .auth-main {
     min-height: calc(100vh - 73px);

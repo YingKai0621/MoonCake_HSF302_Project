@@ -63,8 +63,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Feedback feedback = new Feedback();
         feedback.setCustomerId(currentCustomerService.requireCurrentCustomer().customerId());
-        feedback.setRating(rating);
-        feedback.setContent(content);
+        form.dtoToEntity(feedback);
         feedback.setPublished(false);
         feedback.setCreatedAt(LocalDateTime.now(clock.withZone(ZoneOffset.UTC)));
         feedbackRepository.save(feedback);
@@ -94,14 +93,8 @@ public class FeedbackServiceImpl implements FeedbackService {
         adminAccessService.requireAdmin();
         List<AdminFeedbackView> views = new ArrayList<>();
         for (Feedback feedback : feedbackRepository.findTop100ByOrderByIdDesc()) {
-            views.add(new AdminFeedbackView(
-                feedback.getId(),
-                feedback.getCustomer().getFullName(),
-                feedback.getRating(),
-                feedback.getContent(),
-                formatVietnamTime(feedback.getCreatedAt()),
-                feedback.isPublished()
-            ));
+            String formattedCreatedAt = formatVietnamTime(feedback.getCreatedAt());
+            views.add(AdminFeedbackView.entityToDto(feedback, formattedCreatedAt));
         }
         return views;
     }

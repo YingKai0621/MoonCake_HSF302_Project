@@ -76,19 +76,19 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         access.requireAdmin();
         List<ProductForm> products = new ArrayList<>();
         for (Product product : repo.products()) {
-            products.add(productForm(product));
+            products.add(ProductForm.entityToDto(product));
         }
         List<VariantForm> variants = new ArrayList<>();
         for (ProductVariant variant : repo.variants()) {
-            variants.add(variantForm(variant));
+            variants.add(VariantForm.entityToDto(variant));
         }
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxes()) {
-            boxes.add(boxForm(box));
+            boxes.add(BoxForm.entityToDto(box));
         }
         List<ImageForm> images = new ArrayList<>();
         for (ProductImage image : repo.images()) {
-            images.add(imageForm(image));
+            images.add(ImageForm.entityToDto(image));
         }
         return new AdminCatalogView(categoryForms(), products, variants, boxes, images);
     }
@@ -108,7 +108,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<Long, List<ImageForm>> imagesByProduct = new HashMap<>();
         for (ProductImage image : repo.images()) {
             long productId = image.getVariant().getProduct().getId();
-            imagesByProduct.computeIfAbsent(productId, key -> new ArrayList<>()).add(imageForm(image));
+            imagesByProduct.computeIfAbsent(productId, key -> new ArrayList<>()).add(ImageForm.entityToDto(image));
         }
 
         List<AdminProductRow> rows = new ArrayList<>();
@@ -132,15 +132,14 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                 }
             }
             WebStatus status = productStatus(product, variants, readyGiftSets, stock);
-            rows.add(new AdminProductRow(
-                product.getId(),
-                product.getName(),
-                product.getCategory().getName(),
+            String imageUrl = coverImage(imagesByProduct.getOrDefault(product.getId(), List.of()));
+            rows.add(AdminProductRow.entityToDto(
+                product,
                 typeLabel(product.getProductType()),
                 variants.size(),
                 minPrice,
                 maxPrice,
-                coverImage(imagesByProduct.getOrDefault(product.getId(), List.of())),
+                imageUrl,
                 status.label(),
                 status.tone()
             ));
@@ -178,7 +177,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<Long, List<ImageForm>> imagesBySku = new HashMap<>();
         for (ProductImage image : repo.imagesOf(productId)) {
             long variantId = image.getVariant().getId();
-            imagesBySku.computeIfAbsent(variantId, key -> new ArrayList<>()).add(imageForm(image));
+            imagesBySku.computeIfAbsent(variantId, key -> new ArrayList<>()).add(ImageForm.entityToDto(image));
         }
 
         List<ProductVariant> variants = repo.variantsOf(productId);
@@ -190,7 +189,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             int quantity = stock.getOrDefault(variant.getId(), 0);
             WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
             skus.add(new AdminProductDetail.Sku(
-                variantForm(variant),
+                VariantForm.entityToDto(variant),
                 coverImage(images),
                 images,
                 quantity,
@@ -203,11 +202,11 @@ public class ProductAdminServiceImpl implements ProductAdminService {
 
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxesOf(productId)) {
-            boxes.add(boxForm(box));
+            boxes.add(BoxForm.entityToDto(box));
         }
 
         return new AdminProductDetail(
-            productForm(product),
+            ProductForm.entityToDto(product),
             typeLabel(product.getProductType()),
             !skus.isEmpty(),
             product.getProductType() == ProductType.EMPTY_BOX,
@@ -270,9 +269,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Đường dẫn này đã được danh mục khác dùng.");
         }
         Category v = f.id() == null ? new Category() : repo.category(f.id());
-        v.setName(f.name().trim());
-        v.setSlug(f.slug());
-        v.setActive(f.active());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
     }
@@ -289,15 +286,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
         v.setCategory(repo.category(f.categoryId()));
-        v.setProductType(f.productType());
-        v.setName(f.name().trim());
-        v.setSlug(f.slug());
-        v.setShortDescription(f.shortDescription());
-        v.setDetailedDescription(f.detailedDescription());
-        v.setMainIngredients(f.mainIngredients());
-        v.setShelfLifeInfo(f.shelfLifeInfo());
-        v.setStorageGuidance(f.storageGuidance());
-        v.setActive(f.active());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return v.getId();
@@ -306,7 +295,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public void setProductVisible(long productId, boolean visible) {
         access.requireAdmin();
-        ProductForm current = productForm(repo.product(productId));
+        ProductForm current = ProductForm.entityToDto(repo.product(productId));
         saveProduct(new ProductForm(
             current.id(),
             current.categoryId(),
@@ -325,7 +314,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public long setVariantOnSale(long variantId, boolean onSale) {
         access.requireAdmin();
-        VariantForm current = variantForm(repo.variant(variantId));
+        VariantForm current = VariantForm.entityToDto(repo.variant(variantId));
         saveVariant(new VariantForm(
             current.id(),
             current.productId(),
@@ -466,10 +455,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         checkVariantDetails(product, f);
         v.setProduct(product);
         v.setSku(sku);
-        v.setName(f.name().trim());
-        v.setWeightGrams(f.weightGrams());
-        v.setFillingLabel(f.fillingLabel());
-        v.setUnitPrice(f.unitPrice());
+        f.dtoToEntity(v);
         v.setActive(false);
         repo.save(v);
         inventory.initializeBalance(v.getId());
@@ -500,10 +486,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Mẫu hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
         }
         v.setEmptyBoxVariant(variant);
-        v.setCapacityCakes(f.capacityCakes());
-        v.setMaterial(f.material());
-        v.setNotes(f.notes());
-        v.setActive(f.active());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return variant.getProduct().getId();
@@ -534,10 +517,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             }
         }
         v.setVariant(variant);
-        v.setImageUrl(f.imageUrl());
-        v.setAltText(f.altText());
-        v.setSortOrder(f.sortOrder());
-        v.setPrimary(f.primary());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return variant.getProduct().getId();
@@ -738,60 +718,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private List<CategoryForm> categoryForms() {
         List<CategoryForm> categories = new ArrayList<>();
         for (Category category : repo.categories()) {
-            categories.add(new CategoryForm(category.getId(), category.getName(), category.getSlug(), category.isActive()));
+            categories.add(CategoryForm.entityToDto(category));
         }
         return categories;
-    }
-
-    private ProductForm productForm(Product product) {
-        return new ProductForm(
-            product.getId(),
-            product.getCategory().getId(),
-            product.getProductType(),
-            product.getName(),
-            product.getSlug(),
-            product.getShortDescription(),
-            product.getDetailedDescription(),
-            product.getMainIngredients(),
-            product.getShelfLifeInfo(),
-            product.getStorageGuidance(),
-            product.isActive()
-        );
-    }
-
-    private VariantForm variantForm(ProductVariant variant) {
-        return new VariantForm(
-            variant.getId(),
-            variant.getProduct().getId(),
-            variant.getSku(),
-            variant.getName(),
-            variant.getWeightGrams(),
-            variant.getFillingLabel(),
-            variant.getUnitPrice(),
-            variant.isActive()
-        );
-    }
-
-    private BoxForm boxForm(Box box) {
-        return new BoxForm(
-            box.getId(),
-            box.getEmptyBoxVariant().getId(),
-            box.getCapacityCakes(),
-            box.getMaterial(),
-            box.getNotes(),
-            box.isActive()
-        );
-    }
-
-    private ImageForm imageForm(ProductImage image) {
-        return new ImageForm(
-            image.getId(),
-            image.getVariant().getId(),
-            image.getImageUrl(),
-            image.getAltText(),
-            image.getSortOrder(),
-            image.isPrimary()
-        );
     }
 
     private String coverImage(List<ImageForm> images) {

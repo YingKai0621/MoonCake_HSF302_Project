@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.security.dto;
 
+import com.se201411.project.mooncake.entity.Customer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -77,5 +78,14 @@ public class CustomerRegistrationForm {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    /**
+     * DTO -> Entity: copies the customer's own fields. Email, account link and role
+     * are set by the service so the form can never choose them.
+     */
+    public void dtoToEntity(Customer customer) {
+        customer.setFullName(fullName.trim());
+        customer.setPhone(phone);
     }
 }

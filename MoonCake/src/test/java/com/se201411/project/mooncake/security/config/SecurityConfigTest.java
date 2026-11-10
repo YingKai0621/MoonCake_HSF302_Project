@@ -225,6 +225,27 @@ class SecurityConfigTest {
         ).andExpect(status().is3xxRedirection());
     }
 
+    @Test
+    void allowsAnonymousPasswordResetPagesButRequiresCsrf() throws Exception {
+        mockMvc.perform(get("/forgot-password"))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(get("/reset-password").param("token", "abc"))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(post("/forgot-password"))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/forgot-password").with(csrf()))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(post("/reset-password"))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/reset-password").with(csrf()))
+            .andExpect(status().isOk());
+    }
+
     @Configuration
     @EnableWebMvc
     static class TestWebConfig {
@@ -320,6 +341,26 @@ class SecurityConfigTest {
         @PostMapping("/register")
         String register() {
             return "registered";
+        }
+
+        @GetMapping("/forgot-password")
+        String forgotPasswordPage() {
+            return "forgot-password";
+        }
+
+        @PostMapping("/forgot-password")
+        String forgotPassword() {
+            return "forgot-password-sent";
+        }
+
+        @GetMapping("/reset-password")
+        String resetPasswordPage() {
+            return "reset-password";
+        }
+
+        @PostMapping("/reset-password")
+        String resetPassword() {
+            return "reset-password-done";
         }
 
         @GetMapping("/admin/dashboard")

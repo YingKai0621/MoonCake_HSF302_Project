@@ -94,20 +94,9 @@ public class OrderManagementServiceImpl implements OrderManagementService {
                 List.of()
             );
             for (OrderItemComponent component : itemComponents) {
-                parts.add(new AdminOrderView.Component(
-                    component.getComponentNameSnapshot(),
-                    component.getQuantityPerSet(),
-                    component.getComponentRole()
-                ));
+                parts.add(AdminOrderView.Component.entityToDto(component));
             }
-            lines.add(new AdminOrderView.Item(
-                item.getProductNameSnapshot(),
-                item.getSkuSnapshot(),
-                item.getQuantity(),
-                item.getUnitFinalPriceSnapshot(),
-                item.getLineTotal(),
-                List.copyOf(parts)
-            ));
+            lines.add(AdminOrderView.Item.entityToDto(item, parts));
         }
         return view(order, List.copyOf(lines), payments.findByOrderId(id));
     }
@@ -205,36 +194,22 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         List<AdminOrderView.PaymentLine> paymentLines = new ArrayList<>();
         for (Payment payment : orderPayments) {
             PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
-            boolean paid = payment.getStatus() == PaymentStatus.PAID;
             String paidAt = null;
             if (payment.getPaidAt() != null) {
                 paidAt = formatTime(payment.getPaidAt());
             }
-            paymentLines.add(new AdminOrderView.PaymentLine(
-                processor.displayName(),
-                paid ? "Đã thanh toán" : "Chưa thanh toán",
-                paid,
-                payment.getAmount(),
-                paidAt
-            ));
+            paymentLines.add(AdminOrderView.PaymentLine.entityToDto(payment, processor.displayName(), paidAt));
         }
-        return new AdminOrderView(
-            order.getId(),
-            order.getOrderCode(),
-            order.getStatus(),
+        String formattedUpdatedAt = null;
+        if (order.getUpdatedAt() != null) {
+            formattedUpdatedAt = formatTime(order.getUpdatedAt());
+        }
+        return AdminOrderView.entityToDto(
+            order,
             statusLabel(order.getStatus()),
             statusTone(order.getStatus()),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            order.getSubtotalAmount(),
-            order.getDiscountAmount(),
-            order.getShippingFee(),
-            order.getRoundingAdjustment(),
-            order.getTotalAmount(),
             formatTime(order.getCreatedAt()),
-            order.getUpdatedAt() == null ? null : formatTime(order.getUpdatedAt()),
+            formattedUpdatedAt,
             lines,
             paymentLines,
             actions(order.getStatus(), orderPayments)

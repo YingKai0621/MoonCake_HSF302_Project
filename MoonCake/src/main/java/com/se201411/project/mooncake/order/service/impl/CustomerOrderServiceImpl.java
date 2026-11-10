@@ -30,8 +30,6 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,14 +39,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class CustomerOrderServiceImpl implements CustomerOrderService {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
     private static final ZoneId VIETNAM_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -95,13 +91,9 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         for (SalesOrder order : orders) {
             Payment payment = paymentByOrderId.get(order.getId());
             boolean awaitingPayment = isAwaitingOnlinePayment(order, payment);
-            views.add(new CustomerOrderSummaryView(
-                order.getOrderCode(),
-                statusLabel(order, awaitingPayment),
-                awaitingPayment,
-                formatDateTime(order.getCreatedAt()),
-                formatVnd(order.getTotalAmount())
-            ));
+            String statusLabel = statusLabel(order, awaitingPayment);
+            String formattedCreatedAt = formatDateTime(order.getCreatedAt());
+            views.add(CustomerOrderSummaryView.entityToDto(order, statusLabel, awaitingPayment, formattedCreatedAt));
         }
         return List.copyOf(views);
     }
@@ -121,20 +113,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         int totalQuantity = 0;
         for (OrderItem item : items) {
             totalQuantity = Math.addExact(totalQuantity, item.getQuantity());
-            String sku = item.getSkuSnapshot();
-            if (sku == null) {
-                sku = item.getBoxSkuSnapshot();
-            }
-
-            itemViews.add(new CustomerOrderItemView(
-                item.getProductNameSnapshot(),
-                sku,
-                item.getQuantity(),
-                discountLabel(item.getDiscountPercentSnapshot()),
-                formatVnd(item.getUnitFinalPriceSnapshot()),
-                formatVnd(item.getLineTotal()),
-                components.getOrDefault(item.getId(), List.of())
-            ));
+            List<CustomerOrderComponentView> itemComponents = components.getOrDefault(item.getId(), List.of());
+            itemViews.add(CustomerOrderItemView.entityToDto(item, itemComponents));
         }
 
         boolean placed = order.getStatus() == OrderStatus.PLACED;
@@ -142,27 +122,18 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         boolean cancellable = placed && unpaid;
         boolean awaitingOnlinePayment = isAwaitingOnlinePayment(order, payment);
 
-        return new CustomerOrderDetailView(
-            order.getOrderCode(),
+        return CustomerOrderDetailView.entityToDto(
+            order,
             statusLabel(order, awaitingOnlinePayment),
             cancellable,
             placed,
             formatDateTime(order.getCreatedAt()),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
             paymentStatusLabel(payment.getStatus()),
             paymentMethodLabel(payment.getMethod()),
             awaitingOnlinePayment,
             autoCancelView(order, payment),
             itemViews,
-            totalQuantity,
-            formatVnd(order.getSubtotalAmount()),
-            formatVnd(order.getDiscountAmount()),
-            formatVnd(order.getShippingFee()),
-            formatSignedVnd(order.getRoundingAdjustment()),
-            formatVnd(order.getTotalAmount())
+            totalQuantity
         );
     }
 
@@ -175,11 +146,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         SalesOrder order = requireOwnedOrder(orderCode, customerIdentity.customerId());
         requireDeliveryEditable(order);
 
-        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
-        form.setRecipientName(order.getRecipientName());
-        form.setRecipientPhone(order.getRecipientPhone());
-        form.setOrderNote(order.getOrderNote());
-        form.setCurrentShippingAddress(order.getShippingAddressSnapshot());
+        OrderDeliveryUpdateForm form = OrderDeliveryUpdateForm.entityToDto(order);
 
         Optional<DeliveryAddressParts> addressParts = deliveryAddressService
             .parseShippingAddress(order.getShippingAddressSnapshot());
@@ -311,11 +278,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                 itemComponents = new ArrayList<>();
                 result.put(itemId, itemComponents);
             }
-            itemComponents.add(new CustomerOrderComponentView(
-                componentRoleLabel(component.getComponentRole()),
-                component.getComponentNameSnapshot(),
-                component.getQuantityPerSet()
-            ));
+            String roleLabel = componentRoleLabel(component.getComponentRole());
+            itemComponents.add(CustomerOrderComponentView.entityToDto(component, roleLabel));
         }
         return result;
     }
@@ -392,13 +356,6 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         return "Bánh";
     }
 
-    private String discountLabel(BigDecimal discountPercent) {
-        if (discountPercent == null || discountPercent.signum() == 0) {
-            return null;
-        }
-        return "Giảm " + discountPercent.stripTrailingZeros().toPlainString() + "%";
-    }
-
     private AutoCancelView autoCancelView(SalesOrder order, Payment payment) {
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
         Optional<LocalDateTime> deadline = paymentProcessor.autoCancelAt(order, payment);
@@ -428,19 +385,5 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             .atZone(ZoneOffset.UTC)
             .withZoneSameInstant(VIETNAM_TIME_ZONE)
             .format(DATE_TIME_FORMAT);
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.security.controller;
 import com.se201411.project.mooncake.security.dto.CustomerRegistrationForm;
 import com.se201411.project.mooncake.security.exception.EmailAlreadyRegisteredException;
 import com.se201411.project.mooncake.security.service.AuthenticationService;
+import com.se201411.project.mooncake.security.util.PasswordRules;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Controller
@@ -50,7 +50,7 @@ public class AuthenticationController {
             );
         }
 
-        if (isPasswordTooLongForBcrypt(registrationForm.getPassword())) {
+        if (PasswordRules.exceedsBcryptLimit(registrationForm.getPassword())) {
             bindingResult.rejectValue(
                 "password",
                 "password.tooLongForBcrypt",
@@ -74,13 +74,5 @@ public class AuthenticationController {
         }
 
         return "redirect:/login?registered";
-    }
-
-    private boolean isPasswordTooLongForBcrypt(String password) {
-        if (password == null) {
-            return false;
-        }
-        byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
-        return passwordBytes.length > 72;
     }
 }

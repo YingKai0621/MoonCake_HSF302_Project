@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,7 +27,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -37,7 +35,6 @@ public class DashboardServiceImpl implements DashboardService {
     private static final DateTimeFormatter DAY_LABEL = DateTimeFormatter.ofPattern("dd/MM");
     private static final DateTimeFormatter MONTH_LABEL = DateTimeFormatter.ofPattern("MM/yyyy");
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM HH:mm");
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
     private static final int TOP_PRODUCT_DAYS = 30;
     private static final int EXPIRY_WARNING_DAYS = 14;
 
@@ -135,16 +132,17 @@ public class DashboardServiceImpl implements DashboardService {
         List<SalesOrder> orders = dashboardRepository
             .findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(BigDecimal.ZERO, OrderStatus.CANCELLED);
         for (SalesOrder order : orders) {
-            recent.add(new DiscountSummaryView.Order(
-                order.getId(),
-                order.getOrderCode(),
-                order.getRecipientName(),
-                formatMoney(order.getDiscountAmount()),
-                formatMoney(order.getTotalAmount()),
-                order.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
-            ));
+            String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
+            recent.add(DiscountSummaryView.Order.entityToDto(order, formattedCreatedAt));
         }
         return new DiscountSummaryView(currentLabel(period), orderCount, totalDiscount, recent);
+    }
+
+    private String formatVietnamTime(LocalDateTime utcTime) {
+        return utcTime
+            .atOffset(ZoneOffset.UTC)
+            .atZoneSameInstant(VIETNAM)
+            .format(DATE_TIME);
     }
 
     private String currentLabel(DashboardPeriod period) {
@@ -198,15 +196,10 @@ public class DashboardServiceImpl implements DashboardService {
     private List<RecentOrderView> recentOrders() {
         List<RecentOrderView> views = new ArrayList<>();
         for (SalesOrder order : dashboardRepository.findTop5ByOrderByCreatedAtDesc()) {
-            views.add(new RecentOrderView(
-                order.getId(),
-                order.getOrderCode(),
-                order.getRecipientName(),
-                formatMoney(order.getTotalAmount()),
-                statusLabel(order.getStatus()),
-                statusTone(order.getStatus()),
-                order.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
-            ));
+            String statusLabel = statusLabel(order.getStatus());
+            String statusTone = statusTone(order.getStatus());
+            String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
+            views.add(RecentOrderView.entityToDto(order, statusLabel, statusTone, formattedCreatedAt));
         }
         return views;
     }
@@ -292,10 +285,6 @@ public class DashboardServiceImpl implements DashboardService {
 
     private LocalDate toVietnamDate(LocalDateTime utcTime) {
         return utcTime.atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).toLocalDate();
-    }
-
-    private String formatMoney(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
     }
 
     private String statusLabel(OrderStatus status) {

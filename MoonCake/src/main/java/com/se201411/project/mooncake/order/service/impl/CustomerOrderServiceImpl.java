@@ -126,27 +126,18 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         boolean cancellable = placed && unpaid;
         boolean awaitingOnlinePayment = isAwaitingOnlinePayment(order, payment);
 
-        return new CustomerOrderDetailView(
-            order.getOrderCode(),
+        return CustomerOrderDetailView.entityToDto(
+            order,
             statusLabel(order, awaitingOnlinePayment),
             cancellable,
             placed,
             formatDateTime(order.getCreatedAt()),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
             paymentStatusLabel(payment.getStatus()),
             paymentMethodLabel(payment.getMethod()),
             awaitingOnlinePayment,
             autoCancelView(order, payment),
             itemViews,
-            totalQuantity,
-            formatVnd(order.getSubtotalAmount()),
-            formatVnd(order.getDiscountAmount()),
-            formatVnd(order.getShippingFee()),
-            formatSignedVnd(order.getRoundingAdjustment()),
-            formatVnd(order.getTotalAmount())
+            totalQuantity
         );
     }
 

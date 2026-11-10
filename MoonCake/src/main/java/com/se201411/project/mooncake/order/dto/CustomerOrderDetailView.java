@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.entity.SalesOrder;
 import java.util.List;
 
 public record CustomerOrderDetailView(
@@ -24,6 +26,48 @@ public record CustomerOrderDetailView(
     String formattedRoundingAdjustment,
     String formattedTotal
 ) {
+
+    /**
+     * Entity -> DTO. Order fields and money come from the entity; status texts, flags,
+     * the auto-cancel countdown and the mapped lines are worked out by the service.
+     */
+    public static CustomerOrderDetailView entityToDto(
+        SalesOrder order,
+        String statusLabel,
+        boolean cancellable,
+        boolean deliveryEditable,
+        String formattedCreatedAt,
+        String paymentStatusLabel,
+        String paymentMethodLabel,
+        boolean awaitingOnlinePayment,
+        AutoCancelView autoCancel,
+        List<CustomerOrderItemView> items,
+        int totalQuantity
+    ) {
+        return new CustomerOrderDetailView(
+            order.getOrderCode(),
+            statusLabel,
+            cancellable,
+            deliveryEditable,
+            formattedCreatedAt,
+            order.getRecipientName(),
+            order.getRecipientPhone(),
+            order.getShippingAddressSnapshot(),
+            order.getOrderNote(),
+            paymentStatusLabel,
+            paymentMethodLabel,
+            awaitingOnlinePayment,
+            autoCancel,
+            items,
+            totalQuantity,
+            MoneyFormat.vnd(order.getSubtotalAmount()),
+            MoneyFormat.vnd(order.getDiscountAmount()),
+            MoneyFormat.vnd(order.getShippingFee()),
+            MoneyFormat.signedVnd(order.getRoundingAdjustment()),
+            MoneyFormat.vnd(order.getTotalAmount())
+        );
+    }
+
     public CustomerOrderDetailView {
         items = List.copyOf(items);
     }

@@ -13,8 +13,7 @@ import com.se201411.project.mooncake.inventory.repository.InventoryBalanceReposi
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
-import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
-import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,23 +32,20 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
-    private final ProductVariantRepository productVariantRepository;
-    private final SalesOrderRepository salesOrderRepository;
+    private final EntityReferenceRepository references;
     private final BatchStockService batchStock;
     private final Clock clock;
 
     public InventoryServiceImpl(
         InventoryBalanceRepository balanceRepository,
         StockMovementRepository movementRepository,
-        ProductVariantRepository productVariantRepository,
-        SalesOrderRepository salesOrderRepository,
+        EntityReferenceRepository references,
         BatchStockService batchStock,
         Clock clock
     ) {
         this.balanceRepository = balanceRepository;
         this.movementRepository = movementRepository;
-        this.productVariantRepository = productVariantRepository;
-        this.salesOrderRepository = salesOrderRepository;
+        this.references = references;
         this.batchStock = batchStock;
         this.clock = clock;
     }
@@ -155,8 +151,8 @@ public class InventoryServiceImpl implements InventoryService {
         String operationKey = operationGroupKey + ":" + demand.variantId();
         batchStock.apply(demand.variantId(), quantityDelta, operationKey, orderId, movementType);
         StockMovement movement = new StockMovement();
-        movement.setVariant(productVariantRepository.getReferenceById(demand.variantId()));
-        movement.setOrder(salesOrderRepository.getReferenceById(orderId));
+        movement.setVariant(references.variant(demand.variantId()));
+        movement.setOrder(references.order(orderId));
         movement.setMovementType(movementType);
         movement.setQuantityDelta(quantityDelta);
         movement.setReason(buildReason(movementType));
@@ -174,7 +170,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private String describeVariant(long variantId) {
-        ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
+        ProductVariant variant = references.findVariant(variantId).orElse(null);
         if (variant == null) {
             return "sản phẩm đã chọn";
         }

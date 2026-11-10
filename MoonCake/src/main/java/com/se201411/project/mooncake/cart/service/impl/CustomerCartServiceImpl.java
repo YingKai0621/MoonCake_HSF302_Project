@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
-import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CartItemView;
 import com.se201411.project.mooncake.cart.dto.CustomCartComponentView;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
@@ -48,7 +48,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
     private final CustomBoxConfigurationRepository configurationRepository;
     private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final ProductQueryService productQueryService;
-    private final ProductVariantRepository productVariantRepository;
+    private final EntityReferenceRepository references;
     private final Clock clock;
 
     public CustomerCartServiceImpl(
@@ -57,7 +57,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         CustomBoxConfigurationRepository configurationRepository,
         CustomBoxConfigurationItemRepository configurationItemRepository,
         ProductQueryService productQueryService,
-        ProductVariantRepository productVariantRepository,
+        EntityReferenceRepository references,
         Clock clock
     ) {
         this.cartRepository = cartRepository;
@@ -65,7 +65,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         this.configurationRepository = configurationRepository;
         this.configurationItemRepository = configurationItemRepository;
         this.productQueryService = productQueryService;
-        this.productVariantRepository = productVariantRepository;
+        this.references = references;
         this.clock = clock;
     }
 
@@ -130,7 +130,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         } else {
             CartItem item = new CartItem();
             item.setCart(cart);
-            ProductVariant variantReference = productVariantRepository.getReferenceById(variantId
+            ProductVariant variantReference = references.variant(variantId
             );
             item.setVariant(variantReference);
             item.setQuantity(quantity);

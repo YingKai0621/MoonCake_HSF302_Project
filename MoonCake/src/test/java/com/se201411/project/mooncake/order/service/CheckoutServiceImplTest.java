@@ -1,9 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
-import com.se201411.project.mooncake.cart.repository.VolumeDiscountTierRepository;
-import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
-import com.se201411.project.mooncake.security.repository.CustomerRepository;
-import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -82,13 +79,7 @@ class CheckoutServiceImplTest {
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
-    private CustomerRepository customerRepository;
-    @Mock
-    private ProductVariantRepository productVariantRepository;
-    @Mock
-    private CustomBoxConfigurationRepository configurationRepository;
-    @Mock
-    private VolumeDiscountTierRepository volumeDiscountTierRepository;
+    private EntityReferenceRepository references;
     @Mock
     private PaymentProcessor vnpayProcessor;
 
@@ -107,10 +98,7 @@ class CheckoutServiceImplTest {
             orderItemRepository,
             componentRepository,
             paymentRepository,
-            customerRepository,
-            productVariantRepository,
-            configurationRepository,
-            volumeDiscountTierRepository,
+            references,
             clock,
             registry()
         );
@@ -139,8 +127,8 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(customerRepository.getReferenceById(7L)).thenReturn(new Customer());
-        when(productVariantRepository.getReferenceById(10L))
+        when(references.customer(7L)).thenReturn(new Customer());
+        when(references.variant(10L))
             .thenReturn(new ProductVariant());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -224,14 +212,14 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(customerRepository.getReferenceById(7L)).thenReturn(new Customer());
-        when(productVariantRepository.getReferenceById(10L))
+        when(references.customer(7L)).thenReturn(new Customer());
+        when(references.variant(10L))
             .thenReturn(new ProductVariant());
-        when(productVariantRepository.getReferenceById(20L))
+        when(references.variant(20L))
             .thenReturn(new ProductVariant());
-        when(productVariantRepository.getReferenceById(30L))
+        when(references.variant(30L))
             .thenReturn(new ProductVariant());
-        when(configurationRepository.getReferenceById(50L))
+        when(references.configuration(50L))
             .thenReturn(new BoxConfiguration());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);

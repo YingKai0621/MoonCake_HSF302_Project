@@ -25,6 +25,8 @@ import java.util.UUID;
 
 @Service
 public class BatchStockServiceImpl implements BatchStockService {
+    private static final int EXPIRY_WARNING_DAYS = 14;
+
 
     private static final int MAX_CODE_LENGTH = 80;
 
@@ -96,11 +98,13 @@ public class BatchStockServiceImpl implements BatchStockService {
             views.add(new AdminBatchView(
                 batch.getId(),
                 batch.getVariant().getSku(),
+                batch.getVariant().getProduct().getName() + " · " + batch.getVariant().getName(),
                 batch.getBatchCode(),
                 batch.getProducedOn(),
                 batch.getExpiresOn(),
                 batch.getRemainingQuantity(),
-                statusLabel(batch.getExpiresOn(), today)
+                statusLabel(batch.getExpiresOn(), today),
+                statusTone(batch.getExpiresOn(), today)
             ));
         }
         return views;
@@ -120,6 +124,25 @@ public class BatchStockServiceImpl implements BatchStockService {
         int changed = stockBatchRepository.updateTraceability(batchId, code.trim(), producedOn, expiresOn);
         if (changed != 1) {
             throw new BusinessRuleViolationException("Lô đã xuất hàng không thể đổi thông tin truy xuất.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn) {
+        boolean hasCode = code != null && !code.isBlank();
+        if (hasCode && code.trim().length() > MAX_CODE_LENGTH) {
+            throw new BusinessRuleViolationException("Mã lô tối đa 80 ký tự.");
+        }
+        if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
+            throw new BusinessRuleViolationException("Hạn dùng phải sau ngày sản xuất.");
+        }
+        for (StockBatch batch : batchAllocationRepository.findBatchesCreatedBy(operationKey)) {
+            if (hasCode) {
+                batch.setBatchCode(code.trim());
+            }
+            batch.setProducedOn(producedOn);
+            batch.setExpiresOn(expiresOn);
         }
     }
 
@@ -215,7 +238,23 @@ public class BatchStockServiceImpl implements BatchStockService {
         if (expiresOn.isBefore(today)) {
             return "Hết hạn";
         }
+        if (!expiresOn.isAfter(today.plusDays(EXPIRY_WARNING_DAYS))) {
+            return "Sắp hết hạn";
+        }
         return "Còn hạn";
+    }
+
+    private String statusTone(LocalDate expiresOn, LocalDate today) {
+        if (expiresOn == null) {
+            return "muted";
+        }
+        if (expiresOn.isBefore(today)) {
+            return "danger";
+        }
+        if (!expiresOn.isAfter(today.plusDays(EXPIRY_WARNING_DAYS))) {
+            return "warning";
+        }
+        return "success";
     }
 
     private String shortId() {

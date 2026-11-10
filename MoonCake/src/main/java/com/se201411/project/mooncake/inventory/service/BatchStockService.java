@@ -15,4 +15,6 @@ public interface BatchStockService {
     List<AdminBatchView> list();
 
     void updateTraceability(long batchId, String code, LocalDate producedOn, LocalDate expiresOn);
+
+    void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn);
 }

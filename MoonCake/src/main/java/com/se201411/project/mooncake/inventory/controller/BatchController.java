@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.inventory.controller;
 
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import org.springframework.format.annotation.DateTimeFormat;
+import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +36,13 @@ public class BatchController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiry,
         RedirectAttributes flash
     ) {
-        batchStockService.updateTraceability(id, code, production, expiry);
+        try {
+            batchStockService.updateTraceability(id, code, production, expiry);
+        } catch (MoonCakeException ex) {
+            flash.addFlashAttribute("dialogId", "batch-" + id);
+            flash.addFlashAttribute("dialogError", ex.getMessage());
+            return "redirect:/admin/batches";
+        }
         flash.addFlashAttribute("success", "Đã cập nhật thông tin lô.");
         return "redirect:/admin/batches";
     }

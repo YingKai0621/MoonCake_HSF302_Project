@@ -5,10 +5,12 @@ import java.time.LocalDate;
 public record AdminBatchView(
     long id,
     String sku,
+    String productName,
     String batchCode,
     LocalDate producedOn,
     LocalDate expiresOn,
     int remainingQuantity,
-    String statusLabel
+    String statusLabel,
+    String statusTone
 ) {
 }

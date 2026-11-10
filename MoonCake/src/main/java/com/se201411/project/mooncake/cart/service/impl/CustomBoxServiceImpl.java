@@ -93,14 +93,8 @@ public class CustomBoxServiceImpl implements CustomBoxService {
             if (catalogVariant == null) {
                 throw new ResourceNotFoundException("Không tìm thấy ảnh của mẫu hộp đang bán");
             }
-            boxViews.add(new CustomBoxOptionView(
-                box.getId(),
-                variant.getId(),
-                variant.getProduct().getName(),
-                variant.getSku(),
-                box.getCapacityCakes(),
-                variant.getUnitPrice(),
-                formatVnd(variant.getUnitPrice()),
+            boxViews.add(CustomBoxOptionView.entityToDto(
+                box,
                 catalogVariant.imageUrl(),
                 catalogVariant.imageAlt()
             ));

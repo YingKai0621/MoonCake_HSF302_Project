@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.cart.dto;
 
+import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.entity.Box;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import java.math.BigDecimal;
 
 public record CustomBoxOptionView(
@@ -13,4 +16,20 @@ public record CustomBoxOptionView(
     String imageUrl,
     String imageAlt
 ) {
+
+    /** Entity -> DTO. The image comes from the catalog view, which the service looks up. */
+    public static CustomBoxOptionView entityToDto(Box box, String imageUrl, String imageAlt) {
+        ProductVariant variant = box.getEmptyBoxVariant();
+        return new CustomBoxOptionView(
+            box.getId(),
+            variant.getId(),
+            variant.getProduct().getName(),
+            variant.getSku(),
+            box.getCapacityCakes(),
+            variant.getUnitPrice(),
+            MoneyFormat.vnd(variant.getUnitPrice()),
+            imageUrl,
+            imageAlt
+        );
+    }
 }

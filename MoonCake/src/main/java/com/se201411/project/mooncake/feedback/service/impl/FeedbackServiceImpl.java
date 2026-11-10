@@ -63,8 +63,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Feedback feedback = new Feedback();
         feedback.setCustomerId(currentCustomerService.requireCurrentCustomer().customerId());
-        feedback.setRating(rating);
-        feedback.setContent(content);
+        form.dtoToEntity(feedback);
         feedback.setPublished(false);
         feedback.setCreatedAt(LocalDateTime.now(clock.withZone(ZoneOffset.UTC)));
         feedbackRepository.save(feedback);

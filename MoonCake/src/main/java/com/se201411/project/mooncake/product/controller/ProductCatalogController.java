@@ -44,7 +44,7 @@ public class ProductCatalogController {
             products,
             "gift-boxes",
             "Hộp quà Trung Thu",
-            "Khám phá các hộp quà PRESET đang sẵn sàng để bán."
+            "Hộp quà Trung Thu với bánh được chọn sẵn, sẵn sàng làm quà biếu."
         );
         model.addAttribute("boxCountOptions", distinctBoxCounts(products));
         return "shop-catalog";

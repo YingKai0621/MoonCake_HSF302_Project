@@ -13,6 +13,7 @@ function setUpFilterTabs() {
       const groups = items[i].dataset.group.split(" ");
       const show = filter === "all" || groups.includes(filter);
       items[i].hidden = !show;
+      items[i].dataset.filteredOut = show ? "false" : "true";
       if (show) {
         visible++;
       }
@@ -23,6 +24,7 @@ function setUpFilterTabs() {
     if (empty !== null) {
       empty.hidden = visible > 0;
     }
+    document.dispatchEvent(new CustomEvent("filterchange"));
   }
 
   for (let i = 0; i < links.length; i++) {

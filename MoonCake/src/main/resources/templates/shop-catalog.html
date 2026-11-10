@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title th:text="${pageTitle + ' | MOONCAKE'}">Hộp quà Trung Thu | MOONCAKE</title>
+  <title th:text="${pageTitle + ' | MoonCake'}">Hộp quà Trung Thu | MoonCake</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap" rel="stylesheet"/>
@@ -48,7 +48,7 @@
 
   <main id="catalog-main" th:data-category="${category}" class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
     <nav aria-label="Breadcrumb" class="flex items-center space-x-2 text-xs text-sand mb-6 tracking-wide">
-      <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang Chủ</a>
+      <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang chủ</a>
       <span class="text-gold/50">/</span>
       <span class="text-gold font-medium" th:text="${breadcrumbTitle}">Hộp quà Trung Thu</span>
     </nav>
@@ -170,7 +170,7 @@
             Áp Dụng Bộ Lọc
           </button>
           <button id="clear-all-filters-link" type="button" class="block w-full text-center text-xs text-sand hover:text-gold transition-colors underline decoration-gold/40 underline-offset-4 cursor-pointer py-1">
-            Xóa Tất Cả Bộ Lọc
+            Xóa bộ lọc
           </button>
         </div>
       </aside>

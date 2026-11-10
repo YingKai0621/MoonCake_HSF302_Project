@@ -37,7 +37,7 @@
     </nav>
 
     <section class="table-scroll">
-        <table>
+        <table data-search-table>
             <thead>
             <tr>
                 <th>Sản phẩm</th>
@@ -55,7 +55,7 @@
                     <strong th:text="${batch.productName}">Bánh</strong>
                     <small class="muted"><code th:text="${batch.sku}">SKU</code></small>
                 </td>
-                <td th:text="${batch.batchCode}">Mã lô</td>
+                <td class="nowrap" th:text="${batch.batchCode}">Mã lô</td>
                 <td th:text="${batch.producedOn == null ? '—' : #temporals.format(batch.producedOn, 'dd/MM/yyyy')}">01/09/2026</td>
                 <td th:text="${batch.expiresOn == null ? '—' : #temporals.format(batch.expiresOn, 'dd/MM/yyyy')}">01/10/2026</td>
                 <td class="numeric stock-number" th:text="${batch.remainingQuantity}">0</td>

@@ -31,6 +31,8 @@ function pageNumbersToShow(page, pageCount) {
 
 function setUpSearchableTable(table) {
   const rows = Array.from(table.tBodies[0].rows);
+  const pagedByServer = table.hasAttribute("data-server-paged");
+  const rowsPerPage = pagedByServer ? rows.length || 1 : ROWS_PER_PAGE;
 
   const bar = document.createElement("div");
   bar.className = "table-tools";
@@ -106,30 +108,37 @@ function setUpSearchableTable(table) {
   function render() {
     const query = normalizeText(input.value.trim());
     const matched = rows.filter(function (row) {
+      if (row.dataset.filteredOut === "true") {
+        return false;
+      }
       return normalizeText(row.textContent).includes(query);
     });
-    const pageCount = Math.max(1, Math.ceil(matched.length / ROWS_PER_PAGE));
+    const pageCount = Math.max(1, Math.ceil(matched.length / rowsPerPage));
     page = Math.min(page, pageCount - 1);
 
-    const visible = new Set(matched.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE));
+    const visible = new Set(matched.slice(page * rowsPerPage, (page + 1) * rowsPerPage));
     for (let i = 0; i < rows.length; i++) {
       rows[i].hidden = !visible.has(rows[i]);
     }
 
-    pager.hidden = rows.length === 0;
+    pager.hidden = rows.length === 0 || pagedByServer;
     if (matched.length === 0) {
       status.textContent = "Không có kết quả phù hợp";
     } else if (pageCount === 1) {
       status.textContent = matched.length + " kết quả";
     } else {
-      const first = page * ROWS_PER_PAGE + 1;
-      const last = Math.min(matched.length, (page + 1) * ROWS_PER_PAGE);
+      const first = page * rowsPerPage + 1;
+      const last = Math.min(matched.length, (page + 1) * rowsPerPage);
       status.textContent = "Hiển thị " + first + "–" + last + " trên " + matched.length + " kết quả";
     }
     renderPageButtons(pageCount);
   }
 
   input.addEventListener("input", function () {
+    page = 0;
+    render();
+  });
+  document.addEventListener("filterchange", function () {
     page = 0;
     render();
   });

@@ -17,7 +17,7 @@ import java.util.List;
 @Repository
 public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
 
-    private static final int PAGE_SIZE = 50;
+    private static final int PAGE_SIZE = 20;
 
     private final EntityManager em;
 

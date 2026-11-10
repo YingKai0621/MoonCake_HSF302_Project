@@ -142,18 +142,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 }
             }
 
-            CartVariantSnapshot snapshot = new CartVariantSnapshot(
-                variant.getId(),
-                product.getSlug(),
-                product.getName(),
-                variant.getName(),
-                variant.getSku(),
-                product.getProductType(),
-                variant.getUnitPrice(),
+            int availableQuantity = stockByVariantId.getOrDefault(variant.getId(), 0);
+            CartVariantSnapshot snapshot = CartVariantSnapshot.entityToDto(
+                variant,
                 imageUrl,
                 imageAlt,
                 currentlySellable,
-                stockByVariantId.getOrDefault(variant.getId(), 0)
+                availableQuantity
             );
             result.add(snapshot);
         }

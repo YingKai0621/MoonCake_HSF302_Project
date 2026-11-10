@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.dto;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
+import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 
@@ -31,6 +32,44 @@ public record AdminOrderView(
     List<PaymentLine> payments,
     Actions actions
 ) {
+
+    /**
+     * Entity -> DTO. Order fields come from the entity; labels, times, mapped lines,
+     * payments and allowed actions are worked out by the service.
+     */
+    public static AdminOrderView entityToDto(
+        SalesOrder order,
+        String statusLabel,
+        String statusTone,
+        String formattedCreatedAt,
+        String formattedUpdatedAt,
+        List<Item> items,
+        List<PaymentLine> payments,
+        Actions actions
+    ) {
+        return new AdminOrderView(
+            order.getId(),
+            order.getOrderCode(),
+            order.getStatus(),
+            statusLabel,
+            statusTone,
+            order.getRecipientName(),
+            order.getRecipientPhone(),
+            order.getShippingAddressSnapshot(),
+            order.getOrderNote(),
+            order.getSubtotalAmount(),
+            order.getDiscountAmount(),
+            order.getShippingFee(),
+            order.getRoundingAdjustment(),
+            order.getTotalAmount(),
+            formattedCreatedAt,
+            formattedUpdatedAt,
+            items,
+            payments,
+            actions
+        );
+    }
+
     public AdminOrderView {
         items = List.copyOf(items);
         payments = List.copyOf(payments);

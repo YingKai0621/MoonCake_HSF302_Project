@@ -200,23 +200,16 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             }
             paymentLines.add(AdminOrderView.PaymentLine.entityToDto(payment, processor.displayName(), paidAt));
         }
-        return new AdminOrderView(
-            order.getId(),
-            order.getOrderCode(),
-            order.getStatus(),
+        String formattedUpdatedAt = null;
+        if (order.getUpdatedAt() != null) {
+            formattedUpdatedAt = formatTime(order.getUpdatedAt());
+        }
+        return AdminOrderView.entityToDto(
+            order,
             statusLabel(order.getStatus()),
             statusTone(order.getStatus()),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            order.getSubtotalAmount(),
-            order.getDiscountAmount(),
-            order.getShippingFee(),
-            order.getRoundingAdjustment(),
-            order.getTotalAmount(),
             formatTime(order.getCreatedAt()),
-            order.getUpdatedAt() == null ? null : formatTime(order.getUpdatedAt()),
+            formattedUpdatedAt,
             lines,
             paymentLines,
             actions(order.getStatus(), orderPayments)

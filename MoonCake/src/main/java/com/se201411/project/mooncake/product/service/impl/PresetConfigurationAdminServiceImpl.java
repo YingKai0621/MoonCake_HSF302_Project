@@ -71,13 +71,8 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         for (BoxConfiguration configuration : repo.all()) {
             List<AdminPresetView.Component> components = new ArrayList<>();
             for (BoxConfigurationItem item : itemsByConfiguration.getOrDefault(configuration.getId(), List.of())) {
-                ProductVariant cake = item.getMooncakeVariant();
-                components.add(new AdminPresetView.Component(
-                    cake.getId(),
-                    cake.getSku(),
-                    item.getQuantityPerBox(),
-                    variantLabel(cake)
-                ));
+                String cakeName = variantLabel(item.getMooncakeVariant());
+                components.add(AdminPresetView.Component.entityToDto(item, cakeName));
             }
             Box box = configuration.getBox();
             result.add(new AdminPresetView(

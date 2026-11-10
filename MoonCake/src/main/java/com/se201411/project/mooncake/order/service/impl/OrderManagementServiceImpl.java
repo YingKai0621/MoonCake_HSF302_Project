@@ -96,14 +96,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             for (OrderItemComponent component : itemComponents) {
                 parts.add(AdminOrderView.Component.entityToDto(component));
             }
-            lines.add(new AdminOrderView.Item(
-                item.getProductNameSnapshot(),
-                item.getSkuSnapshot(),
-                item.getQuantity(),
-                item.getUnitFinalPriceSnapshot(),
-                item.getLineTotal(),
-                List.copyOf(parts)
-            ));
+            lines.add(AdminOrderView.Item.entityToDto(item, parts));
         }
         return view(order, List.copyOf(lines), payments.findByOrderId(id));
     }

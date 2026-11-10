@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
@@ -41,6 +42,19 @@ public record AdminOrderView(
         BigDecimal total,
         List<Component> components
     ) {
+
+        /** Entity -> DTO. The service maps the item's components and passes them in. */
+        public static Item entityToDto(OrderItem item, List<Component> components) {
+            return new Item(
+                item.getProductNameSnapshot(),
+                item.getSkuSnapshot(),
+                item.getQuantity(),
+                item.getUnitFinalPriceSnapshot(),
+                item.getLineTotal(),
+                components
+            );
+        }
+
         public Item {
             components = List.copyOf(components);
         }

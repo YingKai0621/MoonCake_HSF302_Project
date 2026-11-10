@@ -30,11 +30,6 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
                 "Không tìm thấy thông tin khách hàng"
             ));
 
-        return new CustomerProfile(
-            customer.getId(),
-            customer.getFullName(),
-            customer.getPhone(),
-            customer.getEmail()
-        );
+        return CustomerProfile.entityToDto(customer);
     }
 }

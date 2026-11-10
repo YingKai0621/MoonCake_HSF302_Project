@@ -117,20 +117,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         int totalQuantity = 0;
         for (OrderItem item : items) {
             totalQuantity = Math.addExact(totalQuantity, item.getQuantity());
-            String sku = item.getSkuSnapshot();
-            if (sku == null) {
-                sku = item.getBoxSkuSnapshot();
-            }
-
-            itemViews.add(new CustomerOrderItemView(
-                item.getProductNameSnapshot(),
-                sku,
-                item.getQuantity(),
-                discountLabel(item.getDiscountPercentSnapshot()),
-                formatVnd(item.getUnitFinalPriceSnapshot()),
-                formatVnd(item.getLineTotal()),
-                components.getOrDefault(item.getId(), List.of())
-            ));
+            List<CustomerOrderComponentView> itemComponents = components.getOrDefault(item.getId(), List.of());
+            itemViews.add(CustomerOrderItemView.entityToDto(item, itemComponents));
         }
 
         boolean placed = order.getStatus() == OrderStatus.PLACED;

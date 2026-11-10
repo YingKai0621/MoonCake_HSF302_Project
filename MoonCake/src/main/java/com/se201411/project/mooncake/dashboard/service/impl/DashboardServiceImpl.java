@@ -199,15 +199,10 @@ public class DashboardServiceImpl implements DashboardService {
     private List<RecentOrderView> recentOrders() {
         List<RecentOrderView> views = new ArrayList<>();
         for (SalesOrder order : dashboardRepository.findTop5ByOrderByCreatedAtDesc()) {
-            views.add(new RecentOrderView(
-                order.getId(),
-                order.getOrderCode(),
-                order.getRecipientName(),
-                formatMoney(order.getTotalAmount()),
-                statusLabel(order.getStatus()),
-                statusTone(order.getStatus()),
-                order.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
-            ));
+            String statusLabel = statusLabel(order.getStatus());
+            String statusTone = statusTone(order.getStatus());
+            String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
+            views.add(RecentOrderView.entityToDto(order, statusLabel, statusTone, formattedCreatedAt));
         }
         return views;
     }

@@ -55,13 +55,6 @@ public class PresetConfigurationQueryServiceImpl implements PresetConfigurationQ
             components.add(PresetComponentSnapshot.entityToDto(item));
         }
 
-        return new PresetRecipeSnapshot(
-            configuration.getId(),
-            giftSetVariantId,
-            configuration.getBox().getEmptyBoxVariant().getId(),
-            configuration.getBox().getCapacityCakes(),
-            configuration.getStatus(),
-            components
-        );
+        return PresetRecipeSnapshot.entityToDto(configuration, giftSetVariantId, components);
     }
 }

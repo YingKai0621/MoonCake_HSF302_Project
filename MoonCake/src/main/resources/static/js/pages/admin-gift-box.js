@@ -104,9 +104,23 @@ function setUpCakePicker(picker) {
     lockInput.value = "false";
     delete picker.dataset.confirmMessage;
   });
+  function pickedCakes() {
+    const names = [];
+    for (let i = 0; i < inputs.length; i++) {
+      const value = Math.max(0, Number(inputs[i].value) || 0);
+      if (value > 0) {
+        const card = inputs[i].closest(".pick-card");
+        const label = card.querySelector(".pick-card__text strong").textContent.trim();
+        const detail = card.querySelector(".pick-card__text small").textContent.trim();
+        names.push(value + " " + label + " (" + detail + ")");
+      }
+    }
+    return names.join(", ");
+  }
+
   saveLock.addEventListener("click", function () {
     lockInput.value = "true";
-    picker.dataset.confirmMessage = saveLock.dataset.lockMessage;
+    picker.dataset.confirmMessage = "Chốt danh sách bánh: " + pickedCakes() + "? " + saveLock.dataset.lockMessage;
   });
 
   const steppers = picker.querySelectorAll("[data-step]");

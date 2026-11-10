@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DashboardServiceImplTest {
@@ -67,6 +68,16 @@ class DashboardServiceImplTest {
 
         assertThat(view.chartLabels()).hasSize(8).endsWith("Q4/2026");
         assertThat(view.kpis().get(0).trend()).isEqualTo("flat");
+    }
+
+    @Test
+    void topProductsCountOnlyCompletedOrders() {
+        when(repository.findByCreatedAtGreaterThanEqual(any())).thenReturn(List.of());
+        when(repository.findPaidSince(eq(PaymentStatus.PAID), any())).thenReturn(List.of());
+
+        service.dashboard(DashboardPeriod.DAY);
+
+        verify(repository).findTopProducts(any(), eq(OrderStatus.COMPLETED), any());
     }
 
     private SalesOrder order(OrderStatus status, long total, LocalDateTime createdAtUtc) {

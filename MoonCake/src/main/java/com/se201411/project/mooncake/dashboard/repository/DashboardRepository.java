@@ -76,13 +76,13 @@ public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
         )
         from OrderItem item
         where item.order.createdAt >= :from
-          and item.order.status <> :cancelled
+          and item.order.status = :completed
         group by item.productNameSnapshot
         order by sum(item.quantity) desc
         """)
     List<TopProductView> findTopProducts(
         @Param("from") LocalDateTime from,
-        @Param("cancelled") OrderStatus cancelled,
+        @Param("completed") OrderStatus completed,
         Pageable pageable
     );
 

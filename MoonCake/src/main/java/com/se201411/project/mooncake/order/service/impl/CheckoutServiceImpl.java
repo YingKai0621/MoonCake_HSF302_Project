@@ -209,10 +209,8 @@ public class CheckoutServiceImpl implements CheckoutService {
         order.setBuyerNameSnapshot(customer.fullName());
         order.setBuyerPhoneSnapshot(customer.phone());
         order.setBuyerEmailSnapshot(customer.email());
-        order.setRecipientName(form.getRecipientName().trim());
-        order.setRecipientPhone(form.getRecipientPhone());
+        form.dtoToEntity(order);
         order.setShippingAddressSnapshot(shippingAddress);
-        order.setOrderNote(normalizeOptional(form.getOrderNote()));
         order.setSubtotalAmount(quote.subtotal());
         order.setDiscountAmount(quote.discount());
         order.setShippingFee(quote.shippingFee());

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -117,5 +118,19 @@ public class CheckoutForm {
 
     public void setOrderNote(String orderNote) {
         this.orderNote = orderNote;
+    }
+
+    /**
+     * DTO -> Entity: copies what the customer typed for delivery. Buyer snapshot, address,
+     * prices and status are set by the service because they come from the server.
+     */
+    public void dtoToEntity(SalesOrder order) {
+        order.setRecipientName(recipientName.trim());
+        order.setRecipientPhone(recipientPhone);
+        String note = null;
+        if (orderNote != null && !orderNote.isBlank()) {
+            note = orderNote.trim();
+        }
+        order.setOrderNote(note);
     }
 }

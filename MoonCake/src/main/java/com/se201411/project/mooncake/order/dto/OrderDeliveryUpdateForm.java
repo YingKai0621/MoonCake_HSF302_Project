@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.entity.SalesOrder;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -92,5 +93,18 @@ public class OrderDeliveryUpdateForm {
 
     public void setCurrentShippingAddress(String currentShippingAddress) {
         this.currentShippingAddress = currentShippingAddress;
+    }
+
+    /**
+     * Entity -> DTO: fills the edit form from the order. The service splits the saved
+     * address into street/ward/province afterwards.
+     */
+    public static OrderDeliveryUpdateForm entityToDto(SalesOrder order) {
+        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
+        form.setRecipientName(order.getRecipientName());
+        form.setRecipientPhone(order.getRecipientPhone());
+        form.setOrderNote(order.getOrderNote());
+        form.setCurrentShippingAddress(order.getShippingAddressSnapshot());
+        return form;
     }
 }

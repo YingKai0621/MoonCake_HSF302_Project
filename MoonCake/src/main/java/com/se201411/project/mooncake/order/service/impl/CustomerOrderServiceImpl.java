@@ -146,11 +146,7 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         SalesOrder order = requireOwnedOrder(orderCode, customerIdentity.customerId());
         requireDeliveryEditable(order);
 
-        OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
-        form.setRecipientName(order.getRecipientName());
-        form.setRecipientPhone(order.getRecipientPhone());
-        form.setOrderNote(order.getOrderNote());
-        form.setCurrentShippingAddress(order.getShippingAddressSnapshot());
+        OrderDeliveryUpdateForm form = OrderDeliveryUpdateForm.entityToDto(order);
 
         Optional<DeliveryAddressParts> addressParts = deliveryAddressService
             .parseShippingAddress(order.getShippingAddressSnapshot());

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 
@@ -50,6 +51,15 @@ public record AdminOrderView(
         int quantity,
         ComponentRole role
     ) {
+
+        /** Entity -> DTO */
+        public static Component entityToDto(OrderItemComponent component) {
+            return new Component(
+                component.getComponentNameSnapshot(),
+                component.getQuantityPerSet(),
+                component.getComponentRole()
+            );
+        }
     }
 
     public record PaymentLine(

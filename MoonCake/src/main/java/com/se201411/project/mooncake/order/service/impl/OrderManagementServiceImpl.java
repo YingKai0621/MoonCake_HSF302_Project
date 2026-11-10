@@ -94,11 +94,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
                 List.of()
             );
             for (OrderItemComponent component : itemComponents) {
-                parts.add(new AdminOrderView.Component(
-                    component.getComponentNameSnapshot(),
-                    component.getQuantityPerSet(),
-                    component.getComponentRole()
-                ));
+                parts.add(AdminOrderView.Component.entityToDto(component));
             }
             lines.add(new AdminOrderView.Item(
                 item.getProductNameSnapshot(),

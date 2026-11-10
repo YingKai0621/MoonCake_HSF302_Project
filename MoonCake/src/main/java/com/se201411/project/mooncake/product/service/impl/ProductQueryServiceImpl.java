@@ -110,16 +110,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             throw new ResourceNotFoundException("SKU hộp quà chưa có PRESET READY: " + variantId);
         }
 
-        Product product = variant.getProduct();
-        return new SellableVariantSnapshot(
-            variant.getId(),
-            product.getId(),
-            variant.getSku(),
-            product.getProductType(),
-            product.getName() + " - " + variant.getName(),
-            variant.getUnitPrice(),
-            true
-        );
+        return SellableVariantSnapshot.entityToDto(variant);
     }
 
     @Override

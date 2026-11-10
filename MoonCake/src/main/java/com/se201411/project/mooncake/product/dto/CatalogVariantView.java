@@ -13,8 +13,27 @@ public record CatalogVariantView(
     String formattedPrice,
     String imageUrl,
     String imageAlt,
-    PresetRecipeView presetRecipe
+    PresetRecipeView presetRecipe,
+    int stock
 ) {
+    public static final int UNKNOWN_STOCK = -1;
+    public static final int LOW_STOCK = 5;
+
+    public CatalogVariantView(long id, String sku, String name, Integer weightGrams, String fillingLabel,
+                              BigDecimal unitPrice, String formattedPrice, String imageUrl, String imageAlt,
+                              PresetRecipeView presetRecipe) {
+        this(id, sku, name, weightGrams, fillingLabel, unitPrice, formattedPrice, imageUrl, imageAlt,
+            presetRecipe, UNKNOWN_STOCK);
+    }
+
+    public boolean soldOut() {
+        return stock == 0;
+    }
+
+    public boolean lowStock() {
+        return stock > 0 && stock <= LOW_STOCK;
+    }
+
     public CatalogVariantView {
         Objects.requireNonNull(sku, "sku must not be null");
         Objects.requireNonNull(name, "name must not be null");

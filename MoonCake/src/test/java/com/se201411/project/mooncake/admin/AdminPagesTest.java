@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.admin;
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
 import com.se201411.project.mooncake.dashboard.dto.DashboardView;
+import com.se201411.project.mooncake.dashboard.dto.DiscountSummaryView;
 import com.se201411.project.mooncake.dashboard.dto.KpiView;
 import com.se201411.project.mooncake.dashboard.dto.RecentOrderView;
 import com.se201411.project.mooncake.dashboard.dto.TopProductView;
@@ -562,12 +563,12 @@ class AdminPagesTest {
     }
 
     @Test
-    void overviewRendersDashboardAndBusinesses() throws Exception {
-        var operations=context.getBean(com.se201411.project.mooncake.order.service.OperationsService.class);
-        when(operations.businesses()).thenReturn(List.of(new BusinessSummaryView(1L, "Business", "Contact", "a@example.test", "000", 2L, new BigDecimal("100000"))));
+    void overviewRendersDashboardAndDiscountedOrders() throws Exception {
         mvc.perform(get("/admin/overview").param("period", "MONTH").with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk())
-          .andExpect(content().string(containsString("Business")))
+          .andExpect(content().string(containsString("Đơn được chiết khấu số lượng")))
+          .andExpect(content().string(containsString("MC-DISC")))
+          .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Khách hàng doanh nghiệp"))))
           .andExpect(content().string(containsString("Đơn chờ xử lý")))
           .andExpect(content().string(containsString("Bánh Tôm Hùm")))
           .andExpect(content().string(containsString("&lt;b&gt;Khách&lt;/b&gt;")))
@@ -602,7 +603,9 @@ class AdminPagesTest {
             List.of(0L, 1L),
             List.of(new DashboardTaskView("Đơn chờ xử lý", 3L, "/admin/orders?status=PLACED", "warning")),
             List.of(new RecentOrderView(1L, "MC-1", "<b>Khách</b>", "620.000đ", "Chờ xử lý", "warning", "09/11 10:00")),
-            List.of(new TopProductView("Bánh Tôm Hùm", 4L, new BigDecimal("440000")))
+            List.of(new TopProductView("Bánh Tôm Hùm", 4L, new BigDecimal("440000"))),
+            new DiscountSummaryView("Tháng này", 1L, 50000L, List.of(new DiscountSummaryView.Order(
+                3L, "MC-DISC", "Khách sỉ", "50.000đ", "950.000đ", "09/11 11:00")))
         );
     }
 

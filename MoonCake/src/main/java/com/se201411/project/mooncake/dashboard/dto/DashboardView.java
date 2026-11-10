@@ -10,6 +10,7 @@ public record DashboardView(
     List<Long> chartOrders,
     List<DashboardTaskView> tasks,
     List<RecentOrderView> recentOrders,
-    List<TopProductView> topProducts
+    List<TopProductView> topProducts,
+    DiscountSummaryView discounts
 ) {
 }

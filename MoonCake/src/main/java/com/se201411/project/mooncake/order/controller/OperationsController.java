@@ -26,7 +26,6 @@ public class OperationsController {
     ) {
         model.addAttribute("dashboard", dashboardService.dashboard(period));
         model.addAttribute("periods", DashboardPeriod.values());
-        model.addAttribute("businesses", operationsService.businesses());
         return "admin/overview";
     }
 }

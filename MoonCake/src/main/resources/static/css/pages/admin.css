@@ -3777,3 +3777,30 @@ td .muted {
   color: var(--text-muted);
   font-size: 14px;
 }
+
+.discount-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.discount-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+}
+
+.discount-stats strong {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.discount-amount {
+  color: var(--success);
+  font-weight: 600;
+}

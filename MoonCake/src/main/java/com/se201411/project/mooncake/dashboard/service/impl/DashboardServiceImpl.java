@@ -135,16 +135,17 @@ public class DashboardServiceImpl implements DashboardService {
         List<SalesOrder> orders = dashboardRepository
             .findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(BigDecimal.ZERO, OrderStatus.CANCELLED);
         for (SalesOrder order : orders) {
-            recent.add(new DiscountSummaryView.Order(
-                order.getId(),
-                order.getOrderCode(),
-                order.getRecipientName(),
-                formatMoney(order.getDiscountAmount()),
-                formatMoney(order.getTotalAmount()),
-                order.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
-            ));
+            String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
+            recent.add(DiscountSummaryView.Order.entityToDto(order, formattedCreatedAt));
         }
         return new DiscountSummaryView(currentLabel(period), orderCount, totalDiscount, recent);
+    }
+
+    private String formatVietnamTime(LocalDateTime utcTime) {
+        return utcTime
+            .atOffset(ZoneOffset.UTC)
+            .atZoneSameInstant(VIETNAM)
+            .format(DATE_TIME);
     }
 
     private String currentLabel(DashboardPeriod period) {

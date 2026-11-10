@@ -19,16 +19,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
 public class BatchStockServiceImpl implements BatchStockService {
     private static final int EXPIRY_WARNING_DAYS = 14;
-
-
     private static final int MAX_CODE_LENGTH = 80;
+    private static final String OPENING_CODE = "OPENING";
+    private static final DateTimeFormatter BATCH_DAY = DateTimeFormatter.ofPattern("yyMMdd");
 
     private final StockBatchRepository stockBatchRepository;
     private final BatchAllocationRepository batchAllocationRepository;
@@ -60,7 +62,7 @@ public class BatchStockServiceImpl implements BatchStockService {
         int before = Math.subtractExact(physical, delta);
         int tracked = Math.toIntExact(stockBatchRepository.sumRemaining(variantId));
         if (before > tracked) {
-            createBatch(variantId, "LEGACY-" + shortId(), before - tracked);
+            createBatch(variantId, newBatchCode(), before - tracked);
         }
         if (before < tracked) {
             throw new BusinessRuleViolationException(
@@ -99,7 +101,7 @@ public class BatchStockServiceImpl implements BatchStockService {
                 batch.getId(),
                 batch.getVariant().getSku(),
                 batch.getVariant().getProduct().getName() + " · " + batch.getVariant().getName(),
-                batch.getBatchCode(),
+                batchCodeLabel(batch.getBatchCode()),
                 batch.getProducedOn(),
                 batch.getExpiresOn(),
                 batch.getRemainingQuantity(),
@@ -153,7 +155,7 @@ public class BatchStockServiceImpl implements BatchStockService {
         }
 
         if (originalBatches.isEmpty()) {
-            StockBatch batch = createBatch(variantId, "LOT-" + shortId(), quantity);
+            StockBatch batch = createBatch(variantId, newBatchCode(), quantity);
             recordAllocation(batch.getId(), orderId, operationKey, quantity);
             return;
         }
@@ -257,7 +259,16 @@ public class BatchStockServiceImpl implements BatchStockService {
         return "success";
     }
 
-    private String shortId() {
-        return UUID.randomUUID().toString().substring(0, 12);
+    private String newBatchCode() {
+        String day = LocalDate.now(clock).format(BATCH_DAY);
+        String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase(Locale.ROOT);
+        return "LO-" + day + "-" + suffix;
+    }
+
+    private String batchCodeLabel(String code) {
+        if (OPENING_CODE.equals(code)) {
+            return "Tồn đầu kỳ";
+        }
+        return code;
     }
 }

@@ -15,14 +15,12 @@
             <span class="eyebrow" th:text="${detail.typeLabel}">Hộp quà</span>
             <h1 th:text="${product.name}">Tên sản phẩm</h1>
         </div>
-        <span class="badge badge--large badge--dot" th:classappend="${'badge--' + detail.webTone}"
-              th:text="${detail.webLabel}">Đang bán trên web</span>
     </div>
 
     <section id="sale" class="sale-card" th:classappend="${product.active} ? 'is-on'">
         <div class="sale-card__info">
             <strong th:text="${product.active} ? 'Đang hiện trên cửa hàng' : 'Đang ẩn khỏi cửa hàng'">Đang ẩn khỏi cửa hàng</strong>
-            <span class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
+            <span th:if="${detail.webTone != 'success'}" class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
         </div>
         <div class="sale-card__actions">
             <a th:if="${product.active}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
@@ -96,7 +94,7 @@
                               method="post">
                             <button type="submit" class="danger small-button">Xóa phiên bản</button>
                         </form>
-                        <p th:if="${sku.deleteBlocker != null}" class="muted" th:text="${sku.deleteBlocker}">Không xóa được.</p>
+                        <p th:if="${sku.deleteBlocker != null}" class="delete-blocker" th:text="${sku.deleteBlocker}">Không xóa được.</p>
                     </div>
                 </div>
             </details>
@@ -157,7 +155,7 @@
               method="post">
             <button type="submit" class="danger small-button">Xóa sản phẩm</button>
         </form>
-        <span th:if="${detail.deleteBlocker != null}" class="muted" th:text="${detail.deleteBlocker}">Không xóa được.</span>
+        <p th:if="${detail.deleteBlocker != null}" class="delete-blocker" th:text="${detail.deleteBlocker}">Không xóa được.</p>
     </div>
 
     <th:block th:if="false">

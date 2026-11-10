@@ -83,11 +83,11 @@
                     </thead>
                     <tbody>
                     <tr th:each="order : ${dashboard.recentOrders}">
-                        <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">MC-1</a></td>
+                        <td class="nowrap"><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">MC-1</a></td>
                         <td th:text="${order.recipientName}">Người nhận</td>
                         <td th:text="${order.formattedTotal}">0đ</td>
                         <td><span class="badge" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span></td>
-                        <td class="muted" th:text="${order.formattedCreatedAt}">01/01 10:00</td>
+                        <td class="muted nowrap" th:text="${order.formattedCreatedAt}">01/01 10:00</td>
                     </tr>
                     </tbody>
                 </table>
@@ -117,18 +117,18 @@
     <section class="discount-panel" th:with="d=${dashboard.discounts}">
         <div class="section-heading">
             <h2>Đơn được chiết khấu số lượng</h2>
-            <span class="muted" th:text="${d.periodLabel}">Hôm nay</span>
         </div>
         <div class="discount-stats">
             <div>
-                <span class="muted">Số đơn</span>
+                <span class="muted" th:text="${'Số đơn · ' + d.periodLabel}">Số đơn · Hôm nay</span>
                 <strong th:text="${d.orderCount}">0</strong>
             </div>
             <div>
-                <span class="muted">Tổng tiền đã giảm</span>
+                <span class="muted" th:text="${'Tổng tiền đã giảm · ' + d.periodLabel}">Tổng tiền đã giảm · Hôm nay</span>
                 <strong th:text="${#numbers.formatInteger(d.totalDiscount, 1, 'POINT') + 'đ'}">0đ</strong>
             </div>
         </div>
+        <h3 class="discount-recent" th:if="${!d.recentOrders.isEmpty()}">Đơn được giảm gần đây</h3>
         <table th:if="${!d.recentOrders.isEmpty()}">
             <thead>
             <tr>
@@ -141,7 +141,7 @@
             </thead>
             <tbody>
             <tr th:each="o : ${d.recentOrders}">
-                <td><a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="${o.orderCode}">MC-1</a></td>
+                <td class="nowrap"><a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="${o.orderCode}">MC-1</a></td>
                 <td th:text="${o.recipientName}">Khách</td>
                 <td class="numeric discount-amount" th:text="${'−' + o.formattedDiscount}">−50.000đ</td>
                 <td class="numeric" th:text="${o.formattedTotal}">500.000đ</td>

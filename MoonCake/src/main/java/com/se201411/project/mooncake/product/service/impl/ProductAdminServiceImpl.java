@@ -607,16 +607,16 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private String variantDeleteBlocker(long variantId) {
         long orders = repo.variantOrderCount(variantId);
         if (orders > 0) {
-            return "Phiên bản đã có trong " + orders + " đơn hàng nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+            return "Phiên bản đã có trong " + orders + " đơn hàng nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
         if (repo.variantCartCount(variantId) > 0) {
-            return "Phiên bản đang nằm trong giỏ hàng của khách nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+            return "Phiên bản đang nằm trong giỏ hàng của khách nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
         if (repo.variantRecipeCount(variantId) > 0) {
             return "Phiên bản đang được dùng trong công thức hộp quà nên không xóa được.";
         }
         if (repo.variantStockHistoryCount(variantId) > 0 || repo.variantStockOnHand(variantId) > 0) {
-            return "Phiên bản đã có lịch sử nhập xuất kho nên không xóa được. Hãy tắt Mở bán để ngừng bán.";
+            return "Phiên bản đã có lịch sử nhập xuất kho nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
         return null;
     }

@@ -1892,12 +1892,12 @@ main > nav.tabs .tabs__item.is-active {
 }
 
 main > nav.jump-links a {
-  padding: 6px 14px;
+  padding: 9px 18px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none;
 }
@@ -2493,9 +2493,18 @@ input.switch:focus-visible {
   margin: 0;
 }
 
-.sku-delete p {
+.delete-blocker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  font-size: 13px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 15px;
 }
 
 .heading-actions {
@@ -2520,7 +2529,22 @@ td strong + small {
 td code,
 .modal code {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.code-cell code {
+  font-size: 14px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.discount-recent {
+  margin: 8px 0 10px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .stock-number {

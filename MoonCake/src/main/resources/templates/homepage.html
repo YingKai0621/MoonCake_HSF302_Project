@@ -5,15 +5,12 @@
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>MoonCake - Tinh Hoa Trăng Vàng | Trang Chủ</title>
-  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
   <link
     href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap"
     rel="stylesheet" />
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     tailwind.config = {
@@ -41,7 +38,6 @@
       }
     }
   </script>
-  <!-- External Extracted Stylesheets -->
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
@@ -50,22 +46,16 @@
 
 <body class="bg-midnight text-ivory antialiased selection:bg-gold selection:text-dark-navy">
 
-  <!-- ================= APPROVED GLOBAL HEADER V4 (LUXURY EMBLEM INTEGRATION) ================= -->
-  <!-- Global Shared Header V4 Fragment -->
   <header th:replace="~{fragments/header :: header('home')}"></header>
 
-  <!-- 1. HERO SECTION (DARK LUXURY WITH REAL HTML EDITORIAL OVERLAY) -->
   <section class="hero-section">
-    <!-- Background Image with Responsive Object-Cover -->
     <div class="hero-bg-wrapper">
       <img th:src="@{/images/homepage/lunar_mooncake_gift_set_under_moonlight.png}"
         src="/images/homepage/lunar_mooncake_gift_set_under_moonlight.png" alt="MoonCake Hoàng Gia dưới ánh trăng rằm"
         class="hero-bg-img" />
-      <!-- Subtle left-side vignette gradient for text contrast, right side completely preserved -->
       <div class="hero-gradient-overlay"></div>
     </div>
 
-    <!-- Foreground Content Container -->
     <div class="hero-container">
       <div class="hero-content">
         <h1 class="hero-title">
@@ -93,12 +83,10 @@
     </div>
   </section>
 
-  <!-- 2. DANH MỤC TRỌNG TÂM (TWO CATEGORY ENTRY BLOCKS) -->
   <section class="py-12 bg-midnight relative border-b border-gold/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         
-        <!-- Category Block A: Hộp quà Trung Thu -->
         <div class="bg-dark-navy rounded-xl p-8 lg:p-10 gold-border transition-all duration-300 flex flex-col justify-between group shadow-navy-card">
           <div class="space-y-3">
             <span class="text-xs font-semibold uppercase tracking-widest text-gold block">Bộ Sưu Tập</span>
@@ -117,7 +105,6 @@
           </div>
         </div>
 
-        <!-- Category Block B: Bánh Trung Thu -->
         <div class="bg-dark-navy rounded-xl p-8 lg:p-10 gold-border transition-all duration-300 flex flex-col justify-between group shadow-navy-card">
           <div class="space-y-3">
             <span class="text-xs font-semibold uppercase tracking-widest text-gold block">Hương Vị Đặc Tuyển</span>
@@ -140,7 +127,6 @@
     </div>
   </section>
 
-  <!-- 2.5 TỰ TẠO HỘP QUÀ (3 BƯỚC) -->
   <section id="kham-pha-hop-qua" class="box-steps py-16 lg:py-24 border-b border-gold/20" data-box-steps>
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="box-steps__intro">
@@ -218,7 +204,6 @@
     </div>
   </section>
 
-  <!-- 3. HỘP QUÀ TRUNG THU (GIFT BOX COLLECTION) -->
   <section class="py-16 lg:py-20 bg-midnight relative border-b border-gold/20" id="hop-qua">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-8">
       <div class="text-center max-w-2xl mx-auto mb-12 lg:mb-14">
@@ -231,9 +216,7 @@
         </p>
       </div>
 
-      <!-- Các hộp quà đang có trong catalog -->
       <div class="gift-grid-container">
-        <!-- Hộp quà Kim Phúc -->
         <div class="gift-product-card group">
           <div>
             <div class="gift-img-wrapper">
@@ -261,7 +244,6 @@
           </div>
         </div>
 
-        <!-- Hộp quà Lam Phúc -->
         <div class="gift-product-card group">
           <div>
             <div class="gift-img-wrapper">
@@ -292,15 +274,12 @@
     </div>
   </section>
 
-  <!-- ================= 4. KHÁM PHÁ HƯƠNG VỊ (EDITORIAL FLAVOR & ARTISANAL CRAFT SHOWCASE) ================= -->
   <section id="kham-pha-huong-vi" class="flavor-section relative py-20 lg:py-24 border-b border-[#EDC565]/30 bg-[#0A1322] overflow-hidden">
-    <!-- Subtle Layered Atmospheric Gradient and Golden Dust Rings -->
     <div class="flavor-bg-glow" aria-hidden="true"></div>
     <div class="flavor-bg-orb" aria-hidden="true"></div>
 
     <div class="max-w-[1340px] mx-auto px-4 sm:px-8 relative z-10">
       
-      <!-- Top Editorial Header Block -->
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 lg:mb-16">
         <div class="max-w-2xl space-y-4">
           <span class="flavor-anim flavor-anim-eyebrow text-xs font-semibold uppercase tracking-[0.25em] text-[#EDC565] block">
@@ -314,14 +293,11 @@
           </p>
         </div>
 
-        <!-- Action CTAs -->
         <div class="flavor-anim flavor-anim-cta flex flex-wrap items-center gap-4 shrink-0">
-          <!-- Primary CTA (Links to individual mooncake section below) -->
           <a th:href="@{/#banh-le}" href="#banh-le" class="flavor-cta-primary inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#EDC565] text-[#0C1626] font-semibold text-base hover:bg-[#F5D68E] transition-all shadow-md min-h-[46px]">
             <span>Xem bánh lẻ</span>
             <i class="w-4 h-4 shrink-0" data-lucide="arrow-down"></i>
           </a>
-          <!-- Optional Secondary Link (Smoothly scrolls back to gift box unboxing) -->
           <a th:href="@{/#kham-pha-hop-qua}" href="#kham-pha-hop-qua" class="flavor-cta-secondary inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg border border-[#EDC565]/50 bg-[#162842]/50 text-[#F8F4EB] font-medium text-base hover:border-[#EDC565] hover:bg-[#162842] hover:text-[#FAF4A9] transition-all min-h-[46px]">
             <span>Khám phá hộp quà</span>
             <i class="w-4 h-4 shrink-0 text-[#EDC565]" data-lucide="arrow-up"></i>
@@ -329,21 +305,17 @@
         </div>
       </div>
 
-      <!-- Main Visual Showcase Area (Generous, High-Res Editorial Presentation) -->
       <div class="flavor-anim flavor-anim-visual relative rounded-2xl overflow-hidden border border-[#EDC565]/35 bg-[#0C1626] shadow-navy-card group">
-        <!-- Visual Container -->
         <div class="relative w-full overflow-hidden">
           <img th:src="@{/images/homepage/mooncake_flavor_editorial.jpg}"
                src="/images/homepage/mooncake_flavor_editorial.jpg"
                alt="Bánh Trung Thu thủ công với lớp vỏ nướng vàng ươm và nhân trứng muối tan chảy"
                class="w-full h-[400px] sm:h-[480px] lg:h-[560px] object-cover object-center group-hover:scale-[1.025] transition-transform duration-700 ease-out" />
           
-          <!-- Subtle Dark Luxury Vignette & Contrast Overlay -->
           <div class="absolute inset-0 bg-gradient-to-t from-[#0A1322]/95 via-[#0A1322]/35 to-transparent pointer-events-none"></div>
           <div class="absolute inset-0 bg-gradient-to-r from-[#0A1322]/50 via-transparent to-transparent pointer-events-none hidden sm:block"></div>
         </div>
 
-        <!-- Floating Taste Profile Inset Card -->
         <div class="absolute bottom-6 left-6 right-6 sm:right-auto sm:max-w-md p-5 sm:p-6 rounded-xl bg-[#0C1626]/85 backdrop-blur-md border border-[#EDC565]/40 shadow-2xl transition-all duration-300 group-hover:border-[#EDC565]/70">
           <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-[#EDC565] font-semibold mb-1.5">
             <span class="w-2 h-2 rounded-full bg-[#EDC565] animate-pulse"></span>
@@ -358,10 +330,8 @@
         </div>
       </div>
 
-      <!-- Supporting Flavor Highlights (3 Concise Editorial Taste Cues) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-10 lg:mt-12">
         
-        <!-- Highlight 1: Lớp vỏ nướng thủ công -->
         <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#EDC565]/30 hover:border-[#EDC565]/70 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
           <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
             Lớp vỏ nướng thủ công
@@ -371,7 +341,6 @@
           </p>
         </div>
 
-        <!-- Highlight 2: Nhân đậm đà cân bằng vị -->
         <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#EDC565]/30 hover:border-[#EDC565]/70 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
           <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
             Nhân đậm đà cân bằng vị
@@ -381,7 +350,6 @@
           </p>
         </div>
 
-        <!-- Highlight 3: Thưởng thức cùng trà -->
         <div class="flavor-anim flavor-anim-card bg-[#10233D]/60 hover:bg-[#162842] border border-[#EDC565]/30 hover:border-[#EDC565]/70 rounded-xl p-7 lg:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold-sm group">
           <h4 class="font-serif text-xl font-semibold text-[#F8F4EB] group-hover:text-[#FAF4A9] transition-colors mb-2.5">
             Thưởng thức cùng trà
@@ -396,7 +364,6 @@
     </div>
   </section>
 
-  <!-- 5. BÁNH TRUNG THU (INDIVIDUAL MOONCAKES) -->
   <section class="py-16 lg:py-20 bg-midnight relative border-b border-gold/20" id="banh-le">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-8">
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 lg:mb-12 gap-5">
@@ -408,7 +375,6 @@
             Chọn bánh theo hương vị yêu thích.
           </p>
         </div>
-        <!-- Working Category Filters -->
         <div class="flex flex-wrap items-center gap-2.5">
           <button data-filter-btn="all"
             class="px-5 py-2 rounded-full text-xs sm:text-[13px] font-semibold bg-gold text-dark-navy shadow transition-colors cursor-pointer min-h-[38px]">
@@ -429,9 +395,7 @@
         </div>
       </div>
 
-      <!-- 3 Cards Per Row Grid -->
       <div class="single-grid-container">
-        <!-- Product 1: Bánh Sò Điệp xốt Hồng Kông -->
         <div data-product-card="man" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -458,7 +422,6 @@
           </div>
         </div>
 
-        <!-- Product 2: Bánh Kim Sa Phô Mai -->
         <div data-product-card="lava" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -485,7 +448,6 @@
           </div>
         </div>
 
-        <!-- Product 3: Bánh Hạt Sen – Mắc Ca Trứng Muối -->
         <div data-product-card="ngot" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -512,7 +474,6 @@
           </div>
         </div>
 
-        <!-- Product 4: Bánh Lưu Sa Than Tre Trứng Muối -->
         <div data-product-card="ngot" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -539,7 +500,6 @@
           </div>
         </div>
 
-        <!-- Product 5: Bánh Tôm Hùm xốt Rượu Vang Trứng Muối -->
         <div data-product-card="man" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -566,7 +526,6 @@
           </div>
         </div>
 
-        <!-- Product 6: Bánh Trà Xanh – Hạnh Nhân Trứng Muối -->
         <div data-product-card="ngot" class="single-product-card group">
           <div>
             <div class="single-img-wrapper">
@@ -664,7 +623,6 @@
     </div>
   </section>
 
-  <!-- 6. BANNER LỜI CẢM ƠN (APPROVED THANK-YOU BANNER) -->
   <section class="py-12 bg-midnight relative border-b border-gold/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="overflow-hidden rounded-2xl gold-border shadow-navy-card">
@@ -676,17 +634,13 @@
     </div>
   </section>
 
-  <!-- 7. FOOTER (SHARED COMPONENT) -->
-  <!-- Global Shared Footer Fragment -->
   <footer th:replace="~{fragments/footer :: footer}"></footer>
 
   <script>
     // Initialize Lucide Icons
     lucide.createIcons();
   </script>
-  <!-- External Extracted Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
-  <!-- Three.js Interactive 3D Gift Box Unboxing Scene -->
   <script th:src="@{/js/pages/homepage-steps.js}" src="/js/pages/homepage-steps.js"></script>
 </body>
 

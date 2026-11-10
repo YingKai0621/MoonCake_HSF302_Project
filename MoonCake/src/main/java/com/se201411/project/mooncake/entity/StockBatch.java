@@ -48,25 +48,59 @@ public class StockBatch {
     @Column(name = "received_at", nullable = false)
     private LocalDateTime receivedAt;
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getVariantId() { return variantId; }
-    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    public Long getVariantId() {
+        return variantId;
+    }
 
-    public ProductVariant getVariant() { return variant; }
+    public void setVariantId(Long variantId) {
+        this.variantId = variantId;
+    }
 
-    public String getBatchCode() { return batchCode; }
-    public void setBatchCode(String batchCode) { this.batchCode = batchCode; }
+    public ProductVariant getVariant() {
+        return variant;
+    }
 
-    public LocalDate getProducedOn() { return producedOn; }
-    public void setProducedOn(LocalDate producedOn) { this.producedOn = producedOn; }
+    public String getBatchCode() {
+        return batchCode;
+    }
 
-    public LocalDate getExpiresOn() { return expiresOn; }
-    public void setExpiresOn(LocalDate expiresOn) { this.expiresOn = expiresOn; }
+    public void setBatchCode(String batchCode) {
+        this.batchCode = batchCode;
+    }
 
-    public int getRemainingQuantity() { return remainingQuantity; }
-    public void setRemainingQuantity(int remainingQuantity) { this.remainingQuantity = remainingQuantity; }
+    public LocalDate getProducedOn() {
+        return producedOn;
+    }
 
-    public LocalDateTime getReceivedAt() { return receivedAt; }
-    public void setReceivedAt(LocalDateTime receivedAt) { this.receivedAt = receivedAt; }
+    public void setProducedOn(LocalDate producedOn) {
+        this.producedOn = producedOn;
+    }
+
+    public LocalDate getExpiresOn() {
+        return expiresOn;
+    }
+
+    public void setExpiresOn(LocalDate expiresOn) {
+        this.expiresOn = expiresOn;
+    }
+
+    public int getRemainingQuantity() {
+        return remainingQuantity;
+    }
+
+    public void setRemainingQuantity(int remainingQuantity) {
+        this.remainingQuantity = remainingQuantity;
+    }
+
+    public LocalDateTime getReceivedAt() {
+        return receivedAt;
+    }
+
+    public void setReceivedAt(LocalDateTime receivedAt) {
+        this.receivedAt = receivedAt;
+    }
 }

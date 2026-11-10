@@ -1,5 +1,3 @@
-﻿/* ---------- Design tokens ---------- */
-
 :root {
   --sidebar-width: 264px;
   --radius: 12px;
@@ -69,8 +67,6 @@
   --shadow-raised: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
-/* ---------- Base ---------- */
-
 *,
 *::before,
 *::after {
@@ -138,8 +134,6 @@ small,
 ::selection {
   background: var(--accent-soft);
 }
-
-/* ---------- Sidebar ---------- */
 
 .admin-sidebar {
   position: sticky;
@@ -280,8 +274,6 @@ button.admin-nav__link:hover {
   display: none;
 }
 
-/* ---------- Main area ---------- */
-
 main {
   grid-column: 2;
   width: 100%;
@@ -355,8 +347,6 @@ section,
   flex: 1;
   min-width: 180px;
 }
-
-/* ---------- Forms ---------- */
 
 label {
   display: flex;
@@ -484,8 +474,6 @@ button:disabled {
   stroke-linecap: round;
 }
 
-/* ---------- Disclosure ---------- */
-
 details {
   margin: 8px 0;
 }
@@ -503,8 +491,6 @@ summary::marker {
 details form {
   margin-top: 12px;
 }
-
-/* ---------- Messages ---------- */
 
 .notice,
 .warning,
@@ -642,8 +628,6 @@ details form {
   }
 }
 
-/* ---------- Tables ---------- */
-
 .table-scroll {
   overflow-x: auto;
 }
@@ -734,8 +718,6 @@ td small {
   color: var(--text-muted);
 }
 
-/* ---------- Order workflow chips ---------- */
-
 .workflow {
   display: flex;
   flex-wrap: wrap;
@@ -775,8 +757,6 @@ main > nav a[aria-current="page"] {
   color: var(--accent);
 }
 
-/* ---------- Help panel ---------- */
-
 .help-panel {
   margin: 16px 0;
   padding: 16px 20px;
@@ -794,8 +774,6 @@ main > nav a[aria-current="page"] {
 .help-panel strong {
   color: var(--text);
 }
-
-/* ---------- Dialogs ---------- */
 
 .catalog-editor {
   width: min(820px, calc(100vw - 32px));
@@ -867,8 +845,6 @@ main > nav a[aria-current="page"] {
   gap: 10px;
 }
 
-/* ---------- Motion ---------- */
-
 @keyframes admin-enter {
   from {
     opacity: 0;
@@ -921,8 +897,6 @@ main > nav a[aria-current="page"] {
     transition: none !important;
   }
 }
-
-/* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
   body {
@@ -988,8 +962,6 @@ main > nav a[aria-current="page"] {
   }
 }
 
-/* ---------- Collapsible sidebar ---------- */
-
 :root.sidebar-collapsed {
   --sidebar-width: 76px;
 }
@@ -1021,8 +993,6 @@ main > nav a[aria-current="page"] {
 .admin-collapse svg {
   transition: transform var(--motion) var(--ease-out);
 }
-
-/* ---------- Page progress bar ---------- */
 
 .page-progress {
   position: fixed;
@@ -1070,8 +1040,6 @@ main > nav a[aria-current="page"] {
     display: revert;
   }
 }
-
-/* ---------- Dashboard ---------- */
 
 .dashboard-header {
   display: flex;
@@ -1395,8 +1363,6 @@ main > nav a[aria-current="page"] {
   }
 }
 
-/* ---------- Tabs ---------- */
-
 main > nav.tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1457,8 +1423,6 @@ main > nav.tabs .tabs__item.is-active {
   font-size: clamp(32px, 4vw, 42px);
 }
 
-/* ---------- Table pager ---------- */
-
 .table-pager {
   display: flex;
   flex-wrap: wrap;
@@ -1500,8 +1464,6 @@ main > nav.tabs .tabs__item.is-active {
   border-color: var(--accent);
   color: var(--on-accent);
 }
-
-/* ---------- Lists and detail pages ---------- */
 
 .numeric {
   text-align: right;
@@ -1816,8 +1778,6 @@ main > nav.tabs .tabs__item.is-active {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-/* ---------- Products ---------- */
 
 .page-heading--with-action {
   display: flex;

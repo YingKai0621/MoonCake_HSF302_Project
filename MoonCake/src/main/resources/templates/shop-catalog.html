@@ -4,14 +4,11 @@
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title th:text="${pageTitle + ' | MOONCAKE'}">Hộp quà Trung Thu | MOONCAKE</title>
-  <!-- Google Fonts: Playfair Display & Be Vietnam Pro -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap" rel="stylesheet"/>
-  <!-- Material Symbols & Lucide -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
     tailwind.config = {
@@ -41,26 +38,21 @@
     }
   </script>
   
-  <!-- External Extracted Stylesheets -->
   <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
   <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
   <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
 </head>
 <body class="bg-midnight text-ivory font-sans antialiased selection:bg-gold/30 selection:text-gold min-h-screen">
 
-  <!-- ================= APPROVED GLOBAL HEADER V4 ================= -->
   <header th:replace="~{fragments/header :: header('products')}"></header>
 
-  <!-- MAIN WRAPPER -->
   <main id="catalog-main" th:data-category="${category}" class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
-    <!-- BREADCRUMB -->
     <nav aria-label="Breadcrumb" class="flex items-center space-x-2 text-xs text-sand mb-6 tracking-wide">
       <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang Chủ</a>
       <span class="text-gold/50">/</span>
       <span class="text-gold font-medium" th:text="${breadcrumbTitle}">Hộp quà Trung Thu</span>
     </nav>
 
-    <!-- CATALOG INTRO BANNER (CLEAN & EDITORIAL) -->
     <section class="relative bg-dark-navy border border-gold/25 p-8 md:p-10 mb-8 overflow-hidden rounded-none shadow-navy-card">
       <div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-gold/5 blur-3xl pointer-events-none"></div>
       <div class="relative z-10 max-w-3xl">
@@ -73,11 +65,8 @@
       </div>
     </section>
 
-    <!-- MAIN TWO-COLUMN LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <!-- LEFT SIDEBAR: FILTER PANEL (Approx. 260px / 3 cols on desktop) -->
       <aside class="lg:col-span-3 bg-dark-navy border border-gold/25 rounded-none p-6 space-y-6 sticky top-28 shadow-navy-card">
-        <!-- Header Filter -->
         <div class="flex items-center justify-between border-b border-gold/20 pb-4">
           <div class="flex items-center space-x-2">
             <span class="material-symbols-outlined text-gold text-xl">tune</span>
@@ -85,9 +74,7 @@
           </div>
         </div>
 
-        <!-- ================= FILTERS FOR GIFT BOXES ================= -->
         <div th:if="${category == 'gift-boxes'}" class="space-y-6">
-          <!-- Khoảng Giá (Gift boxes) -->
           <div class="space-y-3">
             <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">
               Khoảng giá
@@ -112,7 +99,6 @@
             </div>
           </div>
 
-          <!-- Số Lượng Bánh trong Hộp (Gift boxes) -->
           <div class="space-y-3 border-t border-gold/15 pt-5">
             <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">
               Số lượng bánh
@@ -127,9 +113,7 @@
           </div>
         </div>
 
-        <!-- ================= FILTERS FOR INDIVIDUAL MOONCAKES ================= -->
         <div th:if="${category == 'mooncakes'}" class="space-y-6">
-          <!-- Nhóm Nhân Bánh -->
           <div class="space-y-3">
             <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">
               Nhân bánh
@@ -143,7 +127,6 @@
             </div>
           </div>
 
-          <!-- Khoảng Giá (Mooncakes) -->
           <div class="space-y-3 border-t border-gold/15 pt-5">
             <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">
               Khoảng giá
@@ -168,7 +151,6 @@
             </div>
           </div>
 
-          <!-- Trọng Lượng Bánh (Mooncakes) -->
           <div class="space-y-3 border-t border-gold/15 pt-5">
             <h3 class="font-serif text-xs uppercase tracking-widest text-gold font-semibold">
               Trọng lượng
@@ -183,7 +165,6 @@
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="pt-2 space-y-3 border-t border-gold/15">
           <button id="apply-filters-btn" type="button" class="w-full bg-gold hover:bg-gold-hover text-dark-navy font-semibold text-xs tracking-wider uppercase py-3 transition-colors duration-200 rounded-none shadow-gold-sm min-h-[44px] cursor-pointer">
             Áp Dụng Bộ Lọc
@@ -194,9 +175,7 @@
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT: TOOLBAR & PRODUCT GRID (9 cols on desktop) -->
       <section class="lg:col-span-9 space-y-6">
-        <!-- Toolbar Bar -->
         <div class="bg-dark-navy border border-gold/25 px-6 py-4 rounded-none flex flex-col gap-4 shadow-navy-card">
           <div>
             <label for="catalog-search" class="sr-only">Tìm kiếm sản phẩm</label>
@@ -224,9 +203,7 @@
           </div>
         </div>
 
-        <!-- Product Grid (Responsive: 1 col mobile, 2 col tablet, 3 col desktop) -->
         <div id="product-grid" class="motion-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
-          <!-- Thymeleaf Iteration over Category Products -->
           <article th:each="p : ${products}"
                    th:data-id="${p.id}"
                    th:data-name="${p.name}"
@@ -237,9 +214,7 @@
                    th:data-search-text="${p.searchText}"
                    class="product-card group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between overflow-hidden rounded-none shadow-navy-card">
             
-            <!-- Top portion: Image + Title + Description (Grows naturally) -->
             <div class="flex flex-col flex-grow">
-              <!-- 1. Product Image Container (Square corners, flush with card edges) -->
               <div class="relative overflow-hidden bg-deep-indigo aspect-[4/3] sm:aspect-square rounded-none">
                 <img th:src="${p.imageUrl}"
                      th:alt="${p.imageAlt}"
@@ -250,15 +225,12 @@
                       class="absolute top-3 left-3 bg-dark-navy/90 border border-gold/40 text-ivory text-xs font-semibold uppercase tracking-wider px-3 py-1.5">Tạm hết hàng</span>
               </div>
 
-              <!-- Content Block: Title + Description -->
               <div class="p-5 sm:p-6 flex flex-col flex-grow justify-start space-y-2">
-                <!-- 2. Product Name -->
                 <h3 class="font-sans text-[18px] sm:text-[19px] font-semibold text-ivory group-hover:text-gold transition-colors leading-[1.4]"
                     th:text="${p.name}">
                   Tên sản phẩm
                 </h3>
 
-                <!-- 3. Concise Factual Description -->
                 <p class="font-sans text-[15px] sm:text-base text-sand font-normal leading-[1.6] line-clamp-2"
                    th:text="${p.description}">
                   Mô tả sản phẩm
@@ -266,9 +238,7 @@
               </div>
             </div>
 
-            <!-- Bottom portion: Price Block + Full-Width CTA (Anchored to bottom, aligned across row) -->
             <div class="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 mt-auto">
-              <!-- 4. Price Block (Label above, bold gold price below) -->
               <div class="pt-4 border-t border-gold/15 mb-4">
                 <span class="text-[13px] text-sand block uppercase tracking-wider font-sans mb-1"
                       th:text="${p.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
@@ -278,7 +248,6 @@
                 </span>
               </div>
 
-              <!-- 5. Primary Full-Width CTA (100% width, min 46px height, rounded-none, no overflow) -->
               <a th:href="@{/products/{slug}(slug=${p.slug})}"
                  class="w-full min-h-[46px] flex items-center justify-center bg-deep-indigo hover:bg-gold text-gold hover:text-dark-navy border border-gold/40 hover:border-gold text-[15px] font-semibold px-4 py-2.5 transition-colors duration-200 uppercase tracking-wider rounded-none focus:outline-none focus:ring-2 focus:ring-gold/50 cursor-pointer text-center box-border">
                 Xem chi tiết
@@ -287,7 +256,6 @@
           </article>
         </div>
 
-        <!-- Empty Results Message (Square corners) -->
         <div id="no-products-msg" class="hidden py-16 text-center space-y-4 bg-dark-navy border border-gold/20 rounded-none p-8 shadow-navy-card">
           <p class="text-sand text-base font-normal">Không tìm thấy sản phẩm phù hợp.</p>
           <button id="reset-filters-btn" type="button" class="inline-flex items-center justify-center px-6 py-2.5 bg-gold text-dark-navy font-semibold text-xs tracking-wider uppercase rounded-none hover:bg-gold-hover transition-colors min-h-[44px] cursor-pointer">
@@ -298,13 +266,11 @@
     </div>
   </main>
 
-  <!-- FOOTER (SHARED MOONCAKE COMPONENT) -->
   <footer th:replace="~{fragments/footer :: footer}"></footer>
 
   <script>
     lucide.createIcons();
   </script>
-  <!-- External Scripts -->
   <script th:src="@{/js/main.js}" src="/js/main.js"></script>
   <script th:src="@{/js/pages/shop-catalog.js}" src="/js/pages/shop-catalog.js"></script>
 </body>

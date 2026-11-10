@@ -33,11 +33,31 @@ public class BoxConfigurationItem {
     public BoxConfigurationItem() {
     }
 
-    public Long getId() { return id; }
-    public BoxConfiguration getConfiguration() { return configuration; }
-    public void setConfiguration(BoxConfiguration configuration) { this.configuration = configuration; }
-    public ProductVariant getMooncakeVariant() { return mooncakeVariant; }
-    public void setMooncakeVariant(ProductVariant mooncakeVariant) { this.mooncakeVariant = mooncakeVariant; }
-    public int getQuantityPerBox() { return quantityPerBox; }
-    public void setQuantityPerBox(int quantityPerBox) { this.quantityPerBox = quantityPerBox; }
+    public Long getId() {
+        return id;
+    }
+
+    public BoxConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(BoxConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    public ProductVariant getMooncakeVariant() {
+        return mooncakeVariant;
+    }
+
+    public void setMooncakeVariant(ProductVariant mooncakeVariant) {
+        this.mooncakeVariant = mooncakeVariant;
+    }
+
+    public int getQuantityPerBox() {
+        return quantityPerBox;
+    }
+
+    public void setQuantityPerBox(int quantityPerBox) {
+        this.quantityPerBox = quantityPerBox;
+    }
 }

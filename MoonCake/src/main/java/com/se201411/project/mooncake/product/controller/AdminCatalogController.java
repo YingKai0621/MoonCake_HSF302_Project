@@ -1,9 +1,17 @@
 package com.se201411.project.mooncake.product.controller;
 
 import com.se201411.project.mooncake.enums.ProductType;
-import com.se201411.project.mooncake.product.service.*;
-import com.se201411.project.mooncake.product.dto.*;
-import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
+import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
+import com.se201411.project.mooncake.product.service.ProductAdminService;
+import com.se201411.project.mooncake.product.dto.AdminPresetForm;
+import com.se201411.project.mooncake.product.dto.AdminProductDetail;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.NewProductForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.web.FormErrors;
 import jakarta.validation.Valid;
@@ -11,7 +19,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.validation.BindingResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -261,17 +274,6 @@ public class AdminCatalogController {
             presets.saveDraft(form);
         } catch (MoonCakeException | DataAccessException ex) {
             return failed(flash, productPage(productId), "recipe", form, message(ex));
-        }
-        return savedProduct(flash, productId, "#recipe");
-    }
-
-    @PostMapping("/presets/{id}/components")
-    public String component(@PathVariable long id, @RequestParam long variantId, @RequestParam int quantity,
-                            @RequestParam long productId, RedirectAttributes flash) {
-        try {
-            presets.setComponent(id, variantId, quantity);
-        } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, productPage(productId), "recipe", null, message(ex));
         }
         return savedProduct(flash, productId, "#recipe");
     }

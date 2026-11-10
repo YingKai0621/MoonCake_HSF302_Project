@@ -1,6 +1,10 @@
 package com.se201411.project.mooncake.product.repository;
 
-import com.se201411.project.mooncake.entity.*;
+import com.se201411.project.mooncake.entity.Box;
+import com.se201411.project.mooncake.entity.Category;
+import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductImage;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import java.util.List;
 
 public interface ProductAdminRepository {

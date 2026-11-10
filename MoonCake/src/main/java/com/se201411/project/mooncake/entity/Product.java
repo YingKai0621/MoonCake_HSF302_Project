@@ -67,25 +67,87 @@ public class Product {
     public Product() {
     }
 
-    public Long getId() { return id; }
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
-    public String getSlug() { return slug; }
-    public void setSlug(String slug) { this.slug = slug; }
-    public ProductType getProductType() { return productType; }
-    public void setProductType(ProductType productType) { this.productType = productType; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getShortDescription() { return shortDescription; }
-    public void setShortDescription(String shortDescription) { this.shortDescription = shortDescription; }
-    public String getDetailedDescription() { return detailedDescription; }
-    public void setDetailedDescription(String detailedDescription) { this.detailedDescription = detailedDescription; }
-    public String getMainIngredients() { return mainIngredients; }
-    public void setMainIngredients(String mainIngredients) { this.mainIngredients = mainIngredients; }
-    public String getShelfLifeInfo() { return shelfLifeInfo; }
-    public void setShelfLifeInfo(String shelfLifeInfo) { this.shelfLifeInfo = shelfLifeInfo; }
-    public String getStorageGuidance() { return storageGuidance; }
-    public void setStorageGuidance(String storageGuidance) { this.storageGuidance = storageGuidance; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public Long getId() {
+        return id;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public ProductType getProductType() {
+        return productType;
+    }
+
+    public void setProductType(ProductType productType) {
+        this.productType = productType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public String getMainIngredients() {
+        return mainIngredients;
+    }
+
+    public void setMainIngredients(String mainIngredients) {
+        this.mainIngredients = mainIngredients;
+    }
+
+    public String getShelfLifeInfo() {
+        return shelfLifeInfo;
+    }
+
+    public void setShelfLifeInfo(String shelfLifeInfo) {
+        this.shelfLifeInfo = shelfLifeInfo;
+    }
+
+    public String getStorageGuidance() {
+        return storageGuidance;
+    }
+
+    public void setStorageGuidance(String storageGuidance) {
+        this.storageGuidance = storageGuidance;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

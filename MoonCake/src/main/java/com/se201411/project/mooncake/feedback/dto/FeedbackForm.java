@@ -17,9 +17,19 @@ public class FeedbackForm {
     @Size(max = 2000, message = "Góp ý tối đa 2.000 ký tự.")
     private String content;
 
-    public Integer getRating() { return rating; }
-    public void setRating(Integer rating) { this.rating = rating; }
+    public Integer getRating() {
+        return rating;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 }

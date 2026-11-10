@@ -1,9 +1,3 @@
-/* ==========================================================================
-   MoonCake - Homepage Hero Styles
-   Cinematic Dark Luxury Hero with Real HTML Text Overlay
-   ========================================================================== */
-
-/* Hero Section Container */
 .hero-section {
   position: relative;
   width: 100%;
@@ -15,7 +9,6 @@
   border-bottom: 1px solid rgba(209, 168, 90, 0.2);
 }
 
-/* Background Image Layer */
 .hero-bg-wrapper {
   position: absolute;
   inset: 0;
@@ -28,11 +21,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: right center; /* Preserves mooncake boxes, moon, and teapot on the right */
+  object-position: right center;
   display: block;
 }
 
-/* Subtle Left-Side Gradient Overlay: Improves text readability without obscuring right-side product set */
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
@@ -47,7 +39,6 @@
   pointer-events: none;
 }
 
-/* Foreground Content */
 .hero-container {
   position: relative;
   z-index: 10;
@@ -62,13 +53,12 @@
 }
 
 .hero-content {
-  max-width: 520px; /* Occupies left 40-42% of 1280px container */
+  max-width: 520px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-/* Editorial Serif Typography */
 .hero-title {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 70px;
@@ -83,7 +73,6 @@
   display: block;
 }
 
-/* Artistic Calligraphic Ampersand */
 .hero-ampersand {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
@@ -94,7 +83,6 @@
   line-height: 1;
 }
 
-/* Refined Golden Divider */
 .hero-divider {
   width: 56px;
   height: 1px;
@@ -103,10 +91,9 @@
   margin-bottom: 1.35rem;
 }
 
-/* Description Typography */
 .hero-description {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 1.0625rem; /* 17px */
+  font-size: 1.0625rem;
   line-height: 1.65;
   color: var(--mc-sand);
   max-width: 470px;
@@ -114,14 +101,12 @@
   font-weight: 400;
 }
 
-/* Functional CTA Button Group */
 .hero-actions {
   display: flex;
   align-items: center;
   gap: 1.25rem;
 }
 
-/* CTA 1: Warm Gold Filled Button */
 .hero-btn-primary {
   display: inline-flex;
   align-items: center;
@@ -152,7 +137,6 @@
   outline-offset: 2px;
 }
 
-/* CTA 2: Transparent/Dark Button With Cream-Gold Border */
 .hero-btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -184,11 +168,6 @@
   outline-offset: 2px;
 }
 
-/* ==========================================================================
-   Homepage Product Sections - Enlarged Cards & Typography Refinement
-   ========================================================================== */
-
-/* Gift Boxes Section Grid (#hop-qua) - 2 Columns Desktop */
 .gift-grid-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -198,16 +177,15 @@
 @media (min-width: 768px) {
   .gift-grid-container {
     grid-template-columns: repeat(2, 1fr);
-    gap: 2.25rem; /* 36px column gap */
+    gap: 2.25rem;
   }
 
 }
 
-/* Gift Box Card Container */
 .gift-product-card {
   background-color: #0C1626;
-  border-radius: 1.125rem; /* 18px */
-  padding: 1.75rem; /* 28px */
+  border-radius: 1.125rem;
+  padding: 1.75rem;
   border: 1px solid rgba(209, 168, 90, 0.25);
   box-shadow: 0 10px 30px -5px rgba(5, 10, 18, 0.7);
   display: flex;
@@ -222,15 +200,14 @@
   box-shadow: 0 18px 38px -4px rgba(5, 10, 18, 0.85);
 }
 
-/* Gift Box Image Area: 340-400px height */
 .gift-img-wrapper {
   position: relative;
   overflow: hidden;
-  border-radius: 0.875rem; /* 14px */
+  border-radius: 0.875rem;
   border: 1px solid rgba(209, 168, 90, 0.2);
   height: 360px;
   width: 100%;
-  margin-bottom: 1.5rem; /* 24px: Image to info spacing */
+  margin-bottom: 1.5rem;
   background-color: #10233D;
 }
 
@@ -253,10 +230,9 @@
   transform: scale(1.04);
 }
 
-/* Gift Box Typography */
 .gift-product-title {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 1.4375rem; /* 23px */
+  font-size: 1.4375rem;
   font-weight: 600;
   line-height: 1.4;
   color: #F8F4EB;
@@ -274,14 +250,13 @@
   font-weight: 400;
   line-height: 1.62;
   color: var(--mc-sand);
-  margin-top: 0.75rem; /* 12px: Title to desc spacing */
+  margin-top: 0.75rem;
   margin-bottom: 0;
 }
 
-/* Gift Box Price & Action Row */
 .gift-bottom-row {
-  margin-top: 1.5rem; /* 24px: Desc to bottom spacing */
-  padding-top: 1.25rem; /* 20px */
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
   border-top: 1px solid rgba(209, 168, 90, 0.2);
   display: flex;
   align-items: center;
@@ -302,7 +277,7 @@
 
 .gift-price-value {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 1.6875rem; /* 27px */
+  font-size: 1.6875rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--mc-gold);
@@ -315,7 +290,7 @@
   color: var(--mc-gold);
   background-color: #162842;
   border: 1px solid rgba(209, 168, 90, 0.45);
-  border-radius: 0.5rem; /* 8px */
+  border-radius: 0.5rem;
   min-height: 44px;
   height: 44px;
   padding: 0 1.5rem;
@@ -340,14 +315,10 @@
   outline-offset: 2px;
 }
 
-/* ==========================================================================
-   Individual Mooncakes Grid (#banh-le) - 3 Columns Desktop
-   ========================================================================== */
-
 .single-grid-container {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.75rem; /* 28px */
+  gap: 1.75rem;
 }
 
 @media (min-width: 640px) {
@@ -360,16 +331,15 @@
 @media (min-width: 1024px) {
   .single-grid-container {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.875rem; /* 30px column gap */
+    gap: 1.875rem;
   }
 
 }
 
-/* Individual Mooncake Card */
 .single-product-card {
   background-color: #0C1626;
-  border-radius: 1rem; /* 16px */
-  padding: 1.5rem; /* 24px */
+  border-radius: 1rem;
+  padding: 1.5rem;
   border: 1px solid rgba(209, 168, 90, 0.25);
   box-shadow: 0 10px 30px -5px rgba(5, 10, 18, 0.7);
   display: flex;
@@ -384,15 +354,14 @@
   box-shadow: 0 16px 36px -4px rgba(5, 10, 18, 0.85);
 }
 
-/* Individual Mooncake Image Area: 280-330px height */
 .single-img-wrapper {
   position: relative;
   overflow: hidden;
-  border-radius: 0.75rem; /* 12px */
+  border-radius: 0.75rem;
   border: 1px solid rgba(209, 168, 90, 0.2);
   height: 295px;
   width: 100%;
-  margin-bottom: 1.375rem; /* 22px: Image to info spacing */
+  margin-bottom: 1.375rem;
   background-color: #10233D;
 }
 
@@ -415,7 +384,6 @@
   transform: scale(1.05);
 }
 
-/* Individual Mooncake Metadata */
 .single-meta-row {
   display: flex;
   align-items: center;
@@ -423,7 +391,7 @@
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 0.9375rem;
   line-height: 1.4;
-  margin-bottom: 0.75rem; /* 12px: Meta to title spacing */
+  margin-bottom: 0.75rem;
 }
 
 .single-meta-cat {
@@ -436,10 +404,9 @@
   font-weight: 400;
 }
 
-/* Individual Mooncake Title */
 .single-product-title {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.42;
   color: #F8F4EB;
@@ -451,21 +418,19 @@
   color: var(--mc-gold-light);
 }
 
-/* Individual Mooncake Description */
 .single-product-desc {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.62;
   color: var(--mc-sand);
-  margin-top: 0.6875rem; /* 11px: Title to desc spacing */
+  margin-top: 0.6875rem;
   margin-bottom: 0;
 }
 
-/* Individual Mooncake Price & Action Row */
 .single-bottom-row {
-  margin-top: 1.5rem; /* 24px: Desc to bottom spacing */
-  padding-top: 1.125rem; /* 18px */
+  margin-top: 1.5rem;
+  padding-top: 1.125rem;
   border-top: 1px solid rgba(209, 168, 90, 0.2);
   display: flex;
   align-items: center;
@@ -475,7 +440,7 @@
 
 .single-price-value {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 1.5625rem; /* 25px */
+  font-size: 1.5625rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--mc-gold);
@@ -488,7 +453,7 @@
   color: var(--mc-gold);
   background-color: #162842;
   border: 1px solid rgba(209, 168, 90, 0.45);
-  border-radius: 0.5rem; /* 8px */
+  border-radius: 0.5rem;
   min-height: 44px;
   height: 44px;
   padding: 0 1.25rem;
@@ -514,21 +479,6 @@
   outline: 2px solid #E7D97F;
   outline-offset: 2px;
 }
-
-/* Atmospheric Decorative Background Art Layer (Approved Background) */
-
-/* Subtle Vignette Overlay to preserve absolute legibility for left editorial text & gift box prominence */
-
-/* Corner Framing Linework Ornaments */
-
-/* Primary Shopping CTA */
-
-/* Secondary Replay Button */
-
-/* ==========================================================================
-   MoonCake - Flavor Showcase Section ("Khám phá hương vị")
-   Editorial Product Story & Flavor Experience
-   ========================================================================== */
 
 .flavor-section {
   position: relative;
@@ -563,7 +513,6 @@
   z-index: 0;
 }
 
-/* Scroll Animation Initial States */
 .flavor-anim {
   opacity: 0;
   transform: translateY(22px);
@@ -571,7 +520,6 @@
   will-change: opacity, transform;
 }
 
-/* Stagger Delays when Revealed */
 .flavor-section.is-revealed .flavor-anim-eyebrow {
   opacity: 1;
   transform: translateY(0);
@@ -620,7 +568,6 @@
   transition-delay: 0.75s;
 }
 
-/* Reduced Motion Fallback */
 @media (prefers-reduced-motion: reduce) {
   .flavor-anim {
     opacity: 1 !important;
@@ -630,7 +577,6 @@
 
 }
 
-/* Primary CTA Button */
 .flavor-cta-primary {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 1rem;
@@ -661,7 +607,6 @@
   outline-offset: 2px;
 }
 
-/* Secondary CTA Button */
 .flavor-cta-secondary {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 1rem;
@@ -692,7 +637,6 @@
   outline: 2px solid #FAF4A9;
   outline-offset: 2px;
 }
-
 
 .box-steps {
   background-color: #0A1322;

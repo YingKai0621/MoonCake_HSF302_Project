@@ -62,23 +62,79 @@ public class StockMovement {
     public StockMovement() {
     }
 
-    public Long getId() { return id; }
-    public ProductVariant getVariant() { return variant; }
-    public void setVariant(ProductVariant variant) { this.variant = variant; }
-    public SalesOrder getOrder() { return order; }
-    public void setOrder(SalesOrder order) { this.order = order; }
-    public Account getPerformedByAccount() { return performedByAccount; }
-    public void setPerformedByAccount(Account value) { this.performedByAccount = value; }
-    public StockMovementType getMovementType() { return movementType; }
-    public void setMovementType(StockMovementType movementType) { this.movementType = movementType; }
-    public int getQuantityDelta() { return quantityDelta; }
-    public void setQuantityDelta(int quantityDelta) { this.quantityDelta = quantityDelta; }
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
-    public String getOperationKey() { return operationKey; }
-    public void setOperationKey(String operationKey) { this.operationKey = operationKey; }
-    public String getOperationGroupKey() { return operationGroupKey; }
-    public void setOperationGroupKey(String value) { this.operationGroupKey = value; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public SalesOrder getOrder() {
+        return order;
+    }
+
+    public void setOrder(SalesOrder order) {
+        this.order = order;
+    }
+
+    public Account getPerformedByAccount() {
+        return performedByAccount;
+    }
+
+    public void setPerformedByAccount(Account value) {
+        this.performedByAccount = value;
+    }
+
+    public StockMovementType getMovementType() {
+        return movementType;
+    }
+
+    public void setMovementType(StockMovementType movementType) {
+        this.movementType = movementType;
+    }
+
+    public int getQuantityDelta() {
+        return quantityDelta;
+    }
+
+    public void setQuantityDelta(int quantityDelta) {
+        this.quantityDelta = quantityDelta;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getOperationKey() {
+        return operationKey;
+    }
+
+    public void setOperationKey(String operationKey) {
+        this.operationKey = operationKey;
+    }
+
+    public String getOperationGroupKey() {
+        return operationGroupKey;
+    }
+
+    public void setOperationGroupKey(String value) {
+        this.operationGroupKey = value;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

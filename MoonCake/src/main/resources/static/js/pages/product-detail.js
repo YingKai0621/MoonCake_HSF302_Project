@@ -1,9 +1,3 @@
-/**
- * MoonCake Luxury Product Detail Page Scripts
- * Minimal, accessible interactions for the image lightbox and variant selector.
- */
-
-// 1. Lightweight Accessible Image Lightbox
 function initLightbox() {
   const modal = document.getElementById('lightboxModal');
   const openBtn = document.getElementById('openLightboxBtn');
@@ -60,7 +54,6 @@ function initLightbox() {
   });
 }
 
-// 2. Keep displayed data and PRESET composition in sync with the selected variant.
 function initVariantSelector() {
   const select = document.getElementById('variantSelect');
   if (!select) {

@@ -3,11 +3,9 @@
 <head></head>
 <body>
 
-  <!-- ================= 1. STOREFRONT FOOTER (HOMEPAGE, CATALOG, DETAIL) ================= -->
   <footer th:fragment="footer" id="footer" class="bg-[#0C1626] border-t border-[#EDC565]/35 pt-12 md:pt-14 pb-8 text-[#D3CABB]" style="font-family: 'Be Vietnam Pro', system-ui, sans-serif;">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-[#EDC565]/30">
-        <!-- Col 1: Brand Info -->
         <div class="md:col-span-7 lg:col-span-8 space-y-3">
           <div class="flex items-center gap-3">
             <span class="font-serif text-xl sm:text-2xl font-bold tracking-widest text-[#F8F4EB]">MOONCAKE</span>
@@ -17,7 +15,6 @@
           </p>
         </div>
 
-        <!-- Col 2: Product Navigation -->
         <div class="md:col-span-5 lg:col-span-4 space-y-3 md:pl-6 lg:pl-10">
           <h4 class="font-serif text-lg font-semibold text-[#F8F4EB] tracking-wide">
             Khám phá
@@ -71,14 +68,12 @@
                   allowfullscreen></iframe>
         </div>
       </section>
-      <!-- Copyright -->
       <div class="pt-8 text-center sm:text-left text-base text-[#D3CABB]">
         <p>© MoonCake — Dự án học tập HSF302</p>
       </div>
     </div>
   </footer>
 
-  <!-- ================= 2. FOCUSED CHECKOUT FOOTER (CART, CHECKOUT, SUCCESS) ================= -->
   <div th:fragment="checkoutFooter" id="checkout-footer" role="contentinfo" class="w-full bg-[#0C1626] border-t border-[#EDC565]/30 mt-16 py-8">
     <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[14px] text-[#D3CABB]">
       <div class="flex items-center gap-2">

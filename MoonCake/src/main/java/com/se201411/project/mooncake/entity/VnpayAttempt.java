@@ -34,24 +34,59 @@ public class VnpayAttempt {
     @Column(name = "status", nullable = false, length = 16)
     private String status;
 
-    public String getTransactionRef() { return transactionRef; }
-    public void setTransactionRef(String transactionRef) { this.transactionRef = transactionRef; }
+    public String getTransactionRef() {
+        return transactionRef;
+    }
 
-    public Long getOrderId() { return orderId; }
-    public void setOrderId(Long orderId) { this.orderId = orderId; }
+    public void setTransactionRef(String transactionRef) {
+        this.transactionRef = transactionRef;
+    }
 
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public Long getOrderId() {
+        return orderId;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
 
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public BigDecimal getAmount() {
+        return amount;
+    }
 
-    public String getTransactionNo() { return transactionNo; }
-    public void setTransactionNo(String transactionNo) { this.transactionNo = transactionNo; }
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public String getTransactionNo() {
+        return transactionNo;
+    }
+
+    public void setTransactionNo(String transactionNo) {
+        this.transactionNo = transactionNo;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

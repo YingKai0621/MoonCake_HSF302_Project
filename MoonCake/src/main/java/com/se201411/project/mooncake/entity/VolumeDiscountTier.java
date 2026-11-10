@@ -47,19 +47,63 @@ public class VolumeDiscountTier {
     public VolumeDiscountTier() {
     }
 
-    public Long getId() { return id; }
-    public DiscountGroup getDiscountGroup() { return discountGroup; }
-    public void setDiscountGroup(DiscountGroup discountGroup) { this.discountGroup = discountGroup; }
-    public int getMinQuantity() { return minQuantity; }
-    public void setMinQuantity(int minQuantity) { this.minQuantity = minQuantity; }
-    public Integer getMaxQuantity() { return maxQuantity; }
-    public void setMaxQuantity(Integer maxQuantity) { this.maxQuantity = maxQuantity; }
-    public BigDecimal getDiscountPercent() { return discountPercent; }
-    public void setDiscountPercent(BigDecimal discountPercent) { this.discountPercent = discountPercent; }
-    public LocalDateTime getValidFrom() { return validFrom; }
-    public void setValidFrom(LocalDateTime validFrom) { this.validFrom = validFrom; }
-    public LocalDateTime getValidTo() { return validTo; }
-    public void setValidTo(LocalDateTime validTo) { this.validTo = validTo; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public Long getId() {
+        return id;
+    }
+
+    public DiscountGroup getDiscountGroup() {
+        return discountGroup;
+    }
+
+    public void setDiscountGroup(DiscountGroup discountGroup) {
+        this.discountGroup = discountGroup;
+    }
+
+    public int getMinQuantity() {
+        return minQuantity;
+    }
+
+    public void setMinQuantity(int minQuantity) {
+        this.minQuantity = minQuantity;
+    }
+
+    public Integer getMaxQuantity() {
+        return maxQuantity;
+    }
+
+    public void setMaxQuantity(Integer maxQuantity) {
+        this.maxQuantity = maxQuantity;
+    }
+
+    public BigDecimal getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(BigDecimal discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public LocalDateTime getValidFrom() {
+        return validFrom;
+    }
+
+    public void setValidFrom(LocalDateTime validFrom) {
+        this.validFrom = validFrom;
+    }
+
+    public LocalDateTime getValidTo() {
+        return validTo;
+    }
+
+    public void setValidTo(LocalDateTime validTo) {
+        this.validTo = validTo;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

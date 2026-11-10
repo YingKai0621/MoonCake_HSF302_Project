@@ -1,51 +1,67 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
-import com.se201411.project.mooncake.inventory.service.BatchStockService;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.se201411.project.mooncake.inventory.service.*;
-import com.se201411.project.mooncake.inventory.dto.*;
-import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.*;
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.validation.AdminFormValidation;
+import com.se201411.project.mooncake.entity.InventoryBalance;
+import com.se201411.project.mooncake.entity.StockMovement;
+import com.se201411.project.mooncake.enums.StockMovementType;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Balance;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Movement;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
+import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockTab;
+import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
+import com.se201411.project.mooncake.inventory.service.BatchStockService;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
+import com.se201411.project.mooncake.inventory.service.PackingService;
+import com.se201411.project.mooncake.product.dto.PresetComponentSnapshot;
+import com.se201411.project.mooncake.product.dto.PresetRecipeSnapshot;
 import com.se201411.project.mooncake.product.service.PresetConfigurationQueryService;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
-import com.se201411.project.mooncake.common.validation.AdminFormValidation;
-import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
-import com.se201411.project.mooncake.enums.StockMovementType;
-import com.se201411.project.mooncake.entity.InventoryBalance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 @Transactional
 public class InventoryAdminServiceImpl implements InventoryAdminService, PackingService {
-    private BatchStockService batchStock;
 
-    @Autowired
-    public void setBatchStock(BatchStockService batchStock) {
-        this.batchStock = batchStock;
-    }
+    private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final int MAX_PAGE = 100000;
 
     private final InventoryAdminRepository repo;
     private final PresetConfigurationQueryService presets;
     private final AdminAccessService access;
     private final AdminFormValidation validation;
+    private final BatchStockService batchStock;
     private final Clock clock;
 
-    public InventoryAdminServiceImpl(InventoryAdminRepository repo, PresetConfigurationQueryService presets,
-                                     AdminAccessService access, AdminFormValidation validation, Clock clock) {
+    public InventoryAdminServiceImpl(
+        InventoryAdminRepository repo,
+        PresetConfigurationQueryService presets,
+        AdminAccessService access,
+        AdminFormValidation validation,
+        BatchStockService batchStock,
+        Clock clock
+    ) {
         this.repo = repo;
         this.presets = presets;
         this.access = access;
         this.validation = validation;
+        this.batchStock = batchStock;
         this.clock = clock;
     }
-
-    private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
-    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @Override
     @Transactional(readOnly = true)
@@ -124,100 +140,143 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         return "Đóng hộp";
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<Movement> movements(int page) {
         access.requireAdmin();
-        var result = new ArrayList<Movement>();
-        for (var m : repo.movements(Math.max(0, Math.min(page, 100000))))
-            result.add(new Movement(
-                m.getVariant().getSku(),
-                m.getMovementType(),
-                m.getQuantityDelta(),
-                m.getReason(),
-                m.getOperationGroupKey(),
-                m.getOrder() == null ? null : m.getOrder().getId(),
-                m.getCreatedAt(),
-                m.getVariant().getProduct().getName() + " · " + m.getVariant().getName(),
-                movementLabel(m.getMovementType()),
-                m.getCreatedAt().atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE_TIME)
-            ));
+        int safePage = Math.max(0, Math.min(page, MAX_PAGE));
+        List<Movement> result = new ArrayList<>();
+        for (StockMovement movement : repo.movements(safePage)) {
+            result.add(toMovement(movement));
+        }
         return List.copyOf(result);
     }
 
+    private Movement toMovement(StockMovement movement) {
+        Long orderId = null;
+        if (movement.getOrder() != null) {
+            orderId = movement.getOrder().getId();
+        }
+        String productName = movement.getVariant().getProduct().getName() + " · " + movement.getVariant().getName();
+        String formattedCreatedAt = movement.getCreatedAt()
+            .atOffset(ZoneOffset.UTC)
+            .atZoneSameInstant(VIETNAM)
+            .format(DATE_TIME);
+        return new Movement(
+            movement.getVariant().getSku(),
+            movement.getMovementType(),
+            movement.getQuantityDelta(),
+            movement.getReason(),
+            movement.getOperationGroupKey(),
+            orderId,
+            movement.getCreatedAt(),
+            productName,
+            movementLabel(movement.getMovementType()),
+            formattedCreatedAt
+        );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public boolean hasStockOrHistory(long id) {
         access.requireAdmin();
         return repo.hasStockOrHistory(id);
     }
 
-    public void receive(AdminStockForm f) {
-        change(f, StockMovementType.RECEIVE);
+    @Override
+    public void receive(AdminStockForm form) {
+        change(form, StockMovementType.RECEIVE);
     }
 
     @Override
-    public void receive(AdminStockForm f, String batchCode, LocalDate producedOn, LocalDate expiresOn) {
-        change(f, StockMovementType.RECEIVE);
-        boolean hasInfo = (batchCode != null && !batchCode.isBlank()) || producedOn != null || expiresOn != null;
-        if (hasInfo && batchStock != null) {
-            String key = StockMovementType.RECEIVE + ":" + f.operationKey() + ":" + f.variantId();
+    public void receive(AdminStockForm form, String batchCode, LocalDate producedOn, LocalDate expiresOn) {
+        change(form, StockMovementType.RECEIVE);
+        boolean hasCode = batchCode != null && !batchCode.isBlank();
+        boolean hasInfo = hasCode || producedOn != null || expiresOn != null;
+        if (hasInfo) {
+            String key = StockMovementType.RECEIVE + ":" + form.operationKey() + ":" + form.variantId();
             batchStock.labelReceivedBatch(key, batchCode, producedOn, expiresOn);
         }
     }
 
-    public void adjust(AdminStockForm f) {
-        change(f, StockMovementType.ADJUST);
+    @Override
+    public void adjust(AdminStockForm form) {
+        change(form, StockMovementType.ADJUST);
     }
 
-    private void change(AdminStockForm f, StockMovementType type) {
+    private void change(AdminStockForm form, StockMovementType type) {
         long admin = access.requireAdmin();
-        validation.validate(f);
-        if (type == StockMovementType.RECEIVE && f.quantity() <= 0) {
+        validation.validate(form);
+        if (type == StockMovementType.RECEIVE && form.quantity() <= 0) {
             throw new BusinessRuleViolationException("Số lượng nhập phải lớn hơn 0.");
         }
-        if (f.quantity() == 0) {
+        if (form.quantity() == 0) {
             throw new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3.");
         }
-        if (repo.isGiftSet(f.variantId())) presets.requireReadyPreset(f.variantId());
-        String group = type + ":" + f.operationKey();
+        if (repo.isGiftSet(form.variantId())) {
+            presets.requireReadyPreset(form.variantId());
+        }
+        String group = type + ":" + form.operationKey();
         requireNew(group);
-        apply(f.variantId(), admin, f.quantity(), type, f.reason(), group, group + ":" + f.variantId());
+        String key = group + ":" + form.variantId();
+        apply(form.variantId(), admin, form.quantity(), type, form.reason(), group, key);
     }
 
-    public void pack(AdminStockForm f) {
+    @Override
+    public void pack(AdminStockForm form) {
         long admin = access.requireAdmin();
-        validation.validate(f);
-        if (f.quantity() <= 0) throw new BusinessRuleViolationException("Số hộp phải lớn hơn 0.");
-        String group = "PACK:" + f.operationKey();
+        validation.validate(form);
+        if (form.quantity() <= 0) {
+            throw new BusinessRuleViolationException("Số hộp phải lớn hơn 0.");
+        }
+        String group = "PACK:" + form.operationKey();
         requireNew(group);
-        var recipe = presets.requireReadyPreset(f.variantId());
-        var deltas = new TreeMap<Long, Integer>();
-        deltas.put(recipe.boxVariantId(), -f.quantity());
+        PresetRecipeSnapshot recipe = presets.requireReadyPreset(form.variantId());
+        Map<Long, Integer> deltas = new TreeMap<>();
+        deltas.put(recipe.boxVariantId(), -form.quantity());
         int cakes = 0;
-        for (var component : recipe.components()) {
+        for (PresetComponentSnapshot component : recipe.components()) {
             cakes = Math.addExact(cakes, component.quantityPerBox());
-            int quantity = Math.multiplyExact(component.quantityPerBox(), f.quantity());
+            int quantity = Math.multiplyExact(component.quantityPerBox(), form.quantity());
             deltas.merge(component.variantId(), -quantity, Math::addExact);
         }
-        if (cakes != recipe.capacityCakes() || deltas.containsKey(f.variantId()))
+        if (cakes != recipe.capacityCakes() || deltas.containsKey(form.variantId())) {
             throw new BusinessRuleViolationException("Công thức hộp không hợp lệ.");
-        deltas.put(f.variantId(), f.quantity());
-        for (var entry : deltas.entrySet()) {
-            String direction = entry.getValue() > 0 ? "IN" : "OUT";
-            apply(entry.getKey(), admin, entry.getValue(), StockMovementType.PACK, f.reason(), group, group + ":" + entry.getKey() + ":" + direction);
         }
-        if (batchStock != null) batchStock.finishPack(group, f.variantId());
+        deltas.put(form.variantId(), form.quantity());
+        for (Map.Entry<Long, Integer> entry : deltas.entrySet()) {
+            String direction = "OUT";
+            if (entry.getValue() > 0) {
+                direction = "IN";
+            }
+            String key = group + ":" + entry.getKey() + ":" + direction;
+            apply(entry.getKey(), admin, entry.getValue(), StockMovementType.PACK, form.reason(), group, key);
+        }
+        batchStock.finishPack(group, form.variantId());
     }
 
     private void requireNew(String group) {
         repo.lockOperation(group);
-        if (repo.operationExists(group))
+        if (repo.operationExists(group)) {
             throw new BusinessRuleViolationException("Thao tác đã được ghi nhận. Không thay đổi tồn lần nữa.");
+        }
     }
 
-    private void apply(long variant, long admin, int delta, StockMovementType type, String reason, String group, String key) {
-        if (repo.change(variant, delta) != 1)
-            throw new BusinessRuleViolationException("Thiếu tồn, thiếu số dư hoặc số lượng vượt giới hạn cho SKU #" + variant);
-        if (batchStock != null) batchStock.apply(variant, delta, key, null, type);
+    private void apply(
+        long variant,
+        long admin,
+        int delta,
+        StockMovementType type,
+        String reason,
+        String group,
+        String key
+    ) {
+        if (repo.change(variant, delta) != 1) {
+            throw new BusinessRuleViolationException(
+                "Thiếu tồn, thiếu số dư hoặc số lượng vượt giới hạn cho SKU #" + variant
+            );
+        }
+        batchStock.apply(variant, delta, key, null, type);
         repo.movement(variant, admin, delta, type, reason, group, key, LocalDateTime.now(clock));
     }
 }

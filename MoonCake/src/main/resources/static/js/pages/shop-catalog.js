@@ -1,7 +1,3 @@
-/**
- * MoonCake Shop Catalog - Search, filtering and sorting.
- * Supports both Gift Boxes and Individual Mooncakes categories.
- */
 function initializeCatalogPage() {
   const catalogMain = document.getElementById('catalog-main');
   if (!catalogMain) {

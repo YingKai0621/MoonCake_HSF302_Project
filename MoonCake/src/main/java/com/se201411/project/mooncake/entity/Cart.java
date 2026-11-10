@@ -46,15 +46,47 @@ public class Cart {
     public Cart() {
     }
 
-    public Long getId() { return id; }
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
-    public String getGuestToken() { return guestToken; }
-    public void setGuestToken(String guestToken) { this.guestToken = guestToken; }
-    public CartStatus getStatus() { return status; }
-    public void setStatus(CartStatus status) { this.status = status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public String getGuestToken() {
+        return guestToken;
+    }
+
+    public void setGuestToken(String guestToken) {
+        this.guestToken = guestToken;
+    }
+
+    public CartStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CartStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

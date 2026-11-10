@@ -75,14 +75,14 @@
                                 <p class="modal__subject" th:text="${batch.productName}">Bánh</p>
                                 <p class="modal__error" role="alert" th:if="${dialogId == 'batch-' + batch.id}" th:text="${dialogError}">Lỗi</p>
                                 <label>Mã lô
-                                    <input type="text" name="code" th:value="${batch.batchCode}" required maxlength="80">
+                                    <input type="text" name="batchCode" th:value="${batch.batchCode}" required maxlength="80">
                                 </label>
                                 <div class="form-grid">
                                     <label>Ngày sản xuất
-                                        <input type="date" name="production" th:value="${batch.producedOn}">
+                                        <input type="date" name="producedOn" th:value="${batch.producedOn}">
                                     </label>
                                     <label>Hạn sử dụng
-                                        <input type="date" name="expiry" th:value="${batch.expiresOn}">
+                                        <input type="date" name="expiresOn" th:value="${batch.expiresOn}">
                                     </label>
                                 </div>
                             </div>

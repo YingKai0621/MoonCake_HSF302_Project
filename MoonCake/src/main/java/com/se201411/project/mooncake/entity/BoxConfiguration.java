@@ -54,19 +54,63 @@ public class BoxConfiguration {
     public BoxConfiguration() {
     }
 
-    public Long getId() { return id; }
-    public Box getBox() { return box; }
-    public void setBox(Box box) { this.box = box; }
-    public Cart getCart() { return cart; }
-    public void setCart(Cart cart) { this.cart = cart; }
-    public ProductVariant getPresetVariant() { return presetVariant; }
-    public void setPresetVariant(ProductVariant presetVariant) { this.presetVariant = presetVariant; }
-    public ConfigurationType getType() { return type; }
-    public void setType(ConfigurationType type) { this.type = type; }
-    public ConfigurationStatus getStatus() { return status; }
-    public void setStatus(ConfigurationStatus status) { this.status = status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Box getBox() {
+        return box;
+    }
+
+    public void setBox(Box box) {
+        this.box = box;
+    }
+
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    public ProductVariant getPresetVariant() {
+        return presetVariant;
+    }
+
+    public void setPresetVariant(ProductVariant presetVariant) {
+        this.presetVariant = presetVariant;
+    }
+
+    public ConfigurationType getType() {
+        return type;
+    }
+
+    public void setType(ConfigurationType type) {
+        this.type = type;
+    }
+
+    public ConfigurationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ConfigurationStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

@@ -42,6 +42,8 @@ class InventoryServiceImplTest {
     private ProductVariantRepository productVariantRepository;
     @Mock
     private SalesOrderRepository salesOrderRepository;
+    @Mock
+    private BatchStockService batchStockService;
 
     private InventoryService inventoryService;
 
@@ -53,6 +55,7 @@ class InventoryServiceImplTest {
             movementRepository,
             productVariantRepository,
             salesOrderRepository,
+            batchStockService,
             clock
         );
     }

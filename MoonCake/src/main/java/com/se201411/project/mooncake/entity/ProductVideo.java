@@ -35,17 +35,39 @@ public class ProductVideo {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public String getVideoUrl() { return videoUrl; }
-    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-    public String getCaption() { return caption; }
-    public void setCaption(String caption) { this.caption = caption; }
+    public String getVideoUrl() {
+        return videoUrl;
+    }
 
-    public int getSortOrder() { return sortOrder; }
-    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
 }

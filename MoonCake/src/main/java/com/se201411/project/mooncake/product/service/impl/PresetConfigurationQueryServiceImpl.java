@@ -52,11 +52,7 @@ public class PresetConfigurationQueryServiceImpl implements PresetConfigurationQ
         );
         List<PresetComponentSnapshot> components = new ArrayList<>();
         for (BoxConfigurationItem item : items) {
-            PresetComponentSnapshot component = new PresetComponentSnapshot(
-                item.getMooncakeVariant().getId(),
-                item.getQuantityPerBox()
-            );
-            components.add(component);
+            components.add(PresetComponentSnapshot.entityToDto(item));
         }
 
         return new PresetRecipeSnapshot(

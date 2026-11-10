@@ -194,18 +194,11 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         List<AdminOrderView.PaymentLine> paymentLines = new ArrayList<>();
         for (Payment payment : orderPayments) {
             PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
-            boolean paid = payment.getStatus() == PaymentStatus.PAID;
             String paidAt = null;
             if (payment.getPaidAt() != null) {
                 paidAt = formatTime(payment.getPaidAt());
             }
-            paymentLines.add(new AdminOrderView.PaymentLine(
-                processor.displayName(),
-                paid ? "Đã thanh toán" : "Chưa thanh toán",
-                paid,
-                payment.getAmount(),
-                paidAt
-            ));
+            paymentLines.add(AdminOrderView.PaymentLine.entityToDto(payment, processor.displayName(), paidAt));
         }
         return new AdminOrderView(
             order.getId(),

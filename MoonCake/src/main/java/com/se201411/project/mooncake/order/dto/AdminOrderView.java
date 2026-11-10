@@ -2,9 +2,11 @@ package com.se201411.project.mooncake.order.dto;
 
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
+import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -83,6 +85,22 @@ public record AdminOrderView(
         BigDecimal amount,
         String formattedPaidAt
     ) {
+
+        /** Entity -> DTO. The service asks the payment strategy for the method name and formats the paid time. */
+        public static PaymentLine entityToDto(Payment payment, String methodLabel, String formattedPaidAt) {
+            boolean paid = payment.getStatus() == PaymentStatus.PAID;
+            String statusLabel = "Chưa thanh toán";
+            if (paid) {
+                statusLabel = "Đã thanh toán";
+            }
+            return new PaymentLine(
+                methodLabel,
+                statusLabel,
+                paid,
+                payment.getAmount(),
+                formattedPaidAt
+            );
+        }
     }
 
     public record Actions(

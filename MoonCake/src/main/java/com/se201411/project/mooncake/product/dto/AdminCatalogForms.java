@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.dto;
 
+import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductVariant;
@@ -241,6 +242,26 @@ public final class AdminCatalogForms {
         String notes,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved box model. */
+        public static BoxForm entityToDto(Box box) {
+            return new BoxForm(
+                box.getId(),
+                box.getEmptyBoxVariant().getId(),
+                box.getCapacityCakes(),
+                box.getMaterial(),
+                box.getNotes(),
+                box.isActive()
+            );
+        }
+
+        /** DTO -> Entity: copies only the plain fields; the service sets the box SKU itself. */
+        public void dtoToEntity(Box box) {
+            box.setCapacityCakes(capacityCakes);
+            box.setMaterial(material);
+            box.setNotes(notes);
+            box.setActive(active);
+        }
     }
 
     public record ImageForm(

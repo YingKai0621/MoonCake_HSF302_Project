@@ -84,7 +84,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxes()) {
-            boxes.add(boxForm(box));
+            boxes.add(BoxForm.entityToDto(box));
         }
         List<ImageForm> images = new ArrayList<>();
         for (ProductImage image : repo.images()) {
@@ -203,7 +203,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
 
         List<BoxForm> boxes = new ArrayList<>();
         for (Box box : repo.boxesOf(productId)) {
-            boxes.add(boxForm(box));
+            boxes.add(BoxForm.entityToDto(box));
         }
 
         return new AdminProductDetail(
@@ -487,10 +487,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Mẫu hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
         }
         v.setEmptyBoxVariant(variant);
-        v.setCapacityCakes(f.capacityCakes());
-        v.setMaterial(f.material());
-        v.setNotes(f.notes());
-        v.setActive(f.active());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return variant.getProduct().getId();
@@ -728,17 +725,6 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             categories.add(CategoryForm.entityToDto(category));
         }
         return categories;
-    }
-
-    private BoxForm boxForm(Box box) {
-        return new BoxForm(
-            box.getId(),
-            box.getEmptyBoxVariant().getId(),
-            box.getCapacityCakes(),
-            box.getMaterial(),
-            box.getNotes(),
-            box.isActive()
-        );
     }
 
     private ImageForm imageForm(ProductImage image) {

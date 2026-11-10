@@ -60,7 +60,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public List<ProductVideoView> videos(long productId) {
         List<ProductVideoView> views = new ArrayList<>();
         for (ProductVideo video : productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(productId)) {
-            views.add(new ProductVideoView(video.getId(), video.getVideoUrl(), video.getCaption()));
+            views.add(ProductVideoView.entityToDto(video));
         }
         return views;
     }

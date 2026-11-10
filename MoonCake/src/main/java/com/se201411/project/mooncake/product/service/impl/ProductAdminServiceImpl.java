@@ -76,7 +76,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         access.requireAdmin();
         List<ProductForm> products = new ArrayList<>();
         for (Product product : repo.products()) {
-            products.add(productForm(product));
+            products.add(ProductForm.fromEntity(product));
         }
         List<VariantForm> variants = new ArrayList<>();
         for (ProductVariant variant : repo.variants()) {
@@ -207,7 +207,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
 
         return new AdminProductDetail(
-            productForm(product),
+            ProductForm.fromEntity(product),
             typeLabel(product.getProductType()),
             !skus.isEmpty(),
             product.getProductType() == ProductType.EMPTY_BOX,
@@ -287,15 +287,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
         v.setCategory(repo.category(f.categoryId()));
-        v.setProductType(f.productType());
-        v.setName(f.name().trim());
-        v.setSlug(f.slug());
-        v.setShortDescription(f.shortDescription());
-        v.setDetailedDescription(f.detailedDescription());
-        v.setMainIngredients(f.mainIngredients());
-        v.setShelfLifeInfo(f.shelfLifeInfo());
-        v.setStorageGuidance(f.storageGuidance());
-        v.setActive(f.active());
+        f.applyTo(v);
         repo.save(v);
         repo.flush();
         return v.getId();
@@ -304,7 +296,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public void setProductVisible(long productId, boolean visible) {
         access.requireAdmin();
-        ProductForm current = productForm(repo.product(productId));
+        ProductForm current = ProductForm.fromEntity(repo.product(productId));
         saveProduct(new ProductForm(
             current.id(),
             current.categoryId(),
@@ -739,22 +731,6 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             categories.add(CategoryForm.fromEntity(category));
         }
         return categories;
-    }
-
-    private ProductForm productForm(Product product) {
-        return new ProductForm(
-            product.getId(),
-            product.getCategory().getId(),
-            product.getProductType(),
-            product.getName(),
-            product.getSlug(),
-            product.getShortDescription(),
-            product.getDetailedDescription(),
-            product.getMainIngredients(),
-            product.getShelfLifeInfo(),
-            product.getStorageGuidance(),
-            product.isActive()
-        );
     }
 
     private VariantForm variantForm(ProductVariant variant) {

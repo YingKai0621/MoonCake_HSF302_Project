@@ -1,6 +1,7 @@
 package com.se201411.project.mooncake.product.dto;
 
 import com.se201411.project.mooncake.entity.Category;
+import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.enums.ProductType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -83,6 +84,39 @@ public final class AdminCatalogForms {
         String storageGuidance,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved product. */
+        public static ProductForm fromEntity(Product product) {
+            return new ProductForm(
+                product.getId(),
+                product.getCategory().getId(),
+                product.getProductType(),
+                product.getName(),
+                product.getSlug(),
+                product.getShortDescription(),
+                product.getDetailedDescription(),
+                product.getMainIngredients(),
+                product.getShelfLifeInfo(),
+                product.getStorageGuidance(),
+                product.isActive()
+            );
+        }
+
+        /**
+         * DTO -> Entity: copies only the plain fields. The service sets the category itself,
+         * because it must load it from the database instead of trusting the submitted ID.
+         */
+        public void applyTo(Product product) {
+            product.setProductType(productType);
+            product.setName(name.trim());
+            product.setSlug(slug);
+            product.setShortDescription(shortDescription);
+            product.setDetailedDescription(detailedDescription);
+            product.setMainIngredients(mainIngredients);
+            product.setShelfLifeInfo(shelfLifeInfo);
+            product.setStorageGuidance(storageGuidance);
+            product.setActive(active);
+        }
     }
 
     public record NewProductForm(

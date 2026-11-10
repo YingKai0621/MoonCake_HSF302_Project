@@ -323,19 +323,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             presetView = toPresetView(preset, presetItems);
         }
 
-        return new CatalogVariantView(
-            variant.getId(),
-            variant.getSku(),
-            variant.getName(),
-            variant.getWeightGrams(),
-            variant.getFillingLabel(),
-            variant.getUnitPrice(),
-            formatVnd(variant.getUnitPrice()),
-            imageUrl,
-            imageAlt,
-            presetView,
-            stock
-        );
+        return CatalogVariantView.entityToDto(variant, imageUrl, imageAlt, presetView, stock);
     }
 
     private ProductImage findPrimaryImage(List<ProductImage> images) {

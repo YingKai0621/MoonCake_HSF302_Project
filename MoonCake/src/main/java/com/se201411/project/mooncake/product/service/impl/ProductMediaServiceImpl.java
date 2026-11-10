@@ -71,12 +71,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
         adminAccessService.requireAdmin();
         List<AdminVideoView> views = new ArrayList<>();
         for (ProductVideo video : productVideoRepository.findAllByOrderByIdDesc()) {
-            views.add(new AdminVideoView(
-                video.getId(),
-                video.getProduct().getName(),
-                video.getVideoUrl(),
-                video.getCaption()
-            ));
+            views.add(AdminVideoView.entityToDto(video));
         }
         return views;
     }

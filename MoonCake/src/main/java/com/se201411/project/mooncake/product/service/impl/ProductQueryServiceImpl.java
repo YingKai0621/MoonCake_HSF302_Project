@@ -351,21 +351,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         BoxConfiguration preset,
         List<BoxConfigurationItem> items
     ) {
-        ProductVariant boxVariant = preset.getBox().getEmptyBoxVariant();
         List<PresetComponentView> components = new ArrayList<>();
         for (BoxConfigurationItem item : items) {
             String displayName = buildComponentDisplayName(item.getMooncakeVariant());
             components.add(PresetComponentView.entityToDto(item, displayName));
         }
 
-        return new PresetRecipeView(
-            preset.getId(),
-            preset.getPresetVariant().getId(),
-            boxVariant.getId(),
-            boxVariant.getName(),
-            preset.getBox().getCapacityCakes(),
-            components
-        );
+        return PresetRecipeView.entityToDto(preset, components);
     }
 
     private String buildComponentDisplayName(ProductVariant variant) {

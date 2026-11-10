@@ -92,39 +92,143 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public Long getId() { return id; }
-    public SalesOrder getOrder() { return order; }
-    public void setOrder(SalesOrder order) { this.order = order; }
-    public ProductVariant getVariant() { return variant; }
-    public void setVariant(ProductVariant variant) { this.variant = variant; }
-    public BoxConfiguration getConfiguration() { return configuration; }
-    public void setConfiguration(BoxConfiguration configuration) { this.configuration = configuration; }
-    public VolumeDiscountTier getVolumeDiscountTier() { return volumeDiscountTier; }
-    public void setVolumeDiscountTier(VolumeDiscountTier value) { this.volumeDiscountTier = value; }
-    public OrderItemKind getItemKind() { return itemKind; }
-    public void setItemKind(OrderItemKind itemKind) { this.itemKind = itemKind; }
-    public InventorySource getInventorySourceSnapshot() { return inventorySourceSnapshot; }
-    public void setInventorySourceSnapshot(InventorySource value) { this.inventorySourceSnapshot = value; }
-    public String getProductNameSnapshot() { return productNameSnapshot; }
-    public void setProductNameSnapshot(String value) { this.productNameSnapshot = value; }
-    public String getSkuSnapshot() { return skuSnapshot; }
-    public void setSkuSnapshot(String skuSnapshot) { this.skuSnapshot = skuSnapshot; }
-    public DiscountGroup getDiscountGroupSnapshot() { return discountGroupSnapshot; }
-    public void setDiscountGroupSnapshot(DiscountGroup value) { this.discountGroupSnapshot = value; }
-    public String getBoxNameSnapshot() { return boxNameSnapshot; }
-    public void setBoxNameSnapshot(String value) { this.boxNameSnapshot = value; }
-    public String getBoxSkuSnapshot() { return boxSkuSnapshot; }
-    public void setBoxSkuSnapshot(String value) { this.boxSkuSnapshot = value; }
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
-    public BigDecimal getUnitBasePriceSnapshot() { return unitBasePriceSnapshot; }
-    public void setUnitBasePriceSnapshot(BigDecimal value) { this.unitBasePriceSnapshot = value; }
-    public BigDecimal getDiscountPercentSnapshot() { return discountPercentSnapshot; }
-    public void setDiscountPercentSnapshot(BigDecimal value) { this.discountPercentSnapshot = value; }
-    public BigDecimal getUnitDiscountSnapshot() { return unitDiscountSnapshot; }
-    public void setUnitDiscountSnapshot(BigDecimal value) { this.unitDiscountSnapshot = value; }
-    public BigDecimal getUnitFinalPriceSnapshot() { return unitFinalPriceSnapshot; }
-    public void setUnitFinalPriceSnapshot(BigDecimal value) { this.unitFinalPriceSnapshot = value; }
-    public BigDecimal getLineTotal() { return lineTotal; }
-    public void setLineTotal(BigDecimal lineTotal) { this.lineTotal = lineTotal; }
+    public Long getId() {
+        return id;
+    }
+
+    public SalesOrder getOrder() {
+        return order;
+    }
+
+    public void setOrder(SalesOrder order) {
+        this.order = order;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public BoxConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(BoxConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    public VolumeDiscountTier getVolumeDiscountTier() {
+        return volumeDiscountTier;
+    }
+
+    public void setVolumeDiscountTier(VolumeDiscountTier value) {
+        this.volumeDiscountTier = value;
+    }
+
+    public OrderItemKind getItemKind() {
+        return itemKind;
+    }
+
+    public void setItemKind(OrderItemKind itemKind) {
+        this.itemKind = itemKind;
+    }
+
+    public InventorySource getInventorySourceSnapshot() {
+        return inventorySourceSnapshot;
+    }
+
+    public void setInventorySourceSnapshot(InventorySource value) {
+        this.inventorySourceSnapshot = value;
+    }
+
+    public String getProductNameSnapshot() {
+        return productNameSnapshot;
+    }
+
+    public void setProductNameSnapshot(String value) {
+        this.productNameSnapshot = value;
+    }
+
+    public String getSkuSnapshot() {
+        return skuSnapshot;
+    }
+
+    public void setSkuSnapshot(String skuSnapshot) {
+        this.skuSnapshot = skuSnapshot;
+    }
+
+    public DiscountGroup getDiscountGroupSnapshot() {
+        return discountGroupSnapshot;
+    }
+
+    public void setDiscountGroupSnapshot(DiscountGroup value) {
+        this.discountGroupSnapshot = value;
+    }
+
+    public String getBoxNameSnapshot() {
+        return boxNameSnapshot;
+    }
+
+    public void setBoxNameSnapshot(String value) {
+        this.boxNameSnapshot = value;
+    }
+
+    public String getBoxSkuSnapshot() {
+        return boxSkuSnapshot;
+    }
+
+    public void setBoxSkuSnapshot(String value) {
+        this.boxSkuSnapshot = value;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getUnitBasePriceSnapshot() {
+        return unitBasePriceSnapshot;
+    }
+
+    public void setUnitBasePriceSnapshot(BigDecimal value) {
+        this.unitBasePriceSnapshot = value;
+    }
+
+    public BigDecimal getDiscountPercentSnapshot() {
+        return discountPercentSnapshot;
+    }
+
+    public void setDiscountPercentSnapshot(BigDecimal value) {
+        this.discountPercentSnapshot = value;
+    }
+
+    public BigDecimal getUnitDiscountSnapshot() {
+        return unitDiscountSnapshot;
+    }
+
+    public void setUnitDiscountSnapshot(BigDecimal value) {
+        this.unitDiscountSnapshot = value;
+    }
+
+    public BigDecimal getUnitFinalPriceSnapshot() {
+        return unitFinalPriceSnapshot;
+    }
+
+    public void setUnitFinalPriceSnapshot(BigDecimal value) {
+        this.unitFinalPriceSnapshot = value;
+    }
+
+    public BigDecimal getLineTotal() {
+        return lineTotal;
+    }
+
+    public void setLineTotal(BigDecimal lineTotal) {
+        this.lineTotal = lineTotal;
+    }
 }

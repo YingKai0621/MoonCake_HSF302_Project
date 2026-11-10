@@ -50,19 +50,63 @@ public class ProductVariant {
     public ProductVariant() {
     }
 
-    public Long getId() { return id; }
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-    public String getSku() { return sku; }
-    public void setSku(String sku) { this.sku = sku; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Integer getWeightGrams() { return weightGrams; }
-    public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }
-    public String getFillingLabel() { return fillingLabel; }
-    public void setFillingLabel(String fillingLabel) { this.fillingLabel = fillingLabel; }
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public Long getId() {
+        return id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getWeightGrams() {
+        return weightGrams;
+    }
+
+    public void setWeightGrams(Integer weightGrams) {
+        this.weightGrams = weightGrams;
+    }
+
+    public String getFillingLabel() {
+        return fillingLabel;
+    }
+
+    public void setFillingLabel(String fillingLabel) {
+        this.fillingLabel = fillingLabel;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

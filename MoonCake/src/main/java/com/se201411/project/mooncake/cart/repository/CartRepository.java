@@ -63,10 +63,6 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
         @Param("customerId") long customerId
     );
 
-    /**
-     * SQL Server range locking prevents two first-add requests from creating two
-     * ACTIVE carts for the same customer.
-     */
     @Modifying
     @Query(value = """
         INSERT INTO dbo.CART

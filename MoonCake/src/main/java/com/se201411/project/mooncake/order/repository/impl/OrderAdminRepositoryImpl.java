@@ -13,6 +13,9 @@ import java.util.List;
 
 @Repository
 public class OrderAdminRepositoryImpl implements OrderAdminRepository {
+
+    private static final int PAGE_SIZE = 50;
+
     private final EntityManager em;
 
     public OrderAdminRepositoryImpl(EntityManager em) {
@@ -21,8 +24,12 @@ public class OrderAdminRepositoryImpl implements OrderAdminRepository {
 
     @Override
     public List<SalesOrder> orders(OrderStatus status, int page) {
-        return em.createQuery("from SalesOrder o where (:status is null or o.status=:status) order by o.id desc", SalesOrder.class)
-                .setParameter("status", status).setFirstResult(page * 50).setMaxResults(50).getResultList();
+        String query = "from SalesOrder o where (:status is null or o.status = :status) order by o.id desc";
+        return em.createQuery(query, SalesOrder.class)
+            .setParameter("status", status)
+            .setFirstResult(page * PAGE_SIZE)
+            .setMaxResults(PAGE_SIZE)
+            .getResultList();
     }
 
     @Override
@@ -34,8 +41,10 @@ public class OrderAdminRepositoryImpl implements OrderAdminRepository {
 
     @Override
     public SalesOrder require(long id) {
-        var order = em.find(SalesOrder.class, id);
-        if (order == null) throw new ResourceNotFoundException("Không tìm thấy đơn hàng.");
+        SalesOrder order = em.find(SalesOrder.class, id);
+        if (order == null) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng.");
+        }
         return order;
     }
 

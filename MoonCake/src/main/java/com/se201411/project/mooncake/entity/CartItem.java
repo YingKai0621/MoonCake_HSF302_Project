@@ -49,20 +49,55 @@ public class CartItem {
     public CartItem() {
     }
 
-    public Long getId() { return id; }
-    public Cart getCart() { return cart; }
-    public void setCart(Cart cart) { this.cart = cart; }
-    public ProductVariant getVariant() { return variant; }
-    public void setVariant(ProductVariant variant) { this.variant = variant; }
-    public Long getConfigurationId() { return configurationId; }
-    public void setConfigurationId(Long configurationId) { this.configurationId = configurationId; }
-    public BoxConfiguration getConfiguration() { return configuration; }
+    public Long getId() {
+        return id;
+    }
+
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public Long getConfigurationId() {
+        return configurationId;
+    }
+
+    public void setConfigurationId(Long configurationId) {
+        this.configurationId = configurationId;
+    }
+
+    public BoxConfiguration getConfiguration() {
+        return configuration;
+    }
     public void setConfiguration(BoxConfiguration configuration) {
         this.configuration = configuration;
         this.configurationId = configuration == null ? null : configuration.getId();
     }
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
-    public LocalDateTime getAddedAt() { return addedAt; }
-    public void setAddedAt(LocalDateTime addedAt) { this.addedAt = addedAt; }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public LocalDateTime getAddedAt() {
+        return addedAt;
+    }
+
+    public void setAddedAt(LocalDateTime addedAt) {
+        this.addedAt = addedAt;
+    }
 }

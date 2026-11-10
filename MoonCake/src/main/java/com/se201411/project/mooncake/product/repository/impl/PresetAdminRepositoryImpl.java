@@ -1,16 +1,21 @@
 package com.se201411.project.mooncake.product.repository.impl;
 
-import com.se201411.project.mooncake.product.repository.PresetAdminRepository;
-import com.se201411.project.mooncake.entity.*;
-import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
-import jakarta.persistence.*;
+import com.se201411.project.mooncake.entity.BoxConfiguration;
+import com.se201411.project.mooncake.entity.BoxConfigurationItem;
+import com.se201411.project.mooncake.enums.ConfigurationType;
+import com.se201411.project.mooncake.product.repository.PresetAdminRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public class PresetAdminRepositoryImpl implements PresetAdminRepository {
+
+    private static final String PRESET_ONLY = "PRESET only";
+
     private final EntityManager em;
 
     public PresetAdminRepositoryImpl(EntityManager em) {
@@ -19,64 +24,109 @@ public class PresetAdminRepositoryImpl implements PresetAdminRepository {
 
     @Override
     public List<BoxConfiguration> all() {
-        return em.createQuery("from BoxConfiguration c join fetch c.presetVariant join fetch c.box where c.type=:type order by c.id", BoxConfiguration.class)
-                .setParameter("type", ConfigurationType.PRESET).getResultList();
+        String query = """
+            from BoxConfiguration c
+            join fetch c.presetVariant
+            join fetch c.box
+            where c.type = :type
+            order by c.id
+            """;
+        return em.createQuery(query, BoxConfiguration.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .getResultList();
     }
 
     @Override
     public BoxConfiguration lock(long id) {
-        return em.createQuery("from BoxConfiguration c where c.id=:id and c.type=:type", BoxConfiguration.class)
-                .setParameter("id", id).setParameter("type", ConfigurationType.PRESET).setLockMode(LockModeType.PESSIMISTIC_WRITE)
-                .getResultStream().findFirst().orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy PRESET."));
+        String query = "from BoxConfiguration c where c.id = :id and c.type = :type";
+        List<BoxConfiguration> found = em.createQuery(query, BoxConfiguration.class)
+            .setParameter("id", id)
+            .setParameter("type", ConfigurationType.PRESET)
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .getResultList();
+        if (found.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy PRESET.");
+        }
+        return found.get(0);
     }
 
     @Override
     public List<BoxConfigurationItem> items(long id) {
-        return em.createQuery("from BoxConfigurationItem i join fetch i.mooncakeVariant where i.configuration.id=:id and i.configuration.type=:type order by i.id", BoxConfigurationItem.class)
-                .setParameter("id", id).setParameter("type", ConfigurationType.PRESET).getResultList();
+        String query = """
+            from BoxConfigurationItem i
+            join fetch i.mooncakeVariant
+            where i.configuration.id = :id
+              and i.configuration.type = :type
+            order by i.id
+            """;
+        return em.createQuery(query, BoxConfigurationItem.class)
+            .setParameter("id", id)
+            .setParameter("type", ConfigurationType.PRESET)
+            .getResultList();
     }
 
     @Override
     public List<BoxConfigurationItem> allPresetItems() {
-        return em.createQuery("from BoxConfigurationItem i join fetch i.configuration c join fetch i.mooncakeVariant where c.type=:type order by i.id", BoxConfigurationItem.class)
-                .setParameter("type", ConfigurationType.PRESET).getResultList();
+        String query = """
+            from BoxConfigurationItem i
+            join fetch i.configuration c
+            join fetch i.mooncakeVariant
+            where c.type = :type
+            order by i.id
+            """;
+        return em.createQuery(query, BoxConfigurationItem.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .getResultList();
     }
 
     @Override
     public boolean historicallyReferenced(long id, long variant) {
-        return em.createQuery("select count(i) from OrderItem i where i.configuration.id=:id or i.variant.id=:variant", Long.class)
-                .setParameter("id", id).setParameter("variant", variant).getSingleResult() > 0;
+        String query = "select count(i) from OrderItem i where i.configuration.id = :id or i.variant.id = :variant";
+        Long count = em.createQuery(query, Long.class)
+            .setParameter("id", id)
+            .setParameter("variant", variant)
+            .getSingleResult();
+        return count > 0;
     }
 
     @Override
     public boolean inCarts(long id, long variant) {
-        return em.createQuery(
-                "select count(i) from CartItem i where i.configuration.id = :id or i.variant.id = :variant", Long.class)
+        String query = "select count(i) from CartItem i where i.configuration.id = :id or i.variant.id = :variant";
+        Long count = em.createQuery(query, Long.class)
             .setParameter("id", id)
             .setParameter("variant", variant)
-            .getSingleResult() > 0;
+            .getSingleResult();
+        return count > 0;
     }
 
     @Override
-    public void save(BoxConfiguration c) {
-        if (c.getType() != ConfigurationType.PRESET) throw new IllegalArgumentException("PRESET only");
-        if (c.getId() == null) em.persist(c);
+    public void save(BoxConfiguration configuration) {
+        if (configuration.getType() != ConfigurationType.PRESET) {
+            throw new IllegalArgumentException(PRESET_ONLY);
+        }
+        if (configuration.getId() == null) {
+            em.persist(configuration);
+        }
         em.flush();
     }
 
     @Override
-    public void saveItem(BoxConfigurationItem i) {
-        if (i.getConfiguration().getType() != ConfigurationType.PRESET)
-            throw new IllegalArgumentException("PRESET only");
-        if (i.getId() == null) em.persist(i);
+    public void saveItem(BoxConfigurationItem item) {
+        if (item.getConfiguration().getType() != ConfigurationType.PRESET) {
+            throw new IllegalArgumentException(PRESET_ONLY);
+        }
+        if (item.getId() == null) {
+            em.persist(item);
+        }
         em.flush();
     }
 
     @Override
-    public void removeItem(BoxConfigurationItem i) {
-        if (i.getConfiguration().getType() != ConfigurationType.PRESET)
-            throw new IllegalArgumentException("PRESET only");
-        em.remove(i);
+    public void removeItem(BoxConfigurationItem item) {
+        if (item.getConfiguration().getType() != ConfigurationType.PRESET) {
+            throw new IllegalArgumentException(PRESET_ONLY);
+        }
+        em.remove(item);
         em.flush();
     }
 }

@@ -97,43 +97,159 @@ public class SalesOrder {
     public SalesOrder() {
     }
 
-    public Long getId() { return id; }
-    public String getOrderCode() { return orderCode; }
-    public void setOrderCode(String orderCode) { this.orderCode = orderCode; }
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
-    public Business getBusiness() { return business; }
-    public void setBusiness(Business business) { this.business = business; }
-    public OrderType getOrderType() { return orderType; }
-    public void setOrderType(OrderType orderType) { this.orderType = orderType; }
-    public String getBuyerNameSnapshot() { return buyerNameSnapshot; }
-    public void setBuyerNameSnapshot(String value) { this.buyerNameSnapshot = value; }
-    public String getBuyerPhoneSnapshot() { return buyerPhoneSnapshot; }
-    public void setBuyerPhoneSnapshot(String value) { this.buyerPhoneSnapshot = value; }
-    public String getBuyerEmailSnapshot() { return buyerEmailSnapshot; }
-    public void setBuyerEmailSnapshot(String value) { this.buyerEmailSnapshot = value; }
-    public String getRecipientName() { return recipientName; }
-    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
-    public String getRecipientPhone() { return recipientPhone; }
-    public void setRecipientPhone(String recipientPhone) { this.recipientPhone = recipientPhone; }
-    public String getShippingAddressSnapshot() { return shippingAddressSnapshot; }
-    public void setShippingAddressSnapshot(String value) { this.shippingAddressSnapshot = value; }
-    public String getOrderNote() { return orderNote; }
-    public void setOrderNote(String orderNote) { this.orderNote = orderNote; }
-    public BigDecimal getSubtotalAmount() { return subtotalAmount; }
-    public void setSubtotalAmount(BigDecimal subtotalAmount) { this.subtotalAmount = subtotalAmount; }
-    public BigDecimal getDiscountAmount() { return discountAmount; }
-    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
-    public BigDecimal getShippingFee() { return shippingFee; }
-    public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
-    public BigDecimal getRoundingAdjustment() { return roundingAdjustment; }
-    public void setRoundingAdjustment(BigDecimal value) { this.roundingAdjustment = value; }
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
-    public OrderStatus getStatus() { return status; }
-    public void setStatus(OrderStatus status) { this.status = status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(String orderCode) {
+        this.orderCode = orderCode;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public Business getBusiness() {
+        return business;
+    }
+
+    public void setBusiness(Business business) {
+        this.business = business;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
+    }
+
+    public String getBuyerNameSnapshot() {
+        return buyerNameSnapshot;
+    }
+
+    public void setBuyerNameSnapshot(String value) {
+        this.buyerNameSnapshot = value;
+    }
+
+    public String getBuyerPhoneSnapshot() {
+        return buyerPhoneSnapshot;
+    }
+
+    public void setBuyerPhoneSnapshot(String value) {
+        this.buyerPhoneSnapshot = value;
+    }
+
+    public String getBuyerEmailSnapshot() {
+        return buyerEmailSnapshot;
+    }
+
+    public void setBuyerEmailSnapshot(String value) {
+        this.buyerEmailSnapshot = value;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public void setRecipientPhone(String recipientPhone) {
+        this.recipientPhone = recipientPhone;
+    }
+
+    public String getShippingAddressSnapshot() {
+        return shippingAddressSnapshot;
+    }
+
+    public void setShippingAddressSnapshot(String value) {
+        this.shippingAddressSnapshot = value;
+    }
+
+    public String getOrderNote() {
+        return orderNote;
+    }
+
+    public void setOrderNote(String orderNote) {
+        this.orderNote = orderNote;
+    }
+
+    public BigDecimal getSubtotalAmount() {
+        return subtotalAmount;
+    }
+
+    public void setSubtotalAmount(BigDecimal subtotalAmount) {
+        this.subtotalAmount = subtotalAmount;
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(BigDecimal discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public BigDecimal getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(BigDecimal shippingFee) {
+        this.shippingFee = shippingFee;
+    }
+
+    public BigDecimal getRoundingAdjustment() {
+        return roundingAdjustment;
+    }
+
+    public void setRoundingAdjustment(BigDecimal value) {
+        this.roundingAdjustment = value;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

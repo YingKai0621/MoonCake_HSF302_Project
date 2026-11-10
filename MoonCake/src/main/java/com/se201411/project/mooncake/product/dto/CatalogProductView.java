@@ -9,9 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Immutable database-backed view model shared by the catalog and product-detail pages.
- */
 public final class CatalogProductView {
 
     private final long id;

@@ -41,15 +41,47 @@ public class Box {
     public Box() {
     }
 
-    public Long getId() { return id; }
-    public ProductVariant getEmptyBoxVariant() { return emptyBoxVariant; }
-    public void setEmptyBoxVariant(ProductVariant emptyBoxVariant) { this.emptyBoxVariant = emptyBoxVariant; }
-    public int getCapacityCakes() { return capacityCakes; }
-    public void setCapacityCakes(int capacityCakes) { this.capacityCakes = capacityCakes; }
-    public String getMaterial() { return material; }
-    public void setMaterial(String material) { this.material = material; }
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public Long getId() {
+        return id;
+    }
+
+    public ProductVariant getEmptyBoxVariant() {
+        return emptyBoxVariant;
+    }
+
+    public void setEmptyBoxVariant(ProductVariant emptyBoxVariant) {
+        this.emptyBoxVariant = emptyBoxVariant;
+    }
+
+    public int getCapacityCakes() {
+        return capacityCakes;
+    }
+
+    public void setCapacityCakes(int capacityCakes) {
+        this.capacityCakes = capacityCakes;
+    }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

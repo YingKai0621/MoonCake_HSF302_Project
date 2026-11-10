@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.service.impl;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.order.repository.PaymentRepository;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
+import com.se201411.project.mooncake.order.service.VnpayGateway;
 import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.order.repository.VnpayRepository;
 import org.junit.jupiter.api.Test;

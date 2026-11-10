@@ -41,15 +41,47 @@ public class ProductImage {
     public ProductImage() {
     }
 
-    public Long getId() { return id; }
-    public ProductVariant getVariant() { return variant; }
-    public void setVariant(ProductVariant variant) { this.variant = variant; }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public String getAltText() { return altText; }
-    public void setAltText(String altText) { this.altText = altText; }
-    public int getSortOrder() { return sortOrder; }
-    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
-    public boolean isPrimary() { return primary; }
-    public void setPrimary(boolean primary) { this.primary = primary; }
+    public Long getId() {
+        return id;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getAltText() {
+        return altText;
+    }
+
+    public void setAltText(String altText) {
+        this.altText = altText;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public boolean isPrimary() {
+        return primary;
+    }
+
+    public void setPrimary(boolean primary) {
+        this.primary = primary;
+    }
 }

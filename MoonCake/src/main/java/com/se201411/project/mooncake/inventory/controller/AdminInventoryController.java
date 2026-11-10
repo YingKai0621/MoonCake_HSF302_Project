@@ -1,31 +1,39 @@
 package com.se201411.project.mooncake.inventory.controller;
 
-import com.se201411.project.mooncake.inventory.service.*;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.web.FormErrors;
-import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
+import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
+import com.se201411.project.mooncake.inventory.dto.BatchInfoForm;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
+import com.se201411.project.mooncake.inventory.service.PackingService;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/admin/inventory")
 public class AdminInventoryController {
+
     private final InventoryAdminService inventory;
     private final PackingService packing;
     private final PresetConfigurationAdminService presets;
 
-    public AdminInventoryController(InventoryAdminService inventory, PackingService packing, PresetConfigurationAdminService presets) {
+    public AdminInventoryController(
+        InventoryAdminService inventory,
+        PackingService packing,
+        PresetConfigurationAdminService presets
+    ) {
         this.inventory = inventory;
         this.packing = packing;
         this.presets = presets;
@@ -64,17 +72,22 @@ public class AdminInventoryController {
     }
 
     @PostMapping("/receive")
-    public String receive(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
-                          @RequestParam(required = false) String batchCode,
-                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate producedOn,
-                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiresOn,
-                          @RequestParam(required = false) Long returnProduct, RedirectAttributes flash) {
+    public String receive(
+        @Valid @ModelAttribute AdminStockForm form,
+        BindingResult result,
+        @Valid @ModelAttribute BatchInfoForm batch,
+        BindingResult batchResult,
+        @RequestParam(required = false) Long returnProduct,
+        RedirectAttributes flash
+    ) {
         String error = null;
         if (result.hasErrors()) {
             error = FormErrors.first(result);
+        } else if (batchResult.hasErrors()) {
+            error = FormErrors.first(batchResult);
         } else {
             try {
-                inventory.receive(form, batchCode, producedOn, expiresOn);
+                inventory.receive(form, batch.batchCode(), batch.producedOn(), batch.expiresOn());
             } catch (MoonCakeException ex) {
                 error = ex.getMessage();
             }

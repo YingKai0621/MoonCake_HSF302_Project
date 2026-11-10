@@ -50,17 +50,55 @@ public class OrderItemComponent {
     public OrderItemComponent() {
     }
 
-    public Long getId() { return id; }
-    public OrderItem getOrderItem() { return orderItem; }
-    public void setOrderItem(OrderItem orderItem) { this.orderItem = orderItem; }
-    public ProductVariant getComponentVariant() { return componentVariant; }
-    public void setComponentVariant(ProductVariant value) { this.componentVariant = value; }
-    public ComponentRole getComponentRole() { return componentRole; }
-    public void setComponentRole(ComponentRole componentRole) { this.componentRole = componentRole; }
-    public String getComponentNameSnapshot() { return componentNameSnapshot; }
-    public void setComponentNameSnapshot(String value) { this.componentNameSnapshot = value; }
-    public int getQuantityPerSet() { return quantityPerSet; }
-    public void setQuantityPerSet(int quantityPerSet) { this.quantityPerSet = quantityPerSet; }
-    public BigDecimal getUnitPriceSnapshot() { return unitPriceSnapshot; }
-    public void setUnitPriceSnapshot(BigDecimal value) { this.unitPriceSnapshot = value; }
+    public Long getId() {
+        return id;
+    }
+
+    public OrderItem getOrderItem() {
+        return orderItem;
+    }
+
+    public void setOrderItem(OrderItem orderItem) {
+        this.orderItem = orderItem;
+    }
+
+    public ProductVariant getComponentVariant() {
+        return componentVariant;
+    }
+
+    public void setComponentVariant(ProductVariant value) {
+        this.componentVariant = value;
+    }
+
+    public ComponentRole getComponentRole() {
+        return componentRole;
+    }
+
+    public void setComponentRole(ComponentRole componentRole) {
+        this.componentRole = componentRole;
+    }
+
+    public String getComponentNameSnapshot() {
+        return componentNameSnapshot;
+    }
+
+    public void setComponentNameSnapshot(String value) {
+        this.componentNameSnapshot = value;
+    }
+
+    public int getQuantityPerSet() {
+        return quantityPerSet;
+    }
+
+    public void setQuantityPerSet(int quantityPerSet) {
+        this.quantityPerSet = quantityPerSet;
+    }
+
+    public BigDecimal getUnitPriceSnapshot() {
+        return unitPriceSnapshot;
+    }
+
+    public void setUnitPriceSnapshot(BigDecimal value) {
+        this.unitPriceSnapshot = value;
+    }
 }

@@ -41,14 +41,43 @@ public class InventoryBalance {
     public InventoryBalance() {
     }
 
-    public Long getVariantId() { return variantId; }
-    public ProductVariant getVariant() { return variant; }
-    public void setVariant(ProductVariant variant) { this.variant = variant; }
-    public int getAvailableQuantity() { return availableQuantity; }
-    public void setAvailableQuantity(int value) { this.availableQuantity = value; }
-    public int getLowStockThreshold() { return lowStockThreshold; }
-    public void setLowStockThreshold(int value) { this.lowStockThreshold = value; }
-    public long getStockVersion() { return stockVersion; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Long getVariantId() {
+        return variantId;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public int getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public void setAvailableQuantity(int value) {
+        this.availableQuantity = value;
+    }
+
+    public int getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(int value) {
+        this.lowStockThreshold = value;
+    }
+
+    public long getStockVersion() {
+        return stockVersion;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

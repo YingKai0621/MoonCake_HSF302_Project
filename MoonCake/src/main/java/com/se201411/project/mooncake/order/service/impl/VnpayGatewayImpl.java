@@ -1,6 +1,7 @@
 package com.se201411.project.mooncake.order.service.impl;
 
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.order.service.VnpayGateway;
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
@@ -36,7 +37,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 @Component
-public class VnpayGateway {
+public class VnpayGatewayImpl implements VnpayGateway {
 
     private static final String DEFAULT_PAY_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     private static final String QUERY_URL = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
@@ -65,14 +66,16 @@ public class VnpayGateway {
 
     private final Environment env;
 
-    public VnpayGateway(Environment env) {
+    public VnpayGatewayImpl(Environment env) {
         this.env = env;
     }
 
+    @Override
     public boolean enabled() {
         return Boolean.parseBoolean(env.getProperty("VNPAY_ENABLED", "false"));
     }
 
+    @Override
     public void requireConfigured() {
         boolean missingSettings = !enabled()
             || env.getProperty("VNPAY_TMN_CODE", "").isBlank()
@@ -132,6 +135,7 @@ public class VnpayGateway {
         }
     }
 
+    @Override
     public boolean valid(Map<String, String> values) {
         if (!enabled() || env.getProperty("VNPAY_HASH_SECRET", "").isBlank()) {
             return false;
@@ -143,6 +147,7 @@ public class VnpayGateway {
             && sameHash(signature(values), received);
     }
 
+    @Override
     public Map<String, String> query(String ref, LocalDateTime created, String ip, Instant now) {
         requireConfigured();
         Map<String, String> request = new LinkedHashMap<>();
@@ -193,6 +198,7 @@ public class VnpayGateway {
         return hash.matches(HASH_PATTERN) && sameHash(sign(String.join("|", parts)), hash);
     }
 
+    @Override
     public String url(String ref, BigDecimal amount, String ip, Instant now) {
         requireConfigured();
         Map<String, String> params = new TreeMap<>();
@@ -212,10 +218,12 @@ public class VnpayGateway {
         return payUrl() + "?" + canonical(params) + "&vnp_SecureHash=" + signature(params);
     }
 
+    @Override
     public long attemptLifetimeSeconds() {
         return env.getProperty("VNPAY_ATTEMPT_SECONDS", Long.class, 900L);
     }
 
+    @Override
     public long unpaidOrderLifetimeMinutes() {
         return env.getProperty("UNPAID_ORDER_CANCEL_MINUTES", Long.class, 30L);
     }

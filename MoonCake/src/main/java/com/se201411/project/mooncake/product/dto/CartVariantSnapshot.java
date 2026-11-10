@@ -5,9 +5,6 @@ import com.se201411.project.mooncake.enums.ProductType;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * Read-only product information needed to display a cart line.
- */
 public record CartVariantSnapshot(
     long variantId,
     String productSlug,

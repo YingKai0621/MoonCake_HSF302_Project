@@ -39,20 +39,47 @@ public class BatchAllocation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public StockBatch getBatch() { return batch; }
-    public void setBatch(StockBatch batch) { this.batch = batch; }
+    public StockBatch getBatch() {
+        return batch;
+    }
 
-    public Long getOrderId() { return orderId; }
-    public void setOrderId(Long orderId) { this.orderId = orderId; }
+    public void setBatch(StockBatch batch) {
+        this.batch = batch;
+    }
 
-    public String getOperationKey() { return operationKey; }
-    public void setOperationKey(String operationKey) { this.operationKey = operationKey; }
+    public Long getOrderId() {
+        return orderId;
+    }
 
-    public int getQuantityDelta() { return quantityDelta; }
-    public void setQuantityDelta(int quantityDelta) { this.quantityDelta = quantityDelta; }
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getOperationKey() {
+        return operationKey;
+    }
+
+    public void setOperationKey(String operationKey) {
+        this.operationKey = operationKey;
+    }
+
+    public int getQuantityDelta() {
+        return quantityDelta;
+    }
+
+    public void setQuantityDelta(int quantityDelta) {
+        this.quantityDelta = quantityDelta;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

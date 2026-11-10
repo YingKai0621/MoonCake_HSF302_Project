@@ -23,7 +23,8 @@ class AdminInventoryServiceTest {
     PresetConfigurationQueryService presets = mock(PresetConfigurationQueryService.class);
     AdminAccessService access = mock(AdminAccessService.class);
     AdminFormValidation validation = mock(AdminFormValidation.class);
-    InventoryAdminServiceImpl service = new InventoryAdminServiceImpl(repo, presets, access, validation, Clock.systemUTC());
+    BatchStockService batches = mock(BatchStockService.class);
+    InventoryAdminServiceImpl service = new InventoryAdminServiceImpl(repo, presets, access, validation, batches, Clock.systemUTC());
     String key = UUID.randomUUID().toString();
 
     @BeforeEach
@@ -34,8 +35,6 @@ class AdminInventoryServiceTest {
 
     @Test
     void receiveLabelsTheNewBatchWithCodeAndDates() {
-        BatchStockService batches = mock(BatchStockService.class);
-        service.setBatchStock(batches);
         LocalDate produced = LocalDate.of(2026, 9, 1);
         LocalDate expiry = LocalDate.of(2026, 10, 1);
 
@@ -47,9 +46,6 @@ class AdminInventoryServiceTest {
 
     @Test
     void receiveWithoutBatchInfoKeepsTheAutomaticBatch() {
-        BatchStockService batches = mock(BatchStockService.class);
-        service.setBatchStock(batches);
-
         service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), " ", null, null);
 
         verify(batches, never()).labelReceivedBatch(anyString(), any(), any(), any());

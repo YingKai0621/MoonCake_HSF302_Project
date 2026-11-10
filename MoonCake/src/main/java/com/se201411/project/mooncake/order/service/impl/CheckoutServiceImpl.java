@@ -194,20 +194,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             itemViews.add(OrderSuccessItemView.entityToDto(item));
         }
 
-        return new OrderSuccessView(
-            order.getOrderCode(),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            itemViews,
-            totalQuantity,
-            formatVnd(order.getSubtotalAmount()),
-            formatVnd(order.getDiscountAmount()),
-            formatVnd(order.getShippingFee()),
-            formatSignedVnd(order.getRoundingAdjustment()),
-            formatVnd(order.getTotalAmount())
-        );
+        return OrderSuccessView.entityToDto(order, itemViews, totalQuantity);
     }
 
     private SalesOrder createOrder(

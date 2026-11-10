@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
-import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
@@ -61,7 +61,7 @@ class CustomerCartServiceImplTest {
     @Mock
     private ProductQueryService productQueryService;
     @Mock
-    private ProductVariantRepository productVariantRepository;
+    private EntityReferenceRepository references;
 
     private CustomerCartService service;
 
@@ -77,7 +77,7 @@ class CustomerCartServiceImplTest {
             configurationRepository,
             configurationItemRepository,
             productQueryService,
-            productVariantRepository,
+            references,
             clock
         );
     }
@@ -113,7 +113,7 @@ class CustomerCartServiceImplTest {
             .thenReturn(Optional.empty(), Optional.of(cart));
         when(cartRepository.createActiveCartIfMissing(10L)).thenReturn(1);
         when(cartItemRepository.findVariantItem(100L, 200L)).thenReturn(Optional.empty());
-        when(productVariantRepository.getReferenceById(200L))
+        when(references.variant(200L))
             .thenReturn(variantReference);
 
         service.addVariant(CUSTOMER, 200L, 2);

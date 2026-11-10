@@ -1,8 +1,7 @@
 package com.se201411.project.mooncake.inventory.service;
 
 import java.util.Optional;
-import com.se201411.project.mooncake.order.repository.SalesOrderRepository;
-import com.se201411.project.mooncake.product.repository.ProductVariantRepository;
+import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.Product;
@@ -39,9 +38,7 @@ class InventoryServiceImplTest {
     @Mock
     private StockMovementRepository movementRepository;
     @Mock
-    private ProductVariantRepository productVariantRepository;
-    @Mock
-    private SalesOrderRepository salesOrderRepository;
+    private EntityReferenceRepository references;
     @Mock
     private BatchStockService batchStockService;
 
@@ -53,8 +50,7 @@ class InventoryServiceImplTest {
         inventoryService = new InventoryServiceImpl(
             balanceRepository,
             movementRepository,
-            productVariantRepository,
-            salesOrderRepository,
+            references,
             batchStockService,
             clock
         );
@@ -65,8 +61,8 @@ class InventoryServiceImplTest {
         ProductVariant variant = new ProductVariant();
         SalesOrder order = new SalesOrder();
         when(balanceRepository.deductAvailable(5L, 3)).thenReturn(1);
-        when(productVariantRepository.getReferenceById(5L)).thenReturn(variant);
-        when(salesOrderRepository.getReferenceById(8L)).thenReturn(order);
+        when(references.variant(5L)).thenReturn(variant);
+        when(references.order(8L)).thenReturn(order);
 
         inventoryService.deductForSale(new SaleInventoryCommand(
             8L,
@@ -93,7 +89,7 @@ class InventoryServiceImplTest {
         ProductVariant variant = new ProductVariant();
         variant.setProduct(product);
         variant.setSku("MC-CBTN-080");
-        when(productVariantRepository.findById(5L)).thenReturn(Optional.of(variant));
+        when(references.findVariant(5L)).thenReturn(Optional.of(variant));
 
         SaleInventoryCommand command = new SaleInventoryCommand(
             8L,

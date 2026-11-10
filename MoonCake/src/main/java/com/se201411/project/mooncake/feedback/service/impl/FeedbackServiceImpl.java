@@ -94,14 +94,8 @@ public class FeedbackServiceImpl implements FeedbackService {
         adminAccessService.requireAdmin();
         List<AdminFeedbackView> views = new ArrayList<>();
         for (Feedback feedback : feedbackRepository.findTop100ByOrderByIdDesc()) {
-            views.add(new AdminFeedbackView(
-                feedback.getId(),
-                feedback.getCustomer().getFullName(),
-                feedback.getRating(),
-                feedback.getContent(),
-                formatVietnamTime(feedback.getCreatedAt()),
-                feedback.isPublished()
-            ));
+            String formattedCreatedAt = formatVietnamTime(feedback.getCreatedAt());
+            views.add(AdminFeedbackView.entityToDto(feedback, formattedCreatedAt));
         }
         return views;
     }

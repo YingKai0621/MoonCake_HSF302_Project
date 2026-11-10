@@ -88,7 +88,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
         List<ImageForm> images = new ArrayList<>();
         for (ProductImage image : repo.images()) {
-            images.add(imageForm(image));
+            images.add(ImageForm.entityToDto(image));
         }
         return new AdminCatalogView(categoryForms(), products, variants, boxes, images);
     }
@@ -108,7 +108,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<Long, List<ImageForm>> imagesByProduct = new HashMap<>();
         for (ProductImage image : repo.images()) {
             long productId = image.getVariant().getProduct().getId();
-            imagesByProduct.computeIfAbsent(productId, key -> new ArrayList<>()).add(imageForm(image));
+            imagesByProduct.computeIfAbsent(productId, key -> new ArrayList<>()).add(ImageForm.entityToDto(image));
         }
 
         List<AdminProductRow> rows = new ArrayList<>();
@@ -178,7 +178,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<Long, List<ImageForm>> imagesBySku = new HashMap<>();
         for (ProductImage image : repo.imagesOf(productId)) {
             long variantId = image.getVariant().getId();
-            imagesBySku.computeIfAbsent(variantId, key -> new ArrayList<>()).add(imageForm(image));
+            imagesBySku.computeIfAbsent(variantId, key -> new ArrayList<>()).add(ImageForm.entityToDto(image));
         }
 
         List<ProductVariant> variants = repo.variantsOf(productId);
@@ -518,10 +518,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             }
         }
         v.setVariant(variant);
-        v.setImageUrl(f.imageUrl());
-        v.setAltText(f.altText());
-        v.setSortOrder(f.sortOrder());
-        v.setPrimary(f.primary());
+        f.dtoToEntity(v);
         repo.save(v);
         repo.flush();
         return variant.getProduct().getId();
@@ -725,17 +722,6 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             categories.add(CategoryForm.entityToDto(category));
         }
         return categories;
-    }
-
-    private ImageForm imageForm(ProductImage image) {
-        return new ImageForm(
-            image.getId(),
-            image.getVariant().getId(),
-            image.getImageUrl(),
-            image.getAltText(),
-            image.getSortOrder(),
-            image.isPrimary()
-        );
     }
 
     private String coverImage(List<ImageForm> images) {

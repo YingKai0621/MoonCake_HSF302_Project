@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.product.dto;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductImage;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ProductType;
 import jakarta.validation.constraints.DecimalMax;
@@ -278,5 +279,25 @@ public final class AdminCatalogForms {
         int sortOrder,
         boolean primary
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved image. */
+        public static ImageForm entityToDto(ProductImage image) {
+            return new ImageForm(
+                image.getId(),
+                image.getVariant().getId(),
+                image.getImageUrl(),
+                image.getAltText(),
+                image.getSortOrder(),
+                image.isPrimary()
+            );
+        }
+
+        /** DTO -> Entity: copies only the plain fields; the service sets the SKU itself. */
+        public void dtoToEntity(ProductImage image) {
+            image.setImageUrl(imageUrl);
+            image.setAltText(altText);
+            image.setSortOrder(sortOrder);
+            image.setPrimary(primary);
+        }
     }
 }

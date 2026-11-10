@@ -270,9 +270,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException("Đường dẫn này đã được danh mục khác dùng.");
         }
         Category v = f.id() == null ? new Category() : repo.category(f.id());
-        v.setName(f.name().trim());
-        v.setSlug(f.slug());
-        v.setActive(f.active());
+        f.applyTo(v);
         repo.save(v);
         repo.flush();
     }
@@ -738,7 +736,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private List<CategoryForm> categoryForms() {
         List<CategoryForm> categories = new ArrayList<>();
         for (Category category : repo.categories()) {
-            categories.add(new CategoryForm(category.getId(), category.getName(), category.getSlug(), category.isActive()));
+            categories.add(CategoryForm.fromEntity(category));
         }
         return categories;
     }

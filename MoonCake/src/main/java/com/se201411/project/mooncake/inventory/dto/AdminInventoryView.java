@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.dto;
 
+import com.se201411.project.mooncake.entity.InventoryBalance;
 import com.se201411.project.mooncake.enums.StockMovementType;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,19 @@ public final class AdminInventoryView {
     }
 
     public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
+
+        /** Entity -> DTO */
+        public static Balance entityToDto(InventoryBalance balance) {
+            return new Balance(
+                balance.getVariantId(),
+                balance.getVariant().getSku(),
+                balance.getVariant().getProduct().getName(),
+                balance.getVariant().getName(),
+                balance.getAvailableQuantity(),
+                balance.getLowStockThreshold()
+            );
+        }
+
         public boolean low() {
             return quantity <= threshold;
         }

@@ -69,14 +69,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         access.requireAdmin();
         List<Balance> result = new ArrayList<>();
         for (InventoryBalance balance : repo.balances()) {
-            result.add(new Balance(
-                balance.getVariantId(),
-                balance.getVariant().getSku(),
-                balance.getVariant().getProduct().getName(),
-                balance.getVariant().getName(),
-                balance.getAvailableQuantity(),
-                balance.getLowStockThreshold()
-            ));
+            result.add(Balance.entityToDto(balance));
         }
         return List.copyOf(result);
     }

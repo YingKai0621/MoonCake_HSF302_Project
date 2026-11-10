@@ -95,13 +95,9 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         for (SalesOrder order : orders) {
             Payment payment = paymentByOrderId.get(order.getId());
             boolean awaitingPayment = isAwaitingOnlinePayment(order, payment);
-            views.add(new CustomerOrderSummaryView(
-                order.getOrderCode(),
-                statusLabel(order, awaitingPayment),
-                awaitingPayment,
-                formatDateTime(order.getCreatedAt()),
-                formatVnd(order.getTotalAmount())
-            ));
+            String statusLabel = statusLabel(order, awaitingPayment);
+            String formattedCreatedAt = formatDateTime(order.getCreatedAt());
+            views.add(CustomerOrderSummaryView.entityToDto(order, statusLabel, awaitingPayment, formattedCreatedAt));
         }
         return List.copyOf(views);
     }

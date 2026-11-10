@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,7 +59,6 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CartService cartService;
     private final PricingService pricingService;
@@ -365,19 +363,5 @@ public class CheckoutServiceImpl implements CheckoutService {
             .substring(0, 12)
             .toUpperCase(Locale.ROOT);
         return "MC-" + randomPart;
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

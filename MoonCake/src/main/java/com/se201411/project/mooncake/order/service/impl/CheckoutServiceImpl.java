@@ -191,17 +191,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         int totalQuantity = 0;
         for (OrderItem item : orderItems) {
             totalQuantity = Math.addExact(totalQuantity, item.getQuantity());
-            String sku = item.getSkuSnapshot();
-            if (sku == null) {
-                sku = item.getBoxSkuSnapshot();
-            }
-            itemViews.add(new OrderSuccessItemView(
-                item.getProductNameSnapshot(),
-                sku,
-                item.getQuantity(),
-                formatVnd(item.getUnitFinalPriceSnapshot()),
-                formatVnd(item.getLineTotal())
-            ));
+            itemViews.add(OrderSuccessItemView.entityToDto(item));
         }
 
         return new OrderSuccessView(

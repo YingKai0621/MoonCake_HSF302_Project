@@ -25,13 +25,10 @@ import com.se201411.project.mooncake.product.service.ProductQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,7 +38,6 @@ import java.util.Optional;
 public class ProductQueryServiceImpl implements ProductQueryService {
 
     private static final String FALLBACK_IMAGE = "/images/branding/mooncake_luxury_emblem_v4.png";
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
@@ -368,10 +364,6 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             return productName;
         }
         return productName + " (" + variantName + ")";
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
     }
 
     private Map<Long, List<ProductVariant>> groupVariantsByProduct(

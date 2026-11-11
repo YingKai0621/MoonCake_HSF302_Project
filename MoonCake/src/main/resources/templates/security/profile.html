@@ -34,7 +34,7 @@
 <body class="min-h-screen flex flex-col bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('profile')}"></header>
 
-  <main class="flex-grow max-w-3xl w-full mx-auto px-4 sm:px-8 py-10 md:py-16">
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-8 py-10 md:py-16">
     <a th:href="@{/}" href="/" class="inline-flex items-center gap-2 text-sm text-sand hover:text-gold mb-7">
       <span aria-hidden="true">←</span> Trang chủ
     </a>
@@ -47,7 +47,7 @@
 
     <div th:if="${successMessage}" class="mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3" role="status" th:text="${successMessage}"></div>
 
-    <div class="grid grid-cols-1 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-8 items-stretch">
     <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="profile-details-title">
       <h2 id="profile-details-title" class="font-serif text-xl font-semibold mb-5">Thông tin hiện tại</h2>
       <dl class="divide-y divide-gold/15">

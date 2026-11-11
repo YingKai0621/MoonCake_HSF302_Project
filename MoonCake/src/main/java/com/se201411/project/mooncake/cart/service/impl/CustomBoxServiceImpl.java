@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -405,5 +406,17 @@ public class CustomBoxServiceImpl implements CustomBoxService {
     @Transactional(readOnly = true)
     public boolean customBoxesUseBox(long boxId) {
         return configurationRepository.countByBoxId(ConfigurationType.CUSTOM, boxId) > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomBoxFormPage createPage() {
+        return new CustomBoxFormPage(getBuilderView(), false, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomBoxFormPage editPage(long configurationId) {
+        return new CustomBoxFormPage(getBuilderView(), true, configurationId);
     }
 }

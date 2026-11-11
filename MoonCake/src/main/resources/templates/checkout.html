@@ -142,15 +142,15 @@
           <fieldset class="space-y-3">
             <legend class="text-xs font-semibold tracking-wider text-gold uppercase mb-3">Phương thức thanh toán</legend>
 
-            <label class="payment-option" th:classappend="${!checkout.codAllowed} ? 'is-disabled'">
+            <label class="payment-option" th:classappend="${!checkout.allows('COD')} ? 'is-disabled'">
               <input type="radio" th:field="*{paymentMethod}" value="COD"
-                     th:disabled="${!checkout.codAllowed}"
+                     th:disabled="${!checkout.allows('COD')}"
                      class="payment-option__radio" data-submit-label="Đặt hàng"
                      data-loading-label="Đang đặt hàng…">
               <span class="material-symbols-outlined payment-option__icon" aria-hidden="true">local_shipping</span>
               <span class="payment-option__text">
                 <span class="payment-option__title">Thanh toán khi nhận hàng (COD)</span>
-                <span class="payment-option__hint" th:text="${checkout.codAllowed ? 'Trả tiền mặt cho nhân viên giao hàng.' : 'Chỉ áp dụng cho đơn đến 5.000.000đ. Đơn này vui lòng thanh toán qua VNPay.'}">Trả tiền mặt cho nhân viên giao hàng.</span>
+                <span class="payment-option__hint" th:text="${checkout.allows('COD') ? 'Trả tiền mặt cho nhân viên giao hàng.' : 'Chỉ áp dụng cho đơn đến 5.000.000đ. Đơn này vui lòng thanh toán qua VNPay.'}">Trả tiền mặt cho nhân viên giao hàng.</span>
               </span>
             </label>
 

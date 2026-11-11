@@ -45,11 +45,11 @@ public class CustomBoxController {
     @GetMapping
     public String createForm(Model model) {
         currentCustomerService.requireCurrentCustomer();
-        CustomBoxPageView builder = customBoxService.getBuilderView();
+        CustomBoxFormPage page = customBoxService.createPage();
         if (!model.containsAttribute("customBoxForm")) {
-            model.addAttribute("customBoxForm", createEmptyForm(builder));
+            model.addAttribute("customBoxForm", createEmptyForm(page.builder()));
         }
-        addPageModel(model, builder, false, null);
+        model.addAttribute("page", page);
         return "custom-box";
     }
 
@@ -62,7 +62,7 @@ public class CustomBoxController {
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
-            addPageModel(model, customBoxService.getBuilderView(), false, null);
+            model.addAttribute("page", customBoxService.createPage());
             return "custom-box";
         }
 
@@ -75,7 +75,7 @@ public class CustomBoxController {
             return "redirect:/cart";
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
-            addPageModel(model, customBoxService.getBuilderView(), false, null);
+            model.addAttribute("page", customBoxService.createPage());
             return "custom-box";
         }
     }
@@ -86,13 +86,13 @@ public class CustomBoxController {
         Model model
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
-        CustomBoxPageView builder = customBoxService.getBuilderView();
+        CustomBoxFormPage page = customBoxService.editPage(configurationId);
         CustomBoxEditView editView = customBoxService.getConfigurationForEdit(
             customer,
             configurationId
         );
-        model.addAttribute("customBoxForm", createEditForm(builder, editView));
-        addPageModel(model, builder, true, configurationId);
+        model.addAttribute("customBoxForm", createEditForm(page.builder(), editView));
+        model.addAttribute("page", page);
         return "custom-box";
     }
 
@@ -106,7 +106,7 @@ public class CustomBoxController {
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
-            addPageModel(model, customBoxService.getBuilderView(), true, configurationId);
+            model.addAttribute("page", customBoxService.editPage(configurationId));
             return "custom-box";
         }
 
@@ -119,7 +119,7 @@ public class CustomBoxController {
             return "redirect:/cart";
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
-            addPageModel(model, customBoxService.getBuilderView(), true, configurationId);
+            model.addAttribute("page", customBoxService.editPage(configurationId));
             return "custom-box";
         }
     }
@@ -173,12 +173,4 @@ public class CustomBoxController {
         );
     }
 
-    private void addPageModel(
-        Model model,
-        CustomBoxPageView builder,
-        boolean editing,
-        Long configurationId
-    ) {
-        model.addAttribute("page", new CustomBoxFormPage(builder, editing, configurationId));
-    }
 }

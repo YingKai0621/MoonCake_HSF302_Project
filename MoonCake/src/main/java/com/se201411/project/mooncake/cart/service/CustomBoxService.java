@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
 import com.se201411.project.mooncake.cart.dto.SaveCustomBoxCommand;
@@ -30,4 +31,8 @@ public interface CustomBoxService {
     long countCustomBoxesUsing(Collection<Long> variantIds);
 
     boolean customBoxesUseBox(long boxId);
+
+    CustomBoxFormPage createPage();
+
+    CustomBoxFormPage editPage(long configurationId);
 }

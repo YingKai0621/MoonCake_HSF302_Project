@@ -30,6 +30,4 @@ public interface CustomerProfileService {
     boolean disableAccount(long customerId);
 
     boolean enableAccount(long customerId);
-
-    long accountIdOf(long customerId);
 }

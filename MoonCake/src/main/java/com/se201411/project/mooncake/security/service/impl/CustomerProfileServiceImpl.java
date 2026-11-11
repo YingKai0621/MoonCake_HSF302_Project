@@ -109,12 +109,6 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
         return changeStatus(customerId, AccountStatus.DISABLED, AccountStatus.ACTIVE);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public long accountIdOf(long customerId) {
-        return requireCustomerById(customerId).getAccount().getId();
-    }
-
     private boolean changeStatus(long customerId, AccountStatus currentStatus, AccountStatus newStatus) {
         Account account = requireCustomerById(customerId).getAccount();
         int changedRows = accountRepository.updateStatus(

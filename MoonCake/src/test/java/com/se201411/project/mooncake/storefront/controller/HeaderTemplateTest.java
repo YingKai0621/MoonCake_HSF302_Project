@@ -60,6 +60,8 @@ class HeaderTemplateTest {
         mockMvc.perform(get("/header-test").param("state", "customer"))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("customer@mooncake.test")))
+            .andExpect(content().string(containsString("Thông tin tài khoản")))
+            .andExpect(content().string(containsString("href=\"/account\"")))
             .andExpect(content().string(containsString("Đơn hàng của tôi")))
             .andExpect(content().string(containsString("Giỏ hàng")))
             .andExpect(content().string(containsString("action=\"/logout\"")))

@@ -5,9 +5,13 @@ import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.enums.AccountRole;
 import com.se201411.project.mooncake.enums.AccountStatus;
 import com.se201411.project.mooncake.security.dto.CustomerRegistrationForm;
+import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.exception.EmailAlreadyRegisteredException;
+import com.se201411.project.mooncake.security.exception.SamePasswordException;
+import com.se201411.project.mooncake.security.exception.WrongCurrentPasswordException;
 import com.se201411.project.mooncake.security.repository.AccountRepository;
 import com.se201411.project.mooncake.security.repository.CustomerRepository;
+import com.se201411.project.mooncake.security.repository.PasswordResetTokenRepository;
 import com.se201411.project.mooncake.security.service.impl.AuthenticationServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,11 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,6 +48,9 @@ class AuthenticationServiceImplTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -108,13 +117,76 @@ class AuthenticationServiceImplTest {
         verify(customerRepository, never()).save(any(Customer.class));
     }
 
+    @Test
+    void wrongCurrentPasswordIsRejectedAndHashUnchanged() {
+        Customer customer = customerWithPassword("old-hash");
+        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
+        when(passwordEncoder.matches("wrong-password", "old-hash")).thenReturn(false);
+
+        assertThatThrownBy(() -> service().changePassword(
+            ShopperIdentity.forCustomer(7L),
+            "wrong-password",
+            "newPassword123"
+        )).isInstanceOf(WrongCurrentPasswordException.class);
+
+        assertThat(customer.getAccount().getPasswordHash()).isEqualTo("old-hash");
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
+    @Test
+    void newPasswordEqualToCurrentIsRejected() {
+        Customer customer = customerWithPassword("old-hash");
+        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
+        when(passwordEncoder.matches("currentPassword", "old-hash")).thenReturn(true);
+
+        assertThatThrownBy(() -> service().changePassword(
+            ShopperIdentity.forCustomer(7L),
+            "currentPassword",
+            "currentPassword"
+        )).isInstanceOf(SamePasswordException.class);
+
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
+    @Test
+    void changePasswordStoresNewHashAndInvalidatesResetTokens() {
+        Customer customer = customerWithPassword("old-hash");
+        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
+        when(passwordEncoder.matches("currentPassword", "old-hash")).thenReturn(true);
+        when(passwordEncoder.matches("newPassword123", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("newPassword123")).thenReturn("new-hash");
+
+        service().changePassword(
+            ShopperIdentity.forCustomer(7L),
+            "currentPassword",
+            "newPassword123"
+        );
+
+        assertThat(customer.getAccount().getPasswordHash()).isEqualTo("new-hash");
+        verify(accountRepository).save(customer.getAccount());
+        verify(passwordResetTokenRepository).invalidateOpenTokens(
+            15L,
+            LocalDateTime.of(2026, 10, 21, 10, 0)
+        );
+    }
+
     private AuthenticationServiceImpl service() {
         return new AuthenticationServiceImpl(
             accountRepository,
             customerRepository,
+            passwordResetTokenRepository,
             passwordEncoder,
             FIXED_CLOCK
         );
+    }
+
+    private Customer customerWithPassword(String passwordHash) {
+        Account account = new Account();
+        ReflectionTestUtils.setField(account, "id", 15L);
+        account.setPasswordHash(passwordHash);
+        Customer customer = new Customer();
+        customer.setAccount(account);
+        return customer;
     }
 
     private CustomerRegistrationForm validForm() {

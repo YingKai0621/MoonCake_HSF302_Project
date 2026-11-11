@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -79,7 +79,7 @@ class CheckoutServiceImplTest {
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
-    private EntityReferenceRepository references;
+    private ProductQueryService productQueryService;
     @Mock
     private PaymentProcessor vnpayProcessor;
 
@@ -98,7 +98,7 @@ class CheckoutServiceImplTest {
             orderItemRepository,
             componentRepository,
             paymentRepository,
-            references,
+            productQueryService,
             clock,
             registry()
         );
@@ -127,8 +127,8 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(references.customer(7L)).thenReturn(new Customer());
-        when(references.variant(10L))
+        when(customerProfileService.customerReference(7L)).thenReturn(new Customer());
+        when(productQueryService.variantReference(10L))
             .thenReturn(new ProductVariant());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -212,14 +212,14 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(references.customer(7L)).thenReturn(new Customer());
-        when(references.variant(10L))
+        when(customerProfileService.customerReference(7L)).thenReturn(new Customer());
+        when(productQueryService.variantReference(10L))
             .thenReturn(new ProductVariant());
-        when(references.variant(20L))
+        when(productQueryService.variantReference(20L))
             .thenReturn(new ProductVariant());
-        when(references.variant(30L))
+        when(productQueryService.variantReference(30L))
             .thenReturn(new ProductVariant());
-        when(references.configuration(50L))
+        when(pricingService.configurationReference(50L))
             .thenReturn(new BoxConfiguration());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -249,7 +249,7 @@ class CheckoutServiceImplTest {
         org.mockito.Mockito.verify(inventoryService).deductForSale(commandCaptor.capture());
         SaleInventoryCommand command = commandCaptor.getValue();
 
-        assertThat(command.orderId()).isEqualTo(99L);
+        assertThat(command.order().getId()).isEqualTo(99L);
         assertThat(command.demands()).extracting("variantId", "quantity")
             .containsExactlyInAnyOrder(
                 org.assertj.core.groups.Tuple.tuple(10L, 2),

@@ -1,8 +1,8 @@
 package com.se201411.project.mooncake.inventory.service;
 
 import java.util.Optional;
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
+import com.se201411.project.mooncake.entity.InventoryBalance;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.SalesOrder;
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -38,8 +39,6 @@ class InventoryServiceImplTest {
     @Mock
     private StockMovementRepository movementRepository;
     @Mock
-    private EntityReferenceRepository references;
-    @Mock
     private BatchStockService batchStockService;
 
     private InventoryService inventoryService;
@@ -50,7 +49,6 @@ class InventoryServiceImplTest {
         inventoryService = new InventoryServiceImpl(
             balanceRepository,
             movementRepository,
-            references,
             batchStockService,
             clock
         );
@@ -59,13 +57,14 @@ class InventoryServiceImplTest {
     @Test
     void deductsConditionallyAndCreatesSaleMovement() {
         ProductVariant variant = new ProductVariant();
-        SalesOrder order = new SalesOrder();
+        InventoryBalance balance = new InventoryBalance();
+        balance.setVariant(variant);
+        SalesOrder order = savedOrder(8L);
         when(balanceRepository.deductAvailable(5L, 3)).thenReturn(1);
-        when(references.variant(5L)).thenReturn(variant);
-        when(references.order(8L)).thenReturn(order);
+        when(balanceRepository.findById(5L)).thenReturn(Optional.of(balance));
 
         inventoryService.deductForSale(new SaleInventoryCommand(
-            8L,
+            order,
             "SALE:8",
             List.of(new InventoryDemand(5L, 3))
         ));
@@ -78,6 +77,8 @@ class InventoryServiceImplTest {
         assertThat(movement.getQuantityDelta()).isEqualTo(-3);
         assertThat(movement.getOperationKey()).isEqualTo("SALE:8:5");
         assertThat(movement.getOperationGroupKey()).isEqualTo("SALE:8");
+        assertThat(movement.getVariant()).isSameAs(variant);
+        assertThat(movement.getOrder()).isSameAs(order);
     }
 
     @Test
@@ -89,10 +90,12 @@ class InventoryServiceImplTest {
         ProductVariant variant = new ProductVariant();
         variant.setProduct(product);
         variant.setSku("MC-CBTN-080");
-        when(references.findVariant(5L)).thenReturn(Optional.of(variant));
+        InventoryBalance balance = new InventoryBalance();
+        balance.setVariant(variant);
+        when(balanceRepository.findById(5L)).thenReturn(Optional.of(balance));
 
         SaleInventoryCommand command = new SaleInventoryCommand(
-            8L,
+            savedOrder(8L),
             "SALE:8",
             List.of(new InventoryDemand(5L, 3))
         );
@@ -104,5 +107,11 @@ class InventoryServiceImplTest {
             );
 
         verify(movementRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    private SalesOrder savedOrder(long id) {
+        SalesOrder order = new SalesOrder();
+        ReflectionTestUtils.setField(order, "id", id);
+        return order;
     }
 }

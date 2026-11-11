@@ -459,4 +459,9 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         return variantsByProductId;
     }
+
+    @Override
+    public ProductVariant variantReference(long variantId) {
+        return productVariantRepository.getReferenceById(variantId);
+    }
 }

@@ -462,4 +462,14 @@ public class PricingServiceImpl implements PricingService {
         List<CheckoutComponentQuote> components
     ) {
     }
+
+    @Override
+    public BoxConfiguration configurationReference(long configurationId) {
+        return configurationRepository.getReferenceById(configurationId);
+    }
+
+    @Override
+    public VolumeDiscountTier discountTierReference(long tierId) {
+        return tierRepository.getReferenceById(tierId);
+    }
 }

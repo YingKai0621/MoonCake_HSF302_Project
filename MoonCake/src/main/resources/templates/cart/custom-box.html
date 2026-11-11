@@ -157,6 +157,14 @@
             <span data-capacity-summary>0 bánh</span>
           </div>
           <div class="flex justify-between gap-4 text-sm">
+            <span class="text-sand">Vỏ hộp</span>
+            <span data-box-price-summary>0đ</span>
+          </div>
+          <div class="flex justify-between gap-4 text-sm">
+            <span class="text-sand">Bánh trong hộp</span>
+            <span data-cake-price-summary>0đ</span>
+          </div>
+          <div class="flex justify-between gap-4 text-sm">
             <span class="text-sand">Giá một hộp</span>
             <span class="text-gold font-semibold" data-unit-price-summary>0đ</span>
           </div>
@@ -173,6 +181,7 @@
                      min="1"
                      required
                      th:field="*{boxQuantity}"
+                     data-box-quantity
                      class="quantity-stepper__input">
               <button type="button"
                       class="quantity-stepper__button"
@@ -180,6 +189,14 @@
                       aria-label="Tăng số lượng hộp">+</button>
             </div>
           </div>
+
+          <div class="flex justify-between gap-4 border-t border-gold/15 pt-4">
+            <span class="text-sand">Tạm tính</span>
+            <span class="text-gold font-semibold text-lg" data-total-price-summary>0đ</span>
+          </div>
+          <p class="text-xs text-sand leading-relaxed">
+            Tạm tính chưa gồm chiết khấu theo số lượng; giá cuối cùng hiện ở giỏ hàng.
+          </p>
 
           <p class="text-xs text-sand leading-relaxed">
             Số lượng bánh còn hàng sẽ được xác nhận khi bạn đặt hàng.

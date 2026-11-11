@@ -17,9 +17,9 @@
 - **COD chỉ cho đơn có tổng thanh toán đến 5.000.000 VND.** Đơn lớn hơn chỉ thanh toán VNPay; trang thanh toán khóa lựa chọn COD và chọn sẵn VNPay.
 - Mỗi khách có tối đa **2 đơn COD chờ xử lý** (`PLACED`, payment `UNPAID`) và **1 đơn VNPay chưa thanh toán** cùng lúc.
 - Đơn VNPay chưa thanh toán **tự hủy sau 15 phút** (trước đây 30 phút), khớp hạn giao dịch VNPay 15 phút; hệ thống kiểm tra mỗi phút. Vẫn hỏi VNPay (`querydr`) trước khi hủy như v1.9.
-- Khách có **từ 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ** bị tạm khóa thanh toán VNPay trong 24 giờ; vẫn được đặt COD trong giới hạn trên.
+- Khách có **từ 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ** bị **tạm khóa đặt đơn mới (cả COD và VNPay)** cho tới khi số đơn đó trong 24 giờ gần nhất giảm dưới 3. Thông báo nêu lý do và mời liên hệ cửa hàng. Chỉ đếm đơn VNPay vì đơn COD bị hủy có thể do Admin hủy.
 - Trang sản phẩm chỉ hiện số lượng cụ thể khi sắp hết (từ ngưỡng cảnh báo trở xuống) hoặc khi khách đặt vượt; còn lại hiện còn hàng.
-- Các luật giữ hàng nằm trong từng `PaymentProcessor` (Strategy), checkout không rẽ nhánh theo phương thức. Không thêm bảng hay cột.
+- Luật riêng của từng phương thức (ngưỡng COD, số đơn chờ) nằm trong `PaymentProcessor` (Strategy); luật khóa đặt đơn áp dụng chung trong `CheckoutService`, kiểm tra cả khi mở trang thanh toán. Checkout không rẽ nhánh theo phương thức. Không thêm bảng hay cột.
 
 ### Thay đổi chính trong phiên bản 1.10
 
@@ -227,7 +227,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Tồn kho được trừ khi checkout thành công với **cả hai** phương thức; đơn VNPay chưa trả tiền vẫn giữ hàng cho đến khi được thanh toán hoặc bị hủy.
 - Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
 - Không chuyển khoản thủ công, không upload biên lai. Chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch, sau 15 phút từ v1.11; đơn COD không tự hủy.
-- Giới hạn giữ hàng (v1.11): COD chỉ cho đơn đến 5.000.000 VND; mỗi khách tối đa 2 đơn COD chờ xử lý và 1 đơn VNPay chưa thanh toán; 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ thì tạm khóa VNPay 24 giờ.
+- Giới hạn giữ hàng (v1.11): COD chỉ cho đơn đến 5.000.000 VND; mỗi khách tối đa 2 đơn COD chờ xử lý và 1 đơn VNPay chưa thanh toán; 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ thì tạm khóa đặt đơn mới (mọi phương thức).
 
 ### 6.2. COD
 
@@ -454,7 +454,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-66 | Đơn tổng 49.343.000 VND chọn COD | Từ chối; trang thanh toán khóa COD và chọn sẵn VNPay |
 | BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
 | BR-68 | Khách đã có 1 đơn VNPay chưa thanh toán đặt thêm đơn VNPay | Từ chối, yêu cầu thanh toán hoặc hủy đơn cũ |
-| BR-69 | Khách có 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ | Tạm khóa VNPay 24 giờ; COD trong giới hạn vẫn được |
+| BR-69 | Khách có 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ | Không mở được trang thanh toán và không đặt được đơn mới, kể cả COD; tự mở lại khi qua 24 giờ |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

@@ -48,8 +48,6 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
     }
 
     private static final int MAX_PENDING_VNPAY_ORDERS = 1;
-    private static final int MAX_ABANDONED_ORDERS = 3;
-    private static final int ABANDON_WINDOW_HOURS = 24;
 
     private final VnpayRepository vnpayRepository;
     private final PaymentRepository paymentRepository;
@@ -377,20 +375,6 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         if (pendingOrders >= MAX_PENDING_VNPAY_ORDERS) {
             throw new BusinessRuleViolationException(
                 "Bạn đang có đơn VNPay chưa thanh toán. Vui lòng thanh toán hoặc hủy đơn đó trước khi đặt đơn mới."
-            );
-        }
-        LocalDateTime since = LocalDateTime.now(clock).minusHours(ABANDON_WINDOW_HOURS);
-        long abandonedOrders = paymentRepository.countCancelledUnpaidSince(
-            customerId,
-            OrderStatus.CANCELLED,
-            PaymentMethod.VNPAY,
-            PaymentStatus.UNPAID,
-            since
-        );
-        if (abandonedOrders >= MAX_ABANDONED_ORDERS) {
-            throw new BusinessRuleViolationException(
-                "Bạn đã có " + abandonedOrders + " đơn VNPay bị hủy vì chưa thanh toán trong 24 giờ qua. "
-                    + "Thanh toán VNPay tạm khóa 24 giờ; bạn vẫn có thể chọn COD cho đơn đến 5.000.000đ."
             );
         }
     }

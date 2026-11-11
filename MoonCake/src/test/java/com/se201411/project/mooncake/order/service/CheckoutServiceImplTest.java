@@ -1,8 +1,5 @@
 package com.se201411.project.mooncake.order.service;
 
-import java.util.Map;
-import com.se201411.project.mooncake.common.exception.InsufficientStockException;
-import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -10,6 +7,8 @@ import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
 import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.cart.service.PricingService;
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.entity.OrderItem;
@@ -21,6 +20,7 @@ import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.DiscountGroup;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderItemKind;
+import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
@@ -35,6 +35,7 @@ import com.se201411.project.mooncake.order.service.impl.CheckoutServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.DeliveryAddressServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -54,13 +55,17 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -353,5 +358,28 @@ class CheckoutServiceImplTest {
             .isInstanceOf(InsufficientStockException.class)
             .hasMessageContaining("Chỉ còn 96")
             .hasMessageContaining("cần 500");
+    }
+
+    @Test
+    void threeAbandonedVnpayOrdersBlockEveryNewOrderIncludingCod() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        when(paymentRepository.countCancelledUnpaidSince(
+            eq(7L),
+            eq(OrderStatus.CANCELLED),
+            eq(PaymentMethod.VNPAY),
+            eq(PaymentStatus.UNPAID),
+            any()
+        )).thenReturn(3L);
+        CheckoutForm codForm = validForm();
+        codForm.setPaymentMethod(PaymentMethod.COD);
+
+        assertThatThrownBy(() -> checkoutService.prepareCheckout(customerIdentity))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa thể đặt đơn mới");
+        assertThatThrownBy(() -> checkoutService.placeOrder(customerIdentity, codForm))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa thể đặt đơn mới");
+        verify(cartService, never()).claimForCheckout(anyLong(), any());
+        verify(orderRepository, never()).save(any());
     }
 }

@@ -8,16 +8,13 @@ public interface CustomerProfileService {
 
     CustomerProfile requireProfile(ShopperIdentity customerIdentity);
 
-<<<<<<< HEAD
     void updateFullName(ShopperIdentity customerIdentity, String fullName);
 
     void updateEmail(ShopperIdentity customerIdentity, String email);
 
     void updatePhone(ShopperIdentity customerIdentity, String phone);
 
-=======
     Customer customerReference(long customerId);
 
     long accountIdOf(long customerId);
->>>>>>> origin/main
 }

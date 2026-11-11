@@ -13,7 +13,6 @@ public final class AdminInventoryView {
 
     public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
 
-        /** Entity -> DTO */
         public static Balance entityToDto(InventoryBalance balance) {
             return new Balance(
                 balance.getVariantId(),
@@ -58,7 +57,6 @@ public final class AdminInventoryView {
                            String groupKey, Long orderId, LocalDateTime createdAt,
                            String productName, String typeLabel, String formattedCreatedAt) {
 
-        /** Entity -> DTO. The service builds the type label and the Vietnam-time text and passes them in. */
         public static Movement entityToDto(StockMovement movement, String typeLabel, String formattedCreatedAt) {
             Long orderId = null;
             if (movement.getOrder() != null) {

@@ -11,7 +11,6 @@ public record AdminFeedbackView(
     boolean published
 ) {
 
-    /** Entity -> DTO. The service formats the time and passes it in. */
     public static AdminFeedbackView entityToDto(Feedback feedback, String formattedCreatedAt) {
         return new AdminFeedbackView(
             feedback.getId(),

@@ -8,7 +8,6 @@ public record ProductVideoView(
     String caption
 ) {
 
-    /** Entity -> DTO */
     public static ProductVideoView entityToDto(ProductVideo video) {
         return new ProductVideoView(
             video.getId(),

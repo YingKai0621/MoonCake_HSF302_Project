@@ -258,7 +258,6 @@ public final class CatalogProductView {
         return String.join("|", textValues);
     }
 
-    /** Entity -> DTO. The service maps the SKUs and passes them in. */
     public static CatalogProductView entityToDto(Product product, List<CatalogVariantView> variants) {
         return new CatalogProductView(
             product.getId(),

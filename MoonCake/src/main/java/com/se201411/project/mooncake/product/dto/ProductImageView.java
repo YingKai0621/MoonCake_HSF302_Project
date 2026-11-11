@@ -8,7 +8,6 @@ public record ProductImageView(
     long variantId
 ) {
 
-    /** Entity -> DTO */
     public static ProductImageView entityToDto(ProductImage image) {
         return new ProductImageView(
             image.getImageUrl(),

@@ -11,7 +11,6 @@ public record OrderSuccessItemView(
     String formattedLineTotal
 ) {
 
-    /** Entity -> DTO. A CUSTOM line has no SKU snapshot, so it shows the box SKU instead. */
     public static OrderSuccessItemView entityToDto(OrderItem item) {
         String sku = item.getSkuSnapshot();
         if (sku == null) {

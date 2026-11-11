@@ -10,10 +10,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
-/**
- * Sends the reset link through SMTP. When MAIL_HOST is not configured (local demo),
- * the link is written to the application log instead.
- */
 @Component
 public class MailPasswordResetNotifier implements PasswordResetNotifier {
 
@@ -50,7 +46,6 @@ public class MailPasswordResetNotifier implements PasswordResetNotifier {
         try {
             sender.send(message);
         } catch (MailException exception) {
-            // Never reveal delivery problems to the visitor; the neutral response stays the same.
             log.error("Could not send password reset mail to {}", recipientEmail, exception);
         }
     }

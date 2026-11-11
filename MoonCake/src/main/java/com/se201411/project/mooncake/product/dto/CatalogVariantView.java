@@ -19,7 +19,6 @@ public record CatalogVariantView(
     int stock
 ) {
 
-    /** Entity -> DTO. Picture, PRESET recipe and stock are worked out by the service. */
     public static CatalogVariantView entityToDto(
         ProductVariant variant,
         String imageUrl,

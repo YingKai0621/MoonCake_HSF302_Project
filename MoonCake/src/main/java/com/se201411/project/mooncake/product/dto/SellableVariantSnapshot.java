@@ -16,7 +16,6 @@ public record SellableVariantSnapshot(
     boolean active
 ) {
 
-    /** Entity -> DTO for a SKU the service has already checked as sellable. */
     public static SellableVariantSnapshot entityToDto(ProductVariant variant) {
         Product product = variant.getProduct();
         return new SellableVariantSnapshot(

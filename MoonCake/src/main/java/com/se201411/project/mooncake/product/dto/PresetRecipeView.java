@@ -14,7 +14,6 @@ public record PresetRecipeView(
     List<PresetComponentView> components
 ) {
 
-    /** Entity -> DTO. The service maps the recipe lines and passes them in. */
     public static PresetRecipeView entityToDto(BoxConfiguration preset, List<PresetComponentView> components) {
         ProductVariant boxVariant = preset.getBox().getEmptyBoxVariant();
         return new PresetRecipeView(

@@ -12,7 +12,6 @@ public record AdminPresetView(long id, long giftSetVariantId, String sku, long b
                               int capacity, ConfigurationStatus status, List<Component> components,
                               String giftName, String boxName) {
 
-    /** Entity -> DTO. The service maps the components and builds the display names. */
     public static AdminPresetView entityToDto(
         BoxConfiguration configuration,
         List<Component> components,
@@ -58,7 +57,6 @@ public record AdminPresetView(long id, long giftSetVariantId, String sku, long b
 
     public record Component(long variantId, String sku, int quantity, String name) {
 
-        /** Entity -> DTO. The service builds the cake display name and passes it in. */
         public static Component entityToDto(BoxConfigurationItem item, String name) {
             ProductVariant cake = item.getMooncakeVariant();
             return new Component(

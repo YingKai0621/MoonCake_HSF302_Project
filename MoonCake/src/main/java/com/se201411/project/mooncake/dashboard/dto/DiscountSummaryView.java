@@ -19,7 +19,6 @@ public record DiscountSummaryView(
         String formattedCreatedAt
     ) {
 
-        /** Entity -> DTO. The service formats the time and passes it in. */
         public static Order entityToDto(SalesOrder order, String formattedCreatedAt) {
             return new Order(
                 order.getId(),

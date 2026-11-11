@@ -34,10 +34,6 @@ public class FeedbackForm {
         this.content = content;
     }
 
-    /**
-     * DTO -> Entity: copies the stars and the trimmed text. The service checks them first
-     * and sets the customer, the hidden status and the time itself.
-     */
     public void dtoToEntity(Feedback feedback) {
         feedback.setRating(rating);
         feedback.setContent(content.trim());

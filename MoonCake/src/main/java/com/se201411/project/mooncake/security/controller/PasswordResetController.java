@@ -43,7 +43,6 @@ public class PasswordResetController {
             return FORGOT_VIEW;
         }
         passwordResetService.requestReset(form.getEmail());
-        // Same answer whether or not the email exists.
         return "redirect:/forgot-password?sent";
     }
 
@@ -99,7 +98,6 @@ public class PasswordResetController {
         return "redirect:/login?reset";
     }
 
-    /** The token sits in the URL; keep it out of Referer headers sent to fonts/CDNs and out of caches. */
     private static void preventTokenLeak(HttpServletResponse response) {
         response.setHeader("Referrer-Policy", "no-referrer");
         response.setHeader("Cache-Control", "no-store");

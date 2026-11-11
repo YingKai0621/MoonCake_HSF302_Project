@@ -21,7 +21,6 @@ public record CartVariantSnapshot(
     int stock
 ) {
 
-    /** Entity -> DTO. Picture, sellable flag and stock are worked out by the service. */
     public static CartVariantSnapshot entityToDto(
         ProductVariant variant,
         String imageUrl,

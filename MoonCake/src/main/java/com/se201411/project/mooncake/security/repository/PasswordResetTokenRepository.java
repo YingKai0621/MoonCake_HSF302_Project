@@ -21,9 +21,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
 
     boolean existsByAccount_IdAndCreatedAtAfter(Long accountId, LocalDateTime createdAfter);
 
-    /**
-     * Closes every still-open token of an account so only the newest link works.
-     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE PasswordResetToken token
@@ -33,9 +30,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
         """)
     int invalidateOpenTokens(@Param("accountId") Long accountId, @Param("now") LocalDateTime now);
 
-    /**
-     * Conditional single-use claim: returns 1 only for the request that wins the token.
-     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE PasswordResetToken token

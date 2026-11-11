@@ -11,7 +11,6 @@ public record PresetComponentView(
     int quantityPerBox
 ) {
 
-    /** Entity -> DTO. The service builds the cake display name and passes it in. */
     public static PresetComponentView entityToDto(BoxConfigurationItem item, String displayName) {
         ProductVariant cake = item.getMooncakeVariant();
         return new PresetComponentView(

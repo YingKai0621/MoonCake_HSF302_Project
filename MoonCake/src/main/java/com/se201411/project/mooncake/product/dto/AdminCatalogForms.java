@@ -43,7 +43,6 @@ public final class AdminCatalogForms {
         boolean active
     ) {
 
-        /** Entity -> DTO: fills the edit form from a saved category. */
         public static CategoryForm entityToDto(Category category) {
             return new CategoryForm(
                 category.getId(),
@@ -53,7 +52,6 @@ public final class AdminCatalogForms {
             );
         }
 
-        /** DTO -> Entity: copies only the plain fields; the service loads the entity and checks rules. */
         public void dtoToEntity(Category category) {
             category.setName(name.trim());
             category.setSlug(slug);
@@ -88,7 +86,6 @@ public final class AdminCatalogForms {
         boolean active
     ) {
 
-        /** Entity -> DTO: fills the edit form from a saved product. */
         public static ProductForm entityToDto(Product product) {
             return new ProductForm(
                 product.getId(),
@@ -105,10 +102,6 @@ public final class AdminCatalogForms {
             );
         }
 
-        /**
-         * DTO -> Entity: copies only the plain fields. The service sets the category itself,
-         * because it must load it from the database instead of trusting the submitted ID.
-         */
         public void dtoToEntity(Product product) {
             product.setProductType(productType);
             product.setName(name.trim());
@@ -204,7 +197,6 @@ public final class AdminCatalogForms {
         boolean active
     ) {
 
-        /** Entity -> DTO: fills the edit form from a saved SKU. */
         public static VariantForm entityToDto(ProductVariant variant) {
             return new VariantForm(
                 variant.getId(),
@@ -218,10 +210,6 @@ public final class AdminCatalogForms {
             );
         }
 
-        /**
-         * DTO -> Entity: copies only the plain fields. SKU, parent product and the
-         * on-sale flag stay in the service because they follow extra business rules.
-         */
         public void dtoToEntity(ProductVariant variant) {
             variant.setName(name.trim());
             variant.setWeightGrams(weightGrams);
@@ -244,7 +232,6 @@ public final class AdminCatalogForms {
         boolean active
     ) {
 
-        /** Entity -> DTO: fills the edit form from a saved box model. */
         public static BoxForm entityToDto(Box box) {
             return new BoxForm(
                 box.getId(),
@@ -256,7 +243,6 @@ public final class AdminCatalogForms {
             );
         }
 
-        /** DTO -> Entity: copies only the plain fields; the service sets the box SKU itself. */
         public void dtoToEntity(Box box) {
             box.setCapacityCakes(capacityCakes);
             box.setMaterial(material);
@@ -280,7 +266,6 @@ public final class AdminCatalogForms {
         boolean primary
     ) {
 
-        /** Entity -> DTO: fills the edit form from a saved image. */
         public static ImageForm entityToDto(ProductImage image) {
             return new ImageForm(
                 image.getId(),
@@ -292,7 +277,6 @@ public final class AdminCatalogForms {
             );
         }
 
-        /** DTO -> Entity: copies only the plain fields; the service sets the SKU itself. */
         public void dtoToEntity(ProductImage image) {
             image.setImageUrl(imageUrl);
             image.setAltText(altText);

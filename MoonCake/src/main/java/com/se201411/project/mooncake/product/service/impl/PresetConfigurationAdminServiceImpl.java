@@ -99,41 +99,23 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         for (ProductVariant variant : products.variants()) {
             ProductType type = variant.getProduct().getProductType();
             if (type == ProductType.MOONCAKE) {
-                cakes.add(new AdminPresetOptions.Option(
-                    variant.getId(),
-                    variant.getProduct().getName(),
-                    variant.getName(),
-                    pictures.get(variant.getId()),
-                    stock.getOrDefault(variant.getId(), 0),
-                    variant.isActive() && variant.getProduct().isActive()
-                ));
+                int cakeStock = stock.getOrDefault(variant.getId(), 0);
+                cakes.add(AdminPresetOptions.Option.cakeEntityToDto(variant, pictures.get(variant.getId()), cakeStock));
             }
             boolean freeGiftSet = type == ProductType.GIFT_SET
                 && !variant.isActive()
                 && !giftSetsWithRecipe.contains(variant.getId())
                 && !inventory.hasStockOrHistory(variant.getId());
             if (freeGiftSet) {
-                giftSets.add(new AdminPresetOptions.Option(
-                    variant.getId(),
-                    variantLabel(variant),
-                    null,
-                    pictures.get(variant.getId()),
-                    0,
-                    false
-                ));
+                giftSets.add(AdminPresetOptions.Option.giftSetEntityToDto(variant, pictures.get(variant.getId())));
             }
         }
         List<AdminPresetOptions.Option> boxes = new ArrayList<>();
         for (Box box : products.boxes()) {
             if (box.isActive()) {
-                boxes.add(new AdminPresetOptions.Option(
-                    box.getId(),
-                    boxLabel(box),
-                    box.getCapacityCakes() + " bánh",
-                    pictures.get(box.getEmptyBoxVariant().getId()),
-                    stock.getOrDefault(box.getEmptyBoxVariant().getId(), 0),
-                    true
-                ));
+                long boxVariantId = box.getEmptyBoxVariant().getId();
+                int boxStock = stock.getOrDefault(boxVariantId, 0);
+                boxes.add(AdminPresetOptions.Option.boxEntityToDto(box, pictures.get(boxVariantId), boxStock));
             }
         }
         return new AdminPresetOptions(giftSets, boxes, cakes);

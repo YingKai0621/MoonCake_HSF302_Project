@@ -16,7 +16,6 @@ public record AdminBatchView(
     String statusTone
 ) {
 
-    /** Entity -> DTO. The service works out the code label and expiry status and passes them in. */
     public static AdminBatchView entityToDto(StockBatch batch, String batchCodeLabel, String statusLabel, String statusTone) {
         ProductVariant variant = batch.getVariant();
         return new AdminBatchView(

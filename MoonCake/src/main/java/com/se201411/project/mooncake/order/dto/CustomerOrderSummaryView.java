@@ -11,7 +11,6 @@ public record CustomerOrderSummaryView(
     String formattedTotal
 ) {
 
-    /** Entity -> DTO. The service decides the status text and formats the time. */
     public static CustomerOrderSummaryView entityToDto(
         SalesOrder order,
         String statusLabel,

@@ -25,7 +25,8 @@ public record CustomerOrderDetailView(
     String formattedShippingFee,
     String formattedRoundingAdjustment,
     String formattedTotal,
-    String cancellationNote
+    String cancellationNote,
+    OrderFulfilmentView fulfilment
 ) {
 
     public static CustomerOrderDetailView entityToDto(
@@ -63,7 +64,8 @@ public record CustomerOrderDetailView(
             MoneyFormat.vnd(order.getShippingFee()),
             MoneyFormat.signedVnd(order.getRoundingAdjustment()),
             MoneyFormat.vnd(order.getTotalAmount()),
-            cancellationNote
+            cancellationNote,
+            OrderFulfilmentView.entityToDto(order)
         );
     }
 

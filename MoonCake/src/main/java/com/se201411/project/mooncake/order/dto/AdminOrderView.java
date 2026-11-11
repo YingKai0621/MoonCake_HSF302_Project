@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.enums.ShippingCarrier;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
@@ -30,7 +31,9 @@ public record AdminOrderView(
     String formattedUpdatedAt,
     List<Item> items,
     List<PaymentLine> payments,
-    Actions actions
+    Actions actions,
+    OrderFulfilmentView fulfilment,
+    List<ShippingCarrier> shippingCarriers
 ) {
 
     public static AdminOrderView entityToDto(
@@ -62,7 +65,9 @@ public record AdminOrderView(
             formattedUpdatedAt,
             items,
             payments,
-            actions
+            actions,
+            OrderFulfilmentView.entityToDto(order),
+            List.of(ShippingCarrier.values())
         );
     }
 

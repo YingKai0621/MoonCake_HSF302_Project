@@ -47,7 +47,8 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
     @Query("""
         update SalesOrder salesOrder
         set salesOrder.status = :cancelledStatus,
-            salesOrder.updatedAt = :updatedAt
+            salesOrder.updatedAt = :updatedAt,
+            salesOrder.cancelledAt = :updatedAt
         where salesOrder.id = :orderId
           and salesOrder.status = :expectedStatus
         """)

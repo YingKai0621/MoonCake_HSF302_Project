@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.admin;
 
+import java.time.LocalDate;
+import com.se201411.project.mooncake.order.dto.ShipmentForm;
+import com.se201411.project.mooncake.enums.ShippingCarrier;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
@@ -142,5 +145,64 @@ class OrderManagementServiceTest {
         payment.setMethod(method);
         payment.setStatus(paymentStatus);
         when(payments.findByOrderId(1L)).thenReturn(List.of(payment));
+    }
+
+    @Test
+    void shippingRequiresTheShipmentForm() {
+        order(OrderStatus.PROCESSING, PaymentMethod.COD, PaymentStatus.UNPAID);
+
+        assertThatThrownBy(() -> service.transition(1, OrderStatus.SHIPPING))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("thông tin giao hàng");
+        verify(orders, never()).transition(anyLong(), any(), any(), any());
+    }
+
+    @Test
+    void carrierShipmentStoresUppercaseTrackingCodeAndDate() {
+        order(OrderStatus.PROCESSING, PaymentMethod.COD, PaymentStatus.UNPAID);
+        LocalDate expected = LocalDate.now().plusDays(2);
+        when(orders.ship(eq(1L), eq(ShippingCarrier.GHN), eq("GHN123"), eq(expected), any())).thenReturn(1);
+
+        service.ship(1, new ShipmentForm(ShippingCarrier.GHN, " ghn123 ", expected));
+
+        verify(orders).ship(eq(1L), eq(ShippingCarrier.GHN), eq("GHN123"), eq(expected), any());
+    }
+
+    @Test
+    void carrierWithoutTrackingCodeIsRejected() {
+        order(OrderStatus.PROCESSING, PaymentMethod.COD, PaymentStatus.UNPAID);
+
+        assertThatThrownBy(() -> service.ship(1, new ShipmentForm(ShippingCarrier.GHTK, "  ", LocalDate.now().plusDays(2))))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("mã vận đơn");
+        verify(orders, never()).ship(anyLong(), any(), any(), any(), any());
+    }
+
+    @Test
+    void storeDeliveryNeedsNoTrackingCode() {
+        order(OrderStatus.PROCESSING, PaymentMethod.COD, PaymentStatus.UNPAID);
+        LocalDate expected = LocalDate.now().plusDays(1);
+        when(orders.ship(eq(1L), eq(ShippingCarrier.STORE), eq(null), eq(expected), any())).thenReturn(1);
+
+        service.ship(1, new ShipmentForm(ShippingCarrier.STORE, null, expected));
+
+        verify(orders).ship(eq(1L), eq(ShippingCarrier.STORE), eq(null), eq(expected), any());
+    }
+
+    @Test
+    void pastDeliveryDateIsRejected() {
+        order(OrderStatus.PROCESSING, PaymentMethod.COD, PaymentStatus.UNPAID);
+
+        assertThatThrownBy(() -> service.ship(1, new ShipmentForm(ShippingCarrier.STORE, null, LocalDate.now().minusDays(2))))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("trước hôm nay");
+    }
+
+    @Test
+    void onlyProcessingOrdersCanBeShipped() {
+        order(OrderStatus.PLACED, PaymentMethod.COD, PaymentStatus.UNPAID);
+
+        assertThatThrownBy(() -> service.ship(1, new ShipmentForm(ShippingCarrier.STORE, null, LocalDate.now().plusDays(2))))
+            .isInstanceOf(BusinessRuleViolationException.class);
     }
 }

@@ -128,6 +128,7 @@
         <li class="order-progress__step is-done">
           <span class="order-progress__marker">✓</span>
           <span class="order-progress__label">Đặt hàng</span>
+          <span class="order-progress__time" th:text="${order.fulfilment.placedAt}"></span>
         </li>
         <li th:if="${vnpay}"
             class="order-progress__step"
@@ -139,18 +140,32 @@
             th:classappend="${stage > 2} ? 'is-done' : (${stage == 2} ? 'is-current' : '')">
           <span class="order-progress__marker" th:text="${stage > 2 ? '✓' : ''}"></span>
           <span class="order-progress__label">Đang xử lý</span>
+          <span class="order-progress__time" th:text="${order.fulfilment.processingAt}"></span>
         </li>
         <li class="order-progress__step"
             th:classappend="${stage > 3} ? 'is-done' : (${stage == 3} ? 'is-current' : '')">
           <span class="order-progress__marker" th:text="${stage > 3 ? '✓' : ''}"></span>
           <span class="order-progress__label">Đang giao hàng</span>
+          <span class="order-progress__time" th:text="${order.fulfilment.shippingAt}"></span>
         </li>
         <li class="order-progress__step"
             th:classappend="${stage == 4} ? 'is-done'">
           <span class="order-progress__marker" th:text="${stage == 4 ? '✓' : ''}"></span>
           <span class="order-progress__label">Hoàn thành</span>
+          <span class="order-progress__time" th:text="${order.fulfilment.completedAt}"></span>
         </li>
       </ol>
+      <div th:if="${order.fulfilment.hasShipment()}" class="order-shipment">
+        <p>
+          <span>Giao bởi</span>
+          <strong th:text="${order.fulfilment.carrierLabel}">Giao Hàng Nhanh</strong>
+          <span th:if="${order.fulfilment.trackingCode}" th:text="${'· Mã vận đơn ' + order.fulfilment.trackingCode}">· Mã vận đơn GHN123</span>
+        </p>
+        <p th:if="${order.fulfilment.completedAt == null}">
+          <span>Dự kiến giao:</span>
+          <strong th:text="${order.fulfilment.estimatedDelivery}">18/09/2026</strong>
+        </p>
+      </div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

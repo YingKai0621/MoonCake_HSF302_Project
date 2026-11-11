@@ -37,4 +37,19 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
             customer.getEmail()
         );
     }
+
+    @Override
+    @Transactional
+    public void updateFullName(ShopperIdentity customerIdentity, String fullName) {
+        Customer customer = requireCustomer(customerIdentity);
+        customer.setFullName(fullName.trim());
+    }
+
+    private Customer requireCustomer(ShopperIdentity customerIdentity) {
+        if (customerIdentity == null) {
+            throw new ResourceNotFoundException("Không tìm thấy thông tin khách hàng");
+        }
+        return customerRepository.findById(customerIdentity.customerId())
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin khách hàng"));
+    }
 }

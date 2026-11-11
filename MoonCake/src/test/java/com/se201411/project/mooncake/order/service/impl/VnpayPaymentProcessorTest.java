@@ -441,13 +441,13 @@ class VnpayPaymentProcessorTest {
     }
 
     @Test
-    void unpaidOrderIsCancelledThirtyMinutesAfterItWasPlaced() {
+    void unpaidOrderIsCancelledFifteenMinutesAfterItWasPlaced() {
         SalesOrder order = placedAt(2, 0);
         when(vnpayRepository.findPendingAttempt(7L)).thenReturn(null);
 
         Optional<LocalDateTime> deadline = processor.autoCancelAt(order, payment(PaymentStatus.UNPAID));
 
-        assertThat(deadline).contains(LocalDateTime.of(2026, 11, 8, 2, 30));
+        assertThat(deadline).contains(LocalDateTime.of(2026, 11, 8, 2, 15));
     }
 
     @Test
@@ -535,5 +535,30 @@ class VnpayPaymentProcessorTest {
             "PENDING",
             LocalDateTime.of(2026, 11, 8, hour, minute)
         );
+    }
+
+    @Test
+    void secondUnpaidVnpayOrderIsRefused() {
+        when(paymentRepository.countCustomerOrders(7L, OrderStatus.PLACED, PaymentMethod.VNPAY, PaymentStatus.UNPAID))
+            .thenReturn(1L);
+
+        assertThatThrownBy(() -> processor.checkCanPlace(7L, AMOUNT))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa thanh toán");
+    }
+
+    @Test
+    void threeAbandonedVnpayOrdersInADayLockVnpay() {
+        when(paymentRepository.countCancelledUnpaidSince(eq(7L), eq(OrderStatus.CANCELLED), eq(PaymentMethod.VNPAY), eq(PaymentStatus.UNPAID), any()))
+            .thenReturn(3L);
+
+        assertThatThrownBy(() -> processor.checkCanPlace(7L, AMOUNT))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("tạm khóa 24 giờ");
+    }
+
+    @Test
+    void vnpayAcceptsLargeTotals() {
+        assertThat(processor.acceptsTotal(new BigDecimal("500000000"))).isTrue();
     }
 }

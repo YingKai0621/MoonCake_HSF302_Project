@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
@@ -153,8 +155,12 @@ public class CheckoutController {
         CheckoutPreparation preparation,
         CheckoutForm form
     ) {
+        CheckoutPageView checkout = checkoutService.checkoutPage(preparation);
+        if (!checkout.codAllowed() && form.getPaymentMethod() == PaymentMethod.COD) {
+            form.setPaymentMethod(PaymentMethod.VNPAY);
+        }
         model.addAttribute("checkoutForm", form);
-        model.addAttribute("checkout", checkoutService.checkoutPage(preparation));
+        model.addAttribute("checkout", checkout);
     }
 
     private String firstError(BindingResult bindingResult) {

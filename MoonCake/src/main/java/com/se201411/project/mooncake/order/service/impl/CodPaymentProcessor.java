@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.enums.OrderStatus;
+import java.math.BigDecimal;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
@@ -15,6 +18,9 @@ import java.util.Optional;
 
 @Service
 public class CodPaymentProcessor implements PaymentProcessor {
+    private static final BigDecimal MAX_COD_TOTAL = BigDecimal.valueOf(5_000_000);
+    private static final int MAX_OPEN_COD_ORDERS = 2;
+
     private final PaymentRepository paymentRepository;
 
     public CodPaymentProcessor(PaymentRepository paymentRepository) {
@@ -86,5 +92,30 @@ public class CodPaymentProcessor implements PaymentProcessor {
     @Override
     public PaymentReturnResult handleReturn(Map<String, String> params) {
         return PaymentReturnResult.unverified();
+    }
+
+    @Override
+    public boolean acceptsTotal(BigDecimal total) {
+        return total.compareTo(MAX_COD_TOTAL) <= 0;
+    }
+
+    @Override
+    public void checkCanPlace(long customerId, BigDecimal total) {
+        if (!acceptsTotal(total)) {
+            throw new BusinessRuleViolationException(
+                "COD chỉ áp dụng cho đơn đến 5.000.000đ. Đơn lớn hơn vui lòng thanh toán qua VNPay."
+            );
+        }
+        long openOrders = paymentRepository.countCustomerOrders(
+            customerId,
+            OrderStatus.PLACED,
+            PaymentMethod.COD,
+            PaymentStatus.UNPAID
+        );
+        if (openOrders >= MAX_OPEN_COD_ORDERS) {
+            throw new BusinessRuleViolationException(
+                "Bạn đang có " + openOrders + " đơn COD chờ xử lý. Vui lòng chờ cửa hàng xử lý hoặc hủy bớt đơn trước khi đặt thêm."
+            );
+        }
     }
 }

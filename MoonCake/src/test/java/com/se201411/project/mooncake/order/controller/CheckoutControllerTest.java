@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
+import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
@@ -22,7 +23,10 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,6 +66,7 @@ class CheckoutControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setViewResolvers(viewResolver)
             .build();
+        lenient().when(checkoutService.checkoutPage(any())).thenReturn(page(true));
 
         preparation = new CheckoutPreparation(
             9L,
@@ -102,6 +107,7 @@ class CheckoutControllerTest {
             "0đ",
             null,
             "0đ",
+            true,
             List.of(),
             List.of()
         ));
@@ -212,5 +218,20 @@ class CheckoutControllerTest {
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "streetAddress", "orderNote"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
+    }
+
+    @Test
+    void largeOrderPreselectsVnpayBecauseCodIsNotAllowed() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(checkoutService.prepareCheckout(CUSTOMER)).thenReturn(preparation);
+        when(checkoutService.checkoutPage(preparation)).thenReturn(page(false));
+
+        mockMvc.perform(get("/checkout"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("checkoutForm", hasProperty("paymentMethod", is(PaymentMethod.VNPAY))));
+    }
+
+    private CheckoutPageView page(boolean codAllowed) {
+        return new CheckoutPageView(9L, List.of(), 0, "0đ", "0đ", "0đ", null, "0đ", codAllowed, List.of(), List.of());
     }
 }

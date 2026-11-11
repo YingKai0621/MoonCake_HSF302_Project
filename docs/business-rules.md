@@ -1,14 +1,25 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.10 — 09/11/2026
+**Phiên bản tài liệu:** 1.11 — 11/11/2026
 
-**Trạng thái:** Cho mở khóa PRESET chưa phát sinh tồn, giỏ hay đơn; không đổi schema (Flyway V16, 24 bảng)
+**Trạng thái:** Chặn vượt tồn từ giỏ hàng và giới hạn giữ hàng theo phương thức thanh toán; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.11
+
+- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Chỉ còn N sản phẩm"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
+- **Không giới hạn số lượng mỗi đơn**, để giữ nguyên các bậc chiết khấu đến 500 hộp.
+- **COD chỉ cho đơn có tổng thanh toán đến 5.000.000 VND.** Đơn lớn hơn chỉ thanh toán VNPay; trang thanh toán khóa lựa chọn COD và chọn sẵn VNPay.
+- Mỗi khách có tối đa **2 đơn COD chờ xử lý** (`PLACED`, payment `UNPAID`) và **1 đơn VNPay chưa thanh toán** cùng lúc.
+- Đơn VNPay chưa thanh toán **tự hủy sau 15 phút** (trước đây 30 phút), khớp hạn giao dịch VNPay 15 phút; hệ thống kiểm tra mỗi phút. Vẫn hỏi VNPay (`querydr`) trước khi hủy như v1.9.
+- Khách có **từ 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ** bị tạm khóa thanh toán VNPay trong 24 giờ; vẫn được đặt COD trong giới hạn trên.
+- Trang sản phẩm chỉ hiện số lượng cụ thể khi sắp hết (từ ngưỡng cảnh báo trở xuống) hoặc khi khách đặt vượt; còn lại hiện còn hàng.
+- Các luật giữ hàng nằm trong từng `PaymentProcessor` (Strategy), checkout không rẽ nhánh theo phương thức. Không thêm bảng hay cột.
 
 ### Thay đổi chính trong phiên bản 1.10
 
@@ -173,7 +184,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Schema V1 vẫn cho phép owner bằng `guest_token` để giữ checksum và thiết kế 19 bảng đã áp dụng. Đây là khả năng cấu trúc chưa dùng; backend MVP hiện tại không tạo, đọc như giỏ hiện hành, gộp hoặc checkout guest cart. Không cần migration chỉ để thu hẹp hành vi ứng dụng.
 - `CART_ITEM` lưu **đúng một** loại đích mua: `variant_id` (bánh lẻ, hộp rỗng, GIFT_SET) **hoặc** `configuration_id` (CUSTOM); `quantity` là số nguyên dương.
 - Trong cùng một giỏ, mỗi `variant_id` hoặc `configuration_id` chỉ xuất hiện ở **một `CART_ITEM`**. Thêm lại cùng đích mua phải tăng `quantity`, không tạo dòng trùng. Backend vẫn phải cộng gộp theo SKU khi kiểm tra tồn để phòng dữ liệu cũ hoặc lỗi đồng thời.
-- Thêm, xóa, đổi số lượng trong giỏ **không trừ tồn kho**. Tồn kho được kiểm tra lại tại checkout; số lượng còn bán trên trang sản phẩm chỉ để tham khảo.
+- Thêm, xóa, đổi số lượng trong giỏ **không trừ tồn kho**, nhưng không được đặt số lượng vượt số còn bán (giảm luôn được phép). Trang thanh toán và bước đặt hàng kiểm tra lại tồn theo tổng nhu cầu mỗi SKU (từ v1.11).
 - Checkout thành công phải chuyển giỏ hiện tại sang `CHECKED_OUT`. Giỏ đó và các CUSTOM configuration của nó không được dùng lại hoặc sửa tiếp; lần mua sau hệ thống tạo một giỏ `ACTIVE` mới khi cần.
 - Checkout thất bại không đổi trạng thái giỏ và không xóa lựa chọn của khách.
 - Một `CART` chỉ được checkout thành công **một lần**. Checkout phải bắt đầu bằng thao tác chuyển có điều kiện `ACTIVE → CHECKED_OUT`; chỉ request cập nhật được đúng một dòng mới được phép tạo đơn và trừ tồn.
@@ -215,7 +226,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Mỗi đơn có tối đa một khoản `PAID`. Không tạo `PAYMENT` mới cho các lần thử thanh toán; các lần thử VNPay được lưu trong `VNPAY_ATTEMPT`.
 - Tồn kho được trừ khi checkout thành công với **cả hai** phương thức; đơn VNPay chưa trả tiền vẫn giữ hàng cho đến khi được thanh toán hoặc bị hủy.
 - Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
-- Không chuyển khoản thủ công, không upload biên lai. Từ v1.9, chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch (mục Thay đổi 1.9); đơn COD không tự hủy.
+- Không chuyển khoản thủ công, không upload biên lai. Chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch, sau 15 phút từ v1.11; đơn COD không tự hủy.
+- Giới hạn giữ hàng (v1.11): COD chỉ cho đơn đến 5.000.000 VND; mỗi khách tối đa 2 đơn COD chờ xử lý và 1 đơn VNPay chưa thanh toán; 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ thì tạm khóa VNPay 24 giờ.
 
 ### 6.2. COD
 
@@ -432,11 +444,17 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |
 | BR-57 | Đơn COD | Không có nút thanh toán VNPay; không thể đổi sang VNPay |
 | BR-58 | Hoàn tất đơn VNPay đã `PAID` | `SHIPPING → COMPLETED`; không thu COD, payment không đổi |
-| BR-59 | Đơn VNPay `PLACED`/`UNPAID` quá 30 phút, không còn attempt trong hạn | Lần kiểm tra kế tiếp hủy đơn, attempt `FAILED`, hoàn tồn một lần |
-| BR-60 | Đơn VNPay quá 30 phút nhưng khách vừa mở attempt mới còn hạn | Chưa hủy; hạn hủy lùi tới lúc attempt hết hạn |
+| BR-59 | Đơn VNPay `PLACED`/`UNPAID` quá 15 phút (từ v1.11), không còn attempt trong hạn | Lần kiểm tra kế tiếp hủy đơn, attempt `FAILED`, hoàn tồn một lần |
+| BR-60 | Đơn VNPay quá 15 phút nhưng khách vừa mở attempt mới còn hạn | Chưa hủy; hạn hủy lùi tới lúc attempt hết hạn |
 | BR-61 | Đến hạn hủy nhưng `querydr` xác nhận đã thanh toán | Ghi `PAID`; giữ đơn `PLACED` |
 | BR-62 | Đến hạn hủy nhưng không kết nối được VNPay | Không hủy; lần kiểm tra sau thử lại |
 | BR-63 | Đơn COD chưa thanh toán lâu ngày | Không bao giờ tự hủy |
+| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Chỉ còn 96 sản phẩm"; giỏ giữ 90 |
+| BR-65 | Dòng giỏ 500 nhưng kho còn 96 | Nút thanh toán bị khóa; mở thẳng `/checkout` bị đưa về giỏ với số thiếu; giảm số lượng vẫn được |
+| BR-66 | Đơn tổng 49.343.000 VND chọn COD | Từ chối; trang thanh toán khóa COD và chọn sẵn VNPay |
+| BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
+| BR-68 | Khách đã có 1 đơn VNPay chưa thanh toán đặt thêm đơn VNPay | Từ chối, yêu cầu thanh toán hoặc hủy đơn cũ |
+| BR-69 | Khách có 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ | Tạm khóa VNPay 24 giờ; COD trong giới hạn vẫn được |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

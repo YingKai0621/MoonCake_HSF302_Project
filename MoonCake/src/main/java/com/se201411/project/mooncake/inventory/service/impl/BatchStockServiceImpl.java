@@ -110,12 +110,10 @@ public class BatchStockServiceImpl implements BatchStockService {
     public void updateTraceability(long batchId, String code, LocalDate producedOn, LocalDate expiresOn) {
         adminAccessService.requireAdmin();
         boolean invalidCode = code == null || code.isBlank() || code.length() > MAX_CODE_LENGTH;
-        boolean invalidDates = producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn);
-        if (invalidCode || invalidDates) {
-            throw new BusinessRuleViolationException(
-                "Mã lô tối đa 80 ký tự. Hạn dùng phải sau ngày sản xuất."
-            );
+        if (invalidCode) {
+            throw new BusinessRuleViolationException("Mã lô tối đa 80 ký tự.");
         }
+        requireValidDates(producedOn, expiresOn);
         int changed = stockBatchRepository.updateTraceability(batchId, code.trim(), producedOn, expiresOn);
         if (changed != 1) {
             throw new BusinessRuleViolationException("Lô đã xuất hàng không thể đổi thông tin truy xuất.");
@@ -129,15 +127,22 @@ public class BatchStockServiceImpl implements BatchStockService {
         if (hasCode && code.trim().length() > MAX_CODE_LENGTH) {
             throw new BusinessRuleViolationException("Mã lô tối đa 80 ký tự.");
         }
-        if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
-            throw new BusinessRuleViolationException("Hạn dùng phải sau ngày sản xuất.");
-        }
+        requireValidDates(producedOn, expiresOn);
         for (StockBatch batch : batchAllocationRepository.findBatchesCreatedBy(operationKey)) {
             if (hasCode) {
                 batch.setBatchCode(code.trim());
             }
             batch.setProducedOn(producedOn);
             batch.setExpiresOn(expiresOn);
+        }
+    }
+
+    private void requireValidDates(LocalDate producedOn, LocalDate expiresOn) {
+        if (producedOn != null && producedOn.isAfter(LocalDate.now(clock))) {
+            throw new BusinessRuleViolationException("Ngày sản xuất không được sau hôm nay.");
+        }
+        if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
+            throw new BusinessRuleViolationException("Hạn dùng phải sau ngày sản xuất.");
         }
     }
 

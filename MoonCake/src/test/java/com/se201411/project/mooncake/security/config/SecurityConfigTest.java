@@ -198,6 +198,24 @@ class SecurityConfigTest {
     }
 
     @Test
+    void adminLandsOnAdminOverviewAfterLogin() throws Exception {
+        mockMvc.perform(
+            formLogin()
+                .user("email", "admin@example.com")
+                .password("password123")
+        ).andExpect(redirectedUrl("/admin/overview"));
+    }
+
+    @Test
+    void customerLandsOnStorefrontAfterLogin() throws Exception {
+        mockMvc.perform(
+            formLogin()
+                .user("email", "customer@example.com")
+                .password("password123")
+        ).andExpect(redirectedUrl("/"));
+    }
+
+    @Test
     void rejectsDisabledAccount() throws Exception {
         mockMvc.perform(
             formLogin()
@@ -266,7 +284,11 @@ class SecurityConfigTest {
                 .roles("CUSTOMER")
                 .disabled(true)
                 .build();
-            return new InMemoryUserDetailsManager(customer, disabled);
+            UserDetails admin = User.withUsername("admin@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .roles("ADMIN")
+                .build();
+            return new InMemoryUserDetailsManager(customer, disabled, admin);
         }
     }
 

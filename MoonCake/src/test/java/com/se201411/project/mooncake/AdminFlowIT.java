@@ -112,7 +112,7 @@ class AdminFlowIT {
             Callable<Boolean> deliver = () -> {
                 start.await();
                 try {
-                    orders.transition(id, OrderStatus.COMPLETED);
+                    orders.transition(id, OrderStatus.DELIVERED);
                     return true;
                 } catch (RuntimeException ex) {
                     return false;
@@ -123,7 +123,7 @@ class AdminFlowIT {
             start.countDown();
             assertThat(List.of(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS))).containsExactlyInAnyOrder(true, false);
         }
-        assertThat(jdbc.queryForObject("SELECT order_status FROM dbo.SALES_ORDER WHERE order_id=?", String.class, id)).isEqualTo("COMPLETED");
+        assertThat(jdbc.queryForObject("SELECT order_status FROM dbo.SALES_ORDER WHERE order_id=?", String.class, id)).isEqualTo("DELIVERED");
         assertThat(jdbc.queryForObject("SELECT payment_status FROM dbo.PAYMENT WHERE order_id=?", String.class, id)).isEqualTo("PAID");
         assertThat(jdbc.queryForObject("SELECT paid_at FROM dbo.PAYMENT WHERE order_id=?", java.sql.Timestamp.class, id)).isNotNull();
     }
@@ -147,7 +147,7 @@ class AdminFlowIT {
     @Test
     void missingPaymentRollsBackOrderCompletion() {
         long id = createOrder(false);
-        assertThatThrownBy(() -> orders.transition(id, OrderStatus.COMPLETED)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> orders.transition(id, OrderStatus.DELIVERED)).isInstanceOf(RuntimeException.class);
         assertThat(jdbc.queryForObject("SELECT order_status FROM dbo.SALES_ORDER WHERE order_id=?", String.class, id)).isEqualTo("SHIPPING");
     }
 

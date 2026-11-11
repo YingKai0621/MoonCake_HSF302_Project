@@ -1,7 +1,9 @@
 package com.se201411.project.mooncake.order.dto;
 
 import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.common.format.VietnamTime;
 import com.se201411.project.mooncake.entity.SalesOrder;
+import com.se201411.project.mooncake.enums.OrderStatus;
 import java.util.List;
 
 public record CustomerOrderDetailView(
@@ -9,6 +11,8 @@ public record CustomerOrderDetailView(
     String statusLabel,
     boolean cancellable,
     boolean deliveryEditable,
+    boolean receivable,
+    String autoCompleteDate,
     String formattedCreatedAt,
     String recipientName,
     String recipientPhone,
@@ -48,6 +52,8 @@ public record CustomerOrderDetailView(
             statusLabel,
             cancellable,
             deliveryEditable,
+            order.getStatus() == OrderStatus.DELIVERED,
+            autoCompleteDate(order),
             formattedCreatedAt,
             order.getRecipientName(),
             order.getRecipientPhone(),
@@ -67,6 +73,13 @@ public record CustomerOrderDetailView(
             cancellationNote,
             OrderFulfilmentView.entityToDto(order)
         );
+    }
+
+    private static String autoCompleteDate(SalesOrder order) {
+        if (order.getDeliveredAt() == null) {
+            return null;
+        }
+        return VietnamTime.date(order.getDeliveredAt().plusDays(3));
     }
 
     public CustomerOrderDetailView {

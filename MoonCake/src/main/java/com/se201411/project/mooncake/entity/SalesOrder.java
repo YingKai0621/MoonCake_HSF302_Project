@@ -96,8 +96,14 @@ public class SalesOrder {
     @Column(name = "shipping_at")
     private LocalDateTime shippingAt;
 
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    @Column(name = "customer_confirmed_at")
+    private LocalDateTime customerConfirmedAt;
 
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
@@ -287,12 +293,28 @@ public class SalesOrder {
         this.shippingAt = shippingAt;
     }
 
+    public LocalDateTime getDeliveredAt() {
+        return deliveredAt;
+    }
+
+    public void setDeliveredAt(LocalDateTime deliveredAt) {
+        this.deliveredAt = deliveredAt;
+    }
+
     public LocalDateTime getCompletedAt() {
         return completedAt;
     }
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public LocalDateTime getCustomerConfirmedAt() {
+        return customerConfirmedAt;
+    }
+
+    public void setCustomerConfirmedAt(LocalDateTime customerConfirmedAt) {
+        this.customerConfirmedAt = customerConfirmedAt;
     }
 
     public LocalDateTime getCancelledAt() {

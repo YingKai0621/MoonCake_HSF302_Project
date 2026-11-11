@@ -134,7 +134,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         if (orders.transition(id, source, target, now) != 1) {
             throw new BusinessRuleViolationException("Đơn vừa được xử lý bởi yêu cầu khác. Hãy tải lại.");
         }
-        if (target == OrderStatus.COMPLETED) {
+        if (target == OrderStatus.DELIVERED) {
             paymentProcessor.completeDelivery(id, payment, now);
         }
     }
@@ -161,7 +161,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     public static boolean allowed(OrderStatus from, OrderStatus to) {
         return (from == OrderStatus.PLACED && to == OrderStatus.PROCESSING)
                 || (from == OrderStatus.PROCESSING && to == OrderStatus.SHIPPING)
-                || (from == OrderStatus.SHIPPING && to == OrderStatus.COMPLETED);
+                || (from == OrderStatus.SHIPPING && to == OrderStatus.DELIVERED);
     }
 
     private Map<Long, List<OrderItemComponent>> loadComponents(List<OrderItem> orderItems) {
@@ -288,6 +288,9 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         if (status == OrderStatus.SHIPPING) {
             return "Đang giao";
         }
+        if (status == OrderStatus.DELIVERED) {
+            return "Đã giao";
+        }
         if (status == OrderStatus.COMPLETED) {
             return "Hoàn tất";
         }
@@ -298,7 +301,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         if (status == OrderStatus.PLACED) {
             return "warning";
         }
-        if (status == OrderStatus.COMPLETED) {
+        if (status == OrderStatus.DELIVERED || status == OrderStatus.COMPLETED) {
             return "success";
         }
         if (status == OrderStatus.CANCELLED) {

@@ -23,11 +23,12 @@
     </div>
 
     <ol class="order-steps" th:unless="${order.status.name() == 'CANCELLED'}"
-        th:with="stage=${order.status.name() == 'COMPLETED' ? 4 : order.status.name() == 'SHIPPING' ? 3 : order.status.name() == 'PROCESSING' ? 2 : 1}">
-        <li class="order-steps__step" th:classappend="${stage > 1 or stage == 4 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng<small th:text="${order.fulfilment.placedAt}"></small></li>
+        th:with="stage=${order.status.name() == 'COMPLETED' ? 5 : order.status.name() == 'DELIVERED' ? 4 : order.status.name() == 'SHIPPING' ? 3 : order.status.name() == 'PROCESSING' ? 2 : 1}">
+        <li class="order-steps__step" th:classappend="${stage > 1 or stage == 5 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng<small th:text="${order.fulfilment.placedAt}"></small></li>
         <li class="order-steps__step" th:classappend="${stage > 2 ? 'is-done' : (stage == 2 ? 'is-current' : '')}"><span>2</span>Đang chuẩn bị<small th:text="${order.fulfilment.processingAt}"></small></li>
         <li class="order-steps__step" th:classappend="${stage > 3 ? 'is-done' : (stage == 3 ? 'is-current' : '')}"><span>3</span>Đang giao<small th:text="${order.fulfilment.shippingAt}"></small></li>
-        <li class="order-steps__step" th:classappend="${stage == 4 ? 'is-done' : ''}"><span>4</span>Hoàn tất<small th:text="${order.fulfilment.completedAt}"></small></li>
+        <li class="order-steps__step" th:classappend="${stage > 4 ? 'is-done' : (stage == 4 ? 'is-current' : '')}"><span>4</span>Đã giao<small th:text="${order.fulfilment.deliveredAt}"></small></li>
+        <li class="order-steps__step" th:classappend="${stage == 5 ? 'is-done' : ''}"><span>5</span>Hoàn tất<small th:text="${order.fulfilment.completedAt}"></small></li>
     </ol>
 
     <div class="detail-layout">
@@ -107,8 +108,12 @@
                     <strong>Đơn đã hủy</strong>
                     <span th:if="${order.formattedUpdatedAt != null}" th:text="${'Hủy lúc ' + order.formattedUpdatedAt}">Hủy lúc</span>
                 </div>
+                <div th:if="${order.status.name() == 'DELIVERED'}" class="result-box result-box--success">
+                    <strong>Chờ khách xác nhận</strong>
+                    <span th:text="${'Tự hoàn tất ngày ' + order.autoCompleteDate}">Tự hoàn tất ngày 15/11/2026</span>
+                </div>
 
-                <div class="action-stack" th:unless="${finished}">
+                <div class="action-stack" th:unless="${finished or order.status.name() == 'DELIVERED'}">
                     <div th:if="${order.status.name() == 'PLACED' and !order.actions.canStartProcessing}" class="result-box result-box--warning">
                         <strong>Chờ khách thanh toán VNPay</strong>
                         <span>Khách trả xong mới nhận xử lý được.</span>
@@ -136,13 +141,13 @@
                         </label>
                         <button type="submit" data-loading-text="Đang cập nhật…">Bàn giao vận chuyển</button>
                     </form>
-                    <form th:if="${order.actions.canComplete}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
-                        <input type="hidden" name="target" value="COMPLETED">
+                    <form th:if="${order.actions.canMarkDelivered}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
+                        <input type="hidden" name="target" value="DELIVERED">
                         <label class="checkbox confirm-check">
                             <input type="checkbox" required>
-                            Đã giao thành công và đã nhận đủ tiền
+                            Đơn vị vận chuyển đã giao thành công và đã thu đủ tiền (nếu COD)
                         </label>
-                        <button type="submit">Xác nhận hoàn tất</button>
+                        <button type="submit">Đã giao hàng</button>
                     </form>
                     <form th:if="${order.actions.canCheckPayment}" th:action="@{/admin/orders/{id}/payment-check(id=${order.id})}" method="post">
                         <button type="submit" class="secondary" data-loading-text="Đang hỏi VNPay…">Kiểm tra thanh toán với VNPay</button>

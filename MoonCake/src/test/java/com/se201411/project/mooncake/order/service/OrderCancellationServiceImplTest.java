@@ -298,6 +298,43 @@ class OrderCancellationServiceImplTest {
     }
 
     @Test
+    void adminCannotCancelDeliveredOrder() {
+        SalesOrder order = order(41L, OrderStatus.DELIVERED);
+        when(orderRepository.findById(41L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> service.cancelForAdmin(41L))
+            .isInstanceOf(BusinessRuleViolationException.class);
+
+        verify(orderRepository, never()).cancelFromStatus(
+            anyLong(),
+            any(),
+            any(),
+            any()
+        );
+        verifyNoInteractions(inventoryService);
+    }
+
+    @Test
+    void customerCannotCancelDeliveredOrder() {
+        ShopperIdentity customer = ShopperIdentity.forCustomer(8L);
+        SalesOrder order = order(42L, OrderStatus.DELIVERED);
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(customer);
+        when(orderRepository.findOwnedByOrderCode("MC-42", 8L))
+            .thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> service.cancelCurrentCustomerOrder("MC-42"))
+            .isInstanceOf(BusinessRuleViolationException.class);
+
+        verify(orderRepository, never()).cancelFromStatus(
+            anyLong(),
+            any(),
+            any(),
+            any()
+        );
+        verifyNoInteractions(inventoryService);
+    }
+
+    @Test
     void expiredUnpaidVnpayOrderIsCancelledAndStockReturned() {
         SalesOrder order = order(20L, OrderStatus.PLACED);
         Payment payment = payment(PaymentMethod.VNPAY, PaymentStatus.UNPAID);

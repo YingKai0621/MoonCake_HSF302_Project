@@ -82,10 +82,10 @@ class OrderManagementServiceTest {
     @Test
     void deliveryCollectsCodWithoutChangingStock() {
         order(OrderStatus.SHIPPING, PaymentMethod.COD, PaymentStatus.UNPAID);
-        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.COMPLETED), any())).thenReturn(1);
+        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.DELIVERED), any())).thenReturn(1);
         when(payments.collectCashOnDelivery(eq(1L), any())).thenReturn(1);
 
-        service.transition(1, OrderStatus.COMPLETED);
+        service.transition(1, OrderStatus.DELIVERED);
 
         verify(payments).collectCashOnDelivery(eq(1L), any());
     }
@@ -93,10 +93,20 @@ class OrderManagementServiceTest {
     @Test
     void invalidCodRaisesFailureForTransactionRollback() {
         order(OrderStatus.SHIPPING, PaymentMethod.COD, PaymentStatus.UNPAID);
-        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.COMPLETED), any())).thenReturn(1);
+        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.DELIVERED), any())).thenReturn(1);
+
+        assertThatThrownBy(() -> service.transition(1, OrderStatus.DELIVERED))
+            .isInstanceOf(BusinessRuleViolationException.class);
+    }
+
+    @Test
+    void adminCanNoLongerCompleteDirectly() {
+        order(OrderStatus.SHIPPING, PaymentMethod.COD, PaymentStatus.UNPAID);
 
         assertThatThrownBy(() -> service.transition(1, OrderStatus.COMPLETED))
             .isInstanceOf(BusinessRuleViolationException.class);
+
+        verify(orders, never()).transition(anyLong(), any(), any(), any());
     }
 
     @Test
@@ -121,9 +131,9 @@ class OrderManagementServiceTest {
     @Test
     void paidVnpayOrderCompletesWithoutCollectingCash() {
         order(OrderStatus.SHIPPING, PaymentMethod.VNPAY, PaymentStatus.PAID);
-        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.COMPLETED), any())).thenReturn(1);
+        when(orders.transition(eq(1L), eq(OrderStatus.SHIPPING), eq(OrderStatus.DELIVERED), any())).thenReturn(1);
 
-        service.transition(1, OrderStatus.COMPLETED);
+        service.transition(1, OrderStatus.DELIVERED);
 
         verify(payments, never()).collectCashOnDelivery(anyLong(), any());
     }

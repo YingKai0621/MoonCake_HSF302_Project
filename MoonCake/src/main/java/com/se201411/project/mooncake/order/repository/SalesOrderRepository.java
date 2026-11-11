@@ -81,4 +81,48 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
         @Param("orderNote") String orderNote,
         @Param("updatedAt") LocalDateTime updatedAt
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update SalesOrder salesOrder
+        set salesOrder.status = :completed,
+            salesOrder.completedAt = :now,
+            salesOrder.customerConfirmedAt = :now,
+            salesOrder.updatedAt = :now
+        where salesOrder.id = :orderId
+          and salesOrder.status = :delivered
+        """)
+    int confirmReceived(
+        @Param("orderId") long orderId,
+        @Param("delivered") OrderStatus delivered,
+        @Param("completed") OrderStatus completed,
+        @Param("now") LocalDateTime now
+    );
+
+    @Query("""
+        select salesOrder.id
+        from SalesOrder salesOrder
+        where salesOrder.status = :delivered
+          and salesOrder.deliveredAt <= :cutoff
+        """)
+    List<Long> findDeliveredBefore(
+        @Param("delivered") OrderStatus delivered,
+        @Param("cutoff") LocalDateTime cutoff
+    );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update SalesOrder salesOrder
+        set salesOrder.status = :completed,
+            salesOrder.completedAt = :now,
+            salesOrder.updatedAt = :now
+        where salesOrder.id = :orderId
+          and salesOrder.status = :delivered
+        """)
+    int autoComplete(
+        @Param("orderId") long orderId,
+        @Param("delivered") OrderStatus delivered,
+        @Param("completed") OrderStatus completed,
+        @Param("now") LocalDateTime now
+    );
 }

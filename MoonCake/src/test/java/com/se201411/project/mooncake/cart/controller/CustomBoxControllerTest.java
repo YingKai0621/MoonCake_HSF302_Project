@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.controller;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
 import com.se201411.project.mooncake.cart.dto.CustomCakeOptionView;
@@ -91,7 +92,7 @@ class CustomBoxControllerTest {
         mockMvc.perform(get("/custom-boxes"))
             .andExpect(status().isOk())
             .andExpect(view().name("custom-box"))
-            .andExpect(model().attribute("builder", builder))
+            .andExpect(model().attribute("page", new CustomBoxFormPage(builder, false, null)))
             .andExpect(model().attributeExists("customBoxForm"));
     }
 

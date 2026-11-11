@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.product.dto.ProductFormOptions;
+import com.se201411.project.mooncake.product.dto.ProductEditPageView;
+import com.se201411.project.mooncake.product.dto.NewProductPageView;
+import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
 import com.se201411.project.mooncake.cart.service.CustomBoxService;
 import com.se201411.project.mooncake.cart.service.CartService;
@@ -776,5 +780,29 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             return "Bánh lẻ";
         }
         return "Hộp rỗng";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminCatalogPageView catalogPage(ProductType type) {
+        return new AdminCatalogPageView(productRows(type), productTabs(type), categories());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductFormOptions formOptions(boolean giftBox) {
+        return new ProductFormOptions(categoriesFor(giftBox), productTypes(), giftBox);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NewProductPageView newProductPage(boolean giftBox) {
+        return new NewProductPageView(formOptions(giftBox));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductEditPageView productEditPage(long productId) {
+        return new ProductEditPageView(productDetail(productId), formOptions(false));
     }
 }

@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.product.service.ProductAdminService;
+import com.se201411.project.mooncake.product.dto.MediaPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Product;
@@ -32,17 +34,20 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     private final ProductVideoRepository productVideoRepository;
     private final ProductRepository productRepository;
     private final AdminAccessService adminAccessService;
+    private final ProductAdminService productAdminService;
 
     public ProductMediaServiceImpl(
         ProductImageRepository productImageRepository,
         ProductVideoRepository productVideoRepository,
         ProductRepository productRepository,
-        AdminAccessService adminAccessService
+        AdminAccessService adminAccessService,
+        ProductAdminService productAdminService
     ) {
         this.productImageRepository = productImageRepository;
         this.productVideoRepository = productVideoRepository;
         this.productRepository = productRepository;
         this.adminAccessService = adminAccessService;
+        this.productAdminService = productAdminService;
     }
 
     @Override
@@ -107,5 +112,11 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public void removeVideo(long videoId) {
         adminAccessService.requireAdmin();
         productVideoRepository.deleteById(videoId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MediaPageView mediaPage() {
+        return new MediaPageView(allVideos(), productAdminService.catalog());
     }
 }

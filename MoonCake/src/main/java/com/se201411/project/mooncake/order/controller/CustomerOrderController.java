@@ -177,9 +177,7 @@ public class CustomerOrderController {
         String orderCode,
         OrderDeliveryUpdateForm form
     ) {
-        model.addAttribute("orderCode", orderCode);
         model.addAttribute("deliveryForm", form);
-        model.addAttribute("provinces", deliveryAddressService.getProvinces());
-        model.addAttribute("wards", deliveryAddressService.getWards());
+        model.addAttribute("page", deliveryAddressService.deliveryEditPage(orderCode));
     }
 }

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.order.dto.AdminOrderListPageView;
 import java.util.Collection;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.OrderItem;
@@ -296,5 +297,12 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             return 0;
         }
         return items.countByConfigurationIds(configurationIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminOrderListPageView ordersPage(OrderStatus status, int page) {
+        int pageNumber = Math.max(0, page);
+        return new AdminOrderListPageView(orders(status, pageNumber), statusTabs(status), status, pageNumber);
     }
 }

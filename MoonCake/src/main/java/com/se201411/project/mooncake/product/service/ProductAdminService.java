@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.product.service;
 
+import com.se201411.project.mooncake.product.dto.ProductFormOptions;
+import com.se201411.project.mooncake.product.dto.ProductEditPageView;
+import com.se201411.project.mooncake.product.dto.NewProductPageView;
+import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
@@ -56,4 +60,12 @@ public interface ProductAdminService {
     String deleteProduct(long productId);
 
     long deleteVariant(long variantId);
+
+    AdminCatalogPageView catalogPage(ProductType type);
+
+    ProductFormOptions formOptions(boolean giftBox);
+
+    NewProductPageView newProductPage(boolean giftBox);
+
+    ProductEditPageView productEditPage(long productId);
 }

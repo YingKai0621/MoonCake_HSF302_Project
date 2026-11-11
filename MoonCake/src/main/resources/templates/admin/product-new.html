@@ -1,18 +1,18 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head(${giftBox == true ? 'Thêm hộp quà' : 'Thêm sản phẩm'})}"></head>
+<head th:replace="~{admin/layout :: head(${page.formOptions.giftBox ? 'Thêm hộp quà' : 'Thêm sản phẩm'})}"></head>
 <body class="page-catalog">
 <header th:replace="~{admin/layout :: nav}"></header>
 <main>
     <div th:replace="~{admin/layout :: flash}"></div>
 
-    <a class="back-link" th:href="${giftBox == true} ? @{/admin/gift-boxes} : @{/admin/catalog}">
+    <a class="back-link" th:href="${page.formOptions.giftBox} ? @{/admin/gift-boxes} : @{/admin/catalog}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-        <span th:text="${giftBox == true ? 'Quay lại danh sách hộp quà' : 'Quay lại danh sách sản phẩm'}">Quay lại</span>
+        <span th:text="${page.formOptions.giftBox ? 'Quay lại danh sách hộp quà' : 'Quay lại danh sách sản phẩm'}">Quay lại</span>
     </a>
     <div class="page-heading page-heading--simple">
-        <span class="eyebrow" th:text="${giftBox == true ? 'Hộp quà' : 'Sản phẩm'}">Sản phẩm</span>
-        <h1 th:text="${giftBox == true ? 'Thêm hộp quà' : 'Thêm sản phẩm'}">Thêm sản phẩm</h1>
+        <span class="eyebrow" th:text="${page.formOptions.giftBox ? 'Hộp quà' : 'Sản phẩm'}">Sản phẩm</span>
+        <h1 th:text="${page.formOptions.giftBox ? 'Thêm hộp quà' : 'Thêm sản phẩm'}">Thêm sản phẩm</h1>
     </div>
 
     <p th:replace="~{admin/product-forms :: alert('new-product')}"></p>
@@ -27,8 +27,8 @@
             <section>
                 <h2>Giá bán</h2>
                 <div class="side-fields">
-                    <input th:if="${giftBox == true}" type="hidden" name="variantName" value="Hộp quà">
-                    <label th:unless="${giftBox == true}">Tên phiên bản
+                    <input th:if="${page.formOptions.giftBox}" type="hidden" name="variantName" value="Hộp quà">
+                    <label th:unless="${page.formOptions.giftBox}">Tên phiên bản
                         <input type="text" name="variantName" required maxlength="200" placeholder="Ví dụ: Hộp 4 bánh"
                                th:value="${values != null ? values.variantName : ''}">
                     </label>
@@ -37,14 +37,14 @@
                                th:value="${values != null ? values.unitPrice : ''}"
                                required min="1000" max="100000000" step="1000" data-min-error="Giá bán thấp nhất là 1.000đ." data-step-error="Giá bán phải là bội số của 1.000đ, ví dụ 450000.">
                     </label>
-                    <th:block th:unless="${giftBox == true}">
+                    <th:block th:unless="${page.formOptions.giftBox}">
                     <label>Mã SKU
                         <input type="text" name="sku" required maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"
                                th:value="${values != null ? values.sku : ''}"
                                pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
                     </label>
                     </th:block>
-                    <details th:if="${giftBox == true}" class="url-option" th:open="${values != null}">
+                    <details th:if="${page.formOptions.giftBox}" class="url-option" th:open="${values != null}">
                         <summary>Nâng cao: mã SKU</summary>
                         <label>Mã SKU
                         <input type="text" name="sku" required data-sku-auto maxlength="80" placeholder="Ví dụ: GIFT-4-TRANG"

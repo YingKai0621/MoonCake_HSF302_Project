@@ -3,7 +3,7 @@
 <head th:replace="~{admin/layout :: head('Hộp quà')}"></head>
 <body class="page-gift-box">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main th:with="detail=${page.detail},product=${page.detail.product},sku=${page.sku},recipe=${page.recipe},giftBox=${true}">
+<main th:with="detail=${page.detail},product=${page.detail.product},sku=${page.sku},recipe=${page.recipe}">
     <div th:replace="~{admin/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/gift-boxes}">
@@ -103,7 +103,7 @@
                 </div>
                 <div class="pick-grid">
                     <div th:each="c : ${recipe.components}" class="pick-card is-picked is-static"
-                         th:with="match=${options.cakes.?[id == __${c.variantId}__]}">
+                         th:with="match=${page.options.cakes.?[id == __${c.variantId}__]}">
                         <span class="pick-card__image">
                             <img th:if="${!match.isEmpty() and match[0].imageUrl != null}" th:src="${match[0].imageUrl}" alt="" loading="lazy">
                             <span class="pick-card__count" th:text="${c.quantity}">2</span>

@@ -3,7 +3,6 @@ package com.se201411.project.mooncake.product.controller;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.web.FormErrors;
 import com.se201411.project.mooncake.product.dto.ProductVideoForm;
-import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.service.ProductMediaService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -19,20 +18,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProductMediaController {
 
     private final ProductMediaService productMediaService;
-    private final ProductAdminService productAdminService;
 
-    public ProductMediaController(
-        ProductMediaService productMediaService,
-        ProductAdminService productAdminService
-    ) {
+    public ProductMediaController(ProductMediaService productMediaService) {
         this.productMediaService = productMediaService;
-        this.productAdminService = productAdminService;
     }
 
     @GetMapping("/admin/media")
     public String page(Model model) {
-        model.addAttribute("videos", productMediaService.allVideos());
-        model.addAttribute("catalog", productAdminService.catalog());
+        model.addAttribute("page", productMediaService.mediaPage());
         return "admin/media";
     }
 

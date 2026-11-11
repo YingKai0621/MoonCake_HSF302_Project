@@ -15,7 +15,7 @@
     </div>
 
     <nav class="tabs" aria-label="Lọc theo loại sản phẩm">
-        <a th:each="tab : ${tabs}"
+        <a th:each="tab : ${page.tabs}"
            class="tabs__item"
            th:classappend="${tab.selected} ? 'is-active'"
            th:attr="aria-current=${tab.selected ? 'page' : null}"
@@ -36,7 +36,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="product : ${products}">
+            <tr th:each="product : ${page.products}">
                 <td>
                     <a class="product-cell" th:href="@{/admin/catalog/products/{id}(id=${product.id})}">
                         <span class="product-thumb">
@@ -64,7 +64,7 @@
             </tr>
             </tbody>
         </table>
-        <div th:if="${products.isEmpty()}" class="empty-state">
+        <div th:if="${page.products.isEmpty()}" class="empty-state">
             <p><strong>Chưa có sản phẩm nào ở nhóm này.</strong></p>
             <a th:href="@{/admin/catalog/products/new}">Thêm sản phẩm đầu tiên</a>
         </div>
@@ -73,7 +73,7 @@
     <details id="categories" class="settings-panel">
         <summary>
             <span>
-                <strong th:text="${'Danh mục (' + #lists.size(categories) + ')'}">Danh mục</strong>
+                <strong th:text="${'Danh mục (' + #lists.size(page.categories) + ')'}">Danh mục</strong>
             </span>
         </summary>
         <div class="settings-panel__body">
@@ -81,7 +81,7 @@
             <button type="button" class="secondary small-button" data-batch-dialog="category-new">+ Thêm danh mục</button>
         </div>
         <ul class="category-list">
-            <li th:each="category : ${categories}">
+            <li th:each="category : ${page.categories}">
                 <span>
                     <strong th:text="${category.name}">Danh mục</strong>
                     <small class="muted" th:text="${'/' + category.slug}">/slug</small>

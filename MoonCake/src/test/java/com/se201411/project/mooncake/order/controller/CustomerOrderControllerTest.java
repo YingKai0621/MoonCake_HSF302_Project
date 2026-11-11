@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.order.dto.DeliveryEditPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
@@ -123,14 +124,14 @@ class CustomerOrderControllerTest {
             "MC-20261021-TEST",
             CUSTOMER
         )).thenReturn(form);
-        when(deliveryAddressService.getProvinces()).thenReturn(List.of());
-        when(deliveryAddressService.getWards()).thenReturn(List.of());
+        DeliveryEditPageView page = new DeliveryEditPageView("MC-20261021-TEST", List.of(), List.of());
+        when(deliveryAddressService.deliveryEditPage("MC-20261021-TEST")).thenReturn(page);
 
         mockMvc.perform(get("/orders/MC-20261021-TEST/delivery/edit"))
             .andExpect(status().isOk())
             .andExpect(view().name("order-delivery-edit"))
             .andExpect(model().attribute("deliveryForm", form))
-            .andExpect(model().attribute("orderCode", "MC-20261021-TEST"));
+            .andExpect(model().attribute("page", page));
     }
 
     @Test

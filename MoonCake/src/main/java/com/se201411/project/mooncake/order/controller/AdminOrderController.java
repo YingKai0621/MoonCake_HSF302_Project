@@ -33,10 +33,7 @@ public class AdminOrderController {
         @RequestParam(defaultValue = "0") int page,
         Model model
     ) {
-        model.addAttribute("orders", orders.orders(status, page));
-        model.addAttribute("tabs", orders.statusTabs(status));
-        model.addAttribute("status", status);
-        model.addAttribute("page", Math.max(0, page));
+        model.addAttribute("page", orders.ordersPage(status, page));
         return "admin/orders";
     }
 

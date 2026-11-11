@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.order.dto.AdminOrderListPageView;
 import java.util.Collection;
 import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
@@ -23,4 +24,6 @@ public interface OrderManagementService {
     long countItemsWithVariants(Collection<Long> variantIds);
 
     long countItemsWithConfigurations(Collection<Long> configurationIds);
+
+    AdminOrderListPageView ordersPage(OrderStatus status, int page);
 }

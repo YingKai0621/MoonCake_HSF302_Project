@@ -27,6 +27,8 @@ Làm đúng theo tài liệu này. Gặp chỗ nào tài liệu chưa nói rõ t
 
 ## 2. Luật chấm của thầy (bắt buộc, sai là bị trừ điểm)
 
+**Luật đầy đủ kèm ví dụ đúng/sai nằm ở [`docs/instructor-code-rules.md`](../instructor-code-rules.md). Đọc file đó trước khi code, rồi chép checklist cuối file đó vào mô tả PR.** Dưới đây là các điểm riêng của task này.
+
 Trước khi tạo PR, tick đủ các mục sau:
 
 - [ ] Luồng gọi là `controller` → `service` (interface) → `service.impl` → `repository`.
@@ -36,6 +38,9 @@ Trước khi tạo PR, tick đủ các mục sau:
 - [ ] DTO chuyển từ entity bằng **hàm static `entityToDto(...)`** trong DTO. Form ghi vào entity bằng `dtoToEntity(...)`.
 - [ ] Chỉ dùng repository của module `security`. Không gọi repository của module khác.
 - [ ] `@Transactional` đặt ở **service impl**, không đặt ở controller.
+- [ ] Repository là interface Spring Data; truy vấn mới dùng tên hàm hoặc `@Query` JPQL, **không native SQL**.
+- [ ] View không nhận entity, `Object[]` hay dòng kết quả thô.
+- [ ] Template, CSS, JS cũng không viết dồn một dòng.
 - [ ] Mỗi dòng một lệnh. Dùng `import`, không viết tên đầy đủ kiểu `com.se...`. **Không viết comment.**
 - [ ] Không có dữ liệu do trình duyệt gửi lên quyết định "sửa ai". Khách luôn lấy từ `CurrentCustomerService.requireCurrentCustomer()`.
 

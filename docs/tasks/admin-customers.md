@@ -31,6 +31,8 @@ Làm đúng theo tài liệu này. Gặp chỗ nào tài liệu chưa nói, **h�
 
 ## 2. Luật chấm của thầy (bắt buộc)
 
+**Luật đầy đủ kèm ví dụ đúng/sai nằm ở [`docs/instructor-code-rules.md`](../instructor-code-rules.md). Đọc file đó trước khi code, rồi chép checklist cuối file đó vào mô tả PR.** Dưới đây là các điểm riêng của task này.
+
 - [ ] Luồng gọi: `controller` → `service` (interface) → `service.impl` → `repository`.
 - [ ] Controller **chỉ gọi service**. Không inject repository, `SessionRegistry` hay `EntityManager` vào controller.
 - [ ] Mỗi service là **interface + một impl**. Constructor nhận interface.
@@ -40,6 +42,9 @@ Làm đúng theo tài liệu này. Gặp chỗ nào tài liệu chưa nói, **h�
   - `security` cần dữ liệu đơn thì gọi service bên `order`.
   - `order` cần trạng thái tài khoản thì gọi service bên `security`.
 - [ ] `@Transactional` đặt ở service impl.
+- [ ] Repository là interface Spring Data; truy vấn mới dùng tên hàm hoặc `@Query` JPQL, **không native SQL**.
+- [ ] View không nhận entity, `Object[]` hay dòng kết quả thô.
+- [ ] Template, CSS, JS cũng không viết dồn một dòng.
 - [ ] Mỗi dòng một lệnh. Dùng `import`, không viết tên đầy đủ. **Không comment.**
 - [ ] Không `if (method == VNPAY)`. Hủy đơn luôn đi qua `OrderCancellationService.cancelForAdmin` có sẵn.
 

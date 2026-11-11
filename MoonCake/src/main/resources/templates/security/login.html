@@ -35,6 +35,14 @@
            role="status">
         Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.
       </div>
+      <div th:if="${param.emailChanged}"
+           class="flash-message auth-message auth-message--success"
+           data-flash-message
+           data-flash-timeout="6000"
+           data-flash-query-param="emailChanged"
+           role="status">
+        Email đăng nhập đã được đổi. Hãy đăng nhập bằng email mới.
+      </div>
       <div th:if="${param.error}"
            class="flash-message auth-message auth-message--error"
            data-flash-message

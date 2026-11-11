@@ -4,8 +4,11 @@ import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
+import com.se201411.project.mooncake.security.exception.EmailAlreadyRegisteredException;
+import com.se201411.project.mooncake.security.repository.AccountRepository;
 import com.se201411.project.mooncake.security.repository.CustomerRepository;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
+import com.se201411.project.mooncake.security.util.EmailNormalizer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomerProfileServiceImpl implements CustomerProfileService {
 
     private final CustomerRepository customerRepository;
+    private final AccountRepository accountRepository;
 
-    public CustomerProfileServiceImpl(CustomerRepository customerRepository) {
+    public CustomerProfileServiceImpl(
+        CustomerRepository customerRepository,
+        AccountRepository accountRepository
+    ) {
         this.customerRepository = customerRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -43,6 +51,19 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
     public void updateFullName(ShopperIdentity customerIdentity, String fullName) {
         Customer customer = requireCustomer(customerIdentity);
         customer.setFullName(fullName.trim());
+    }
+
+    @Override
+    @Transactional
+    public void updateEmail(ShopperIdentity customerIdentity, String email) {
+        Customer customer = requireCustomer(customerIdentity);
+        String normalizedEmail = EmailNormalizer.normalize(email);
+        Long accountId = customer.getAccount().getId();
+        if (accountRepository.existsByEmailAndIdNot(normalizedEmail, accountId)) {
+            throw new EmailAlreadyRegisteredException();
+        }
+        customer.getAccount().setEmail(normalizedEmail);
+        customer.setEmail(normalizedEmail);
     }
 
     private Customer requireCustomer(ShopperIdentity customerIdentity) {

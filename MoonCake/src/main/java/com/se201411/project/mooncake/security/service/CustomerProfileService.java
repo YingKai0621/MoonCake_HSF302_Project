@@ -9,4 +9,6 @@ public interface CustomerProfileService {
 
     void updateFullName(ShopperIdentity customerIdentity, String fullName);
 
+    void updateEmail(ShopperIdentity customerIdentity, String email);
+
 }

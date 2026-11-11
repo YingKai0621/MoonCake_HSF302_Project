@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository;
 
+import java.util.Collection;
 import com.se201411.project.mooncake.entity.StockBatch;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -87,4 +88,7 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
         @Param("producedOn") LocalDate producedOn,
         @Param("expiresOn") LocalDate expiresOn
     );
+
+    @Query("select count(batch) from StockBatch batch where batch.variantId in :variantIds")
+    long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
 }

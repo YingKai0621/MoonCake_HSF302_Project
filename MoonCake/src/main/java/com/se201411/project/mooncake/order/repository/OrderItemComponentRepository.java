@@ -23,4 +23,7 @@ public interface OrderItemComponentRepository
     List<OrderItemComponent> findByOrderItemIds(
         @Param("orderItemIds") Collection<Long> orderItemIds
     );
+
+    @Query("select count(component) from OrderItemComponent component where component.componentVariant.id in :variantIds")
+    long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
 }

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.InventoryBalance;
@@ -32,17 +33,20 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
+    private final StockBatchRepository batchRepository;
     private final BatchStockService batchStock;
     private final Clock clock;
 
     public InventoryServiceImpl(
         InventoryBalanceRepository balanceRepository,
         StockMovementRepository movementRepository,
+        StockBatchRepository batchRepository,
         BatchStockService batchStock,
         Clock clock
     ) {
         this.balanceRepository = balanceRepository;
         this.movementRepository = movementRepository;
+        this.batchRepository = batchRepository;
         this.batchStock = batchStock;
         this.clock = clock;
     }
@@ -130,6 +134,30 @@ public class InventoryServiceImpl implements InventoryService {
                 command.operationKey()
             );
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasStockRecords(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return false;
+        }
+        if (movementRepository.countByVariantIds(variantIds) > 0) {
+            return true;
+        }
+        if (batchRepository.countByVariantIds(variantIds) > 0) {
+            return true;
+        }
+        return balanceRepository.sumAvailable(variantIds) > 0;
+    }
+
+    @Override
+    @Transactional
+    public void deleteBalances(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return;
+        }
+        balanceRepository.deleteByVariantIds(variantIds);
     }
 
     private List<InventoryDemand> sortDemands(List<InventoryDemand> demands) {

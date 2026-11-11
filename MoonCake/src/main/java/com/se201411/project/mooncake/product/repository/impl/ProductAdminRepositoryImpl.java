@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.repository.impl;
 
+import com.se201411.project.mooncake.enums.ConfigurationType;
+import java.util.Collection;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.Category;
@@ -91,71 +93,43 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
-    public long orderCount(long productId) {
-        long direct = em.createQuery(
-                "select count(distinct i.order.id) from OrderItem i where i.variant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        long asComponent = em.createQuery(
-                "select count(c) from OrderItemComponent c where c.componentVariant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        return direct + asComponent;
+    public List<Long> ownRecipeIds(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return List.of();
+        }
+        String query = "select c.id from BoxConfiguration c where c.type = :type and c.presetVariant.id in :ids";
+        return em.createQuery(query, Long.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .setParameter("ids", variantIds)
+            .getResultList();
     }
 
     @Override
-    public long cartItemCount(long productId) {
-        return em.createQuery(
-                "select count(i) from CartItem i where i.variant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-    }
-
-    @Override
-    public long stockHistoryCount(long productId) {
-        long movements = em.createQuery(
-                "select count(m) from StockMovement m where m.variant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        long batches = em.createQuery(
-                "select count(b) from StockBatch b where b.variant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        return movements + batches;
-    }
-
-    @Override
-    public long stockOnHand(long productId) {
-        Long total = em.createQuery(
-                "select sum(b.availableQuantity) from InventoryBalance b where b.variant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        if (total == null) {
+    public long presetComponentUsage(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
             return 0;
         }
-        return total;
+        String boxQuery = "select count(c) from BoxConfiguration c where c.type = :type and c.box.emptyBoxVariant.id in :ids";
+        long asBox = em.createQuery(boxQuery, Long.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .setParameter("ids", variantIds)
+            .getSingleResult();
+        String cakeQuery = "select count(i) from BoxConfigurationItem i where i.configuration.type = :type and i.mooncakeVariant.id in :ids";
+        long asCake = em.createQuery(cakeQuery, Long.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .setParameter("ids", variantIds)
+            .getSingleResult();
+        return asBox + asCake;
     }
 
     @Override
-    public long recipeCount(long productId) {
-        long ownRecipeInCarts = em.createQuery(
-                "select count(i) from CartItem i where i.configuration.presetVariant.product.id = :id", Long.class)
-            .setParameter("id", productId)
+    public boolean presetUsesBox(long boxId) {
+        String query = "select count(c) from BoxConfiguration c where c.type = :type and c.box.id = :id";
+        Long count = em.createQuery(query, Long.class)
+            .setParameter("type", ConfigurationType.PRESET)
+            .setParameter("id", boxId)
             .getSingleResult();
-        long ownRecipeInOrders = em.createQuery(
-                "select count(i) from OrderItem i where i.configuration.presetVariant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        long asGiftSet = ownRecipeInCarts + ownRecipeInOrders;
-        long asBox = em.createQuery(
-                "select count(c) from BoxConfiguration c where c.box.emptyBoxVariant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        long asCake = em.createQuery(
-                "select count(i) from BoxConfigurationItem i where i.mooncakeVariant.product.id = :id", Long.class)
-            .setParameter("id", productId)
-            .getSingleResult();
-        return asGiftSet + asBox + asCake;
+        return count > 0;
     }
 
     @Override
@@ -169,9 +143,6 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
             .setParameter("id", productId)
             .executeUpdate();
         em.createQuery("delete from ProductImage i where i.variant.id in (" + variantIds + ")")
-            .setParameter("id", productId)
-            .executeUpdate();
-        em.createQuery("delete from InventoryBalance b where b.variantId in (" + variantIds + ")")
             .setParameter("id", productId)
             .executeUpdate();
         em.createQuery("delete from Box b where b.emptyBoxVariant.id in (" + variantIds + ")")
@@ -190,71 +161,8 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
-    public long variantOrderCount(long variantId) {
-        long direct = em.createQuery(
-                "select count(distinct i.order.id) from OrderItem i where i.variant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        long asComponent = em.createQuery(
-                "select count(c) from OrderItemComponent c where c.componentVariant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        return direct + asComponent;
-    }
-
-    @Override
-    public long variantCartCount(long variantId) {
-        return em.createQuery("select count(i) from CartItem i where i.variant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-    }
-
-    @Override
-    public long variantRecipeCount(long variantId) {
-        long asGiftSet = em.createQuery(
-                "select count(c) from BoxConfiguration c where c.presetVariant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        long asBox = em.createQuery(
-                "select count(c) from BoxConfiguration c where c.box.emptyBoxVariant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        long asCake = em.createQuery(
-                "select count(i) from BoxConfigurationItem i where i.mooncakeVariant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        return asGiftSet + asBox + asCake;
-    }
-
-    @Override
-    public long variantStockHistoryCount(long variantId) {
-        long movements = em.createQuery("select count(m) from StockMovement m where m.variant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        long batches = em.createQuery("select count(b) from StockBatch b where b.variant.id = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        return movements + batches;
-    }
-
-    @Override
-    public long variantStockOnHand(long variantId) {
-        Long total = em.createQuery(
-                "select sum(b.availableQuantity) from InventoryBalance b where b.variantId = :id", Long.class)
-            .setParameter("id", variantId)
-            .getSingleResult();
-        if (total == null) {
-            return 0;
-        }
-        return total;
-    }
-
-    @Override
     public void deleteVariant(long variantId) {
         em.createQuery("delete from ProductImage i where i.variant.id = :id")
-            .setParameter("id", variantId)
-            .executeUpdate();
-        em.createQuery("delete from InventoryBalance b where b.variantId = :id")
             .setParameter("id", variantId)
             .executeUpdate();
         em.createQuery("delete from Box b where b.emptyBoxVariant.id = :id")
@@ -363,14 +271,6 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     @Override
     public boolean hasVariants(long id) {
         Long count = em.createQuery("select count(v) from ProductVariant v where v.product.id = :id", Long.class)
-            .setParameter("id", id)
-            .getSingleResult();
-        return count > 0;
-    }
-
-    @Override
-    public boolean boxReferenced(long id) {
-        Long count = em.createQuery("select count(c) from BoxConfiguration c where c.box.id = :id", Long.class)
             .setParameter("id", id)
             .getSingleResult();
         return count > 0;

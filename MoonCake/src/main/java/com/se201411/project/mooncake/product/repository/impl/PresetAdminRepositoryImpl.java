@@ -80,26 +80,6 @@ public class PresetAdminRepositoryImpl implements PresetAdminRepository {
     }
 
     @Override
-    public boolean historicallyReferenced(long id, long variant) {
-        String query = "select count(i) from OrderItem i where i.configuration.id = :id or i.variant.id = :variant";
-        Long count = em.createQuery(query, Long.class)
-            .setParameter("id", id)
-            .setParameter("variant", variant)
-            .getSingleResult();
-        return count > 0;
-    }
-
-    @Override
-    public boolean inCarts(long id, long variant) {
-        String query = "select count(i) from CartItem i where i.configuration.id = :id or i.variant.id = :variant";
-        Long count = em.createQuery(query, Long.class)
-            .setParameter("id", id)
-            .setParameter("variant", variant)
-            .getSingleResult();
-        return count > 0;
-    }
-
-    @Override
     public void save(BoxConfiguration configuration) {
         if (configuration.getType() != ConfigurationType.PRESET) {
             throw new IllegalArgumentException(PRESET_ONLY);

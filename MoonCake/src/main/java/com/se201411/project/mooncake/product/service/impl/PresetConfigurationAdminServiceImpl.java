@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.Box;
@@ -40,6 +42,8 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
     private final InventoryAdminService inventory;
     private final AdminAccessService access;
     private final AdminFormValidation validation;
+    private final OrderManagementService orders;
+    private final CartService carts;
     private final Clock clock;
 
     public PresetConfigurationAdminServiceImpl(
@@ -48,6 +52,8 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         InventoryAdminService inventory,
         AdminAccessService access,
         AdminFormValidation validation,
+        OrderManagementService orders,
+        CartService carts,
         Clock clock
     ) {
         this.repo = repo;
@@ -55,6 +61,8 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         this.inventory = inventory;
         this.access = access;
         this.validation = validation;
+        this.orders = orders;
+        this.carts = carts;
         this.clock = clock;
     }
 
@@ -326,13 +334,25 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         if (inventory.hasStockOrHistory(giftId)) {
             return "Hộp quà đã đóng hộp nên không mở khóa được. Hãy tạo bản sao để đổi bánh.";
         }
-        if (repo.inCarts(configuration.getId(), giftId)) {
+        if (inCarts(configuration.getId(), giftId)) {
             return "Hộp quà đang nằm trong giỏ hàng của khách nên không mở khóa được.";
         }
-        if (repo.historicallyReferenced(configuration.getId(), giftId)) {
+        if (hasOrders(configuration.getId(), giftId)) {
             return "Hộp quà đã có đơn hàng nên không mở khóa được. Hãy tạo bản sao để đổi bánh.";
         }
         return null;
+    }
+
+    private boolean inCarts(long configurationId, long giftId) {
+        long asRecipe = carts.countItemsWithConfigurations(List.of(configurationId));
+        long asGift = carts.countItemsWithVariants(List.of(giftId));
+        return asRecipe + asGift > 0;
+    }
+
+    private boolean hasOrders(long configurationId, long giftId) {
+        long asRecipe = orders.countItemsWithConfigurations(List.of(configurationId));
+        long asGift = orders.countItemsWithVariants(List.of(giftId));
+        return asRecipe + asGift > 0;
     }
 
     private void requireMutable(BoxConfiguration configuration) {
@@ -340,7 +360,7 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
         boolean locked = configuration.getStatus() != ConfigurationStatus.DRAFT
             || configuration.getPresetVariant().isActive()
             || inventory.hasStockOrHistory(giftId)
-            || repo.historicallyReferenced(configuration.getId(), giftId);
+            || hasOrders(configuration.getId(), giftId);
         if (locked) {
             throw new BusinessRuleViolationException(
                 "Công thức đã khóa nên không sửa được. Muốn đổi thành phần, hãy tạo hộp quà mới."

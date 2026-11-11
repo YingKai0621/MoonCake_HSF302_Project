@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CustomBoxService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.Box;
@@ -54,12 +57,17 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     private final ProductImageStorageService imageStorage;
     private final InventoryAdminService inventoryAdmin;
     private final PresetConfigurationRepository presetConfigurations;
+    private final OrderManagementService orders;
+    private final CartService carts;
+    private final CustomBoxService customBoxes;
 
     public ProductAdminServiceImpl(ProductAdminRepository repo, InventoryService inventory,
                                    PresetConfigurationQueryService presets, AdminAccessService access,
                                    AdminFormValidation validation, ProductImageStorageService imageStorage,
                                    InventoryAdminService inventoryAdmin,
-                                   PresetConfigurationRepository presetConfigurations) {
+                                   PresetConfigurationRepository presetConfigurations,
+                                   OrderManagementService orders, CartService carts,
+                                   CustomBoxService customBoxes) {
         this.repo = repo;
         this.inventory = inventory;
         this.presets = presets;
@@ -68,6 +76,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         this.imageStorage = imageStorage;
         this.inventoryAdmin = inventoryAdmin;
         this.presetConfigurations = presetConfigurations;
+        this.orders = orders;
+        this.carts = carts;
+        this.customBoxes = customBoxes;
     }
 
     @Override
@@ -477,7 +488,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         if (f.id() != null) {
             boolean variantChanged = !v.getEmptyBoxVariant().getId().equals(f.variantId());
             boolean capacityChanged = v.getCapacityCakes() != f.capacityCakes();
-            if (variantChanged || (capacityChanged && repo.boxReferenced(f.id()))) {
+            if (variantChanged || (capacityChanged && boxInUse(f.id()))) {
                 throw new BusinessRuleViolationException("Mẫu hộp đã được dùng nên không đổi được SKU hoặc sức chứa. Hãy tạo mẫu mới.");
             }
         }
@@ -542,6 +553,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             throw new BusinessRuleViolationException(blocker);
         }
         String name = product.getName();
+        inventory.deleteBalances(variantIds(productId));
         repo.deleteProduct(productId);
         return name;
     }
@@ -555,6 +567,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         if (blocker != null) {
             throw new BusinessRuleViolationException(blocker);
         }
+        inventory.deleteBalances(List.of(variantId));
         repo.deleteVariant(variantId);
         return productId;
     }
@@ -585,39 +598,59 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     private String variantDeleteBlocker(long variantId) {
-        long orders = repo.variantOrderCount(variantId);
-        if (orders > 0) {
-            return "Phiên bản đã có trong " + orders + " đơn hàng nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
+        List<Long> ids = List.of(variantId);
+        long orderCount = orders.countOrdersContaining(ids);
+        if (orderCount > 0) {
+            return "Phiên bản đã có trong " + orderCount + " đơn hàng nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
-        if (repo.variantCartCount(variantId) > 0) {
+        if (carts.countItemsWithVariants(ids) > 0) {
             return "Phiên bản đang nằm trong giỏ hàng của khách nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
-        if (repo.variantRecipeCount(variantId) > 0) {
+        long ownRecipes = repo.ownRecipeIds(ids).size();
+        long asComponent = repo.presetComponentUsage(ids) + customBoxes.countCustomBoxesUsing(ids);
+        if (ownRecipes + asComponent > 0) {
             return "Phiên bản đang được dùng trong công thức hộp quà nên không xóa được.";
         }
-        if (repo.variantStockHistoryCount(variantId) > 0 || repo.variantStockOnHand(variantId) > 0) {
+        if (inventory.hasStockRecords(ids)) {
             return "Phiên bản đã có lịch sử nhập xuất kho nên không xóa được. Hãy bấm Ngừng bán phiên bản nếu không muốn bán nữa.";
         }
         return null;
     }
 
     private String deleteBlocker(long productId) {
-        long orders = repo.orderCount(productId);
-        if (orders > 0) {
-            return "Sản phẩm đã có trong " + orders + " đơn hàng nên không xóa được.";
+        List<Long> ids = variantIds(productId);
+        long orderCount = orders.countOrdersContaining(ids);
+        if (orderCount > 0) {
+            return "Sản phẩm đã có trong " + orderCount + " đơn hàng nên không xóa được.";
         }
-        long cartItems = repo.cartItemCount(productId);
+        long cartItems = carts.countItemsWithVariants(ids);
         if (cartItems > 0) {
             return "Sản phẩm đang nằm trong giỏ hàng của " + cartItems + " khách nên không xóa được.";
         }
-        long recipes = repo.recipeCount(productId);
+        List<Long> ownRecipes = repo.ownRecipeIds(ids);
+        long recipesInCarts = carts.countItemsWithConfigurations(ownRecipes);
+        long recipesInOrders = orders.countItemsWithConfigurations(ownRecipes);
+        long asComponent = repo.presetComponentUsage(ids) + customBoxes.countCustomBoxesUsing(ids);
+        long recipes = recipesInCarts + recipesInOrders + asComponent;
         if (recipes > 0) {
             return "Sản phẩm đang được dùng trong công thức hộp quà hoặc hộp khách tự chọn nên không xóa được.";
         }
-        if (repo.stockHistoryCount(productId) > 0 || repo.stockOnHand(productId) > 0) {
+        if (inventory.hasStockRecords(ids)) {
             return "Sản phẩm đã có lịch sử nhập xuất kho nên không xóa được.";
         }
         return null;
+    }
+
+    private List<Long> variantIds(long productId) {
+        List<Long> ids = new ArrayList<>();
+        for (ProductVariant variant : repo.variantsOf(productId)) {
+            ids.add(variant.getId());
+        }
+        return ids;
+    }
+
+    private boolean boxInUse(long boxId) {
+        return repo.presetUsesBox(boxId) || customBoxes.customBoxesUseBox(boxId);
     }
 
     private Map<Long, Integer> stockByVariant() {

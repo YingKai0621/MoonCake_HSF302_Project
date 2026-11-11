@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import java.util.Collection;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
@@ -266,5 +267,34 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             return "danger";
         }
         return "info";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countOrdersContaining(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        long direct = items.countOrdersByVariantIds(variantIds);
+        long asComponent = components.countByVariantIds(variantIds);
+        return direct + asComponent;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithVariants(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        return items.countByVariantIds(variantIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithConfigurations(Collection<Long> configurationIds) {
+        if (configurationIds.isEmpty()) {
+            return 0;
+        }
+        return items.countByConfigurationIds(configurationIds);
     }
 }

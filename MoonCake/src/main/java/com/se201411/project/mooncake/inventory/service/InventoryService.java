@@ -17,4 +17,8 @@ public interface InventoryService {
     void deductForSale(SaleInventoryCommand command);
 
     void restoreForCancellation(CancellationInventoryCommand command);
+
+    boolean hasStockRecords(Collection<Long> variantIds);
+
+    void deleteBalances(Collection<Long> variantIds);
 }

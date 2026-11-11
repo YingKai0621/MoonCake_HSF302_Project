@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product;
 
+import java.util.List;
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
@@ -28,6 +31,8 @@ import static org.mockito.Mockito.when;
 class PresetUnlockRulesTest {
     private final PresetAdminRepository repo = mock(PresetAdminRepository.class);
     private final InventoryAdminService inventory = mock(InventoryAdminService.class);
+    private final OrderManagementService orders = mock(OrderManagementService.class);
+    private final CartService carts = mock(CartService.class);
     private PresetConfigurationAdminServiceImpl service;
     private BoxConfiguration recipe;
     private ProductVariant gift;
@@ -40,6 +45,8 @@ class PresetUnlockRulesTest {
             inventory,
             mock(AdminAccessService.class),
             mock(AdminFormValidation.class),
+            orders,
+            carts,
             Clock.fixed(Instant.parse("2026-11-09T10:00:00Z"), ZoneOffset.UTC)
         );
         gift = new ProductVariant();
@@ -77,11 +84,11 @@ class PresetUnlockRulesTest {
         assertThatThrownBy(() -> service.unlock(7L)).hasMessageContaining("đang mở bán");
 
         gift.setActive(false);
-        when(repo.inCarts(7L, 21L)).thenReturn(true);
+        when(carts.countItemsWithConfigurations(List.of(7L))).thenReturn(1L);
         assertThatThrownBy(() -> service.unlock(7L)).hasMessageContaining("giỏ hàng");
 
-        when(repo.inCarts(7L, 21L)).thenReturn(false);
-        when(repo.historicallyReferenced(7L, 21L)).thenReturn(true);
+        when(carts.countItemsWithConfigurations(List.of(7L))).thenReturn(0L);
+        when(orders.countItemsWithVariants(List.of(21L))).thenReturn(1L);
         assertThatThrownBy(() -> service.unlock(7L)).hasMessageContaining("đơn hàng");
         assertThat(service.canUnlock(7L)).isFalse();
     }

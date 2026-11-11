@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
+import java.util.Collection;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -387,5 +388,22 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         Box box,
         Map<Long, Integer> cakeQuantities
     ) {
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countCustomBoxesUsing(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        long asBox = configurationRepository.countByBoxVariantIds(ConfigurationType.CUSTOM, variantIds);
+        long asCake = configurationItemRepository.countByCakeVariantIds(ConfigurationType.CUSTOM, variantIds);
+        return asBox + asCake;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean customBoxesUseBox(long boxId) {
+        return configurationRepository.countByBoxId(ConfigurationType.CUSTOM, boxId) > 0;
     }
 }

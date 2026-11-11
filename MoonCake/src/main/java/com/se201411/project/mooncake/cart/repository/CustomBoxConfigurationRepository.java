@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.enums.ConfigurationType;
@@ -30,5 +31,27 @@ public interface CustomBoxConfigurationRepository
         @Param("configurationId") long configurationId,
         @Param("cartId") long cartId,
         @Param("configurationType") ConfigurationType configurationType
+    );
+
+    @Query("""
+        select count(configuration)
+        from BoxConfiguration configuration
+        where configuration.type = :configurationType
+          and configuration.box.emptyBoxVariant.id in :variantIds
+        """)
+    long countByBoxVariantIds(
+        @Param("configurationType") ConfigurationType configurationType,
+        @Param("variantIds") Collection<Long> variantIds
+    );
+
+    @Query("""
+        select count(configuration)
+        from BoxConfiguration configuration
+        where configuration.type = :configurationType
+          and configuration.box.id = :boxId
+        """)
+    long countByBoxId(
+        @Param("configurationType") ConfigurationType configurationType,
+        @Param("boxId") long boxId
     );
 }

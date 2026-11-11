@@ -1,5 +1,10 @@
 package com.se201411.project.mooncake.product;
 
+import java.util.List;
+import com.se201411.project.mooncake.entity.ProductVariant;
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CustomBoxService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.Product;
@@ -28,19 +33,24 @@ import static org.mockito.Mockito.when;
 
 class ProductVariantRulesTest {
     private final ProductAdminRepository repo = mock(ProductAdminRepository.class);
+    private final InventoryService inventory = mock(InventoryService.class);
+    private final CartService carts = mock(CartService.class);
     private ProductAdminServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new ProductAdminServiceImpl(
             repo,
-            mock(InventoryService.class),
+            inventory,
             mock(PresetConfigurationQueryService.class),
             mock(AdminAccessService.class),
             mock(AdminFormValidation.class),
             mock(ProductImageStorageService.class),
             mock(InventoryAdminService.class),
-            mock(PresetConfigurationRepository.class)
+            mock(PresetConfigurationRepository.class),
+            mock(OrderManagementService.class),
+            carts,
+            mock(CustomBoxService.class)
         );
         Product cake = new Product();
         ReflectionTestUtils.setField(cake, "id", 1L);
@@ -93,5 +103,36 @@ class ProductVariantRulesTest {
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
             .hasMessageContaining("Mã SKU chỉ dùng");
+    }
+
+    @Test
+    void variantInCustomerCartCannotBeDeleted() {
+        ProductVariant variant = cakeVariant(5L);
+        when(repo.variant(5L)).thenReturn(variant);
+        when(carts.countItemsWithVariants(List.of(5L))).thenReturn(2L);
+
+        assertThatThrownBy(() -> service.deleteVariant(5L))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("giỏ hàng");
+        verify(repo, never()).deleteVariant(5L);
+        verify(inventory, never()).deleteBalances(List.of(5L));
+    }
+
+    @Test
+    void unusedVariantIsDeletedWithItsEmptyBalance() {
+        ProductVariant variant = cakeVariant(5L);
+        when(repo.variant(5L)).thenReturn(variant);
+
+        service.deleteVariant(5L);
+
+        verify(inventory).deleteBalances(List.of(5L));
+        verify(repo).deleteVariant(5L);
+    }
+
+    private ProductVariant cakeVariant(long id) {
+        ProductVariant variant = new ProductVariant();
+        ReflectionTestUtils.setField(variant, "id", id);
+        variant.setProduct(repo.product(1));
+        return variant;
     }
 }

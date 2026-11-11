@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.product.service.impl.PresetConfigurationAdminServiceImpl;
 import com.se201411.project.mooncake.product.repository.*;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
@@ -21,7 +23,8 @@ class PresetAdminServiceTest {
     PresetAdminRepository repo = mock(PresetAdminRepository.class);
     ProductAdminRepository products = mock(ProductAdminRepository.class);
     InventoryAdminService inventory = mock(InventoryAdminService.class);
-    PresetConfigurationAdminServiceImpl service = new PresetConfigurationAdminServiceImpl(repo, products, inventory, mock(AdminAccessService.class), mock(AdminFormValidation.class), Clock.systemUTC());
+    OrderManagementService orders = mock(OrderManagementService.class);
+    PresetConfigurationAdminServiceImpl service = new PresetConfigurationAdminServiceImpl(repo, products, inventory, mock(AdminAccessService.class), mock(AdminFormValidation.class), orders, mock(CartService.class), Clock.systemUTC());
     BoxConfiguration config;
 
     @BeforeEach
@@ -53,7 +56,7 @@ class PresetAdminServiceTest {
         when(inventory.hasStockOrHistory(10)).thenReturn(true);
         assertThatThrownBy(() -> service.setComponent(1, 30, 4)).isInstanceOf(BusinessRuleViolationException.class);
         when(inventory.hasStockOrHistory(10)).thenReturn(false);
-        when(repo.historicallyReferenced(1, 10)).thenReturn(true);
+        when(orders.countItemsWithVariants(List.of(10L))).thenReturn(1L);
         assertThatThrownBy(() -> service.setComponent(1, 30, 4)).isInstanceOf(BusinessRuleViolationException.class);
     }
 

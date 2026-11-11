@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.repository;
 
+import java.util.Collection;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
@@ -27,27 +28,11 @@ public interface ProductAdminRepository {
 
     List<Box> boxesOf(long productId);
 
-    long orderCount(long productId);
+    List<Long> ownRecipeIds(Collection<Long> variantIds);
 
-    long cartItemCount(long productId);
-
-    long stockHistoryCount(long productId);
-
-    long stockOnHand(long productId);
-
-    long recipeCount(long productId);
+    long presetComponentUsage(Collection<Long> variantIds);
 
     void deleteProduct(long productId);
-
-    long variantOrderCount(long variantId);
-
-    long variantCartCount(long variantId);
-
-    long variantRecipeCount(long variantId);
-
-    long variantStockHistoryCount(long variantId);
-
-    long variantStockOnHand(long variantId);
 
     void deleteVariant(long variantId);
 
@@ -79,7 +64,7 @@ public interface ProductAdminRepository {
 
     boolean hasVariants(long id);
 
-    boolean boxReferenced(long id);
+    boolean presetUsesBox(long boxId);
 
     void clearPrimary(long id);
 

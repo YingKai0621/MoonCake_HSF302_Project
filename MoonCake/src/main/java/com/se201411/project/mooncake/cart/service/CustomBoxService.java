@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
+import java.util.Collection;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
 import com.se201411.project.mooncake.cart.dto.SaveCustomBoxCommand;
@@ -24,4 +25,8 @@ public interface CustomBoxService {
         long configurationId,
         SaveCustomBoxCommand command
     );
+
+    long countCustomBoxesUsing(Collection<Long> variantIds);
+
+    boolean customBoxesUseBox(long boxId);
 }

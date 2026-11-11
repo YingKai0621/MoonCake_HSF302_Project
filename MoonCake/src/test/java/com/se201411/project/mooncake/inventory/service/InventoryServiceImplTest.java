@@ -10,6 +10,7 @@ import com.se201411.project.mooncake.entity.StockMovement;
 import com.se201411.project.mooncake.inventory.dto.InventoryDemand;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.repository.InventoryBalanceRepository;
+import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.impl.InventoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,8 @@ class InventoryServiceImplTest {
     @Mock
     private StockMovementRepository movementRepository;
     @Mock
+    private StockBatchRepository batchRepository;
+    @Mock
     private BatchStockService batchStockService;
 
     private InventoryService inventoryService;
@@ -49,6 +52,7 @@ class InventoryServiceImplTest {
         inventoryService = new InventoryServiceImpl(
             balanceRepository,
             movementRepository,
+            batchRepository,
             batchStockService,
             clock
         );

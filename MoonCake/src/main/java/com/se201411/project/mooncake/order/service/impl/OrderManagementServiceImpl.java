@@ -20,6 +20,7 @@ import com.se201411.project.mooncake.order.service.OrderManagementService;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,18 +48,21 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     private final PaymentRepository payments;
     private final PaymentProcessorRegistry paymentProcessorRegistry;
     private final AdminAccessService access;
+    private final CustomerProfileService customerProfileService;
     private final Clock clock;
 
     public OrderManagementServiceImpl(OrderAdminRepository orders, OrderItemRepository items,
                                       OrderItemComponentRepository components, PaymentRepository payments,
                                       PaymentProcessorRegistry paymentProcessorRegistry,
-                                      AdminAccessService access, Clock clock) {
+                                      AdminAccessService access, CustomerProfileService customerProfileService,
+                                      Clock clock) {
         this.orders = orders;
         this.items = items;
         this.components = components;
         this.payments = payments;
         this.paymentProcessorRegistry = paymentProcessorRegistry;
         this.access = access;
+        this.customerProfileService = customerProfileService;
         this.clock = clock;
     }
 
@@ -66,10 +71,12 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         int safePage = Math.max(0, Math.min(page, 100000));
         List<SalesOrder> orderPage = orders.orders(status, safePage);
         Map<Long, List<Payment>> paymentsByOrder = loadPayments(orderPage);
+        Set<Long> lockedCustomerIds = lockedCustomerIds(orderPage);
         List<AdminOrderView> result = new ArrayList<>();
         for (SalesOrder order : orderPage) {
             List<Payment> orderPayments = paymentsByOrder.getOrDefault(order.getId(), List.of());
-            result.add(view(order, List.of(), orderPayments));
+            boolean customerLocked = isCustomerLocked(order, lockedCustomerIds);
+            result.add(view(order, List.of(), orderPayments, customerLocked));
         }
         return List.copyOf(result);
     }
@@ -102,7 +109,9 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             }
             lines.add(AdminOrderView.Item.entityToDto(item, parts));
         }
-        return view(order, List.copyOf(lines), payments.findByOrderId(id));
+        Set<Long> lockedCustomerIds = lockedCustomerIds(List.of(order));
+        boolean customerLocked = isCustomerLocked(order, lockedCustomerIds);
+        return view(order, List.copyOf(lines), payments.findByOrderId(id), customerLocked);
     }
 
     @Transactional
@@ -197,7 +206,29 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         return result;
     }
 
-    private AdminOrderView view(SalesOrder order, List<AdminOrderView.Item> lines, List<Payment> orderPayments) {
+    private Set<Long> lockedCustomerIds(List<SalesOrder> orderList) {
+        List<Long> customerIds = new ArrayList<>();
+        for (SalesOrder order : orderList) {
+            if (order.getCustomer() != null) {
+                customerIds.add(order.getCustomer().getId());
+            }
+        }
+        return customerProfileService.disabledCustomerIds(customerIds);
+    }
+
+    private boolean isCustomerLocked(SalesOrder order, Set<Long> lockedCustomerIds) {
+        if (order.getCustomer() == null) {
+            return false;
+        }
+        return lockedCustomerIds.contains(order.getCustomer().getId());
+    }
+
+    private AdminOrderView view(
+        SalesOrder order,
+        List<AdminOrderView.Item> lines,
+        List<Payment> orderPayments,
+        boolean customerLocked
+    ) {
         List<AdminOrderView.PaymentLine> paymentLines = new ArrayList<>();
         for (Payment payment : orderPayments) {
             PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
@@ -219,7 +250,8 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             formattedUpdatedAt,
             lines,
             paymentLines,
-            actions(order.getStatus(), orderPayments)
+            actions(order.getStatus(), orderPayments),
+            customerLocked
         );
     }
 

@@ -713,7 +713,9 @@ class AdminPagesTest {
                 List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
                 actions,
                 new OrderFulfilmentView("10:00 09/11/2026", null, null, null, null, null, null, null),
-                List.of(ShippingCarrier.values()));
+                List.of(ShippingCarrier.values()),
+                5L,
+                false);
     }
 
     @Configuration

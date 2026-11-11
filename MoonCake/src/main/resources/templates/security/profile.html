@@ -97,11 +97,14 @@
     <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-phone-title">
       <h2 id="edit-phone-title" class="font-serif text-xl font-semibold mb-5">Chỉnh sửa số điện thoại</h2>
       <p class="text-sm text-sand mb-5">Nhập số điện thoại gồm 10 chữ số và bắt đầu bằng 0.</p>
-      <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="space-y-4">
+      <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="space-y-4" data-profile-edit-form>
         <label for="phone" class="block text-sm text-sand">Số điện thoại</label>
         <input id="phone" type="tel" th:field="*{phone}" inputmode="numeric" autocomplete="tel" maxlength="10" required class="w-full border border-gold/25 bg-midnight px-4 py-3 text-ivory outline-none focus:border-gold">
         <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="text-sm text-red-300"></p>
-        <button type="submit" class="bg-gold text-surface font-semibold px-5 py-3">Lưu số điện thoại</button>
+        <div class="flex flex-wrap gap-3">
+          <button type="submit" class="bg-gold text-surface font-semibold px-5 py-3">Lưu số điện thoại</button>
+          <button type="reset" class="border border-gold/40 text-sand font-semibold px-5 py-3 hover:border-gold hover:text-ivory" data-profile-cancel hidden>Hủy chỉnh sửa</button>
+        </div>
       </form>
     </section>
     </div>

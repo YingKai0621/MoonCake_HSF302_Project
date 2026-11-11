@@ -189,7 +189,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
 
         List<InventoryDemand> demands = calculateRestoration(order.getId());
         CancellationInventoryCommand command = new CancellationInventoryCommand(
-            order.getId(),
+            order,
             "CANCEL_RETURN:" + order.getId(),
             demands
         );

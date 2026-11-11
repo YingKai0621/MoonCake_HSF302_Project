@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -52,7 +51,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductQueryService productQueryService;
-    private final EntityReferenceRepository references;
     private final Clock clock;
 
     public CustomBoxServiceImpl(
@@ -62,7 +60,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         CartRepository cartRepository,
         CartItemRepository cartItemRepository,
         ProductQueryService productQueryService,
-        EntityReferenceRepository references,
         Clock clock
     ) {
         this.customBoxRepository = customBoxRepository;
@@ -71,7 +68,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productQueryService = productQueryService;
-        this.references = references;
         this.clock = clock;
     }
 
@@ -297,8 +293,7 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         for (Map.Entry<Long, Integer> entry : cakeQuantities.entrySet()) {
             BoxConfigurationItem item = new BoxConfigurationItem();
             item.setConfiguration(configuration);
-            ProductVariant cakeReference = references.variant(entry.getKey()
-            );
+            ProductVariant cakeReference = productQueryService.variantReference(entry.getKey());
             item.setMooncakeVariant(cakeReference);
             item.setQuantityPerBox(entry.getValue());
             configurationItemRepository.save(item);

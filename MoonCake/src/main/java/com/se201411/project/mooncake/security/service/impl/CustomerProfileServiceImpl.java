@@ -32,4 +32,9 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
 
         return CustomerProfile.entityToDto(customer);
     }
+
+    @Override
+    public Customer customerReference(long customerId) {
+        return customerRepository.getReferenceById(customerId);
+    }
 }

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.service;
 
+import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
@@ -25,4 +26,6 @@ public interface ProductQueryService {
     CatalogPageView mooncakeCatalogPage();
 
     ProductDetailPageView productDetailPage(String slug);
+
+    ProductVariant variantReference(long variantId);
 }

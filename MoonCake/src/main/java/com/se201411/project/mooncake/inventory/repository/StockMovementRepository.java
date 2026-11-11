@@ -1,10 +1,11 @@
 package com.se201411.project.mooncake.inventory.repository;
 
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Query;
-import java.util.Collection;
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.StockMovement;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
 
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
 

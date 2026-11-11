@@ -149,7 +149,7 @@ Inject thêm `PasswordResetTokenRepository` qua constructor. Repository này thu
 2. Thêm attribute `"page"` = `customerProfileService.accountPage(customer)`.
 3. Nếu model chưa có `"profileForm"` thì thêm `customerProfileService.profileForm(customer)`.
 4. Nếu model chưa có `"passwordForm"` thì thêm `new ChangePasswordForm()`.
-5. Trả về `"account"`.
+5. Trả về `"security/account"`.
 
 ### 6.2. `POST /account/profile`
 Tham số: `@Valid @ModelAttribute("profileForm") ProfileUpdateForm form`, `BindingResult bindingResult`, `Model model`, `RedirectAttributes redirectAttributes`.

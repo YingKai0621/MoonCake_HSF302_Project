@@ -34,7 +34,7 @@
 <body class="min-h-screen flex flex-col bg-midnight text-ivory font-sans">
   <header th:replace="~{fragments/header :: header('profile')}"></header>
 
-  <main class="flex-grow max-w-3xl w-full mx-auto px-4 sm:px-8 py-10 md:py-16">
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-8 py-10 md:py-16">
     <a th:href="@{/}" href="/" class="inline-flex items-center gap-2 text-sm text-sand hover:text-gold mb-7">
       <span aria-hidden="true">←</span> Trang chủ
     </a>
@@ -45,6 +45,9 @@
       <p class="mt-3 text-sand">Thông tin hồ sơ đang được dùng cho tài khoản MoonCake của bạn.</p>
     </div>
 
+    <div th:if="${successMessage}" class="mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3" role="status" th:text="${successMessage}"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
     <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-label="Thông tin hồ sơ">
       <dl class="divide-y divide-gold/15">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 py-5 first:pt-0">
@@ -62,9 +65,7 @@
       </dl>
     </section>
 
-    <div th:if="${successMessage}" class="mt-5 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3" role="status" th:text="${successMessage}"></div>
-
-    <section class="mt-6 bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-name-title">
+    <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-name-title">
       <h2 id="edit-name-title" class="font-serif text-xl font-semibold mb-5">Chỉnh sửa họ tên</h2>
       <form th:action="@{/profile/name}" th:object="${profileForm}" method="post" class="space-y-4">
         <label for="fullName" class="block text-sm text-sand">Họ và tên</label>
@@ -74,7 +75,7 @@
       </form>
     </section>
 
-    <section class="mt-6 bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-email-title">
+    <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-email-title">
       <h2 id="edit-email-title" class="font-serif text-xl font-semibold mb-2">Chỉnh sửa email</h2>
       <p class="text-sm text-sand mb-5">Email mới sẽ là tên đăng nhập của bạn. Sau khi lưu, vui lòng đăng nhập lại.</p>
       <form th:action="@{/profile/email}" th:object="${emailForm}" method="post" class="space-y-4">
@@ -85,7 +86,7 @@
       </form>
     </section>
 
-    <section class="mt-6 bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-phone-title">
+    <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-phone-title">
       <h2 id="edit-phone-title" class="font-serif text-xl font-semibold mb-5">Chỉnh sửa số điện thoại</h2>
       <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="space-y-4">
         <label for="phone" class="block text-sm text-sand">Số điện thoại</label>
@@ -94,6 +95,7 @@
         <button type="submit" class="bg-gold text-surface font-semibold px-5 py-3">Lưu số điện thoại</button>
       </form>
     </section>
+    </div>
   </main>
 
   <footer th:replace="~{fragments/footer :: footer}"></footer>

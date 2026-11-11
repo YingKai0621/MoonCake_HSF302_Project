@@ -95,7 +95,7 @@
                 <select id="provinceCode" th:field="*{provinceCode}"
                         class="w-full px-4 py-3 rounded cursor-pointer" required>
                   <option value="">-- Chọn Tỉnh/Thành --</option>
-                  <option th:each="province : ${provinces}"
+                  <option th:each="province : ${checkout.provinces}"
                           th:value="${province.code}"
                           th:text="${province.name}">Tỉnh/Thành phố</option>
                 </select>
@@ -109,7 +109,7 @@
                         class="w-full px-4 py-3 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         required disabled>
                   <option value="">-- Chọn Phường/Xã/Đặc khu --</option>
-                  <option th:each="ward : ${wards}"
+                  <option th:each="ward : ${checkout.wards}"
                           th:value="${ward.code}"
                           th:text="${ward.name}"
                           th:attr="data-parent-code=${ward.parentCode}">Phường/Xã/Đặc khu</option>

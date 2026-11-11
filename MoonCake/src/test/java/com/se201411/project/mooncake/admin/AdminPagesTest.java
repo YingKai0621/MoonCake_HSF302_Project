@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.dashboard.service.DashboardService;
 import com.se201411.project.mooncake.order.dto.BusinessSummaryView;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
 import com.se201411.project.mooncake.inventory.dto.AdminBatchView;
+import com.se201411.project.mooncake.inventory.dto.InventoryPageView;
 import com.se201411.project.mooncake.feedback.controller.AdminFeedbackController;
 import com.se201411.project.mooncake.feedback.dto.AdminFeedbackView;
 import com.se201411.project.mooncake.feedback.service.FeedbackService;
@@ -128,6 +129,18 @@ class AdminPagesTest {
         when(inventory.balances()).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
         when(inventory.balances(any())).thenReturn(List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)));
         when(inventory.stockTabs(any())).thenReturn(List.of());
+        when(inventory.inventoryPage(any(), any(), any(), any(), any())).thenReturn(new InventoryPageView(
+                StockFilter.ALL,
+                List.of(),
+                List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 3, 5)),
+                List.of(),
+                "receive-key",
+                "adjust-key",
+                "pack-key",
+                null,
+                null,
+                null,
+                null));
         when(inventory.movements(0)).thenReturn(List.of(new Movement("SKU", StockMovementType.RECEIVE, 3, "Receive", "GROUP", 1L, LocalDateTime.now(), "Cake · Cake 80g", "Nhập kho", "09/11/2026 10:00")));
         when(orders.orders(null, 0)).thenReturn(List.of(order(OrderStatus.PLACED)));
         when(orders.detail(1)).thenReturn(order(OrderStatus.PLACED));

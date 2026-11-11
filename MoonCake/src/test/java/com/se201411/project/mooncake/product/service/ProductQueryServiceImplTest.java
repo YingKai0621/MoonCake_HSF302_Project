@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationItemRepository;
@@ -119,6 +120,14 @@ class ProductQueryServiceImplTest {
                     .isEqualTo("Sản phẩm banh-lava (Lava trứng muối)");
                 assertThat(item.quantityPerBox()).isEqualTo(4);
             });
+
+        CatalogPageView page = service.giftBoxCatalogPage();
+
+        assertThat(page.category()).isEqualTo("gift-boxes");
+        assertThat(page.title()).isEqualTo("Hộp quà Trung Thu");
+        assertThat(page.totalCount()).isEqualTo(1);
+        assertThat(page.boxCountOptions()).containsExactly(4);
+        assertThat(page.fillingOptions()).isEmpty();
     }
 
     @Test

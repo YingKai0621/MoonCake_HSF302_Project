@@ -1,8 +1,10 @@
 package com.se201411.project.mooncake.product.service;
 
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
+import com.se201411.project.mooncake.product.dto.ProductDetailPageView;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 
 import java.util.Collection;
@@ -17,4 +19,10 @@ public interface ProductQueryService {
     SellableVariantSnapshot requireSellableVariant(long variantId);
 
     List<CartVariantSnapshot> findVariantsForCart(Collection<Long> variantIds);
+
+    CatalogPageView giftBoxCatalogPage();
+
+    CatalogPageView mooncakeCatalogPage();
+
+    ProductDetailPageView productDetailPage(String slug);
 }

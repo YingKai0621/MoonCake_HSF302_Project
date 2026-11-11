@@ -10,6 +10,7 @@ import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Movement;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockTab;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
+import com.se201411.project.mooncake.inventory.dto.InventoryPageView;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
@@ -30,7 +31,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -61,6 +64,38 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         this.validation = validation;
         this.batchStock = batchStock;
         this.clock = clock;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InventoryPageView inventoryPage(
+        StockFilter filter,
+        Long receiveVariant,
+        Long packVariant,
+        Long returnProduct,
+        Long returnGiftBox
+    ) {
+        List<Balance> all = balances();
+        Set<Long> readyGiftSets = presets.readyGiftSetVariantIds();
+        List<Balance> packable = new ArrayList<>();
+        for (Balance balance : all) {
+            if (readyGiftSets.contains(balance.variantId())) {
+                packable.add(balance);
+            }
+        }
+        return new InventoryPageView(
+            filter,
+            stockTabs(filter),
+            balances(filter),
+            packable,
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            receiveVariant,
+            packVariant,
+            returnProduct,
+            returnGiftBox
+        );
     }
 
     @Override

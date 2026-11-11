@@ -1,12 +1,8 @@
 package com.se201411.project.mooncake.order.controller;
 
-import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
-import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
-import com.se201411.project.mooncake.order.dto.CheckoutLineView;
-import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.dto.OrderSuccessView;
@@ -26,16 +22,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 @Controller
 public class CheckoutController {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-
     private final CheckoutService checkoutService;
     private final CurrentCustomerService currentCustomerService;
     private final DeliveryAddressService deliveryAddressService;
@@ -165,46 +154,7 @@ public class CheckoutController {
         CheckoutForm form
     ) {
         model.addAttribute("checkoutForm", form);
-        model.addAttribute("checkout", toPageView(preparation));
-        model.addAttribute("customer", preparation.customer());
-        model.addAttribute("provinces", deliveryAddressService.getProvinces());
-        model.addAttribute("wards", deliveryAddressService.getWards());
-    }
-
-    private CheckoutPageView toPageView(CheckoutPreparation preparation) {
-        CheckoutQuote quote = preparation.quote();
-        List<CheckoutLineView> lineViews = new ArrayList<>();
-        int totalQuantity = 0;
-
-        for (CheckoutLineQuote line : quote.lines()) {
-            totalQuantity = Math.addExact(totalQuantity, line.cartLine().quantity());
-            lineViews.add(new CheckoutLineView(
-                line.productName(),
-                line.sku() == null ? line.boxSku() : line.sku(),
-                line.cartLine().quantity(),
-                formatVnd(line.unitBasePrice()),
-                discountLabel(line.discountPercent()),
-                formatVnd(line.lineTotal())
-            ));
-        }
-
-        return new CheckoutPageView(
-            preparation.cartId(),
-            lineViews,
-            totalQuantity,
-            formatVnd(quote.subtotal()),
-            formatVnd(quote.discount()),
-            formatVnd(quote.shippingFee()),
-            formatSignedVnd(quote.roundingAdjustment()),
-            formatVnd(quote.total())
-        );
-    }
-
-    private String discountLabel(BigDecimal discountPercent) {
-        if (discountPercent.signum() == 0) {
-            return null;
-        }
-        return "Giảm " + discountPercent.stripTrailingZeros().toPlainString() + "%";
+        model.addAttribute("checkout", checkoutService.checkoutPage(preparation));
     }
 
     private String firstError(BindingResult bindingResult) {
@@ -212,19 +162,5 @@ public class CheckoutController {
             return "Thông tin checkout không hợp lệ";
         }
         return bindingResult.getFieldError().getDefaultMessage();
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

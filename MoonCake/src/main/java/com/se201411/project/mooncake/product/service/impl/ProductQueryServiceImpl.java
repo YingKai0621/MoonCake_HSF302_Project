@@ -9,11 +9,13 @@ import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CatalogVariantView;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.PresetComponentView;
 import com.se201411.project.mooncake.product.dto.PresetRecipeView;
+import com.se201411.project.mooncake.product.dto.ProductDetailPageView;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationItemRepository;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationRepository;
@@ -32,12 +34,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 @Transactional(readOnly = true)
 public class ProductQueryServiceImpl implements ProductQueryService {
 
     private static final String FALLBACK_IMAGE = "/images/branding/mooncake_luxury_emblem_v4.png";
+    private static final int RELATED_PRODUCT_LIMIT = 4;
+    private static final String GIFT_BOX_TITLE = "Hộp quà Trung Thu";
+    private static final String MOONCAKE_TITLE = "Bánh Trung Thu";
 
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
@@ -66,6 +73,77 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     public List<CatalogProductView> findActiveCatalog(ProductType productType) {
         Objects.requireNonNull(productType, "productType must not be null");
         return loadCatalogViews(productRepository.findActiveByType(productType));
+    }
+
+    @Override
+    public CatalogPageView giftBoxCatalogPage() {
+        List<CatalogProductView> products = findActiveCatalog(ProductType.GIFT_SET);
+        return new CatalogPageView(
+            "gift-boxes",
+            GIFT_BOX_TITLE,
+            "Hộp quà Trung Thu với bánh được chọn sẵn, sẵn sàng làm quà biếu.",
+            products,
+            distinctBoxCounts(products),
+            List.of(),
+            List.of()
+        );
+    }
+
+    @Override
+    public CatalogPageView mooncakeCatalogPage() {
+        List<CatalogProductView> products = findActiveCatalog(ProductType.MOONCAKE);
+        return new CatalogPageView(
+            "mooncakes",
+            MOONCAKE_TITLE,
+            "Lựa chọn bánh theo nhân, trọng lượng và mức giá.",
+            products,
+            List.of(),
+            distinctFillings(products),
+            distinctWeights(products)
+        );
+    }
+
+    @Override
+    public ProductDetailPageView productDetailPage(String slug) {
+        CatalogProductView product = requireActiveProduct(slug);
+        List<CatalogProductView> related = new ArrayList<>();
+        for (CatalogProductView candidate : findActiveCatalog(product.getType())) {
+            if (candidate.getId() == product.getId()) {
+                continue;
+            }
+            related.add(candidate);
+            if (related.size() == RELATED_PRODUCT_LIMIT) {
+                break;
+            }
+        }
+        if (product.getType() == ProductType.MOONCAKE) {
+            return new ProductDetailPageView(product, "/products/mooncakes", MOONCAKE_TITLE, related);
+        }
+        return new ProductDetailPageView(product, "/products/gift-boxes", GIFT_BOX_TITLE, related);
+    }
+
+    private List<Integer> distinctBoxCounts(List<CatalogProductView> products) {
+        Set<Integer> boxCounts = new TreeSet<>();
+        for (CatalogProductView product : products) {
+            boxCounts.addAll(product.getBoxCounts());
+        }
+        return List.copyOf(boxCounts);
+    }
+
+    private List<String> distinctFillings(List<CatalogProductView> products) {
+        Set<String> fillings = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for (CatalogProductView product : products) {
+            fillings.addAll(product.getFillings());
+        }
+        return List.copyOf(fillings);
+    }
+
+    private List<Integer> distinctWeights(List<CatalogProductView> products) {
+        Set<Integer> weights = new TreeSet<>();
+        for (CatalogProductView product : products) {
+            weights.addAll(product.getWeights());
+        }
+        return List.copyOf(weights);
     }
 
     @Override

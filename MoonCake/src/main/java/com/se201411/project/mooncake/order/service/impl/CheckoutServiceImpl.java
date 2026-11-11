@@ -177,6 +177,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     ) {
         validateForm(form);
         requireOrderingAllowed(customerIdentity.customerId());
+        customerProfileService.requireActiveAccount(customerIdentity);
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
             form.getPaymentMethod()
         );

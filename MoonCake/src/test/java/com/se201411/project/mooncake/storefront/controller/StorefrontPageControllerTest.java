@@ -1,4 +1,4 @@
-package com.se201411.project.mooncake.controller;
+package com.se201411.project.mooncake.storefront.controller;
 
 import com.se201411.project.mooncake.feedback.dto.PublicReviewView;
 import com.se201411.project.mooncake.feedback.service.FeedbackService;
@@ -11,10 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class PageControllerTest {
+class StorefrontPageControllerTest {
 
     private final FeedbackService feedbackService = mock(FeedbackService.class);
-    private final PageController controller = new PageController(feedbackService);
+    private final StorefrontPageController controller = new StorefrontPageController(feedbackService);
 
     @Test
     void rendersHomepageWithPublishedReviews() {

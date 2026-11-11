@@ -264,6 +264,28 @@ class SecurityConfigTest {
             .andExpect(status().isOk());
     }
 
+    @Test
+    void accountPageIsOnlyForCustomers() throws Exception {
+        mockMvc.perform(get("/account"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login"));
+
+        mockMvc.perform(get("/account").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/account").with(user("customer").roles("CUSTOMER")))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(post("/account/password").with(user("customer").roles("CUSTOMER")))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(
+            post("/account/password")
+                .with(user("customer").roles("CUSTOMER"))
+                .with(csrf())
+        ).andExpect(status().isOk());
+    }
+
     @Configuration
     @EnableWebMvc
     static class TestWebConfig {
@@ -383,6 +405,16 @@ class SecurityConfigTest {
         @PostMapping("/reset-password")
         String resetPassword() {
             return "reset-password-done";
+        }
+
+        @GetMapping("/account")
+        String account() {
+            return "account";
+        }
+
+        @PostMapping("/account/password")
+        String changePassword() {
+            return "password-changed";
         }
 
         @GetMapping("/admin/dashboard")

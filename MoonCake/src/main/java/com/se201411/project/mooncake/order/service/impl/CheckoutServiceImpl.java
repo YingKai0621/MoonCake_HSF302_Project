@@ -10,14 +10,10 @@ import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.cart.service.PricingService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
-import com.se201411.project.mooncake.entity.BoxConfiguration;
-import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
-import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.SalesOrder;
-import com.se201411.project.mooncake.entity.VolumeDiscountTier;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.OrderType;
@@ -46,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,7 +55,6 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final CartService cartService;
     private final PricingService pricingService;
@@ -191,33 +185,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         int totalQuantity = 0;
         for (OrderItem item : orderItems) {
             totalQuantity = Math.addExact(totalQuantity, item.getQuantity());
-            String sku = item.getSkuSnapshot();
-            if (sku == null) {
-                sku = item.getBoxSkuSnapshot();
-            }
-            itemViews.add(new OrderSuccessItemView(
-                item.getProductNameSnapshot(),
-                sku,
-                item.getQuantity(),
-                formatVnd(item.getUnitFinalPriceSnapshot()),
-                formatVnd(item.getLineTotal())
-            ));
+            itemViews.add(OrderSuccessItemView.entityToDto(item));
         }
 
-        return new OrderSuccessView(
-            order.getOrderCode(),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            itemViews,
-            totalQuantity,
-            formatVnd(order.getSubtotalAmount()),
-            formatVnd(order.getDiscountAmount()),
-            formatVnd(order.getShippingFee()),
-            formatSignedVnd(order.getRoundingAdjustment()),
-            formatVnd(order.getTotalAmount())
-        );
+        return OrderSuccessView.entityToDto(order, itemViews, totalQuantity);
     }
 
     private SalesOrder createOrder(
@@ -234,10 +205,8 @@ public class CheckoutServiceImpl implements CheckoutService {
         order.setBuyerNameSnapshot(customer.fullName());
         order.setBuyerPhoneSnapshot(customer.phone());
         order.setBuyerEmailSnapshot(customer.email());
-        order.setRecipientName(form.getRecipientName().trim());
-        order.setRecipientPhone(form.getRecipientPhone());
+        form.dtoToEntity(order);
         order.setShippingAddressSnapshot(shippingAddress);
-        order.setOrderNote(normalizeOptional(form.getOrderNote()));
         order.setSubtotalAmount(quote.subtotal());
         order.setDiscountAmount(quote.discount());
         order.setShippingFee(quote.shippingFee());
@@ -374,13 +343,6 @@ public class CheckoutServiceImpl implements CheckoutService {
         return value == null || value.isBlank();
     }
 
-    private String normalizeOptional(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
-    }
-
     private String generateOrderCode() {
         String randomPart = UUID.randomUUID()
             .toString()
@@ -388,19 +350,5 @@ public class CheckoutServiceImpl implements CheckoutService {
             .substring(0, 12)
             .toUpperCase(Locale.ROOT);
         return "MC-" + randomPart;
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

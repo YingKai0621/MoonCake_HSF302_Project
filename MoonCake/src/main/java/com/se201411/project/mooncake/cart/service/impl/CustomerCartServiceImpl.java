@@ -290,12 +290,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
             List<CustomCartComponentView> componentViews = new ArrayList<>();
             for (BoxConfigurationItem component : components) {
-                ProductVariant cake = component.getMooncakeVariant();
-                componentViews.add(new CustomCartComponentView(
-                    cake.getProduct().getName(),
-                    cake.getName(),
-                    component.getQuantityPerBox()
-                ));
+                componentViews.add(CustomCartComponentView.entityToDto(component));
             }
 
             ProductVariant boxVariant = configuration.getBox().getEmptyBoxVariant();

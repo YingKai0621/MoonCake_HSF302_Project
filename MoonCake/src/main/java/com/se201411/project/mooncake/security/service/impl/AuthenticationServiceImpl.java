@@ -63,8 +63,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Customer customer = new Customer();
         customer.setAccount(account);
-        customer.setFullName(form.getFullName().trim());
-        customer.setPhone(form.getPhone());
+        form.dtoToEntity(customer);
         customer.setEmail(normalizedEmail);
         customer.setCreatedAt(createdAt);
         customerRepository.save(customer);

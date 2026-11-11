@@ -25,13 +25,10 @@ import com.se201411.project.mooncake.product.service.ProductQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,7 +38,6 @@ import java.util.Optional;
 public class ProductQueryServiceImpl implements ProductQueryService {
 
     private static final String FALLBACK_IMAGE = "/images/branding/mooncake_luxury_emblem_v4.png";
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
 
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
@@ -110,16 +106,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             throw new ResourceNotFoundException("SKU hộp quà chưa có PRESET READY: " + variantId);
         }
 
-        Product product = variant.getProduct();
-        return new SellableVariantSnapshot(
-            variant.getId(),
-            product.getId(),
-            variant.getSku(),
-            product.getProductType(),
-            product.getName() + " - " + variant.getName(),
-            variant.getUnitPrice(),
-            true
-        );
+        return SellableVariantSnapshot.entityToDto(variant);
     }
 
     @Override
@@ -151,18 +138,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 }
             }
 
-            CartVariantSnapshot snapshot = new CartVariantSnapshot(
-                variant.getId(),
-                product.getSlug(),
-                product.getName(),
-                variant.getName(),
-                variant.getSku(),
-                product.getProductType(),
-                variant.getUnitPrice(),
+            int availableQuantity = stockByVariantId.getOrDefault(variant.getId(), 0);
+            CartVariantSnapshot snapshot = CartVariantSnapshot.entityToDto(
+                variant,
                 imageUrl,
                 imageAlt,
                 currentlySellable,
-                stockByVariantId.getOrDefault(variant.getId(), 0)
+                availableQuantity
             );
             result.add(snapshot);
         }
@@ -226,18 +208,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 variantViews.add(variantView);
             }
 
-            result.add(new CatalogProductView(
-                product.getId(),
-                product.getSlug(),
-                product.getProductType(),
-                product.getName(),
-                product.getShortDescription(),
-                product.getDetailedDescription(),
-                product.getMainIngredients(),
-                product.getShelfLifeInfo(),
-                product.getStorageGuidance(),
-                variantViews
-            ));
+            result.add(CatalogProductView.entityToDto(product, variantViews));
         }
         return List.copyOf(result);
     }
@@ -348,19 +319,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             presetView = toPresetView(preset, presetItems);
         }
 
-        return new CatalogVariantView(
-            variant.getId(),
-            variant.getSku(),
-            variant.getName(),
-            variant.getWeightGrams(),
-            variant.getFillingLabel(),
-            variant.getUnitPrice(),
-            formatVnd(variant.getUnitPrice()),
-            imageUrl,
-            imageAlt,
-            presetView,
-            stock
-        );
+        return CatalogVariantView.entityToDto(variant, imageUrl, imageAlt, presetView, stock);
     }
 
     private ProductImage findPrimaryImage(List<ProductImage> images) {
@@ -388,27 +347,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         BoxConfiguration preset,
         List<BoxConfigurationItem> items
     ) {
-        ProductVariant boxVariant = preset.getBox().getEmptyBoxVariant();
         List<PresetComponentView> components = new ArrayList<>();
         for (BoxConfigurationItem item : items) {
-            ProductVariant mooncakeVariant = item.getMooncakeVariant();
-            PresetComponentView component = new PresetComponentView(
-                mooncakeVariant.getId(),
-                mooncakeVariant.getSku(),
-                buildComponentDisplayName(mooncakeVariant),
-                item.getQuantityPerBox()
-            );
-            components.add(component);
+            String displayName = buildComponentDisplayName(item.getMooncakeVariant());
+            components.add(PresetComponentView.entityToDto(item, displayName));
         }
 
-        return new PresetRecipeView(
-            preset.getId(),
-            preset.getPresetVariant().getId(),
-            boxVariant.getId(),
-            boxVariant.getName(),
-            preset.getBox().getCapacityCakes(),
-            components
-        );
+        return PresetRecipeView.entityToDto(preset, components);
     }
 
     private String buildComponentDisplayName(ProductVariant variant) {
@@ -419,10 +364,6 @@ public class ProductQueryServiceImpl implements ProductQueryService {
             return productName;
         }
         return productName + " (" + variantName + ")";
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
     }
 
     private Map<Long, List<ProductVariant>> groupVariantsByProduct(

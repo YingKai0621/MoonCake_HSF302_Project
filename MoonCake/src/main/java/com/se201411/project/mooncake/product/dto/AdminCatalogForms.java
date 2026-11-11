@@ -1,5 +1,10 @@
 package com.se201411.project.mooncake.product.dto;
 
+import com.se201411.project.mooncake.entity.Box;
+import com.se201411.project.mooncake.entity.Category;
+import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductImage;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ProductType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -37,6 +42,23 @@ public final class AdminCatalogForms {
         String slug,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved category. */
+        public static CategoryForm entityToDto(Category category) {
+            return new CategoryForm(
+                category.getId(),
+                category.getName(),
+                category.getSlug(),
+                category.isActive()
+            );
+        }
+
+        /** DTO -> Entity: copies only the plain fields; the service loads the entity and checks rules. */
+        public void dtoToEntity(Category category) {
+            category.setName(name.trim());
+            category.setSlug(slug);
+            category.setActive(active);
+        }
     }
 
     public record ProductForm(
@@ -65,6 +87,39 @@ public final class AdminCatalogForms {
         String storageGuidance,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved product. */
+        public static ProductForm entityToDto(Product product) {
+            return new ProductForm(
+                product.getId(),
+                product.getCategory().getId(),
+                product.getProductType(),
+                product.getName(),
+                product.getSlug(),
+                product.getShortDescription(),
+                product.getDetailedDescription(),
+                product.getMainIngredients(),
+                product.getShelfLifeInfo(),
+                product.getStorageGuidance(),
+                product.isActive()
+            );
+        }
+
+        /**
+         * DTO -> Entity: copies only the plain fields. The service sets the category itself,
+         * because it must load it from the database instead of trusting the submitted ID.
+         */
+        public void dtoToEntity(Product product) {
+            product.setProductType(productType);
+            product.setName(name.trim());
+            product.setSlug(slug);
+            product.setShortDescription(shortDescription);
+            product.setDetailedDescription(detailedDescription);
+            product.setMainIngredients(mainIngredients);
+            product.setShelfLifeInfo(shelfLifeInfo);
+            product.setStorageGuidance(storageGuidance);
+            product.setActive(active);
+        }
     }
 
     public record NewProductForm(
@@ -148,6 +203,31 @@ public final class AdminCatalogForms {
         BigDecimal unitPrice,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved SKU. */
+        public static VariantForm entityToDto(ProductVariant variant) {
+            return new VariantForm(
+                variant.getId(),
+                variant.getProduct().getId(),
+                variant.getSku(),
+                variant.getName(),
+                variant.getWeightGrams(),
+                variant.getFillingLabel(),
+                variant.getUnitPrice(),
+                variant.isActive()
+            );
+        }
+
+        /**
+         * DTO -> Entity: copies only the plain fields. SKU, parent product and the
+         * on-sale flag stay in the service because they follow extra business rules.
+         */
+        public void dtoToEntity(ProductVariant variant) {
+            variant.setName(name.trim());
+            variant.setWeightGrams(weightGrams);
+            variant.setFillingLabel(fillingLabel);
+            variant.setUnitPrice(unitPrice);
+        }
     }
 
     public record BoxForm(
@@ -163,6 +243,26 @@ public final class AdminCatalogForms {
         String notes,
         boolean active
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved box model. */
+        public static BoxForm entityToDto(Box box) {
+            return new BoxForm(
+                box.getId(),
+                box.getEmptyBoxVariant().getId(),
+                box.getCapacityCakes(),
+                box.getMaterial(),
+                box.getNotes(),
+                box.isActive()
+            );
+        }
+
+        /** DTO -> Entity: copies only the plain fields; the service sets the box SKU itself. */
+        public void dtoToEntity(Box box) {
+            box.setCapacityCakes(capacityCakes);
+            box.setMaterial(material);
+            box.setNotes(notes);
+            box.setActive(active);
+        }
     }
 
     public record ImageForm(
@@ -179,5 +279,25 @@ public final class AdminCatalogForms {
         int sortOrder,
         boolean primary
     ) {
+
+        /** Entity -> DTO: fills the edit form from a saved image. */
+        public static ImageForm entityToDto(ProductImage image) {
+            return new ImageForm(
+                image.getId(),
+                image.getVariant().getId(),
+                image.getImageUrl(),
+                image.getAltText(),
+                image.getSortOrder(),
+                image.isPrimary()
+            );
+        }
+
+        /** DTO -> Entity: copies only the plain fields; the service sets the SKU itself. */
+        public void dtoToEntity(ProductImage image) {
+            image.setImageUrl(imageUrl);
+            image.setAltText(altText);
+            image.setSortOrder(sortOrder);
+            image.setPrimary(primary);
+        }
     }
 }

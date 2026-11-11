@@ -50,7 +50,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public List<ProductImageView> images(long productId) {
         List<ProductImageView> views = new ArrayList<>();
         for (ProductImage image : productImageRepository.findGalleryByProductId(productId)) {
-            views.add(new ProductImageView(image.getImageUrl(), image.getAltText(), image.getVariant().getId()));
+            views.add(ProductImageView.entityToDto(image));
         }
         return views;
     }
@@ -60,7 +60,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public List<ProductVideoView> videos(long productId) {
         List<ProductVideoView> views = new ArrayList<>();
         for (ProductVideo video : productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(productId)) {
-            views.add(new ProductVideoView(video.getId(), video.getVideoUrl(), video.getCaption()));
+            views.add(ProductVideoView.entityToDto(video));
         }
         return views;
     }
@@ -71,12 +71,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
         adminAccessService.requireAdmin();
         List<AdminVideoView> views = new ArrayList<>();
         for (ProductVideo video : productVideoRepository.findAllByOrderByIdDesc()) {
-            views.add(new AdminVideoView(
-                video.getId(),
-                video.getProduct().getName(),
-                video.getVideoUrl(),
-                video.getCaption()
-            ));
+            views.add(AdminVideoView.entityToDto(video));
         }
         return views;
     }

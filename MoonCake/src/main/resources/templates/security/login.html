@@ -35,6 +35,14 @@
            role="status">
         Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.
       </div>
+      <div th:if="${param.reset}"
+           class="flash-message auth-message auth-message--success"
+           data-flash-message
+           data-flash-timeout="5000"
+           data-flash-query-param="reset"
+           role="status">
+        Đặt lại mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.
+      </div>
       <div th:if="${param.error}"
            class="flash-message auth-message auth-message--error"
            data-flash-message
@@ -79,6 +87,9 @@
                     aria-controls="password"
                     aria-label="Hiện mật khẩu">Hiện</button>
           </div>
+          <p class="auth-forgot">
+            <a th:href="@{/forgot-password}" href="/forgot-password">Quên mật khẩu?</a>
+          </p>
         </div>
 
         <button type="submit" class="auth-submit" data-loading-text="Đang đăng nhập…">Đăng nhập</button>

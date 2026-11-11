@@ -487,6 +487,67 @@ class CustomerOrderServiceImplTest {
             .hasMessage("Không tìm thấy đơn hàng của bạn");
     }
 
+    @Test
+    void customerConfirmsReceivedDeliveredOrder() {
+        SalesOrder order = order(
+            15L,
+            "MC-DELIVERED",
+            OrderStatus.DELIVERED,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        when(orderRepository.findOwnedByOrderCode("MC-DELIVERED", 7L))
+            .thenReturn(Optional.of(order));
+        when(orderRepository.confirmReceived(
+            15L,
+            OrderStatus.DELIVERED,
+            OrderStatus.COMPLETED,
+            LocalDateTime.of(2026, 10, 21, 8, 0)
+        )).thenReturn(1);
+
+        customerOrderService.confirmReceived("MC-DELIVERED", CUSTOMER);
+
+        verify(orderRepository).confirmReceived(
+            15L,
+            OrderStatus.DELIVERED,
+            OrderStatus.COMPLETED,
+            LocalDateTime.of(2026, 10, 21, 8, 0)
+        );
+    }
+
+    @Test
+    void confirmingOrderThatIsStillShippingIsRejected() {
+        SalesOrder order = order(
+            16L,
+            "MC-SHIPPING",
+            OrderStatus.SHIPPING,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        when(orderRepository.findOwnedByOrderCode("MC-SHIPPING", 7L))
+            .thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> customerOrderService.confirmReceived(
+            "MC-SHIPPING",
+            CUSTOMER
+        ))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessage("Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được.");
+    }
+
+    @Test
+    void cannotConfirmSomeoneElsesOrder() {
+        when(orderRepository.findOwnedByOrderCode("MC-OTHER", 7L))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> customerOrderService.confirmReceived(
+            "MC-OTHER",
+            CUSTOMER
+        ))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Không tìm thấy đơn hàng của bạn");
+    }
+
     private SalesOrder order(
         long id,
         String orderCode,

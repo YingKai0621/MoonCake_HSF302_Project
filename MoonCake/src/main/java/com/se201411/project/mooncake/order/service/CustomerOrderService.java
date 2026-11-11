@@ -26,6 +26,11 @@ public interface CustomerOrderService {
         ShopperIdentity customerIdentity
     );
 
+    void confirmReceived(
+        String orderCode,
+        ShopperIdentity customerIdentity
+    );
+
     String startOnlinePayment(
         String orderCode,
         ShopperIdentity customerIdentity,

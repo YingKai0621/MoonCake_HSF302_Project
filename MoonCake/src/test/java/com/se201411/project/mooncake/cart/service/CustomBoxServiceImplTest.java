@@ -253,8 +253,7 @@ class CustomBoxServiceImplTest {
 
         assertThatThrownBy(() -> service.createAndAddToCart(CUSTOMER, command))
             .isInstanceOf(InsufficientStockException.class)
-            .hasMessage("Chỉ còn 0 Bánh Chà Bông Trứng Nghiền - Bánh 80g nhưng hộp tự chọn này cần 16."
-                + " Vui lòng giảm số lượng hộp hoặc chọn bánh khác.");
+            .hasMessage("Bánh Chà Bông Trứng Nghiền - Bánh 80g đã hết hàng. Vui lòng chọn bánh khác.");
         verify(configurationRepository, never()).save(any(BoxConfiguration.class));
         verify(cartItemRepository, never()).save(any(CartItem.class));
     }

@@ -389,13 +389,16 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         for (CartVariantSnapshot variant : productQueryService.findVariantsForCart(demand.keySet())) {
             int needed = demand.get(variant.variantId());
             int stock = variant.stock();
-            if (stock >= 0 && needed > stock) {
-                throw new InsufficientStockException(
-                    "Chỉ còn " + stock + " " + variant.productName() + " - " + variant.variantName()
-                        + " nhưng hộp tự chọn này cần " + needed
-                        + ". Vui lòng giảm số lượng hộp hoặc chọn bánh khác."
-                );
+            if (stock < 0 || needed <= stock) {
+                continue;
             }
+            String name = variant.productName() + " - " + variant.variantName();
+            if (stock == 0) {
+                throw new InsufficientStockException(name + " đã hết hàng. Vui lòng chọn bánh khác.");
+            }
+            throw new InsufficientStockException(
+                name + " không còn đủ hàng cho số lượng hộp này. Vui lòng giảm số lượng hộp hoặc chọn bánh khác."
+            );
         }
     }
 

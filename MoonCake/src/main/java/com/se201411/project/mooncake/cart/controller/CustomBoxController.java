@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.controller;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxForm;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -44,12 +45,12 @@ public class CustomBoxController {
     @GetMapping
     public String createForm(Model model) {
         currentCustomerService.requireCurrentCustomer();
-        CustomBoxPageView builder = customBoxService.getBuilderView();
+        CustomBoxFormPage page = customBoxService.createPage();
         if (!model.containsAttribute("customBoxForm")) {
-            model.addAttribute("customBoxForm", createEmptyForm(builder));
+            model.addAttribute("customBoxForm", createEmptyForm(page.builder()));
         }
-        addPageModel(model, builder, false, null);
-        return "custom-box";
+        model.addAttribute("page", page);
+        return "cart/custom-box";
     }
 
     @PostMapping
@@ -61,8 +62,8 @@ public class CustomBoxController {
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
-            addPageModel(model, customBoxService.getBuilderView(), false, null);
-            return "custom-box";
+            model.addAttribute("page", customBoxService.createPage());
+            return "cart/custom-box";
         }
 
         try {
@@ -74,8 +75,8 @@ public class CustomBoxController {
             return "redirect:/cart";
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
-            addPageModel(model, customBoxService.getBuilderView(), false, null);
-            return "custom-box";
+            model.addAttribute("page", customBoxService.createPage());
+            return "cart/custom-box";
         }
     }
 
@@ -85,14 +86,14 @@ public class CustomBoxController {
         Model model
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
-        CustomBoxPageView builder = customBoxService.getBuilderView();
+        CustomBoxFormPage page = customBoxService.editPage(configurationId);
         CustomBoxEditView editView = customBoxService.getConfigurationForEdit(
             customer,
             configurationId
         );
-        model.addAttribute("customBoxForm", createEditForm(builder, editView));
-        addPageModel(model, builder, true, configurationId);
-        return "custom-box";
+        model.addAttribute("customBoxForm", createEditForm(page.builder(), editView));
+        model.addAttribute("page", page);
+        return "cart/custom-box";
     }
 
     @PostMapping("/{configurationId}")
@@ -105,8 +106,8 @@ public class CustomBoxController {
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
-            addPageModel(model, customBoxService.getBuilderView(), true, configurationId);
-            return "custom-box";
+            model.addAttribute("page", customBoxService.editPage(configurationId));
+            return "cart/custom-box";
         }
 
         try {
@@ -118,8 +119,8 @@ public class CustomBoxController {
             return "redirect:/cart";
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
-            addPageModel(model, customBoxService.getBuilderView(), true, configurationId);
-            return "custom-box";
+            model.addAttribute("page", customBoxService.editPage(configurationId));
+            return "cart/custom-box";
         }
     }
 
@@ -172,14 +173,4 @@ public class CustomBoxController {
         );
     }
 
-    private void addPageModel(
-        Model model,
-        CustomBoxPageView builder,
-        boolean editing,
-        Long configurationId
-    ) {
-        model.addAttribute("builder", builder);
-        model.addAttribute("editing", editing);
-        model.addAttribute("configurationId", configurationId);
-    }
 }

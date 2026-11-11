@@ -1,14 +1,12 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.product.service.ProductAdminService;
+import com.se201411.project.mooncake.product.dto.MediaPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Product;
-import com.se201411.project.mooncake.entity.ProductImage;
 import com.se201411.project.mooncake.entity.ProductVideo;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
-import com.se201411.project.mooncake.product.dto.ProductImageView;
-import com.se201411.project.mooncake.product.dto.ProductVideoView;
-import com.se201411.project.mooncake.product.repository.ProductImageRepository;
 import com.se201411.project.mooncake.product.repository.ProductRepository;
 import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
 import com.se201411.project.mooncake.product.service.ProductMediaService;
@@ -28,41 +26,21 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     private static final int MAX_URL_LENGTH = 1000;
     private static final int MAX_CAPTION_LENGTH = 250;
 
-    private final ProductImageRepository productImageRepository;
     private final ProductVideoRepository productVideoRepository;
     private final ProductRepository productRepository;
     private final AdminAccessService adminAccessService;
+    private final ProductAdminService productAdminService;
 
     public ProductMediaServiceImpl(
-        ProductImageRepository productImageRepository,
         ProductVideoRepository productVideoRepository,
         ProductRepository productRepository,
-        AdminAccessService adminAccessService
+        AdminAccessService adminAccessService,
+        ProductAdminService productAdminService
     ) {
-        this.productImageRepository = productImageRepository;
         this.productVideoRepository = productVideoRepository;
         this.productRepository = productRepository;
         this.adminAccessService = adminAccessService;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductImageView> images(long productId) {
-        List<ProductImageView> views = new ArrayList<>();
-        for (ProductImage image : productImageRepository.findGalleryByProductId(productId)) {
-            views.add(new ProductImageView(image.getImageUrl(), image.getAltText(), image.getVariant().getId()));
-        }
-        return views;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductVideoView> videos(long productId) {
-        List<ProductVideoView> views = new ArrayList<>();
-        for (ProductVideo video : productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(productId)) {
-            views.add(new ProductVideoView(video.getId(), video.getVideoUrl(), video.getCaption()));
-        }
-        return views;
+        this.productAdminService = productAdminService;
     }
 
     @Override
@@ -71,12 +49,7 @@ public class ProductMediaServiceImpl implements ProductMediaService {
         adminAccessService.requireAdmin();
         List<AdminVideoView> views = new ArrayList<>();
         for (ProductVideo video : productVideoRepository.findAllByOrderByIdDesc()) {
-            views.add(new AdminVideoView(
-                video.getId(),
-                video.getProduct().getName(),
-                video.getVideoUrl(),
-                video.getCaption()
-            ));
+            views.add(AdminVideoView.entityToDto(video));
         }
         return views;
     }
@@ -112,5 +85,11 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     public void removeVideo(long videoId) {
         adminAccessService.requireAdmin();
         productVideoRepository.deleteById(videoId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MediaPageView mediaPage() {
+        return new MediaPageView(allVideos(), productAdminService.catalog());
     }
 }

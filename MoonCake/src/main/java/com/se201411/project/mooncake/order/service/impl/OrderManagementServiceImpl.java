@@ -7,6 +7,7 @@ import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.AdminOrderListPageView;
 import com.se201411.project.mooncake.order.dto.AdminOrderTab;
 import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.order.repository.OrderAdminRepository;
@@ -26,6 +27,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,20 +96,9 @@ public class OrderManagementServiceImpl implements OrderManagementService {
                 List.of()
             );
             for (OrderItemComponent component : itemComponents) {
-                parts.add(new AdminOrderView.Component(
-                    component.getComponentNameSnapshot(),
-                    component.getQuantityPerSet(),
-                    component.getComponentRole()
-                ));
+                parts.add(AdminOrderView.Component.entityToDto(component));
             }
-            lines.add(new AdminOrderView.Item(
-                item.getProductNameSnapshot(),
-                item.getSkuSnapshot(),
-                item.getQuantity(),
-                item.getUnitFinalPriceSnapshot(),
-                item.getLineTotal(),
-                List.copyOf(parts)
-            ));
+            lines.add(AdminOrderView.Item.entityToDto(item, parts));
         }
         return view(order, List.copyOf(lines), payments.findByOrderId(id));
     }
@@ -205,36 +196,22 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         List<AdminOrderView.PaymentLine> paymentLines = new ArrayList<>();
         for (Payment payment : orderPayments) {
             PaymentProcessor processor = paymentProcessorRegistry.forMethod(payment.getMethod());
-            boolean paid = payment.getStatus() == PaymentStatus.PAID;
             String paidAt = null;
             if (payment.getPaidAt() != null) {
                 paidAt = formatTime(payment.getPaidAt());
             }
-            paymentLines.add(new AdminOrderView.PaymentLine(
-                processor.displayName(),
-                paid ? "Đã thanh toán" : "Chưa thanh toán",
-                paid,
-                payment.getAmount(),
-                paidAt
-            ));
+            paymentLines.add(AdminOrderView.PaymentLine.entityToDto(payment, processor.displayName(), paidAt));
         }
-        return new AdminOrderView(
-            order.getId(),
-            order.getOrderCode(),
-            order.getStatus(),
+        String formattedUpdatedAt = null;
+        if (order.getUpdatedAt() != null) {
+            formattedUpdatedAt = formatTime(order.getUpdatedAt());
+        }
+        return AdminOrderView.entityToDto(
+            order,
             statusLabel(order.getStatus()),
             statusTone(order.getStatus()),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            order.getSubtotalAmount(),
-            order.getDiscountAmount(),
-            order.getShippingFee(),
-            order.getRoundingAdjustment(),
-            order.getTotalAmount(),
             formatTime(order.getCreatedAt()),
-            order.getUpdatedAt() == null ? null : formatTime(order.getUpdatedAt()),
+            formattedUpdatedAt,
             lines,
             paymentLines,
             actions(order.getStatus(), orderPayments)
@@ -291,5 +268,41 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             return "danger";
         }
         return "info";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countOrdersContaining(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        long direct = items.countOrdersByVariantIds(variantIds);
+        long asComponent = components.countByVariantIds(variantIds);
+        return direct + asComponent;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithVariants(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        return items.countByVariantIds(variantIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithConfigurations(Collection<Long> configurationIds) {
+        if (configurationIds.isEmpty()) {
+            return 0;
+        }
+        return items.countByConfigurationIds(configurationIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminOrderListPageView ordersPage(OrderStatus status, int page) {
+        int pageNumber = Math.max(0, page);
+        return new AdminOrderListPageView(orders(status, pageNumber), statusTabs(status), status, pageNumber);
     }
 }

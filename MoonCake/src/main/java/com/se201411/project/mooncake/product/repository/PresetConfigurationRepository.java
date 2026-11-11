@@ -1,9 +1,9 @@
 package com.se201411.project.mooncake.product.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PresetConfigurationRepository extends JpaRepository<BoxConfiguration, Long> {
+
+    List<BoxConfiguration> findByTypeAndStatus(ConfigurationType type, ConfigurationStatus status);
 
     @Query("""
         select configuration

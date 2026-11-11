@@ -5,6 +5,7 @@ import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.order.dto.PaymentReturnResult;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -35,4 +36,8 @@ public interface PaymentProcessor {
     Map<String, String> handleNotification(Map<String, String> params);
 
     PaymentReturnResult handleReturn(Map<String, String> params);
+
+    boolean acceptsTotal(BigDecimal total);
+
+    void checkCanPlace(long customerId, BigDecimal total);
 }

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.order.dto.DeliveryEditPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.order.dto.CustomerOrderDetailView;
@@ -77,7 +78,7 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders"))
             .andExpect(status().isOk())
-            .andExpect(view().name("orders"))
+            .andExpect(view().name("order/orders"))
             .andExpect(model().attribute("orders", orders));
     }
 
@@ -103,7 +104,8 @@ class CustomerOrderControllerTest {
             "0đ",
             "30.000đ",
             null,
-            "620.000đ"
+            "620.000đ",
+            null
         );
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(customerOrderService.requireOrder("MC-20261021-TEST", CUSTOMER))
@@ -111,7 +113,7 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders/MC-20261021-TEST"))
             .andExpect(status().isOk())
-            .andExpect(view().name("order-detail"))
+            .andExpect(view().name("order/order-detail"))
             .andExpect(model().attribute("order", order));
     }
 
@@ -123,14 +125,14 @@ class CustomerOrderControllerTest {
             "MC-20261021-TEST",
             CUSTOMER
         )).thenReturn(form);
-        when(deliveryAddressService.getProvinces()).thenReturn(List.of());
-        when(deliveryAddressService.getWards()).thenReturn(List.of());
+        DeliveryEditPageView page = new DeliveryEditPageView("MC-20261021-TEST", List.of(), List.of());
+        when(deliveryAddressService.deliveryEditPage("MC-20261021-TEST")).thenReturn(page);
 
         mockMvc.perform(get("/orders/MC-20261021-TEST/delivery/edit"))
             .andExpect(status().isOk())
-            .andExpect(view().name("order-delivery-edit"))
+            .andExpect(view().name("order/order-delivery-edit"))
             .andExpect(model().attribute("deliveryForm", form))
-            .andExpect(model().attribute("orderCode", "MC-20261021-TEST"));
+            .andExpect(model().attribute("page", page));
     }
 
     @Test

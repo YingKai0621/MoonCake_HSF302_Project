@@ -15,10 +15,6 @@ public interface PresetAdminRepository {
 
     List<BoxConfigurationItem> allPresetItems();
 
-    boolean historicallyReferenced(long id, long variant);
-
-    boolean inCarts(long id, long variant);
-
     void save(BoxConfiguration configuration);
 
     void saveItem(BoxConfigurationItem item);

@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.cart.dto.CartItemView;
 import com.se201411.project.mooncake.cart.dto.CustomCartComponentView;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
@@ -48,7 +48,6 @@ public class CustomerCartServiceImpl implements CustomerCartService {
     private final CustomBoxConfigurationRepository configurationRepository;
     private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final ProductQueryService productQueryService;
-    private final EntityReferenceRepository references;
     private final Clock clock;
 
     public CustomerCartServiceImpl(
@@ -57,7 +56,6 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         CustomBoxConfigurationRepository configurationRepository,
         CustomBoxConfigurationItemRepository configurationItemRepository,
         ProductQueryService productQueryService,
-        EntityReferenceRepository references,
         Clock clock
     ) {
         this.cartRepository = cartRepository;
@@ -65,7 +63,6 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         this.configurationRepository = configurationRepository;
         this.configurationItemRepository = configurationItemRepository;
         this.productQueryService = productQueryService;
-        this.references = references;
         this.clock = clock;
     }
 
@@ -126,12 +123,14 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         );
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(addQuantities(item.getQuantity(), quantity));
+            int newQuantity = addQuantities(item.getQuantity(), quantity);
+            requireStock(variantId, newQuantity);
+            item.setQuantity(newQuantity);
         } else {
+            requireStock(variantId, quantity);
             CartItem item = new CartItem();
             item.setCart(cart);
-            ProductVariant variantReference = references.variant(variantId
-            );
+            ProductVariant variantReference = productQueryService.variantReference(variantId);
             item.setVariant(variantReference);
             item.setQuantity(quantity);
             item.setAddedAt(now());
@@ -157,6 +156,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
         if (item.getVariant() != null && quantity > item.getQuantity()) {
             productQueryService.requireSellableVariant(item.getVariant().getId());
+            requireStock(item.getVariant().getId(), quantity);
         }
         if (item.getConfigurationId() != null && quantity > item.getQuantity()) {
             validateCustomConfigurationSellable(item.getConfigurationId(), cart.getId());
@@ -263,7 +263,8 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
             totalQuantity = addQuantities(totalQuantity, item.getQuantity());
             subtotal = subtotal.add(lineTotal);
-            if (!variant.currentlySellable()) {
+            boolean shortOfStock = variant.stock() >= 0 && variant.stock() < item.getQuantity();
+            if (!variant.currentlySellable() || shortOfStock) {
                 hasUnavailableItems = true;
             }
         }
@@ -290,12 +291,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
             List<CustomCartComponentView> componentViews = new ArrayList<>();
             for (BoxConfigurationItem component : components) {
-                ProductVariant cake = component.getMooncakeVariant();
-                componentViews.add(new CustomCartComponentView(
-                    cake.getProduct().getName(),
-                    cake.getName(),
-                    component.getQuantityPerBox()
-                ));
+                componentViews.add(CustomCartComponentView.entityToDto(component));
             }
 
             ProductVariant boxVariant = configuration.getBox().getEmptyBoxVariant();
@@ -496,6 +492,23 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             );
         }
         return itemResult.get();
+    }
+
+    private void requireStock(long variantId, int quantity) {
+        List<CartVariantSnapshot> found = productQueryService.findVariantsForCart(List.of(variantId));
+        if (found.isEmpty()) {
+            return;
+        }
+        int stock = found.get(0).stock();
+        if (stock < 0 || quantity <= stock) {
+            return;
+        }
+        if (stock <= 0) {
+            throw new InsufficientStockException("Sản phẩm này đã hết hàng.");
+        }
+        throw new InsufficientStockException(
+            "Chỉ còn " + stock + " sản phẩm " + found.get(0).productName() + ". Vui lòng chọn tối đa " + stock + "."
+        );
     }
 
     private int addQuantities(int first, int second) {

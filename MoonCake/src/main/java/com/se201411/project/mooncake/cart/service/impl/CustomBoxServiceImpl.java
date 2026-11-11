@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -34,14 +34,12 @@ import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,15 +47,12 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class CustomBoxServiceImpl implements CustomBoxService {
 
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-
     private final CustomBoxRepository customBoxRepository;
     private final CustomBoxConfigurationRepository configurationRepository;
     private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductQueryService productQueryService;
-    private final EntityReferenceRepository references;
     private final Clock clock;
 
     public CustomBoxServiceImpl(
@@ -67,7 +62,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         CartRepository cartRepository,
         CartItemRepository cartItemRepository,
         ProductQueryService productQueryService,
-        EntityReferenceRepository references,
         Clock clock
     ) {
         this.customBoxRepository = customBoxRepository;
@@ -76,7 +70,6 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productQueryService = productQueryService;
-        this.references = references;
         this.clock = clock;
     }
 
@@ -93,14 +86,8 @@ public class CustomBoxServiceImpl implements CustomBoxService {
             if (catalogVariant == null) {
                 throw new ResourceNotFoundException("Không tìm thấy ảnh của mẫu hộp đang bán");
             }
-            boxViews.add(new CustomBoxOptionView(
-                box.getId(),
-                variant.getId(),
-                variant.getProduct().getName(),
-                variant.getSku(),
-                box.getCapacityCakes(),
-                variant.getUnitPrice(),
-                formatVnd(variant.getUnitPrice()),
+            boxViews.add(CustomBoxOptionView.entityToDto(
+                box,
                 catalogVariant.imageUrl(),
                 catalogVariant.imageAlt()
             ));
@@ -308,8 +295,7 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         for (Map.Entry<Long, Integer> entry : cakeQuantities.entrySet()) {
             BoxConfigurationItem item = new BoxConfigurationItem();
             item.setConfiguration(configuration);
-            ProductVariant cakeReference = references.variant(entry.getKey()
-            );
+            ProductVariant cakeReference = productQueryService.variantReference(entry.getKey());
             item.setMooncakeVariant(cakeReference);
             item.setQuantityPerBox(entry.getValue());
             configurationItemRepository.save(item);
@@ -399,13 +385,38 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         return LocalDateTime.now(clock);
     }
 
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
     private record ValidatedCustomBox(
         Box box,
         Map<Long, Integer> cakeQuantities
     ) {
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countCustomBoxesUsing(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        long asBox = configurationRepository.countByBoxVariantIds(ConfigurationType.CUSTOM, variantIds);
+        long asCake = configurationItemRepository.countByCakeVariantIds(ConfigurationType.CUSTOM, variantIds);
+        return asBox + asCake;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean customBoxesUseBox(long boxId) {
+        return configurationRepository.countByBoxId(ConfigurationType.CUSTOM, boxId) > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomBoxFormPage createPage() {
+        return new CustomBoxFormPage(getBuilderView(), false, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomBoxFormPage editPage(long configurationId) {
+        return new CustomBoxFormPage(getBuilderView(), true, configurationId);
     }
 }

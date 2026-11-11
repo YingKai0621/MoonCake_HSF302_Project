@@ -1,13 +1,13 @@
 package com.se201411.project.mooncake.inventory.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Collection;
-import java.util.List;
 import com.se201411.project.mooncake.entity.InventoryBalance;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
+import java.util.List;
 
 public interface InventoryBalanceRepository
     extends JpaRepository<InventoryBalance, Long> {
@@ -60,4 +60,11 @@ public interface InventoryBalanceRepository
         @Param("variantId") long variantId,
         @Param("quantity") int quantity
     );
+
+    @Query("select coalesce(sum(b.availableQuantity), 0) from InventoryBalance b where b.variantId in :variantIds")
+    long sumAvailable(@Param("variantIds") Collection<Long> variantIds);
+
+    @Modifying
+    @Query("delete from InventoryBalance b where b.variantId in :variantIds")
+    int deleteByVariantIds(@Param("variantIds") Collection<Long> variantIds);
 }

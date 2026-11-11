@@ -1,7 +1,7 @@
 package com.se201411.project.mooncake.order.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -23,4 +23,7 @@ public interface OrderItemComponentRepository
     List<OrderItemComponent> findByOrderItemIds(
         @Param("orderItemIds") Collection<Long> orderItemIds
     );
+
+    @Query("select count(component) from OrderItemComponent component where component.componentVariant.id in :variantIds")
+    long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
 }

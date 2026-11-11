@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Hộp quà')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Hộp quà')}"></head>
 <body class="page-gift-box">
-<header th:replace="~{admin/layout :: nav}"></header>
-<main th:with="detail=${page.detail},product=${page.detail.product},sku=${page.sku},recipe=${page.recipe},giftBox=${true}">
-    <div th:replace="~{admin/layout :: flash}"></div>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
+<main th:with="detail=${page.detail},product=${page.detail.product},sku=${page.sku},recipe=${page.recipe}">
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/gift-boxes}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
@@ -34,26 +34,26 @@
     <div class="step-panel" data-step-panel="info" id="info">
         <section>
             <h2>Thông tin hộp quà</h2>
-            <p th:replace="~{admin/product-forms :: alert('info')}"></p>
-            <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, true)}"></form>
+            <p th:replace="~{admin/fragments/product-forms :: alert('info')}"></p>
+            <form th:replace="~{admin/fragments/product-forms :: product(${formTarget == 'info' ? formValues : product}, true)}"></form>
         </section>
 
         <section th:if="${sku != null}" th:id="${'sku-' + sku.form.id}">
             <h2>Giá bán &amp; ảnh</h2>
-            <p th:replace="~{admin/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
-            <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
+            <p th:replace="~{admin/fragments/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
+            <form th:replace="~{admin/fragments/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
 
-            <div th:replace="~{admin/product-forms :: imageManager(${sku}, ${product.id})}"></div>
+            <div th:replace="~{admin/fragments/product-forms :: imageManager(${sku}, ${product.id})}"></div>
         </section>
 
         <section th:if="${sku == null}" id="sku-new">
             <h2>Giá bán</h2>
-            <p th:replace="~{admin/product-forms :: alert('sku-new')}"></p>
-            <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
+            <p th:replace="~{admin/fragments/product-forms :: alert('sku-new')}"></p>
+            <form th:replace="~{admin/fragments/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
         </section>
 
         <div id="danger" class="delete-row">
-            <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
+            <p th:replace="~{admin/fragments/product-forms :: alert('danger')}"></p>
             <form th:if="${detail.deleteBlocker == null}"
                   th:action="@{/admin/catalog/products/{id}/delete(id=${product.id},giftBox=true)}"
                   th:attr="data-confirm-message=${'Xóa vĩnh viễn hộp quà “' + product.name + '” cùng giá, ảnh và danh sách bánh? Không thể hoàn tác.'}"
@@ -66,23 +66,23 @@
 
     <div class="step-panel" data-step-panel="recipe" id="recipe" hidden>
         <section>
-            <p th:replace="~{admin/product-forms :: alert('recipe')}"></p>
+            <p th:replace="~{admin/fragments/product-forms :: alert('recipe')}"></p>
             <p th:if="${sku == null}" class="muted">Nhập giá bán ở bước 1 trước.</p>
 
             <th:block th:if="${sku != null and recipe == null}">
                 <h2>Chọn vỏ hộp</h2>
-                <form th:replace="~{admin/recipe-forms :: boxPicker(null, ${sku.form.id}, ${product.id})}"></form>
+                <form th:replace="~{admin/fragments/recipe-forms :: boxPicker(null, ${sku.form.id}, ${product.id})}"></form>
             </th:block>
 
             <th:block th:if="${recipe != null and recipe.draft()}">
                 <div class="section-heading">
                     <h2 th:text="${'Chọn ' + recipe.capacity + ' bánh cho hộp'}">Chọn bánh</h2>
                 </div>
-                <form th:replace="~{admin/recipe-forms :: cakePicker(${recipe}, ${product.id})}"></form>
+                <form th:replace="~{admin/fragments/recipe-forms :: cakePicker(${recipe}, ${product.id})}"></form>
 
                 <details class="url-option">
                     <summary>Đổi vỏ hộp khác</summary>
-                    <form th:replace="~{admin/recipe-forms :: boxPicker(${recipe}, ${sku.form.id}, ${product.id})}"></form>
+                    <form th:replace="~{admin/fragments/recipe-forms :: boxPicker(${recipe}, ${sku.form.id}, ${product.id})}"></form>
                 </details>
             </th:block>
 
@@ -103,7 +103,7 @@
                 </div>
                 <div class="pick-grid">
                     <div th:each="c : ${recipe.components}" class="pick-card is-picked is-static"
-                         th:with="match=${options.cakes.?[id == __${c.variantId}__]}">
+                         th:with="match=${page.options.cakes.?[id == __${c.variantId}__]}">
                         <span class="pick-card__image">
                             <img th:if="${!match.isEmpty() and match[0].imageUrl != null}" th:src="${match[0].imageUrl}" alt="" loading="lazy">
                             <span class="pick-card__count" th:text="${c.quantity}">2</span>
@@ -120,7 +120,7 @@
     <div class="step-panel" data-step-panel="sale" id="sale" hidden>
         <section>
             <h2>Đóng hộp &amp; mở bán</h2>
-            <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+            <p th:replace="~{admin/fragments/product-forms :: alert('sale')}"></p>
             <div class="pack-row" th:if="${recipe != null and !recipe.draft()}">
                 <div class="stat-line">
                     <span class="muted">Đang có trong kho</span>

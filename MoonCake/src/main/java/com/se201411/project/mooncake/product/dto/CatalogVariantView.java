@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.dto;
 
+import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -16,6 +18,29 @@ public record CatalogVariantView(
     PresetRecipeView presetRecipe,
     int stock
 ) {
+
+    public static CatalogVariantView entityToDto(
+        ProductVariant variant,
+        String imageUrl,
+        String imageAlt,
+        PresetRecipeView presetRecipe,
+        int stock
+    ) {
+        return new CatalogVariantView(
+            variant.getId(),
+            variant.getSku(),
+            variant.getName(),
+            variant.getWeightGrams(),
+            variant.getFillingLabel(),
+            variant.getUnitPrice(),
+            MoneyFormat.vnd(variant.getUnitPrice()),
+            imageUrl,
+            imageAlt,
+            presetRecipe,
+            stock
+        );
+    }
+
     public static final int UNKNOWN_STOCK = -1;
     public static final int LOW_STOCK = 5;
 

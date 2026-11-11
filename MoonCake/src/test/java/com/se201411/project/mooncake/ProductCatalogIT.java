@@ -224,7 +224,7 @@ class ProductCatalogIT {
 
         mockMvc.perform(get("/products/{slug}", giftSet.getSlug()))
             .andExpect(status().isOk())
-            .andExpect(view().name("product-detail"))
+            .andExpect(view().name("product/product-detail"))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(giftSet.getName())))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(
                 "Bánh integration test (Bánh nhân thử nghiệm)"
@@ -238,7 +238,7 @@ class ProductCatalogIT {
 
         mockMvc.perform(get("/products/gift-boxes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("shop-catalog"))
+            .andExpect(view().name("product/shop-catalog"))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(giftSet.getName())))
             .andExpect(content().string(org.hamcrest.Matchers.containsString("Hộp 4 bánh")))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(
@@ -247,7 +247,7 @@ class ProductCatalogIT {
 
         mockMvc.perform(get("/products/mooncakes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("shop-catalog"))
+            .andExpect(view().name("product/shop-catalog"))
             .andExpect(content().string(org.hamcrest.Matchers.containsString(cakeProduct.getName())))
             .andExpect(content().string(org.hamcrest.Matchers.containsString("Nhân kiểm thử")));
     }

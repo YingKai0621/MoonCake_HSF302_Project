@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
+import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
@@ -61,6 +63,10 @@ class CustomerOrderServiceImplTest {
     private PaymentRepository paymentRepository;
     @Mock
     private DeliveryAddressService deliveryAddressService;
+    @Mock
+    private InventoryService inventoryService;
+    @Mock
+    private CustomerProfileService customerProfileService;
 
     private CustomerOrderService customerOrderService;
     private final PaymentProcessor vnpayProcessor = mock(PaymentProcessor.class);
@@ -77,6 +83,8 @@ class CustomerOrderServiceImplTest {
             paymentRepository,
             deliveryAddressService,
             new PaymentProcessorRegistryImpl(List.of(new CodPaymentProcessor(paymentRepository), vnpayProcessor)),
+            inventoryService,
+            customerProfileService,
             Clock.fixed(Instant.parse("2026-10-21T08:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -504,5 +512,50 @@ class CustomerOrderServiceImplTest {
         form.setStreetAddress("25 Nguyễn Huệ");
         form.setOrderNote(" Giao buổi sáng ");
         return form;
+    }
+
+    @Test
+    void orderCancelledByStoreTellsTheCustomerClearly() {
+        CustomerOrderDetailView view = cancelledOrderDetail(PaymentStatus.UNPAID, 99L);
+
+        assertThat(view.cancellationNote())
+            .isEqualTo("Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng.");
+    }
+
+    @Test
+    void paidOrderCancelledByStoreMentionsRefund() {
+        CustomerOrderDetailView view = cancelledOrderDetail(PaymentStatus.PAID, 99L);
+
+        assertThat(view.cancellationNote()).contains("hoàn tiền");
+    }
+
+    @Test
+    void orderCancelledByCustomerSaysSo() {
+        CustomerOrderDetailView view = cancelledOrderDetail(PaymentStatus.UNPAID, 70L);
+
+        assertThat(view.cancellationNote()).isEqualTo("Bạn đã hủy đơn hàng này.");
+    }
+
+    @Test
+    void cancelledOrderWithoutRecordedPerformerShowsGeneralNote() {
+        CustomerOrderDetailView view = cancelledOrderDetail(PaymentStatus.UNPAID, null);
+
+        assertThat(view.cancellationNote()).isEqualTo("Đơn hàng này đã bị hủy và không còn được xử lý.");
+    }
+
+    private CustomerOrderDetailView cancelledOrderDetail(PaymentStatus paymentStatus, Long cancelledBy) {
+        SalesOrder order = order(13L, "MC-CANCELLED", OrderStatus.CANCELLED, LocalDateTime.of(2026, 11, 8, 4, 0), 620_000);
+        order.setSubtotalAmount(BigDecimal.valueOf(590_000));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.valueOf(30_000));
+        Payment payment = new Payment();
+        payment.setMethod(PaymentMethod.COD);
+        payment.setStatus(paymentStatus);
+        when(orderRepository.findOwnedByOrderCode("MC-CANCELLED", 7L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(13L)).thenReturn(List.of(payment));
+        when(itemRepository.findByOrderId(13L)).thenReturn(List.of());
+        when(inventoryService.cancelledByAccountId(13L)).thenReturn(cancelledBy);
+        lenient().when(customerProfileService.accountIdOf(7L)).thenReturn(70L);
+        return customerOrderService.requireOrder("MC-CANCELLED", CUSTOMER);
     }
 }

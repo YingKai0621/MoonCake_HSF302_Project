@@ -112,7 +112,7 @@ class CustomerOrderHistoryIT {
         Authentication authentication = customerAuthentication(customerId);
         mockMvc.perform(get("/orders").with(authentication(authentication)))
             .andExpect(status().isOk())
-            .andExpect(view().name("orders"))
+            .andExpect(view().name("order/orders"))
             .andExpect(content().string(containsString(newestOrderCode)))
             .andExpect(content().string(containsString(olderOrderCode)))
             .andExpect(content().string(not(containsString(otherOrderCode))));
@@ -122,7 +122,7 @@ class CustomerOrderHistoryIT {
                 .with(authentication(authentication))
         )
             .andExpect(status().isOk())
-            .andExpect(view().name("order-detail"))
+            .andExpect(view().name("order/order-detail"))
             .andExpect(content().string(containsString(newestOrderCode)))
             .andExpect(content().string(containsString("Hộp quà Kim Phúc")))
             .andExpect(content().string(containsString("Vỏ hộp Kim Phúc")));

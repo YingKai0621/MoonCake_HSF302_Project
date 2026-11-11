@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.security.dto;
 
+import com.se201411.project.mooncake.entity.Customer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -77,5 +78,10 @@ public class CustomerRegistrationForm {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public void dtoToEntity(Customer customer) {
+        customer.setFullName(fullName.trim());
+        customer.setPhone(phone);
     }
 }

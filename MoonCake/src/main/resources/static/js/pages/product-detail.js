@@ -158,6 +158,14 @@ function initVariantSelector() {
     if (button) {
       button.disabled = soldOut;
     }
+    const quantity = document.getElementById('cartQuantity');
+    if (quantity) {
+      quantity.max = String(Math.max(stock, 1));
+      quantity.dataset.maxError = 'Chỉ còn ' + stock + ' sản phẩm.';
+      if (Number(quantity.value) > stock && stock > 0) {
+        quantity.value = String(stock);
+      }
+    }
     if (label) {
       label.textContent = soldOut ? 'Tạm hết hàng' : 'Thêm vào giỏ hàng';
     }

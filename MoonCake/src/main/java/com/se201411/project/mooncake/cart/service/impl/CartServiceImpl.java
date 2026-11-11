@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -145,5 +146,23 @@ public class CartServiceImpl implements CartService {
         if (cartId <= 0) {
             throw new ResourceNotFoundException("Giỏ hàng không hợp lệ");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithVariants(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return 0;
+        }
+        return cartItemRepository.countByVariantIds(variantIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countItemsWithConfigurations(Collection<Long> configurationIds) {
+        if (configurationIds.isEmpty()) {
+            return 0;
+        }
+        return cartItemRepository.countByConfigurationIds(configurationIds);
     }
 }

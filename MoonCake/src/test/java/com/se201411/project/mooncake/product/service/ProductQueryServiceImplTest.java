@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product.service;
 
+import com.se201411.project.mooncake.entity.ProductImage;
+import com.se201411.project.mooncake.product.dto.ProductDetailPageView;
+import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
@@ -11,6 +14,7 @@ import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.repository.PresetConfigurationItemRepository;
@@ -45,6 +49,8 @@ class ProductQueryServiceImplTest {
     @Mock
     private ProductImageRepository productImageRepository;
     @Mock
+    private ProductVideoRepository productVideoRepository;
+    @Mock
     private PresetConfigurationRepository presetConfigurationRepository;
     @Mock
     private PresetConfigurationItemRepository presetConfigurationItemRepository;
@@ -59,6 +65,7 @@ class ProductQueryServiceImplTest {
             productRepository,
             productVariantRepository,
             productImageRepository,
+            productVideoRepository,
             presetConfigurationRepository,
             presetConfigurationItemRepository,
             inventoryService
@@ -119,6 +126,14 @@ class ProductQueryServiceImplTest {
                     .isEqualTo("Sản phẩm banh-lava (Lava trứng muối)");
                 assertThat(item.quantityPerBox()).isEqualTo(4);
             });
+
+        CatalogPageView page = service.giftBoxCatalogPage();
+
+        assertThat(page.category()).isEqualTo("gift-boxes");
+        assertThat(page.title()).isEqualTo("Hộp quà Trung Thu");
+        assertThat(page.totalCount()).isEqualTo(1);
+        assertThat(page.boxCountOptions()).containsExactly(4);
+        assertThat(page.fillingOptions()).isEmpty();
     }
 
     @Test
@@ -161,6 +176,37 @@ class ProductQueryServiceImplTest {
             assertThat(snapshot.sku()).isEqualTo("MC-CU");
             assertThat(snapshot.currentlySellable()).isFalse();
         });
+    }
+
+    @Test
+    void productDetailPageCarriesEveryGalleryImage() {
+        Category category = category(1L);
+        Product cake = product(30L, category, ProductType.MOONCAKE, "banh-cha-bong");
+        ProductVariant cakeVariant = variant(501L, cake, "MC-CB-80", "Bánh 80g", 105_000);
+        when(productRepository.findActiveBySlug("banh-cha-bong")).thenReturn(Optional.of(cake));
+        when(productRepository.findActiveByType(ProductType.MOONCAKE)).thenReturn(List.of(cake));
+        when(productVariantRepository.findActiveByProductIds(any())).thenReturn(List.of(cakeVariant));
+        when(productImageRepository.findOrderedByVariantIds(any())).thenReturn(List.of());
+        when(productImageRepository.findGalleryByProductId(30L)).thenReturn(List.of(
+            image(cakeVariant, "/images/cake-1.jpg"),
+            image(cakeVariant, "/images/cake-2.jpg"),
+            image(cakeVariant, "/images/cake-3.jpg")
+        ));
+        when(productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(30L)).thenReturn(List.of());
+
+        ProductDetailPageView page = service.productDetailPage("banh-cha-bong");
+
+        assertThat(page.galleryImages()).extracting("url")
+            .containsExactly("/images/cake-1.jpg", "/images/cake-2.jpg", "/images/cake-3.jpg");
+        assertThat(page.galleryVideos()).isEmpty();
+    }
+
+    private ProductImage image(ProductVariant variant, String url) {
+        ProductImage image = new ProductImage();
+        image.setVariant(variant);
+        image.setImageUrl(url);
+        image.setAltText("Bánh");
+        return image;
     }
 
     private Category category(long id) {

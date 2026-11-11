@@ -38,12 +38,20 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
                 "Không tìm thấy thông tin khách hàng"
             ));
 
-        return new CustomerProfile(
-            customer.getId(),
-            customer.getFullName(),
-            customer.getPhone(),
-            customer.getEmail()
-        );
+        return CustomerProfile.entityToDto(customer);
+    }
+
+    @Override
+    public Customer customerReference(long customerId) {
+        return customerRepository.getReferenceById(customerId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long accountIdOf(long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin khách hàng"));
+        return customer.getAccount().getId();
     }
 
     @Override

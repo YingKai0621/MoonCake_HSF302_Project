@@ -11,6 +11,7 @@ import com.se201411.project.mooncake.inventory.repository.InventoryAdminReposito
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -138,5 +139,36 @@ public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
         movement.setCreatedAt(now);
         em.persist(movement);
         em.flush();
+    }
+
+    @Override
+    public long countLowStockVariants() {
+        String query = """
+            select count(balance)
+            from InventoryBalance balance
+            where balance.availableQuantity <= balance.lowStockThreshold
+              and balance.variant.active = true
+            """;
+        return em.createQuery(query, Long.class)
+            .getSingleResult();
+    }
+
+    @Override
+    public long countBatchesExpiringBy(LocalDate until) {
+        String query = """
+            select count(batch)
+            from StockBatch batch
+            where batch.remainingQuantity > 0
+              and batch.expiresOn is not null
+              and batch.expiresOn <= :until
+            """;
+        return em.createQuery(query, Long.class)
+            .setParameter("until", until)
+            .getSingleResult();
+    }
+
+    @Override
+    public Account accountReference(long accountId) {
+        return em.getReference(Account.class, accountId);
     }
 }

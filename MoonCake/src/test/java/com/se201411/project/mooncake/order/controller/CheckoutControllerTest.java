@@ -2,6 +2,8 @@ package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
+import com.se201411.project.mooncake.enums.PaymentMethod;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.service.CheckoutService;
@@ -21,7 +23,10 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,6 +66,7 @@ class CheckoutControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setViewResolvers(viewResolver)
             .build();
+        lenient().when(checkoutService.checkoutPage(any())).thenReturn(page(true));
 
         preparation = new CheckoutPreparation(
             9L,
@@ -92,17 +98,25 @@ class CheckoutControllerTest {
     void rendersCheckoutWithCustomerDefaults() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(checkoutService.prepareCheckout(CUSTOMER)).thenReturn(preparation);
+        when(checkoutService.checkoutPage(preparation)).thenReturn(new CheckoutPageView(
+            9L,
+            List.of(),
+            0,
+            "0đ",
+            "0đ",
+            "0đ",
+            null,
+            "0đ",
+            List.of(PaymentMethod.COD),
+            PaymentMethod.COD,
+            List.of(),
+            List.of()
+        ));
 
         mockMvc.perform(get("/checkout"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
-            .andExpect(model().attributeExists(
-                "checkout",
-                "checkoutForm",
-                "customer",
-                "provinces",
-                "wards"
-            ));
+            .andExpect(view().name("order/checkout"))
+            .andExpect(model().attributeExists("checkout", "checkoutForm"));
     }
 
     @Test
@@ -136,7 +150,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "26740")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "recipientPhone"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -162,7 +176,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "00004")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "wardCode"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -181,7 +195,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "26740")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "recipientName"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -201,9 +215,30 @@ class CheckoutControllerTest {
                 .param("streetAddress", "a".repeat(121))
                 .param("orderNote", "b".repeat(201)))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "streetAddress", "orderNote"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
+    }
+
+    @Test
+    void checkoutFormStartsWithTheDefaultMethodFromTheService() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        when(checkoutService.prepareCheckout(CUSTOMER)).thenReturn(preparation);
+        when(checkoutService.checkoutPage(preparation)).thenReturn(page(false));
+
+        mockMvc.perform(get("/checkout"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("checkoutForm", hasProperty("paymentMethod", is(PaymentMethod.VNPAY))));
+    }
+
+    private CheckoutPageView page(boolean codAllowed) {
+        List<PaymentMethod> allowed = List.of(PaymentMethod.COD, PaymentMethod.VNPAY);
+        PaymentMethod defaultMethod = PaymentMethod.COD;
+        if (!codAllowed) {
+            allowed = List.of(PaymentMethod.VNPAY);
+            defaultMethod = PaymentMethod.VNPAY;
+        }
+        return new CheckoutPageView(9L, List.of(), 0, "0đ", "0đ", "0đ", null, "0đ", allowed, defaultMethod, List.of(), List.of());
     }
 }

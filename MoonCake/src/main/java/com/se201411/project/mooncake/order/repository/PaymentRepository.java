@@ -1,9 +1,10 @@
 package com.se201411.project.mooncake.order.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Payment;
 import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -54,5 +55,37 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     int collectCashOnDelivery(
         @Param("orderId") long orderId,
         @Param("now") LocalDateTime now
+    );
+
+    @Query("""
+        select count(payment)
+        from Payment payment
+        where payment.order.customer.id = :customerId
+          and payment.order.status = :orderStatus
+          and payment.method = :method
+          and payment.status = :paymentStatus
+        """)
+    long countCustomerOrders(
+        @Param("customerId") long customerId,
+        @Param("orderStatus") OrderStatus orderStatus,
+        @Param("method") PaymentMethod method,
+        @Param("paymentStatus") PaymentStatus paymentStatus
+    );
+
+    @Query("""
+        select count(payment)
+        from Payment payment
+        where payment.order.customer.id = :customerId
+          and payment.order.status = :cancelled
+          and payment.method = :method
+          and payment.status = :unpaid
+          and payment.order.updatedAt >= :since
+        """)
+    long countCancelledUnpaidSince(
+        @Param("customerId") long customerId,
+        @Param("cancelled") OrderStatus cancelled,
+        @Param("method") PaymentMethod method,
+        @Param("unpaid") PaymentStatus unpaid,
+        @Param("since") LocalDateTime since
     );
 }

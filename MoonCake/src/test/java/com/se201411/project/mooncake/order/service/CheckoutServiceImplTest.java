@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.order.service;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
@@ -8,6 +7,8 @@ import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
 import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.cart.service.PricingService;
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.entity.OrderItem;
@@ -19,6 +20,7 @@ import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.DiscountGroup;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderItemKind;
+import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.enums.PaymentStatus;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
@@ -33,6 +35,7 @@ import com.se201411.project.mooncake.order.service.impl.CheckoutServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.CodPaymentProcessor;
 import com.se201411.project.mooncake.order.service.impl.DeliveryAddressServiceImpl;
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -52,12 +55,17 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,7 +87,7 @@ class CheckoutServiceImplTest {
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
-    private EntityReferenceRepository references;
+    private ProductQueryService productQueryService;
     @Mock
     private PaymentProcessor vnpayProcessor;
 
@@ -98,7 +106,7 @@ class CheckoutServiceImplTest {
             orderItemRepository,
             componentRepository,
             paymentRepository,
-            references,
+            productQueryService,
             clock,
             registry()
         );
@@ -127,8 +135,8 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(references.customer(7L)).thenReturn(new Customer());
-        when(references.variant(10L))
+        when(customerProfileService.customerReference(7L)).thenReturn(new Customer());
+        when(productQueryService.variantReference(10L))
             .thenReturn(new ProductVariant());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -212,14 +220,14 @@ class CheckoutServiceImplTest {
         when(customerProfileService.requireProfile(customerIdentity)).thenReturn(
             new CustomerProfile(7L, "Khách hàng", "0901234567", "customer@example.com")
         );
-        when(references.customer(7L)).thenReturn(new Customer());
-        when(references.variant(10L))
+        when(customerProfileService.customerReference(7L)).thenReturn(new Customer());
+        when(productQueryService.variantReference(10L))
             .thenReturn(new ProductVariant());
-        when(references.variant(20L))
+        when(productQueryService.variantReference(20L))
             .thenReturn(new ProductVariant());
-        when(references.variant(30L))
+        when(productQueryService.variantReference(30L))
             .thenReturn(new ProductVariant());
-        when(references.configuration(50L))
+        when(pricingService.configurationReference(50L))
             .thenReturn(new BoxConfiguration());
         when(orderRepository.save(any(SalesOrder.class))).thenAnswer(invocation -> {
             SalesOrder order = invocation.getArgument(0);
@@ -249,7 +257,7 @@ class CheckoutServiceImplTest {
         org.mockito.Mockito.verify(inventoryService).deductForSale(commandCaptor.capture());
         SaleInventoryCommand command = commandCaptor.getValue();
 
-        assertThat(command.orderId()).isEqualTo(99L);
+        assertThat(command.order().getId()).isEqualTo(99L);
         assertThat(command.demands()).extracting("variantId", "quantity")
             .containsExactlyInAnyOrder(
                 org.assertj.core.groups.Tuple.tuple(10L, 2),
@@ -322,5 +330,56 @@ class CheckoutServiceImplTest {
             BigDecimal.valueOf(100_000L * cartLine.quantity()),
             components
         );
+    }
+
+    @Test
+    void checkoutPageIsRefusedWhenCartNeedsMoreThanStock() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        CheckoutCartSnapshot cart = new CheckoutCartSnapshot(
+            9L,
+            customerIdentity,
+            List.of(new CartLineSnapshot(10L, null, 500))
+        );
+        CheckoutQuote quote = new CheckoutQuote(
+            List.of(line(cart.lines().get(0), OrderItemKind.STANDARD,
+                InventorySource.STOCKED_SKU, DiscountGroup.MOONCAKE)),
+            List.of(),
+            BigDecimal.valueOf(100_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(30_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(130_000)
+        );
+        when(cartService.requireCurrentActiveCart(customerIdentity)).thenReturn(cart);
+        when(pricingService.calculateCheckoutQuote(cart)).thenReturn(quote);
+        when(inventoryService.availableQuantities(List.of(10L))).thenReturn(Map.of(10L, 96));
+
+        assertThatThrownBy(() -> checkoutService.prepareCheckout(customerIdentity))
+            .isInstanceOf(InsufficientStockException.class)
+            .hasMessageContaining("Chỉ còn 96")
+            .hasMessageContaining("cần 500");
+    }
+
+    @Test
+    void threeAbandonedVnpayOrdersBlockEveryNewOrderIncludingCod() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        when(paymentRepository.countCancelledUnpaidSince(
+            eq(7L),
+            eq(OrderStatus.CANCELLED),
+            eq(PaymentMethod.VNPAY),
+            eq(PaymentStatus.UNPAID),
+            any()
+        )).thenReturn(3L);
+        CheckoutForm codForm = validForm();
+        codForm.setPaymentMethod(PaymentMethod.COD);
+
+        assertThatThrownBy(() -> checkoutService.prepareCheckout(customerIdentity))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa thể đặt đơn mới");
+        assertThatThrownBy(() -> checkoutService.placeOrder(customerIdentity, codForm))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("chưa thể đặt đơn mới");
+        verify(cartService, never()).claimForCheckout(anyLong(), any());
+        verify(orderRepository, never()).save(any());
     }
 }

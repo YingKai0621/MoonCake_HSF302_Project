@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.dashboard.dto;
 
+import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.entity.SalesOrder;
 import java.util.List;
 
 public record DiscountSummaryView(
@@ -16,5 +18,16 @@ public record DiscountSummaryView(
         String formattedTotal,
         String formattedCreatedAt
     ) {
+
+        public static Order entityToDto(SalesOrder order, String formattedCreatedAt) {
+            return new Order(
+                order.getId(),
+                order.getOrderCode(),
+                order.getRecipientName(),
+                MoneyFormat.vnd(order.getDiscountAmount()),
+                MoneyFormat.vnd(order.getTotalAmount()),
+                formattedCreatedAt
+            );
+        }
     }
 }

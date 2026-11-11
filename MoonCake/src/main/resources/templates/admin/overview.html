@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Tổng quan')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Tổng quan')}"></head>
 <body class="page-dashboard">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main>
     <div class="dashboard-header">
         <div>
@@ -12,7 +12,7 @@
 
         <nav class="segmented" aria-label="Chọn kỳ thống kê" data-segmented>
             <span class="segmented__pill" aria-hidden="true"></span>
-            <a th:each="option : ${periods}"
+            <a th:each="option : ${dashboard.periods}"
                class="segmented__item"
                th:href="@{/admin/overview(period=${option})}"
                th:classappend="${option == dashboard.period} ? 'is-active'"

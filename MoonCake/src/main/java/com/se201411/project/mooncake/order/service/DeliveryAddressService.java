@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.order.dto.DeliveryEditPageView;
 import com.se201411.project.mooncake.order.dto.AddressOption;
 import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
 
@@ -19,4 +20,6 @@ public interface DeliveryAddressService {
         String wardCode,
         String provinceCode
     );
+
+    DeliveryEditPageView deliveryEditPage(String orderCode);
 }

@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.dto;
 
+import com.se201411.project.mooncake.entity.Product;
+import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.enums.ProductType;
 
 import java.math.BigDecimal;
@@ -18,6 +20,30 @@ public record CartVariantSnapshot(
     boolean currentlySellable,
     int stock
 ) {
+
+    public static CartVariantSnapshot entityToDto(
+        ProductVariant variant,
+        String imageUrl,
+        String imageAlt,
+        boolean currentlySellable,
+        int availableQuantity
+    ) {
+        Product product = variant.getProduct();
+        return new CartVariantSnapshot(
+            variant.getId(),
+            product.getSlug(),
+            product.getName(),
+            variant.getName(),
+            variant.getSku(),
+            product.getProductType(),
+            variant.getUnitPrice(),
+            imageUrl,
+            imageAlt,
+            currentlySellable,
+            availableQuantity
+        );
+    }
+
     public CartVariantSnapshot(long variantId, String productSlug, String productName, String variantName,
                                String sku, ProductType productType, BigDecimal unitPrice, String imageUrl,
                                String imageAlt, boolean currentlySellable) {

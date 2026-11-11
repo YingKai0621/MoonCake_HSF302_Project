@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng | MoonCake</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#EDC565',
+            goldHover: '#F5D68E',
+            ivory: '#F8F4EB',
+            sand: '#D3CABB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/flash-message.css}" href="/css/flash-message.css">
+  <script th:src="@{/js/flash-message.js}" src="/js/flash-message.js" defer></script>
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-midnight text-ivory font-sans">
+  <header th:replace="~{fragments/header :: header('cart')}"></header>
+
+  <main class="flex-grow max-w-[1240px] w-full mx-auto px-4 sm:px-6 py-8 md:py-10">
+    <div class="max-w-md mx-auto mb-10">
+      <div class="flex items-center justify-between relative">
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-px bg-gold/20"></div>
+        <div class="relative z-10 flex items-center gap-2 bg-midnight pr-3">
+          <span class="w-6 h-6 rounded-full bg-gold text-surface font-bold text-xs flex items-center justify-center">1</span>
+          <span class="text-sm font-semibold text-gold">Giỏ hàng</span>
+        </div>
+        <div class="relative z-10 flex items-center gap-2 bg-midnight px-3">
+          <span class="w-6 h-6 rounded-full border border-sand/40 text-sand text-xs flex items-center justify-center">2</span>
+          <span class="text-sm text-sand">Thanh toán</span>
+        </div>
+        <div class="relative z-10 flex items-center gap-2 bg-midnight pl-3">
+          <span class="w-6 h-6 rounded-full border border-sand/40 text-sand text-xs flex items-center justify-center">3</span>
+          <span class="text-sm text-sand">Hoàn thành</span>
+        </div>
+      </div>
+    </div>
+
+    <div th:if="${successMessage != null and !cart.empty}"
+         class="flash-message mb-6 border border-emerald-400/40 bg-emerald-950/30 text-emerald-200 px-4 py-3"
+         data-flash-message
+         data-flash-timeout="5000"
+         role="status"
+         th:text="${successMessage}">
+      Cập nhật giỏ hàng thành công
+    </div>
+    <div th:if="${errorMessage}"
+         class="flash-message mb-6 border border-red-400/40 bg-red-950/30 text-red-200 px-4 py-3"
+         data-flash-message
+         role="alert"
+         th:text="${errorMessage}">
+      Không thể cập nhật giỏ hàng
+    </div>
+
+    <section th:if="${cart.empty}"
+             class="text-center py-16 px-4 max-w-lg mx-auto bg-surface border border-gold/20 rounded-lg">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-control border border-gold/30 flex items-center justify-center">
+        <span class="material-symbols-outlined text-gold text-3xl">shopping_bag</span>
+      </div>
+      <h1 class="font-serif text-3xl font-semibold mb-3">Giỏ hàng đang trống</h1>
+      <p class="text-sand mb-7">Hãy chọn bánh, hộp quà có sẵn hoặc tự tạo hộp quà của riêng bạn.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a th:href="@{/products}" class="inline-block bg-gold hover:bg-goldHover text-surface font-bold py-3 px-6 transition-colors">
+          Khám phá sản phẩm
+        </a>
+        <a th:href="@{/custom-boxes}" class="inline-block border border-gold/45 text-gold hover:border-gold py-3 px-6 transition-colors">
+          Tạo hộp tự chọn
+        </a>
+      </div>
+    </section>
+
+    <div th:unless="${cart.empty}" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <section class="lg:col-span-8 space-y-4">
+        <div class="flex items-baseline justify-between mb-2">
+          <h1 class="font-serif text-3xl font-bold">Giỏ hàng</h1>
+          <span class="text-sm text-sand" th:text="${cart.totalQuantity + ' sản phẩm'}">0 sản phẩm</span>
+        </div>
+
+        <div th:if="${cart.hasUnavailableItems}"
+             class="border border-amber-400/40 bg-amber-950/30 text-amber-100 px-4 py-3 text-sm">
+          Một số sản phẩm đã ngừng bán. Vui lòng xóa các sản phẩm này khỏi giỏ để tiếp tục thanh toán.
+        </div>
+
+        <div class="bg-surface border border-gold/20 rounded-lg p-5 sm:p-6 divide-y divide-gold/15">
+          <article th:each="item : ${cart.items}"
+                   class="py-6 first:pt-0 last:pb-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            <div class="flex items-center gap-4 min-w-0">
+              <a th:href="@{${item.productUrl}}"
+                 class="w-24 h-24 flex-shrink-0 border border-gold/25 bg-control block overflow-hidden">
+                <img th:src="${item.imageUrl}"
+                     th:alt="${item.imageAlt}"
+                     class="w-full h-full object-cover">
+              </a>
+              <div class="space-y-1 min-w-0">
+                <a th:href="@{${item.productUrl}}"
+                   th:text="${item.productName}"
+                   class="font-serif text-lg font-semibold hover:text-gold transition-colors block">
+                  Tên sản phẩm
+                </a>
+                <p class="text-sm text-sand" th:text="${item.variantName}">Phiên bản</p>
+                <p th:if="${item.stockWarning() != null}" class="text-sm font-semibold text-red-300"
+                   th:text="${item.stockWarning()}">Chỉ còn 2 sản phẩm</p>
+                <div th:if="${item.custom}" class="pt-2 text-xs text-sand space-y-1">
+                  <details class="collapsible">
+                    <summary class="collapsible__toggle text-ivory font-medium"
+                             th:text="${item.capacityCakes + ' bánh trong mỗi hộp · Xem chi tiết'}">Thành phần</summary>
+                    <div class="mt-2 space-y-1">
+                      <p th:each="component : ${item.components}"
+                         th:text="${component.name + ' (' + component.variantName + ') × ' + component.quantityPerBox}">
+                        Bánh × 1
+                      </p>
+                    </div>
+                  </details>
+                  <a th:href="@{/custom-boxes/{id}/edit(id=${item.configurationId})}"
+                     class="inline-block text-gold hover:text-goldHover pt-1">
+                    Chỉnh thành phần
+                  </a>
+                </div>
+                <p class="text-sm text-gold sm:hidden" th:text="${item.formattedUnitPrice}">0đ</p>
+                <p th:unless="${item.currentlySellable}" class="text-xs text-amber-300 font-medium">
+                  Sản phẩm hiện đã ngừng bán
+                </p>
+              </div>
+            </div>
+
+            <div class="w-full sm:w-auto flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-4">
+              <div class="hidden sm:block text-right min-w-28">
+                <p class="text-xs text-sand">Đơn giá</p>
+                <p class="text-sm" th:text="${item.formattedUnitPrice}">0đ</p>
+              </div>
+
+              <form th:action="@{/cart/items/{id}/quantity(id=${item.cartItemId})}"
+                    method="post"
+                    class="flex items-center">
+                <label th:for="${'quantity-' + item.cartItemId}" class="sr-only">Số lượng</label>
+                <div class="quantity-stepper"
+                     data-quantity-stepper
+                     data-auto-submit="true">
+                  <button type="button"
+                          class="quantity-stepper__button"
+                          data-quantity-action="decrease"
+                          aria-label="Giảm số lượng">−</button>
+                  <input th:id="${'quantity-' + item.cartItemId}"
+                         name="quantity"
+                         type="number"
+                         min="1"
+                         required
+                         th:value="${item.quantity}"
+                         class="quantity-stepper__input">
+                  <button type="button"
+                          class="quantity-stepper__button"
+                          data-quantity-action="increase"
+                          aria-label="Tăng số lượng">+</button>
+                </div>
+                <noscript>
+                  <button type="submit"
+                          class="ml-2 border border-gold/35 text-gold px-3 py-2 text-sm">
+                    Cập nhật
+                  </button>
+                </noscript>
+              </form>
+
+              <div class="text-right min-w-28">
+                <p class="text-xs text-sand">Thành tiền</p>
+                <p class="font-semibold text-gold" th:text="${item.formattedLineTotal}">0đ</p>
+              </div>
+
+              <form th:action="@{/cart/items/{id}/delete(id=${item.cartItemId})}" method="post">
+                <button type="submit"
+                        title="Xóa sản phẩm"
+                        class="text-sand hover:text-red-300 p-2 transition-colors">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </form>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="lg:col-span-4 lg:sticky lg:top-6">
+        <div class="bg-surface border border-gold/20 rounded-lg p-6 space-y-5">
+          <h2 class="font-serif text-xl font-semibold pb-4 border-b border-gold/15">
+            Tóm tắt giỏ hàng
+          </h2>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-sand" th:text="${'Tạm tính (' + cart.totalQuantity + ' sản phẩm)'}">Tạm tính</span>
+            <span class="font-medium" th:text="${cart.formattedSubtotal}">0đ</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-sand">Chiết khấu và phí giao hàng</span>
+            <span class="italic text-xs text-sand">Tính ở bước thanh toán</span>
+          </div>
+          <div class="border-t border-gold/15 pt-4 flex items-baseline justify-between">
+            <span class="font-medium">Tổng tạm tính</span>
+            <span class="text-2xl font-bold text-gold" th:text="${cart.formattedSubtotal}">0đ</span>
+          </div>
+          <a th:if="${!cart.hasUnavailableItems}"
+             th:href="@{/checkout}"
+             class="block w-full text-center bg-gold hover:bg-goldHover text-surface font-bold py-3.5 px-4 transition-colors">
+            Tiến hành thanh toán
+          </a>
+          <button th:if="${cart.hasUnavailableItems}"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  class="w-full bg-gold/50 text-surface font-bold py-3.5 px-4 cursor-not-allowed">
+            Vui lòng điều chỉnh sản phẩm được đánh dấu
+          </button>
+          <a th:href="@{/products}" class="block text-center text-xs text-sand hover:text-gold transition-colors">
+            Tiếp tục mua sắm
+          </a>
+          <a th:href="@{/custom-boxes}" class="block text-center text-xs text-sand hover:text-gold transition-colors">
+            Tạo thêm hộp tự chọn
+          </a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
+</body>
+</html>

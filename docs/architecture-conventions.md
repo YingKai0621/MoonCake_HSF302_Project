@@ -255,14 +255,15 @@ Do not use asynchronous events for these MVP consistency boundaries.
 - An unauthenticated purchase action redirects to `/login` with a validated local return URL. Do not mutate a cart and do not automatically replay the original POST after login; return to a safe GET page so the customer can confirm the action again.
 - Protect Admin routes and service operations, not only Admin navigation links.
 - Use one application `SecurityConfig`. The Customer Sales owner owns the Spring Security baseline, login/logout, customer registration, and `CurrentCustomerService`; the Admin owner consumes that configuration and must not create a second filter chain or authentication implementation without review.
-- Public endpoints are limited to catalog/product reads, `/login`, `/register`, required static assets, shared error pages, and the VNPay callbacks `/payments/vnpay/ipn` and `/payments/vnpay/return` (trusted only after signature verification). `/admin/**` requires role `ADMIN`; customer purchase routes require role `CUSTOMER`.
+- Public endpoints are limited to catalog/product reads, `/login`, `/register`, `/forgot-password`, `/reset-password`, required static assets, shared error pages, and the VNPay callbacks `/payments/vnpay/ipn` and `/payments/vnpay/return` (trusted only after signature verification). `/admin/**` requires role `ADMIN`; customer purchase routes require role `CUSTOMER`.
 - Keep CSRF enabled for state-changing SSR requests. Use Spring Security form login and server-side session authentication.
 - Customer registration creates one `ACCOUNT` with forced role `CUSTOMER` and one linked `CUSTOMER` in the same transaction. Use the normalized email as the login name; trim it and lowercase it with `Locale.ROOT`. Reject an existing email, hash the password through `PasswordEncoder`, and never bind role/status from the registration form.
 - Registration accepts a password of 8–64 characters plus a matching confirmation. On success, redirect to the login page instead of automatically authenticating the new account.
 - Normalize surrounding whitespace from registration email before Bean Validation. A registration phone is exactly 10 digits starting with `0`; do not silently strip spaces or separators from it.
 - Because the shared encoder is BCrypt, reject registration passwords longer than 72 UTF-8 bytes with a field validation error before calling `PasswordEncoder.encode`.
 - A successfully registered account is `ACTIVE` immediately because email verification and account approval are outside this MVP.
-- Password reset, social login, MFA, email verification, and account approval remain outside scope.
+- Social login, MFA, email verification, and account approval remain outside scope.
+- Customer password reset is in scope: `/forgot-password` and `/reset-password` are public. Answer every forgot-password request with the same neutral message, store only the SHA-256 hash of a single-use 30-minute token, consume it with a conditional update, and change the password hash in the same transaction. Mail goes through `PasswordResetNotifier`; without SMTP configuration it logs the link for local demos only.
 - Store only a strong one-way password hash supported by Spring Security; never store or log raw passwords.
 - The shared V1 schema retains nullable guest-related columns for migration-checksum compatibility, but the current application does not create or operate guest carts. New MVP carts use `customer_id` and leave `guest_token` null.
 

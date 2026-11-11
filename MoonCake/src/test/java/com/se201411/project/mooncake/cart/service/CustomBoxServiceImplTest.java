@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.cart.service;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CustomCakeQuantity;
 import com.se201411.project.mooncake.cart.dto.SaveCustomBoxCommand;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
@@ -63,8 +62,6 @@ class CustomBoxServiceImplTest {
     private CartItemRepository cartItemRepository;
     @Mock
     private ProductQueryService productQueryService;
-    @Mock
-    private EntityReferenceRepository references;
 
     private CustomBoxService service;
 
@@ -81,7 +78,6 @@ class CustomBoxServiceImplTest {
             cartRepository,
             cartItemRepository,
             productQueryService,
-            references,
             clock
         );
     }
@@ -101,8 +97,8 @@ class CustomBoxServiceImplTest {
             .thenReturn(mooncake(201L));
         when(productQueryService.requireSellableVariant(202L))
             .thenReturn(mooncake(202L));
-        when(references.variant(201L)).thenReturn(firstCake);
-        when(references.variant(202L)).thenReturn(secondCake);
+        when(productQueryService.variantReference(201L)).thenReturn(firstCake);
+        when(productQueryService.variantReference(202L)).thenReturn(secondCake);
         when(configurationRepository.save(any(BoxConfiguration.class))).thenAnswer(invocation -> {
             BoxConfiguration configuration = invocation.getArgument(0);
             ReflectionTestUtils.setField(configuration, "id", 300L);

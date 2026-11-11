@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,6 +32,19 @@ public class PresetConfigurationQueryServiceImpl implements PresetConfigurationQ
     ) {
         this.configurationRepository = configurationRepository;
         this.itemRepository = itemRepository;
+    }
+
+    @Override
+    public Set<Long> readyGiftSetVariantIds() {
+        Set<Long> ids = new HashSet<>();
+        List<BoxConfiguration> ready = configurationRepository.findByTypeAndStatus(
+            ConfigurationType.PRESET,
+            ConfigurationStatus.READY
+        );
+        for (BoxConfiguration configuration : ready) {
+            ids.add(configuration.getPresetVariant().getId());
+        }
+        return ids;
     }
 
     @Override
@@ -52,20 +67,9 @@ public class PresetConfigurationQueryServiceImpl implements PresetConfigurationQ
         );
         List<PresetComponentSnapshot> components = new ArrayList<>();
         for (BoxConfigurationItem item : items) {
-            PresetComponentSnapshot component = new PresetComponentSnapshot(
-                item.getMooncakeVariant().getId(),
-                item.getQuantityPerBox()
-            );
-            components.add(component);
+            components.add(PresetComponentSnapshot.entityToDto(item));
         }
 
-        return new PresetRecipeSnapshot(
-            configuration.getId(),
-            giftSetVariantId,
-            configuration.getBox().getEmptyBoxVariant().getId(),
-            configuration.getBox().getCapacityCakes(),
-            configuration.getStatus(),
-            components
-        );
+        return PresetRecipeSnapshot.entityToDto(configuration, giftSetVariantId, components);
     }
 }

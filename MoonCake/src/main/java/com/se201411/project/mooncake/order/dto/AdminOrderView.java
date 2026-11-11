@@ -1,8 +1,13 @@
 package com.se201411.project.mooncake.order.dto;
 
+import com.se201411.project.mooncake.entity.OrderItem;
+import com.se201411.project.mooncake.entity.OrderItemComponent;
+import com.se201411.project.mooncake.entity.Payment;
+import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 
+import com.se201411.project.mooncake.enums.PaymentStatus;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -27,6 +32,40 @@ public record AdminOrderView(
     List<PaymentLine> payments,
     Actions actions
 ) {
+
+    public static AdminOrderView entityToDto(
+        SalesOrder order,
+        String statusLabel,
+        String statusTone,
+        String formattedCreatedAt,
+        String formattedUpdatedAt,
+        List<Item> items,
+        List<PaymentLine> payments,
+        Actions actions
+    ) {
+        return new AdminOrderView(
+            order.getId(),
+            order.getOrderCode(),
+            order.getStatus(),
+            statusLabel,
+            statusTone,
+            order.getRecipientName(),
+            order.getRecipientPhone(),
+            order.getShippingAddressSnapshot(),
+            order.getOrderNote(),
+            order.getSubtotalAmount(),
+            order.getDiscountAmount(),
+            order.getShippingFee(),
+            order.getRoundingAdjustment(),
+            order.getTotalAmount(),
+            formattedCreatedAt,
+            formattedUpdatedAt,
+            items,
+            payments,
+            actions
+        );
+    }
+
     public AdminOrderView {
         items = List.copyOf(items);
         payments = List.copyOf(payments);
@@ -40,6 +79,18 @@ public record AdminOrderView(
         BigDecimal total,
         List<Component> components
     ) {
+
+        public static Item entityToDto(OrderItem item, List<Component> components) {
+            return new Item(
+                item.getProductNameSnapshot(),
+                item.getSkuSnapshot(),
+                item.getQuantity(),
+                item.getUnitFinalPriceSnapshot(),
+                item.getLineTotal(),
+                components
+            );
+        }
+
         public Item {
             components = List.copyOf(components);
         }
@@ -50,6 +101,14 @@ public record AdminOrderView(
         int quantity,
         ComponentRole role
     ) {
+
+        public static Component entityToDto(OrderItemComponent component) {
+            return new Component(
+                component.getComponentNameSnapshot(),
+                component.getQuantityPerSet(),
+                component.getComponentRole()
+            );
+        }
     }
 
     public record PaymentLine(
@@ -59,6 +118,21 @@ public record AdminOrderView(
         BigDecimal amount,
         String formattedPaidAt
     ) {
+
+        public static PaymentLine entityToDto(Payment payment, String methodLabel, String formattedPaidAt) {
+            boolean paid = payment.getStatus() == PaymentStatus.PAID;
+            String statusLabel = "Chưa thanh toán";
+            if (paid) {
+                statusLabel = "Đã thanh toán";
+            }
+            return new PaymentLine(
+                methodLabel,
+                statusLabel,
+                paid,
+                payment.getAmount(),
+                formattedPaidAt
+            );
+        }
     }
 
     public record Actions(

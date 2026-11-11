@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.controller;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxOptionView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
 import com.se201411.project.mooncake.cart.dto.CustomCakeOptionView;
@@ -86,12 +87,12 @@ class CustomBoxControllerTest {
     @Test
     void rendersBuilderForAuthenticatedCustomer() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
-        when(customBoxService.getBuilderView()).thenReturn(builder);
+        when(customBoxService.createPage()).thenReturn(new CustomBoxFormPage(builder, false, null));
 
         mockMvc.perform(get("/custom-boxes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
-            .andExpect(model().attribute("builder", builder))
+            .andExpect(view().name("cart/custom-box"))
+            .andExpect(model().attribute("page", new CustomBoxFormPage(builder, false, null)))
             .andExpect(model().attributeExists("customBoxForm"));
     }
 
@@ -123,7 +124,7 @@ class CustomBoxControllerTest {
     @Test
     void invalidFormDoesNotCreateConfiguration() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
-        when(customBoxService.getBuilderView()).thenReturn(builder);
+        when(customBoxService.createPage()).thenReturn(new CustomBoxFormPage(builder, false, null));
 
         mockMvc.perform(
             post("/custom-boxes")
@@ -133,7 +134,7 @@ class CustomBoxControllerTest {
                 .param("cakes[0].quantity", "4")
         )
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
+            .andExpect(view().name("cart/custom-box"))
             .andExpect(model().attributeHasFieldErrors("customBoxForm", "boxQuantity"));
 
         verify(customBoxService, never()).createAndAddToCart(

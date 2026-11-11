@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.feedback.dto;
 
+import com.se201411.project.mooncake.entity.Feedback;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -31,5 +32,10 @@ public class FeedbackForm {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public void dtoToEntity(Feedback feedback) {
+        feedback.setRating(rating);
+        feedback.setContent(content.trim());
     }
 }

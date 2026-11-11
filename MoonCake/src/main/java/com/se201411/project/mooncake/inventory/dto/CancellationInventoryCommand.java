@@ -1,22 +1,25 @@
 package com.se201411.project.mooncake.inventory.dto;
 
+import com.se201411.project.mooncake.entity.SalesOrder;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public record CancellationInventoryCommand(
-    long orderId,
+    SalesOrder order,
     String operationKey,
-    List<InventoryDemand> demands
+    List<InventoryDemand> demands,
+    Long performedByAccountId
 ) {
     public CancellationInventoryCommand {
-        validate(orderId, operationKey, demands);
+        validate(order, operationKey, demands);
         demands = List.copyOf(demands);
     }
 
-    private static void validate(long orderId, String operationKey, List<InventoryDemand> demands) {
-        if (orderId <= 0) {
-            throw new IllegalArgumentException("Order ID must be positive");
+    private static void validate(SalesOrder order, String operationKey, List<InventoryDemand> demands) {
+        if (order == null || order.getId() == null || order.getId() <= 0) {
+            throw new IllegalArgumentException("A saved order is required");
         }
         if (operationKey == null || operationKey.isBlank()) {
             throw new IllegalArgumentException("Operation key is required");

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
@@ -87,4 +88,7 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
         @Param("producedOn") LocalDate producedOn,
         @Param("expiresOn") LocalDate expiresOn
     );
+
+    @Query("select count(batch) from StockBatch batch where batch.variantId in :variantIds")
+    long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
 }

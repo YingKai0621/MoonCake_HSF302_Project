@@ -1,10 +1,11 @@
 package com.se201411.project.mooncake.cart.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.CartItem;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,4 +81,10 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     CartItem save(CartItem cartItem);
 
     void delete(CartItem cartItem);
+
+    @Query("select count(i) from CartItem i where i.variant.id in :variantIds")
+    long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
+
+    @Query("select count(i) from CartItem i where i.configuration.id in :configurationIds")
+    long countByConfigurationIds(@Param("configurationIds") Collection<Long> configurationIds);
 }

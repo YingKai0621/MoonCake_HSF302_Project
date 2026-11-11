@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Video sản phẩm')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Video sản phẩm')}"></head>
 <body class="page-media">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main>
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
     <div class="page-heading page-heading--simple page-heading--with-action">
         <div>
             <span class="eyebrow">Sản phẩm</span>
@@ -14,7 +14,7 @@
     </div>
 
     <div class="video-grid">
-        <article th:each="video : ${videos}" class="video-card">
+        <article th:each="video : ${page.videos}" class="video-card">
             <video controls preload="metadata" playsinline th:src="${video.url}"></video>
             <div class="video-card__body">
                 <strong th:text="${video.productName}">Sản phẩm</strong>
@@ -29,7 +29,7 @@
         </article>
     </div>
 
-    <section th:if="${videos.isEmpty()}" class="empty-state">
+    <section th:if="${page.videos.isEmpty()}" class="empty-state">
         <p><strong>Chưa có video nào.</strong></p>
         <button type="button" class="secondary" data-open-modal="video-new">Thêm video đầu tiên</button>
     </section>
@@ -45,7 +45,7 @@
                 <label>Sản phẩm
                     <select name="productId" required>
                         <option value="">Chọn sản phẩm…</option>
-                        <option th:each="product : ${catalog.products}"
+                        <option th:each="product : ${page.catalog.products}"
                                 th:value="${product.id}"
                                 th:selected="${videoProductId != null and videoProductId == product.id}"
                                 th:text="${product.name}">Sản phẩm</option>

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.InventoryBalance;
@@ -10,6 +11,7 @@ import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Movement;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockFilter;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.StockTab;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
+import com.se201411.project.mooncake.inventory.dto.InventoryPageView;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
@@ -30,7 +32,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -65,18 +69,43 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
 
     @Override
     @Transactional(readOnly = true)
+    public InventoryPageView inventoryPage(
+        StockFilter filter,
+        Long receiveVariant,
+        Long packVariant,
+        Long returnProduct,
+        Long returnGiftBox
+    ) {
+        List<Balance> all = balances();
+        Set<Long> readyGiftSets = presets.readyGiftSetVariantIds();
+        List<Balance> packable = new ArrayList<>();
+        for (Balance balance : all) {
+            if (readyGiftSets.contains(balance.variantId())) {
+                packable.add(balance);
+            }
+        }
+        return new InventoryPageView(
+            filter,
+            stockTabs(filter),
+            balances(filter),
+            packable,
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            receiveVariant,
+            packVariant,
+            returnProduct,
+            returnGiftBox
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Balance> balances() {
         access.requireAdmin();
         List<Balance> result = new ArrayList<>();
         for (InventoryBalance balance : repo.balances()) {
-            result.add(new Balance(
-                balance.getVariantId(),
-                balance.getVariant().getSku(),
-                balance.getVariant().getProduct().getName(),
-                balance.getVariant().getName(),
-                balance.getAvailableQuantity(),
-                balance.getLowStockThreshold()
-            ));
+            result.add(Balance.entityToDto(balance));
         }
         return List.copyOf(result);
     }
@@ -153,27 +182,12 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     }
 
     private Movement toMovement(StockMovement movement) {
-        Long orderId = null;
-        if (movement.getOrder() != null) {
-            orderId = movement.getOrder().getId();
-        }
-        String productName = movement.getVariant().getProduct().getName() + " · " + movement.getVariant().getName();
         String formattedCreatedAt = movement.getCreatedAt()
             .atOffset(ZoneOffset.UTC)
             .atZoneSameInstant(VIETNAM)
             .format(DATE_TIME);
-        return new Movement(
-            movement.getVariant().getSku(),
-            movement.getMovementType(),
-            movement.getQuantityDelta(),
-            movement.getReason(),
-            movement.getOperationGroupKey(),
-            orderId,
-            movement.getCreatedAt(),
-            productName,
-            movementLabel(movement.getMovementType()),
-            formattedCreatedAt
-        );
+        String typeLabel = movementLabel(movement.getMovementType());
+        return Movement.entityToDto(movement, typeLabel, formattedCreatedAt);
     }
 
     @Override
@@ -278,5 +292,25 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         }
         batchStock.apply(variant, delta, key, null, type);
         repo.movement(variant, admin, delta, type, reason, group, key, LocalDateTime.now(clock));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countLowStockVariants() {
+        access.requireAdmin();
+        return repo.countLowStockVariants();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countBatchesExpiringBy(LocalDate until) {
+        access.requireAdmin();
+        return repo.countBatchesExpiringBy(until);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MovementsPageView movementsPage(int page) {
+        return new MovementsPageView(movements(page), Math.max(0, page));
     }
 }

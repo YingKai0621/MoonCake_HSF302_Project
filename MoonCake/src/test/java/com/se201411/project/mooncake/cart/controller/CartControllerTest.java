@@ -60,7 +60,7 @@ class CartControllerTest {
 
         mockMvc.perform(get("/cart"))
             .andExpect(status().isOk())
-            .andExpect(view().name("cart"))
+            .andExpect(view().name("cart/cart"))
             .andExpect(model().attribute("cart", cart));
     }
 
@@ -129,5 +129,13 @@ class CartControllerTest {
         )
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/products"));
+    }
+
+    @Test
+    void hugeQuantityShowsFriendlyMessageInsteadOfTechnicalError() throws Exception {
+        mockMvc.perform(post("/cart/items/5/quantity")
+                .param("quantity", "99999999999999999999"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(flash().attribute("errorMessage", "Vui lòng kiểm tra lại ô số lượng."));
     }
 }

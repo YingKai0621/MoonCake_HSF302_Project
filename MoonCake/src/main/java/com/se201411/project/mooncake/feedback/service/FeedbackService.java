@@ -17,4 +17,6 @@ public interface FeedbackService {
     void publish(long feedbackId);
 
     void hide(long feedbackId);
+
+    long countReviewsWaitingForApproval();
 }

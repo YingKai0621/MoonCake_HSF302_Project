@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product;
 
+import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.cart.service.CustomBoxService;
+import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.Category;
 import com.se201411.project.mooncake.entity.Product;
@@ -48,7 +51,10 @@ class ProductWebStatusTest {
             mock(AdminFormValidation.class),
             mock(ProductImageStorageService.class),
             inventoryAdmin,
-            presetConfigurations
+            presetConfigurations,
+            mock(OrderManagementService.class),
+            mock(CartService.class),
+            mock(CustomBoxService.class)
         );
         category = new Category();
         category.setName("Bánh trung thu");

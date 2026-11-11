@@ -1,6 +1,8 @@
 package com.se201411.project.mooncake.inventory.dto;
 
+import com.se201411.project.mooncake.entity.SalesOrder;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -15,8 +17,20 @@ class SaleInventoryCommandTest {
             new InventoryDemand(11L, 3)
         );
 
-        assertThatThrownBy(() -> new SaleInventoryCommand(5L, "sale:5", demands))
+        SalesOrder order = new SalesOrder();
+        ReflectionTestUtils.setField(order, "id", 5L);
+
+        assertThatThrownBy(() -> new SaleInventoryCommand(order, "sale:5", demands))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("unique variants");
+    }
+
+    @Test
+    void rejectsUnsavedOrder() {
+        List<InventoryDemand> demands = List.of(new InventoryDemand(11L, 2));
+
+        assertThatThrownBy(() -> new SaleInventoryCommand(new SalesOrder(), "sale:5", demands))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("saved order");
     }
 }

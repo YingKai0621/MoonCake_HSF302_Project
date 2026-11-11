@@ -1,7 +1,8 @@
 package com.se201411.project.mooncake.order.service.impl;
 
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
+import com.se201411.project.mooncake.common.format.MoneyFormat;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
 import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
@@ -10,14 +11,10 @@ import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.cart.service.PricingService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
-import com.se201411.project.mooncake.entity.BoxConfiguration;
-import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
 import com.se201411.project.mooncake.entity.Payment;
-import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.SalesOrder;
-import com.se201411.project.mooncake.entity.VolumeDiscountTier;
 import com.se201411.project.mooncake.enums.InventorySource;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.OrderType;
@@ -27,6 +24,8 @@ import com.se201411.project.mooncake.inventory.dto.InventoryDemand;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
+import com.se201411.project.mooncake.order.dto.CheckoutLineView;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.dto.OrderSuccessItemView;
@@ -39,6 +38,7 @@ import com.se201411.project.mooncake.order.service.CheckoutService;
 import com.se201411.project.mooncake.order.service.DeliveryAddressService;
 import com.se201411.project.mooncake.order.service.PaymentProcessor;
 import com.se201411.project.mooncake.order.service.PaymentProcessorRegistry;
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.service.CustomerProfileService;
@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,7 +59,9 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
+
+    private static final int MAX_ABANDONED_VNPAY_ORDERS = 3;
+    private static final int ORDER_LOCK_HOURS = 24;
 
     private final CartService cartService;
     private final PricingService pricingService;
@@ -71,7 +72,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemComponentRepository componentRepository;
     private final PaymentRepository paymentRepository;
-    private final EntityReferenceRepository references;
+    private final ProductQueryService productQueryService;
     private final Clock clock;
     private final PaymentProcessorRegistry paymentProcessorRegistry;
 
@@ -85,7 +86,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         OrderItemRepository orderItemRepository,
         OrderItemComponentRepository componentRepository,
         PaymentRepository paymentRepository,
-        EntityReferenceRepository references,
+        ProductQueryService productQueryService,
         Clock clock,
         PaymentProcessorRegistry paymentProcessorRegistry
     ) {
@@ -98,15 +99,17 @@ public class CheckoutServiceImpl implements CheckoutService {
         this.orderItemRepository = orderItemRepository;
         this.componentRepository = componentRepository;
         this.paymentRepository = paymentRepository;
-        this.references = references;
+        this.productQueryService = productQueryService;
         this.clock = clock;
         this.paymentProcessorRegistry = paymentProcessorRegistry;
     }
 
     @Override
     public CheckoutPreparation prepareCheckout(ShopperIdentity customerIdentity) {
+        requireOrderingAllowed(customerIdentity.customerId());
         CheckoutCartSnapshot cart = cartService.requireCurrentActiveCart(customerIdentity);
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
+        requireStock(quote);
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         return new CheckoutPreparation(cart.cartId(), customer, quote);
     }
@@ -116,6 +119,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         long cartId,
         ShopperIdentity customerIdentity
     ) {
+        requireOrderingAllowed(customerIdentity.customerId());
         CartSnapshot cart = cartService.requireActiveCart(cartId, customerIdentity);
         CheckoutCartSnapshot checkoutCart = new CheckoutCartSnapshot(
             cart.cartId(),
@@ -123,8 +127,46 @@ public class CheckoutServiceImpl implements CheckoutService {
             cart.lines()
         );
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(checkoutCart);
+        requireStock(quote);
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         return new CheckoutPreparation(cart.cartId(), customer, quote);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CheckoutPageView checkoutPage(CheckoutPreparation preparation) {
+        CheckoutQuote quote = preparation.quote();
+        List<CheckoutLineView> lineViews = new ArrayList<>();
+        int totalQuantity = 0;
+        for (CheckoutLineQuote line : quote.lines()) {
+            totalQuantity = Math.addExact(totalQuantity, line.cartLine().quantity());
+            String sku = line.sku();
+            if (sku == null) {
+                sku = line.boxSku();
+            }
+            lineViews.add(new CheckoutLineView(
+                line.productName(),
+                sku,
+                line.cartLine().quantity(),
+                MoneyFormat.vnd(line.unitBasePrice()),
+                MoneyFormat.discountLabel(line.discountPercent()),
+                MoneyFormat.vnd(line.lineTotal())
+            ));
+        }
+        return new CheckoutPageView(
+            preparation.cartId(),
+            lineViews,
+            totalQuantity,
+            MoneyFormat.vnd(quote.subtotal()),
+            MoneyFormat.vnd(quote.discount()),
+            MoneyFormat.vnd(quote.shippingFee()),
+            MoneyFormat.signedVnd(quote.roundingAdjustment()),
+            MoneyFormat.vnd(quote.total()),
+            paymentProcessorRegistry.methodsAccepting(quote.total()),
+            paymentProcessorRegistry.defaultMethodFor(quote.total()),
+            deliveryAddressService.getProvinces(),
+            deliveryAddressService.getWards()
+        );
     }
 
     @Override
@@ -134,6 +176,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         CheckoutForm form
     ) {
         validateForm(form);
+        requireOrderingAllowed(customerIdentity.customerId());
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
             form.getPaymentMethod()
         );
@@ -148,6 +191,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             customerIdentity
         );
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
+        paymentProcessor.checkCanPlace(customerIdentity.customerId(), quote.total());
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         LocalDateTime now = LocalDateTime.now(clock);
 
@@ -159,7 +203,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         List<InventoryDemand> demands = buildInventoryDemands(quote);
         inventoryService.deductForSale(new SaleInventoryCommand(
-            order.getId(),
+            order,
             "SALE:" + order.getId(),
             demands
         ));
@@ -191,33 +235,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         int totalQuantity = 0;
         for (OrderItem item : orderItems) {
             totalQuantity = Math.addExact(totalQuantity, item.getQuantity());
-            String sku = item.getSkuSnapshot();
-            if (sku == null) {
-                sku = item.getBoxSkuSnapshot();
-            }
-            itemViews.add(new OrderSuccessItemView(
-                item.getProductNameSnapshot(),
-                sku,
-                item.getQuantity(),
-                formatVnd(item.getUnitFinalPriceSnapshot()),
-                formatVnd(item.getLineTotal())
-            ));
+            itemViews.add(OrderSuccessItemView.entityToDto(item));
         }
 
-        return new OrderSuccessView(
-            order.getOrderCode(),
-            order.getRecipientName(),
-            order.getRecipientPhone(),
-            order.getShippingAddressSnapshot(),
-            order.getOrderNote(),
-            itemViews,
-            totalQuantity,
-            formatVnd(order.getSubtotalAmount()),
-            formatVnd(order.getDiscountAmount()),
-            formatVnd(order.getShippingFee()),
-            formatSignedVnd(order.getRoundingAdjustment()),
-            formatVnd(order.getTotalAmount())
-        );
+        return OrderSuccessView.entityToDto(order, itemViews, totalQuantity);
     }
 
     private SalesOrder createOrder(
@@ -229,15 +250,13 @@ public class CheckoutServiceImpl implements CheckoutService {
     ) {
         SalesOrder order = new SalesOrder();
         order.setOrderCode(generateOrderCode());
-        order.setCustomer(references.customer(customer.customerId()));
+        order.setCustomer(customerProfileService.customerReference(customer.customerId()));
         order.setOrderType(OrderType.RETAIL);
         order.setBuyerNameSnapshot(customer.fullName());
         order.setBuyerPhoneSnapshot(customer.phone());
         order.setBuyerEmailSnapshot(customer.email());
-        order.setRecipientName(form.getRecipientName().trim());
-        order.setRecipientPhone(form.getRecipientPhone());
+        form.dtoToEntity(order);
         order.setShippingAddressSnapshot(shippingAddress);
-        order.setOrderNote(normalizeOptional(form.getOrderNote()));
         order.setSubtotalAmount(quote.subtotal());
         order.setDiscountAmount(quote.discount());
         order.setShippingFee(quote.shippingFee());
@@ -254,12 +273,12 @@ public class CheckoutServiceImpl implements CheckoutService {
             OrderItem item = new OrderItem();
             item.setOrder(order);
             if (line.cartLine().variantId() != null) {
-                item.setVariant(references.variant(line.cartLine().variantId()));
+                item.setVariant(productQueryService.variantReference(line.cartLine().variantId()));
             } else {
-                item.setConfiguration(references.configuration(line.cartLine().configurationId()));
+                item.setConfiguration(pricingService.configurationReference(line.cartLine().configurationId()));
             }
             if (line.volumeDiscountTierId() != null) {
-                item.setVolumeDiscountTier(references.discountTier(line.volumeDiscountTierId()));
+                item.setVolumeDiscountTier(pricingService.discountTierReference(line.volumeDiscountTierId()));
             }
             item.setItemKind(line.itemKind());
             item.setInventorySourceSnapshot(line.inventorySource());
@@ -287,7 +306,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         for (CheckoutComponentQuote quote : componentQuotes) {
             OrderItemComponent component = new OrderItemComponent();
             component.setOrderItem(item);
-            component.setComponentVariant(references.variant(quote.variantId()));
+            component.setComponentVariant(productQueryService.variantReference(quote.variantId()));
             component.setComponentRole(quote.role());
             component.setComponentNameSnapshot(quote.name());
             component.setQuantityPerSet(quote.quantityPerSet());
@@ -310,6 +329,56 @@ public class CheckoutServiceImpl implements CheckoutService {
         payment.setCreatedAt(now);
         payment.setUpdatedAt(now);
         paymentRepository.save(payment);
+    }
+
+    private void requireOrderingAllowed(long customerId) {
+        LocalDateTime since = LocalDateTime.now(clock).minusHours(ORDER_LOCK_HOURS);
+        long abandonedOrders = paymentRepository.countCancelledUnpaidSince(
+            customerId,
+            OrderStatus.CANCELLED,
+            PaymentMethod.VNPAY,
+            PaymentStatus.UNPAID,
+            since
+        );
+        if (abandonedOrders >= MAX_ABANDONED_VNPAY_ORDERS) {
+            throw new BusinessRuleViolationException(
+                "Bạn đã có " + abandonedOrders + " đơn VNPay bị hủy vì chưa thanh toán trong 24 giờ qua, "
+                    + "nên tạm thời chưa thể đặt đơn mới (tối đa 24 giờ). Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng."
+            );
+        }
+    }
+
+    private void requireStock(CheckoutQuote quote) {
+        List<InventoryDemand> demands = buildInventoryDemands(quote);
+        List<Long> variantIds = new ArrayList<>();
+        for (InventoryDemand demand : demands) {
+            variantIds.add(demand.variantId());
+        }
+        Map<Long, Integer> available = inventoryService.availableQuantities(variantIds);
+        for (InventoryDemand demand : demands) {
+            int left = available.getOrDefault(demand.variantId(), 0);
+            if (demand.quantity() > left) {
+                throw new InsufficientStockException(
+                    "Chỉ còn " + left + " " + demandName(quote, demand.variantId())
+                        + " nhưng giỏ hàng cần " + demand.quantity()
+                        + ". Vui lòng giảm số lượng trước khi thanh toán."
+                );
+            }
+        }
+    }
+
+    private String demandName(CheckoutQuote quote, long variantId) {
+        for (CheckoutLineQuote line : quote.lines()) {
+            if (line.cartLine().variantId() != null && line.cartLine().variantId() == variantId) {
+                return line.productName();
+            }
+            for (CheckoutComponentQuote component : line.components()) {
+                if (component.variantId() == variantId) {
+                    return component.name();
+                }
+            }
+        }
+        return "sản phẩm";
     }
 
     private List<InventoryDemand> buildInventoryDemands(CheckoutQuote quote) {
@@ -374,13 +443,6 @@ public class CheckoutServiceImpl implements CheckoutService {
         return value == null || value.isBlank();
     }
 
-    private String normalizeOptional(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
-    }
-
     private String generateOrderCode() {
         String randomPart = UUID.randomUUID()
             .toString()
@@ -388,19 +450,5 @@ public class CheckoutServiceImpl implements CheckoutService {
             .substring(0, 12)
             .toUpperCase(Locale.ROOT);
         return "MC-" + randomPart;
-    }
-
-    private String formatVnd(BigDecimal amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
-    }
-
-    private String formatSignedVnd(BigDecimal amount) {
-        if (amount.signum() == 0) {
-            return null;
-        }
-        if (amount.signum() > 0) {
-            return "+ " + formatVnd(amount);
-        }
-        return "- " + formatVnd(amount.abs());
     }
 }

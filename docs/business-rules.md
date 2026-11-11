@@ -1,14 +1,47 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.10 — 09/11/2026
+**Phiên bản tài liệu:** 1.14 — 11/11/2026
 
-**Trạng thái:** Cho mở khóa PRESET chưa phát sinh tồn, giỏ hay đơn; không đổi schema (Flyway V16, 24 bảng)
+**Trạng thái:** Trang đơn của khách cho biết ai đã hủy đơn; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.14
+
+- Khi hủy đơn, dòng hoàn kho `STOCK_MOVEMENT (CANCEL_RETURN)` ghi **người thực hiện** vào cột có sẵn `performed_by_account_id`: tài khoản Admin khi Admin hủy, tài khoản khách khi khách tự hủy, để trống khi hệ thống tự hủy đơn VNPay quá hạn.
+- Trang chi tiết đơn đã hủy của khách hiển thị: "Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng." (thêm "Cửa hàng sẽ liên hệ để hoàn tiền cho bạn." nếu đơn đã thanh toán), "Bạn đã hủy đơn hàng này.", hoặc câu chung "Đơn hàng này đã bị hủy và không còn được xử lý." khi không có người thực hiện (hệ thống tự hủy, hoặc đơn hủy trước v1.14).
+- Không thêm bảng hay cột.
+
+### Thay đổi chính trong phiên bản 1.13
+
+- Admin có trang **Khách hàng** (`/admin/customers`): tìm theo email hoặc số điện thoại, xem số đơn, **khóa** và **mở khóa** tài khoản `CUSTOMER`. Dùng `ACCOUNT.status` sẵn có (`ACTIVE`/`DISABLED`).
+- Khóa có **hiệu lực ngay**: phiên đăng nhập đang mở của khách bị hết hạn; bước đặt hàng kiểm tra lại tài khoản còn `ACTIVE` trong cùng transaction.
+- Khi khóa, Admin chọn có **hủy luôn các đơn chưa thanh toán đang chờ** (`PLACED` + payment `UNPAID`) hay không; mặc định là có. Đơn đã thanh toán, đang xử lý hoặc đang giao **không bao giờ bị hủy tự động**; Admin xử lý từng đơn.
+- Đơn của khách đang bị khóa hiện nhãn **"Khách đã bị khóa"** trên trang đơn hàng của Admin.
+- Không xóa tài khoản, không sửa thông tin hộ khách, không đặt lại mật khẩu hộ, không khóa tài khoản Admin. Không lưu lý do khóa (cần migration, để phiên bản sau).
+
+### Thay đổi chính trong phiên bản 1.12
+
+- Khách `CUSTOMER` đã đăng nhập có trang **Tài khoản của tôi** (`/account`): xem email, sửa **họ tên** và **số điện thoại**, **đổi mật khẩu**.
+- Email là tên đăng nhập nên **chỉ hiển thị, không sửa được**.
+- Đổi mật khẩu phải nhập đúng mật khẩu hiện tại; mật khẩu mới theo quy tắc đăng ký và phải khác mật khẩu hiện tại. Đổi xong vẫn giữ đăng nhập; các link quên mật khẩu chưa dùng bị vô hiệu.
+- Đơn đã đặt giữ nguyên snapshot người mua. Đơn đặt sau khi sửa dùng thông tin mới.
+- Không thêm bảng hay cột; chỉ cập nhật `CUSTOMER.full_name`, `CUSTOMER.phone` và `ACCOUNT.password_hash`.
+
+### Thay đổi chính trong phiên bản 1.11
+
+- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Chỉ còn N sản phẩm"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
+- **Không giới hạn số lượng mỗi đơn**, để giữ nguyên các bậc chiết khấu đến 500 hộp.
+- **COD chỉ cho đơn có tổng thanh toán đến 5.000.000 VND.** Đơn lớn hơn chỉ thanh toán VNPay; trang thanh toán khóa lựa chọn COD và chọn sẵn VNPay.
+- Mỗi khách có tối đa **2 đơn COD chờ xử lý** (`PLACED`, payment `UNPAID`) và **1 đơn VNPay chưa thanh toán** cùng lúc.
+- Đơn VNPay chưa thanh toán **tự hủy sau 15 phút** (trước đây 30 phút), khớp hạn giao dịch VNPay 15 phút; hệ thống kiểm tra mỗi phút. Vẫn hỏi VNPay (`querydr`) trước khi hủy như v1.9.
+- Khách có **từ 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ** bị **tạm khóa đặt đơn mới (cả COD và VNPay)** cho tới khi số đơn đó trong 24 giờ gần nhất giảm dưới 3. Thông báo nêu lý do và mời liên hệ cửa hàng. Chỉ đếm đơn VNPay vì đơn COD bị hủy có thể do Admin hủy.
+- Trang sản phẩm chỉ hiện số lượng cụ thể khi sắp hết (từ ngưỡng cảnh báo trở xuống) hoặc khi khách đặt vượt; còn lại hiện còn hàng.
+- Luật riêng của từng phương thức (ngưỡng COD, số đơn chờ) nằm trong `PaymentProcessor` (Strategy); luật khóa đặt đơn áp dụng chung trong `CheckoutService`, kiểm tra cả khi mở trang thanh toán. Checkout không rẽ nhánh theo phương thức. Không thêm bảng hay cột.
 
 ### Thay đổi chính trong phiên bản 1.10
 
@@ -162,14 +195,23 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Số điện thoại đăng ký gồm đúng 10 chữ số và bắt đầu bằng `0`. MVP không nhận khoảng trắng, dấu phân cách hoặc mã quốc gia `+84` trong trường này.
 - Do sử dụng BCrypt, mật khẩu đăng ký không được vượt quá 72 byte khi mã hóa UTF-8; backend phải từ chối bằng lỗi validation thay vì để quá trình hash thất bại.
 - Đăng ký phải chuẩn hóa email nhất quán, từ chối email đã tồn tại, hash mật khẩu bằng `PasswordEncoder`, rồi tạo `ACCOUNT` và `CUSTOMER` trong **cùng một transaction**. Nếu một bước thất bại thì không lưu bản ghi còn lại.
-- Do MVP không có xác minh email hay duyệt tài khoản, đăng ký thành công tạo `ACCOUNT.status = ACTIVE`. Password reset, social login, MFA, email verification và account approval vẫn ngoài phạm vi.
+- Do MVP không có xác minh email hay duyệt tài khoản, đăng ký thành công tạo `ACCOUNT.status = ACTIVE`. Social login, MFA, email verification và account approval vẫn ngoài phạm vi.
+- Khách hàng (`CUSTOMER`, `ACTIVE`) được tự khôi phục mật khẩu qua email. Trang `/forgot-password` luôn trả cùng một thông báo dù email có tồn tại hay không, để không lộ tài khoản nào đã đăng ký.
+- Mỗi yêu cầu khôi phục tạo một token ngẫu nhiên (ít nhất 256 bit) có hạn **30 phút**. Database chỉ lưu SHA-256 của token trong `PASSWORD_RESET_TOKEN`; không lưu hay ghi log token gốc ngoài đường link gửi cho khách. Tạo token mới vô hiệu hóa các token chưa dùng trước đó của cùng tài khoản; cùng một tài khoản chỉ được yêu cầu lại sau 60 giây.
+- Đặt lại mật khẩu dùng cùng quy tắc mật khẩu khi đăng ký (8–64 ký tự, tối đa 72 byte UTF-8, nhập xác nhận khớp). Token chỉ dùng được một lần: backend đánh dấu `used_at` bằng cập nhật có điều kiện `used_at IS NULL AND expires_at > now` rồi mới đổi `ACCOUNT.password_hash` trong **cùng một transaction**. Thành công chuyển khách về `/login`, không tự động đăng nhập.
+- Khi chưa cấu hình SMTP (`MAIL_HOST` trống), ứng dụng chỉ ghi đường link khôi phục vào log để phục vụ demo local; môi trường thật phải cấu hình SMTP.
+- **Tài khoản của tôi (v1.12).** Khách `CUSTOMER` đang `ACTIVE` mở `/account` để xem email và sửa thông tin của chính mình. Khách được xác định từ principal phía server; form không chứa và backend không nhận `customer_id` hay `account_id`.
+- Sửa **họ tên** và **số điện thoại** theo đúng quy tắc khi đăng ký: họ tên bắt buộc, tối đa 40 ký tự, chỉ chữ cái và khoảng trắng, loại bỏ khoảng trắng hai đầu; số điện thoại đúng 10 chữ số và bắt đầu bằng `0`. Hai trường được cập nhật cùng nhau trong một transaction.
+- **Email không sửa được** trong MVP vì là tên đăng nhập và địa chỉ nhận link khôi phục; đổi email cần xác minh email mới, nằm ngoài phạm vi.
+- **Đổi mật khẩu** yêu cầu mật khẩu hiện tại, mật khẩu mới và xác nhận. Mật khẩu mới theo quy tắc đăng ký (8–64 ký tự, tối đa 72 byte UTF-8, xác nhận khớp) và phải khác mật khẩu hiện tại. Sai mật khẩu hiện tại thì không đổi gì. Thành công thì lưu hash mới bằng `PasswordEncoder`, vô hiệu mọi `PASSWORD_RESET_TOKEN` chưa dùng của tài khoản trong cùng transaction, và khách vẫn đăng nhập.
+- Sửa thông tin không thay đổi các đơn đã đặt (snapshot giữ nguyên). Trang thanh toán của đơn mới tự điền họ tên và số điện thoại mới vào thông tin người nhận.
 - `CUSTOMER.account_id` và `CUSTOMER.email` được backend gắn với tài khoản vừa đăng ký. Trong luồng mua MVP hiện tại, mọi `CUSTOMER` được dùng làm chủ giỏ phải có `account_id`; mọi đơn thành công phải có `SALES_ORDER.customer_id`.
 - Khi khách chưa đăng nhập bấm “Thêm vào giỏ”, “Mua ngay” hoặc bắt đầu hộp CUSTOM, ứng dụng đưa khách đến `/login` cùng một return URL nội bộ an toàn. Không tạo giỏ, không lưu pending cart mutation và không tự phát lại POST trước khi xác thực; sau đăng nhập, khách quay lại trang phù hợp và xác nhận thao tác mua.
 - `CART` của luồng MVP ứng dụng thuộc về đúng một `CUSTOMER`: `customer_id` có giá trị và `guest_token IS NULL`. Một khách có tối đa một giỏ `ACTIVE` ở một thời điểm.
 - Schema V1 vẫn cho phép owner bằng `guest_token` để giữ checksum và thiết kế 19 bảng đã áp dụng. Đây là khả năng cấu trúc chưa dùng; backend MVP hiện tại không tạo, đọc như giỏ hiện hành, gộp hoặc checkout guest cart. Không cần migration chỉ để thu hẹp hành vi ứng dụng.
 - `CART_ITEM` lưu **đúng một** loại đích mua: `variant_id` (bánh lẻ, hộp rỗng, GIFT_SET) **hoặc** `configuration_id` (CUSTOM); `quantity` là số nguyên dương.
 - Trong cùng một giỏ, mỗi `variant_id` hoặc `configuration_id` chỉ xuất hiện ở **một `CART_ITEM`**. Thêm lại cùng đích mua phải tăng `quantity`, không tạo dòng trùng. Backend vẫn phải cộng gộp theo SKU khi kiểm tra tồn để phòng dữ liệu cũ hoặc lỗi đồng thời.
-- Thêm, xóa, đổi số lượng trong giỏ **không trừ tồn kho**. Tồn kho được kiểm tra lại tại checkout; số lượng còn bán trên trang sản phẩm chỉ để tham khảo.
+- Thêm, xóa, đổi số lượng trong giỏ **không trừ tồn kho**, nhưng không được đặt số lượng vượt số còn bán (giảm luôn được phép). Trang thanh toán và bước đặt hàng kiểm tra lại tồn theo tổng nhu cầu mỗi SKU (từ v1.11).
 - Checkout thành công phải chuyển giỏ hiện tại sang `CHECKED_OUT`. Giỏ đó và các CUSTOM configuration của nó không được dùng lại hoặc sửa tiếp; lần mua sau hệ thống tạo một giỏ `ACTIVE` mới khi cần.
 - Checkout thất bại không đổi trạng thái giỏ và không xóa lựa chọn của khách.
 - Một `CART` chỉ được checkout thành công **một lần**. Checkout phải bắt đầu bằng thao tác chuyển có điều kiện `ACTIVE → CHECKED_OUT`; chỉ request cập nhật được đúng một dòng mới được phép tạo đơn và trừ tồn.
@@ -211,7 +253,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Mỗi đơn có tối đa một khoản `PAID`. Không tạo `PAYMENT` mới cho các lần thử thanh toán; các lần thử VNPay được lưu trong `VNPAY_ATTEMPT`.
 - Tồn kho được trừ khi checkout thành công với **cả hai** phương thức; đơn VNPay chưa trả tiền vẫn giữ hàng cho đến khi được thanh toán hoặc bị hủy.
 - Không có bước **duyệt đơn** hoặc **duyệt tiền trước khi chấp nhận đơn**.
-- Không chuyển khoản thủ công, không upload biên lai. Từ v1.9, chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch (mục Thay đổi 1.9); đơn COD không tự hủy.
+- Không chuyển khoản thủ công, không upload biên lai. Chỉ đơn VNPay chưa thanh toán được tự hủy theo lịch, sau 15 phút từ v1.11; đơn COD không tự hủy.
+- Giới hạn giữ hàng (v1.11): COD chỉ cho đơn đến 5.000.000 VND; mỗi khách tối đa 2 đơn COD chờ xử lý và 1 đơn VNPay chưa thanh toán; 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ thì tạm khóa đặt đơn mới (mọi phương thức).
 
 ### 6.2. COD
 
@@ -333,6 +376,17 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Khách có quyền tự hủy đơn `PLACED` của chính mình; Admin không sở hữu một luồng hoàn kho riêng mà dùng chung nghiệp vụ hủy để bảo đảm idempotency và không hoàn tồn hai lần.
 - Admin **không phải online để khách đặt hàng**. Một đơn mới tự tạo trong hệ thống và được nhân viên xử lý sau.
 - Không xóa cứng sản phẩm, cấu hình, khách hàng, đơn hàng, bản ghi thanh toán, biến động kho khi chúng đã được dữ liệu lịch sử tham chiếu; sử dụng `is_active` hoặc trạng thái phù hợp.
+- **Quản lý khách hàng (v1.13).** Admin xem danh sách khách (email, họ tên, số điện thoại, ngày đăng ký, trạng thái, tổng số đơn, số đơn đã hủy), tìm theo email hoặc số điện thoại, và **khóa** (`ACTIVE → DISABLED`) hoặc **mở khóa** (`DISABLED → ACTIVE`) bằng cập nhật có điều kiện. Chỉ áp dụng cho tài khoản `CUSTOMER`; không có thao tác xóa tài khoản, sửa thông tin hộ hay đặt lại mật khẩu hộ.
+- **Hiệu lực của khóa:** khách không đăng nhập được; mọi phiên đang mở của khách bị hết hạn ngay và lần truy cập kế tiếp được đưa về `/login?disabled` với thông báo "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ." Bước đặt hàng kiểm tra lại tài khoản còn `ACTIVE` trong cùng transaction để không tạo đơn sau thời điểm khóa. Trang đăng nhập **không** nói riêng là email đã bị khóa khi người nhập chưa đăng nhập được (tránh lộ email nào đã đăng ký); câu báo lỗi chung vẫn nhắc trường hợp tài khoản bị khóa.
+- **Đơn đang mở khi khóa** (trang chi tiết khách liệt kê trước khi xác nhận):
+  - `PLACED` và payment `UNPAID` (COD chưa thu hoặc VNPay chưa trả): nếu Admin để chọn **"Hủy luôn các đơn chưa thanh toán đang chờ"** (mặc định bật), hệ thống hủy qua đúng luồng hủy của Admin: hoàn tồn đúng một lần; đơn VNPay được hỏi `querydr` trước, nếu VNPay báo đã thanh toán thì **không hủy** và chuyển sang xử lý thủ công.
+  - `PLACED` hoặc `PROCESSING` đã có payment `PAID`, hoặc `PROCESSING` COD: **không tự hủy**. Admin liên hệ khách qua số điện thoại trên đơn và quyết định giao hay hủy; hủy đơn đã trả tiền thì hoàn tiền thủ công như mục 6.3.
+  - `SHIPPING`: tiếp tục giao, xác nhận giao và thu COD như bình thường; không hủy được.
+  - `COMPLETED`, `CANCELLED`: giữ nguyên.
+- **Thứ tự khi khóa:** khóa tài khoản trong một transaction trước; sau đó hủy từng đơn đủ điều kiện, **mỗi đơn một transaction**. Một đơn hủy thất bại (VNPay báo đã trả, đơn vừa bị người khác chuyển trạng thái) không làm hủy việc khóa hay các đơn khác; kết quả báo số đơn đã hủy và danh sách mã đơn cần xử lý thủ công.
+- Tiền VNPay về sau khi khóa (khách đã mở cổng thanh toán trước đó) vẫn được ghi nhận theo IPN như mục 6.3; nếu đơn đã bị hủy thì hiển thị "Cần hoàn tiền".
+- **Mở khóa** chỉ đưa tài khoản về `ACTIVE`; không khôi phục đơn đã hủy và không ảnh hưởng luật tạm khóa đặt đơn 24 giờ của v1.11. Khóa không xóa giỏ hàng của khách.
+- Danh sách đơn và trang chi tiết đơn của Admin hiện nhãn **"Khách đã bị khóa"** cho đơn của khách đang `DISABLED`, và có liên kết sang trang chi tiết khách.
 - Doanh nghiệp có thể cung cấp thông tin trong `BUSINESS` và `SALES_ORDER.business_id`; chiết khấu số lượng **không phụ thuộc** vào có `BUSINESS` hay không.
 - Chưa có các module kế toán, nhà cung cấp, kho đa địa điểm, hóa đơn VAT, vận chuyển qua API, đổi trả sau giao hay sản xuất theo công đoạn.
 - Flyway V10–V12 đã thêm góp ý khách hàng, video sản phẩm và theo dõi tồn theo lô (`STOCK_BATCH`, `BATCH_ALLOCATION`). Quy tắc nghiệp vụ chi tiết của lô hàng do Admin owner bổ sung ở phiên bản sau; cho đến khi được chốt, tổng tồn có thể bán vẫn lấy theo `INVENTORY_BALANCE.available_quantity`.
@@ -345,7 +399,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. Flyway hiện ở version 16; schema có 24 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V16. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. Flyway hiện ở version 17; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -428,11 +482,38 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-56 | Admin hủy đơn VNPay đã `PAID` khi `PROCESSING` | Đơn `CANCELLED`, hoàn tồn một lần, payment giữ `PAID`; hiển thị cần hoàn tiền thủ công |
 | BR-57 | Đơn COD | Không có nút thanh toán VNPay; không thể đổi sang VNPay |
 | BR-58 | Hoàn tất đơn VNPay đã `PAID` | `SHIPPING → COMPLETED`; không thu COD, payment không đổi |
-| BR-59 | Đơn VNPay `PLACED`/`UNPAID` quá 30 phút, không còn attempt trong hạn | Lần kiểm tra kế tiếp hủy đơn, attempt `FAILED`, hoàn tồn một lần |
-| BR-60 | Đơn VNPay quá 30 phút nhưng khách vừa mở attempt mới còn hạn | Chưa hủy; hạn hủy lùi tới lúc attempt hết hạn |
+| BR-59 | Đơn VNPay `PLACED`/`UNPAID` quá 15 phút (từ v1.11), không còn attempt trong hạn | Lần kiểm tra kế tiếp hủy đơn, attempt `FAILED`, hoàn tồn một lần |
+| BR-60 | Đơn VNPay quá 15 phút nhưng khách vừa mở attempt mới còn hạn | Chưa hủy; hạn hủy lùi tới lúc attempt hết hạn |
 | BR-61 | Đến hạn hủy nhưng `querydr` xác nhận đã thanh toán | Ghi `PAID`; giữ đơn `PLACED` |
 | BR-62 | Đến hạn hủy nhưng không kết nối được VNPay | Không hủy; lần kiểm tra sau thử lại |
 | BR-63 | Đơn COD chưa thanh toán lâu ngày | Không bao giờ tự hủy |
+| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Chỉ còn 96 sản phẩm"; giỏ giữ 90 |
+| BR-65 | Dòng giỏ 500 nhưng kho còn 96 | Nút thanh toán bị khóa; mở thẳng `/checkout` bị đưa về giỏ với số thiếu; giảm số lượng vẫn được |
+| BR-66 | Đơn tổng 49.343.000 VND chọn COD | Từ chối; trang thanh toán khóa COD và chọn sẵn VNPay |
+| BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
+| BR-68 | Khách đã có 1 đơn VNPay chưa thanh toán đặt thêm đơn VNPay | Từ chối, yêu cầu thanh toán hoặc hủy đơn cũ |
+| BR-69 | Khách có 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ | Không mở được trang thanh toán và không đặt được đơn mới, kể cả COD; tự mở lại khi qua 24 giờ |
+| BR-70 | Khách sửa họ tên thành "  Trần Thị B  " và số điện thoại 0912345678 | Lưu "Trần Thị B" và 0912345678; đơn cũ giữ tên cũ; trang thanh toán đơn mới điền tên mới |
+| BR-71 | Khách sửa số điện thoại thành 091234 hoặc +84912345678 | Báo lỗi ở ô số điện thoại; không lưu gì |
+| BR-72 | Form sửa thông tin bị chèn thêm `customerId` của người khác | Bị bỏ qua; chỉ sửa khách đang đăng nhập |
+| BR-73 | Đổi mật khẩu với mật khẩu hiện tại sai | Báo "Mật khẩu hiện tại không đúng."; mật khẩu không đổi |
+| BR-74 | Mật khẩu mới trùng mật khẩu hiện tại, hoặc xác nhận không khớp | Báo lỗi ở ô tương ứng; mật khẩu không đổi |
+| BR-75 | Đổi mật khẩu thành công khi đang có link quên mật khẩu chưa dùng | Đăng nhập được bằng mật khẩu mới, không bằng mật khẩu cũ; link cũ không dùng được nữa |
+| BR-76 | Khách chưa đăng nhập hoặc Admin mở `/account` | Khách chưa đăng nhập về trang đăng nhập; Admin bị từ chối |
+| BR-77 | Admin khóa khách đang đăng nhập | Lần bấm kế tiếp của khách về `/login?disabled` kèm thông báo khóa; không thêm giỏ hay đặt hàng được |
+| BR-78 | Khách bị khóa nhập đúng email và mật khẩu ở trang đăng nhập | Không đăng nhập được; hiện câu báo lỗi chung |
+| BR-79 | Khóa khách có 1 đơn COD `PLACED`, 1 đơn VNPay chưa trả, ô hủy được bật | Cả hai đơn bị hủy, hoàn tồn đúng một lần; kết quả báo "Đã hủy 2 đơn" |
+| BR-80 | Khóa khách có đơn VNPay `PLACED` mà `querydr` báo đã trả | Đơn không bị hủy, ghi `PAID`; nằm trong danh sách cần xử lý thủ công; tài khoản vẫn bị khóa |
+| BR-81 | Khóa khách có đơn `PROCESSING` hoặc `SHIPPING` | Đơn không bị hủy; đơn `SHIPPING` vẫn xác nhận giao và thu COD được |
+| BR-82 | Khóa khách và bỏ chọn ô hủy | Tài khoản bị khóa; mọi đơn giữ nguyên |
+| BR-83 | Khách bấm Đặt hàng đúng lúc Admin khóa | Nếu khóa đã commit thì không tạo đơn; nếu đơn tạo trước thì đơn xuất hiện trong danh sách đơn đang mở |
+| BR-84 | Mở khóa khách | Đăng nhập lại được; đơn đã hủy vẫn `CANCELLED` |
+| BR-85 | Đơn của khách bị khóa trong danh sách đơn Admin | Hiện nhãn "Khách đã bị khóa" và liên kết sang trang khách |
+| BR-86 | Người dùng `CUSTOMER` mở `/admin/customers` | Bị từ chối |
+| BR-87 | Admin hủy đơn COD chưa thanh toán; khách mở chi tiết đơn | Hiện "Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng." |
+| BR-88 | Admin hủy đơn VNPay đã thanh toán | Câu trên kèm "Cửa hàng sẽ liên hệ để hoàn tiền cho bạn." |
+| BR-89 | Khách tự hủy đơn của mình | Hiện "Bạn đã hủy đơn hàng này." |
+| BR-90 | Đơn VNPay tự hủy do quá 15 phút | Hiện câu chung "Đơn hàng này đã bị hủy và không còn được xử lý." |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

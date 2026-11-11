@@ -1,9 +1,12 @@
 package com.se201411.project.mooncake.cart.service;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
 import com.se201411.project.mooncake.cart.dto.SaveCustomBoxCommand;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
+
+import java.util.Collection;
 
 public interface CustomBoxService {
 
@@ -24,4 +27,12 @@ public interface CustomBoxService {
         long configurationId,
         SaveCustomBoxCommand command
     );
+
+    long countCustomBoxesUsing(Collection<Long> variantIds);
+
+    boolean customBoxesUseBox(long boxId);
+
+    CustomBoxFormPage createPage();
+
+    CustomBoxFormPage editPage(long configurationId);
 }

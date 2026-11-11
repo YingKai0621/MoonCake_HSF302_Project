@@ -47,6 +47,8 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
         UNKNOWN
     }
 
+    private static final int MAX_PENDING_VNPAY_ORDERS = 1;
+
     private final VnpayRepository vnpayRepository;
     private final PaymentRepository paymentRepository;
     private final VnpayGateway gateway;
@@ -355,5 +357,25 @@ public class VnpayPaymentProcessor implements PaymentProcessor {
 
     private Map<String, String> response(String code, String message) {
         return Map.of("RspCode", code, "Message", message);
+    }
+
+    @Override
+    public boolean acceptsTotal(BigDecimal total) {
+        return true;
+    }
+
+    @Override
+    public void checkCanPlace(long customerId, BigDecimal total) {
+        long pendingOrders = paymentRepository.countCustomerOrders(
+            customerId,
+            OrderStatus.PLACED,
+            PaymentMethod.VNPAY,
+            PaymentStatus.UNPAID
+        );
+        if (pendingOrders >= MAX_PENDING_VNPAY_ORDERS) {
+            throw new BusinessRuleViolationException(
+                "Bạn đang có đơn VNPay chưa thanh toán. Vui lòng thanh toán hoặc hủy đơn đó trước khi đặt đơn mới."
+            );
+        }
     }
 }

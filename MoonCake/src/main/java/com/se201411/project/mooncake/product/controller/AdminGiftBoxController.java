@@ -38,18 +38,13 @@ public class AdminGiftBoxController {
 
     @GetMapping("/new")
     public String newGiftBox(Model model) {
-        model.addAttribute("categories", catalog.categoriesFor(true));
-        model.addAttribute("productTypes", catalog.productTypes());
-        model.addAttribute("giftBox", true);
+        model.addAttribute("page", catalog.newProductPage(true));
         return "admin/product-new";
     }
 
     @GetMapping("/{id}")
     public String page(@PathVariable long id, Model model) {
         model.addAttribute("page", giftBoxes.page(id));
-        model.addAttribute("categories", catalog.categoriesFor(true));
-        model.addAttribute("productTypes", catalog.productTypes());
-        model.addAttribute("options", recipes.presetOptions());
         return "admin/gift-box";
     }
 

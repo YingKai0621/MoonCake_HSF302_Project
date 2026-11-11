@@ -26,7 +26,7 @@ public class FeedbackController {
         if (!model.containsAttribute("feedbackForm")) {
             model.addAttribute("feedbackForm", new FeedbackForm());
         }
-        return "feedback";
+        return "feedback/feedback";
     }
 
     @PostMapping("/feedback")
@@ -37,13 +37,13 @@ public class FeedbackController {
         RedirectAttributes flash
     ) {
         if (bindingResult.hasErrors()) {
-            return "feedback";
+            return "feedback/feedback";
         }
         try {
             feedbackService.submit(form);
         } catch (BusinessRuleViolationException exception) {
             model.addAttribute("errorMessage", exception.getMessage());
-            return "feedback";
+            return "feedback/feedback";
         }
         flash.addFlashAttribute(
             "successMessage",

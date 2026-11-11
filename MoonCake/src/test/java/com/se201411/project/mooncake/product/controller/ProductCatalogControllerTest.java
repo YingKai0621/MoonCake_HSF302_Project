@@ -2,8 +2,10 @@ package com.se201411.project.mooncake.product.controller;
 
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CatalogPageView;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CatalogVariantView;
+import com.se201411.project.mooncake.product.dto.ProductDetailPageView;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,31 +43,35 @@ class ProductCatalogControllerTest {
 
     @Test
     void rendersMooncakeCatalogFromProductService() throws Exception {
-        CatalogProductView product = product();
-        when(productQueryService.findActiveCatalog(ProductType.MOONCAKE))
-            .thenReturn(List.of(product));
+        CatalogPageView page = new CatalogPageView(
+            "mooncakes",
+            "Bánh Trung Thu",
+            "Mô tả",
+            List.of(product()),
+            List.of(),
+            List.of("Lava trứng muối"),
+            List.of(150)
+        );
+        when(productQueryService.mooncakeCatalogPage()).thenReturn(page);
 
         mockMvc.perform(get("/products/mooncakes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("shop-catalog"))
-            .andExpect(model().attribute("products", List.of(product)))
-            .andExpect(model().attribute("totalCount", 1))
-            .andExpect(model().attribute("fillingOptions", List.of("Lava trứng muối")))
-            .andExpect(model().attribute("weightOptions", List.of(150)));
+            .andExpect(view().name("product/shop-catalog"))
+            .andExpect(model().attribute("page", page));
+
+        assertThat(page.totalCount()).isEqualTo(1);
     }
 
     @Test
     void rendersProductDetailAndRelatedProducts() throws Exception {
         CatalogProductView product = product();
-        when(productQueryService.requireActiveProduct(product.getSlug())).thenReturn(product);
-        when(productQueryService.findActiveCatalog(ProductType.MOONCAKE))
-            .thenReturn(List.of(product));
+        ProductDetailPageView page = new ProductDetailPageView(product, "/products/mooncakes", "Bánh Trung Thu", List.of(), List.of(), List.of());
+        when(productQueryService.productDetailPage(product.getSlug())).thenReturn(page);
 
         mockMvc.perform(get("/products/{slug}", product.getSlug()))
             .andExpect(status().isOk())
-            .andExpect(view().name("product-detail"))
-            .andExpect(model().attribute("product", product))
-            .andExpect(model().attribute("relatedProducts", List.of()));
+            .andExpect(view().name("product/product-detail"))
+            .andExpect(model().attribute("page", page));
 
         assertThat(product.getSearchText())
             .contains("Bánh Lava", "CAKE-LAVA-150", "Lava trứng muối");
@@ -73,7 +79,7 @@ class ProductCatalogControllerTest {
 
     @Test
     void returnsNotFoundForUnknownProductSlug() throws Exception {
-        when(productQueryService.requireActiveProduct("khong-ton-tai"))
+        when(productQueryService.productDetailPage("khong-ton-tai"))
             .thenThrow(new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         mockMvc.perform(get("/products/khong-ton-tai"))

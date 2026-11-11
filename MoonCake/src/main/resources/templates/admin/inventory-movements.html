@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Lịch sử biến động kho')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Lịch sử biến động kho')}"></head>
 <body class="page-inventory">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main>
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/inventory}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
@@ -28,7 +28,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="m : ${movements}">
+            <tr th:each="m : ${page.movements}">
                 <td class="muted" th:text="${m.formattedCreatedAt}">09/11/2026 10:00</td>
                 <td>
                     <strong th:text="${m.productName}">Bánh</strong>
@@ -45,14 +45,14 @@
             </tr>
             </tbody>
         </table>
-        <div th:if="${movements.isEmpty()}" class="empty-state">
+        <div th:if="${page.movements.isEmpty()}" class="empty-state">
             <p><strong>Chưa có biến động nào.</strong></p>
         </div>
-        <div class="table-pager" th:if="${page > 0 or movements.size() == 20}">
-            <span class="table-pager__status" th:text="${'Trang ' + (page + 1)}">Trang 1</span>
+        <div class="table-pager" th:if="${page.pageNumber > 0 or page.movements.size() == 20}">
+            <span class="table-pager__status" th:text="${'Trang ' + (page.pageNumber + 1)}">Trang 1</span>
             <div class="table-pager__pages">
-                <a th:if="${page > 0}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page - 1})}">← Mới hơn</a>
-                <a th:if="${movements.size() == 20}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page + 1})}">Cũ hơn →</a>
+                <a th:if="${page.pageNumber > 0}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page.pageNumber - 1})}">← Mới hơn</a>
+                <a th:if="${page.movements.size() == 20}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page.pageNumber + 1})}">Cũ hơn →</a>
             </div>
         </div>
     </section>

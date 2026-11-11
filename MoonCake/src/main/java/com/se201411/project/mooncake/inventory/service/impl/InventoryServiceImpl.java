@@ -1,9 +1,12 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
+import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.InventoryBalance;
 import com.se201411.project.mooncake.entity.ProductVariant;
+import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.entity.StockMovement;
 import com.se201411.project.mooncake.enums.StockMovementType;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
@@ -13,7 +16,6 @@ import com.se201411.project.mooncake.inventory.repository.InventoryBalanceReposi
 import com.se201411.project.mooncake.inventory.repository.StockMovementRepository;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
-import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,20 +34,23 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
-    private final EntityReferenceRepository references;
+    private final StockBatchRepository batchRepository;
+    private final InventoryAdminRepository inventoryAdminRepository;
     private final BatchStockService batchStock;
     private final Clock clock;
 
     public InventoryServiceImpl(
         InventoryBalanceRepository balanceRepository,
         StockMovementRepository movementRepository,
-        EntityReferenceRepository references,
+        StockBatchRepository batchRepository,
+        InventoryAdminRepository inventoryAdminRepository,
         BatchStockService batchStock,
         Clock clock
     ) {
         this.balanceRepository = balanceRepository;
         this.movementRepository = movementRepository;
-        this.references = references;
+        this.batchRepository = batchRepository;
+        this.inventoryAdminRepository = inventoryAdminRepository;
         this.batchStock = batchStock;
         this.clock = clock;
     }
@@ -101,11 +106,12 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             saveMovement(
-                command.orderId(),
+                command.order(),
                 demand,
                 StockMovementType.SALE,
                 -demand.quantity(),
-                command.operationKey()
+                command.operationKey(),
+                null
             );
         }
     }
@@ -126,13 +132,48 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             saveMovement(
-                command.orderId(),
+                command.order(),
                 demand,
                 StockMovementType.CANCEL_RETURN,
                 demand.quantity(),
-                command.operationKey()
+                command.operationKey(),
+                command.performedByAccountId()
             );
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasStockRecords(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return false;
+        }
+        if (movementRepository.countByVariantIds(variantIds) > 0) {
+            return true;
+        }
+        if (batchRepository.countByVariantIds(variantIds) > 0) {
+            return true;
+        }
+        return balanceRepository.sumAvailable(variantIds) > 0;
+    }
+
+    @Override
+    @Transactional
+    public void deleteBalances(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return;
+        }
+        balanceRepository.deleteByVariantIds(variantIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long cancelledByAccountId(long orderId) {
+        List<Long> performers = movementRepository.findPerformerIds(orderId, StockMovementType.CANCEL_RETURN);
+        if (performers.isEmpty()) {
+            return null;
+        }
+        return performers.get(0);
     }
 
     private List<InventoryDemand> sortDemands(List<InventoryDemand> demands) {
@@ -142,17 +183,21 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private void saveMovement(
-        long orderId,
+        SalesOrder order,
         InventoryDemand demand,
         StockMovementType movementType,
         int quantityDelta,
-        String operationGroupKey
+        String operationGroupKey,
+        Long performedByAccountId
     ) {
         String operationKey = operationGroupKey + ":" + demand.variantId();
-        batchStock.apply(demand.variantId(), quantityDelta, operationKey, orderId, movementType);
+        batchStock.apply(demand.variantId(), quantityDelta, operationKey, order.getId(), movementType);
         StockMovement movement = new StockMovement();
-        movement.setVariant(references.variant(demand.variantId()));
-        movement.setOrder(references.order(orderId));
+        movement.setVariant(requireBalanceRow(demand.variantId()).getVariant());
+        movement.setOrder(order);
+        if (performedByAccountId != null) {
+            movement.setPerformedByAccount(inventoryAdminRepository.accountReference(performedByAccountId));
+        }
         movement.setMovementType(movementType);
         movement.setQuantityDelta(quantityDelta);
         movement.setReason(buildReason(movementType));
@@ -170,10 +215,11 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private String describeVariant(long variantId) {
-        ProductVariant variant = references.findVariant(variantId).orElse(null);
-        if (variant == null) {
+        InventoryBalance balance = balanceRepository.findById(variantId).orElse(null);
+        if (balance == null) {
             return "sản phẩm đã chọn";
         }
+        ProductVariant variant = balance.getVariant();
 
         String productName = null;
         if (variant.getProduct() != null) {
@@ -192,6 +238,11 @@ public class InventoryServiceImpl implements InventoryService {
             return "SKU " + sku;
         }
         return "sản phẩm đã chọn";
+    }
+
+    private InventoryBalance requireBalanceRow(long variantId) {
+        return balanceRepository.findById(variantId)
+            .orElseThrow(() -> new ResourceNotFoundException("SKU chưa có số dư tồn kho: " + variantId));
     }
 
     private void requireVariantId(long variantId) {

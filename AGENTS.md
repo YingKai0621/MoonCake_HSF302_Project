@@ -12,6 +12,7 @@ Read these sources in order:
 4. `docs/architecture-conventions.md` for package, concurrency, security, and testing rules.
 5. `docs/team-work-plan.md` for module/repository ownership.
 6. `docs/foundation-plan.md` when working on Foundation.
+7. `docs/instructor-code-rules.md` for the instructor-graded code checklist (copy it into every PR description).
 
 If the sources conflict, stop and report the conflict. Do not invent a business decision.
 

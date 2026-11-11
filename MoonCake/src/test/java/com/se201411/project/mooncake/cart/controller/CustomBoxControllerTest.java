@@ -91,7 +91,7 @@ class CustomBoxControllerTest {
 
         mockMvc.perform(get("/custom-boxes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
+            .andExpect(view().name("cart/custom-box"))
             .andExpect(model().attribute("page", new CustomBoxFormPage(builder, false, null)))
             .andExpect(model().attributeExists("customBoxForm"));
     }
@@ -134,7 +134,7 @@ class CustomBoxControllerTest {
                 .param("cakes[0].quantity", "4")
         )
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
+            .andExpect(view().name("cart/custom-box"))
             .andExpect(model().attributeHasFieldErrors("customBoxForm", "boxQuantity"));
 
         verify(customBoxService, never()).createAndAddToCart(

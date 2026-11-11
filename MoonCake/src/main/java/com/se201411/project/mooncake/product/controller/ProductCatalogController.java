@@ -30,18 +30,18 @@ public class ProductCatalogController {
     @GetMapping("/gift-boxes")
     public String giftBoxesCatalog(Model model) {
         model.addAttribute("page", productQueryService.giftBoxCatalogPage());
-        return "shop-catalog";
+        return "product/shop-catalog";
     }
 
     @GetMapping("/mooncakes")
     public String mooncakesCatalog(Model model) {
         model.addAttribute("page", productQueryService.mooncakeCatalogPage());
-        return "shop-catalog";
+        return "product/shop-catalog";
     }
 
     @GetMapping("/{slug}")
     public String productDetail(@PathVariable String slug, Model model) {
         model.addAttribute("page", productQueryService.productDetailPage(slug));
-        return "product-detail";
+        return "product/product-detail";
     }
 }

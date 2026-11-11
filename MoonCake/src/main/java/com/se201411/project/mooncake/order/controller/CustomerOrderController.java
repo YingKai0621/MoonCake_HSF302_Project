@@ -48,7 +48,7 @@ public class CustomerOrderController {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         List<CustomerOrderSummaryView> orders = customerOrderService.findOrders(customer);
         model.addAttribute("orders", orders);
-        return "orders";
+        return "order/orders";
     }
 
     @GetMapping("/orders/{orderCode}")
@@ -70,7 +70,7 @@ public class CustomerOrderController {
             customer
         );
         model.addAttribute("order", order);
-        return "order-detail";
+        return "order/order-detail";
     }
 
     @PostMapping("/orders/{orderCode}/cancel")
@@ -100,7 +100,7 @@ public class CustomerOrderController {
         OrderDeliveryUpdateForm form = customerOrderService
             .requireDeliveryUpdateForm(orderCode, customer);
         addDeliveryFormModel(model, orderCode, form);
-        return "order-delivery-edit";
+        return "order/order-delivery-edit";
     }
 
     @PostMapping("/orders/{orderCode}/delivery")
@@ -169,7 +169,7 @@ public class CustomerOrderController {
             .requireDeliveryUpdateForm(orderCode, customer);
         form.setCurrentShippingAddress(currentForm.getCurrentShippingAddress());
         addDeliveryFormModel(model, orderCode, form);
-        return "order-delivery-edit";
+        return "order/order-delivery-edit";
     }
 
     private void addDeliveryFormModel(

@@ -50,7 +50,7 @@ public class CustomBoxController {
             model.addAttribute("customBoxForm", createEmptyForm(page.builder()));
         }
         model.addAttribute("page", page);
-        return "custom-box";
+        return "cart/custom-box";
     }
 
     @PostMapping
@@ -63,7 +63,7 @@ public class CustomBoxController {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
             model.addAttribute("page", customBoxService.createPage());
-            return "custom-box";
+            return "cart/custom-box";
         }
 
         try {
@@ -76,7 +76,7 @@ public class CustomBoxController {
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
             model.addAttribute("page", customBoxService.createPage());
-            return "custom-box";
+            return "cart/custom-box";
         }
     }
 
@@ -93,7 +93,7 @@ public class CustomBoxController {
         );
         model.addAttribute("customBoxForm", createEditForm(page.builder(), editView));
         model.addAttribute("page", page);
-        return "custom-box";
+        return "cart/custom-box";
     }
 
     @PostMapping("/{configurationId}")
@@ -107,7 +107,7 @@ public class CustomBoxController {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         if (bindingResult.hasErrors()) {
             model.addAttribute("page", customBoxService.editPage(configurationId));
-            return "custom-box";
+            return "cart/custom-box";
         }
 
         try {
@@ -120,7 +120,7 @@ public class CustomBoxController {
         } catch (MoonCakeException exception) {
             bindingResult.reject("customBox", exception.getMessage());
             model.addAttribute("page", customBoxService.editPage(configurationId));
-            return "custom-box";
+            return "cart/custom-box";
         }
     }
 

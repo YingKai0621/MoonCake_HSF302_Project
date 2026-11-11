@@ -56,7 +56,7 @@ class ProductCatalogControllerTest {
 
         mockMvc.perform(get("/products/mooncakes"))
             .andExpect(status().isOk())
-            .andExpect(view().name("shop-catalog"))
+            .andExpect(view().name("product/shop-catalog"))
             .andExpect(model().attribute("page", page));
 
         assertThat(page.totalCount()).isEqualTo(1);
@@ -70,7 +70,7 @@ class ProductCatalogControllerTest {
 
         mockMvc.perform(get("/products/{slug}", product.getSlug()))
             .andExpect(status().isOk())
-            .andExpect(view().name("product-detail"))
+            .andExpect(view().name("product/product-detail"))
             .andExpect(model().attribute("page", page));
 
         assertThat(product.getSearchText())

@@ -23,13 +23,13 @@ class StorefrontPageControllerTest {
         when(storefrontService.homePage()).thenReturn(page);
         ExtendedModelMap model = new ExtendedModelMap();
 
-        assertThat(controller.homepage(model)).isEqualTo("homepage");
+        assertThat(controller.homepage(model)).isEqualTo("storefront/homepage");
         assertThat(model.getAttribute("page")).isEqualTo(page);
         assertThat(model.size()).isEqualTo(1);
     }
 
     @Test
     void rendersBusinessPage() {
-        assertThat(controller.business()).isEqualTo("business");
+        assertThat(controller.business()).isEqualTo("storefront/business");
     }
 }

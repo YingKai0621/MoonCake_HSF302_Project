@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.dashboard.controller.DashboardController;
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
 import com.se201411.project.mooncake.dashboard.dto.DashboardView;
@@ -8,7 +9,6 @@ import com.se201411.project.mooncake.dashboard.dto.KpiView;
 import com.se201411.project.mooncake.dashboard.dto.RecentOrderView;
 import com.se201411.project.mooncake.dashboard.dto.TopProductView;
 import com.se201411.project.mooncake.dashboard.service.DashboardService;
-import com.se201411.project.mooncake.order.dto.BusinessSummaryView;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
 import com.se201411.project.mooncake.inventory.dto.AdminBatchView;
 import com.se201411.project.mooncake.inventory.dto.InventoryPageView;
@@ -77,7 +77,6 @@ class AdminPagesTest {
     OrderManagementService orders;
     @Autowired
     OrderCancellationService cancellations;
-    @Autowired com.se201411.project.mooncake.order.service.OperationsService operations;
     @Autowired DashboardService dashboards;
     @Autowired GiftBoxAdminService giftBoxes;
     @Autowired ProductMediaService media;
@@ -639,16 +638,13 @@ class AdminPagesTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, com.se201411.project.mooncake.order.controller.OperationsController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
         @Bean GiftBoxAdminService giftBoxAdminService(){return mock(GiftBoxAdminService.class);}
         @Bean DashboardService dashboardService(){return mock(DashboardService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
         @Bean BatchStockService batches(){return mock(BatchStockService.class);}
-        @Bean com.se201411.project.mooncake.order.service.OperationsService operations() {
-            return mock(com.se201411.project.mooncake.order.service.OperationsService.class);
-        }
 
         @Bean
         ProductAdminService catalog() {

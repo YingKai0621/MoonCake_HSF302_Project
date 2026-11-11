@@ -12,7 +12,7 @@
 
         <nav class="segmented" aria-label="Chọn kỳ thống kê" data-segmented>
             <span class="segmented__pill" aria-hidden="true"></span>
-            <a th:each="option : ${periods}"
+            <a th:each="option : ${dashboard.periods}"
                class="segmented__item"
                th:href="@{/admin/overview(period=${option})}"
                th:classappend="${option == dashboard.period} ? 'is-active'"

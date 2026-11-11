@@ -1,21 +1,18 @@
-package com.se201411.project.mooncake.order.controller;
+package com.se201411.project.mooncake.dashboard.controller;
 
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.service.DashboardService;
-import com.se201411.project.mooncake.order.service.OperationsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class OperationsController {
+public class DashboardController {
 
-    private final OperationsService operationsService;
     private final DashboardService dashboardService;
 
-    public OperationsController(OperationsService operationsService, DashboardService dashboardService) {
-        this.operationsService = operationsService;
+    public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
 
@@ -25,7 +22,6 @@ public class OperationsController {
         Model model
     ) {
         model.addAttribute("dashboard", dashboardService.dashboard(period));
-        model.addAttribute("periods", DashboardPeriod.values());
         return "admin/overview";
     }
 }

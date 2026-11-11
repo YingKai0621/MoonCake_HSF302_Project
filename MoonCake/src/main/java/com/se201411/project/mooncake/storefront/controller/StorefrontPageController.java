@@ -1,6 +1,6 @@
 package com.se201411.project.mooncake.storefront.controller;
 
-import com.se201411.project.mooncake.feedback.service.FeedbackService;
+import com.se201411.project.mooncake.storefront.service.StorefrontService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class StorefrontPageController {
 
-    private final FeedbackService feedbackService;
+    private final StorefrontService storefrontService;
 
-    public StorefrontPageController(FeedbackService feedbackService) {
-        this.feedbackService = feedbackService;
+    public StorefrontPageController(StorefrontService storefrontService) {
+        this.storefrontService = storefrontService;
     }
 
     @GetMapping("/")
     public String homepage(Model model) {
-        model.addAttribute("reviews", feedbackService.findPublishedReviews());
+        model.addAttribute("page", storefrontService.homePage());
         return "homepage";
     }
 

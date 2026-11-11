@@ -13,4 +13,7 @@ public record DashboardView(
     List<TopProductView> topProducts,
     DiscountSummaryView discounts
 ) {
+    public List<DashboardPeriod> periods() {
+        return List.of(DashboardPeriod.values());
+    }
 }

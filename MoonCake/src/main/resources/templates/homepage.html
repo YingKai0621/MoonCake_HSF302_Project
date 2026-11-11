@@ -217,60 +217,28 @@
       </div>
 
       <div class="gift-grid-container">
-        <div class="gift-product-card group">
+        <div th:each="gift : ${page.giftBoxes}" class="gift-product-card group">
           <div>
             <div class="gift-img-wrapper">
-              <img th:src="@{/images/products/gift-kim-phuc.jpg}"
-                   src="/images/products/gift-kim-phuc.jpg"
-                   alt="Hộp quà Kim Phúc 4 bánh" />
+              <img th:src="${gift.imageUrl}"
+                   th:alt="${gift.imageAlt}" />
             </div>
-            <h3 class="gift-product-title">
-              Hộp quà Kim Phúc
-            </h3>
-            <p class="gift-product-desc">
-              Hộp quà gồm bốn chiếc bánh được phối sẵn, kèm trà và bộ dao nĩa.
-            </p>
+            <h3 class="gift-product-title" th:text="${gift.name}">Hộp quà</h3>
+            <p class="gift-product-desc" th:text="${gift.description}">Mô tả hộp quà</p>
           </div>
           <div class="gift-bottom-row">
             <div>
-              <span class="gift-price-label">Giá niêm yết</span>
-              <span class="gift-price-value">590.000đ</span>
+              <span class="gift-price-label" th:text="${gift.multipleVariants ? 'Giá từ' : 'Giá niêm yết'}">Giá niêm yết</span>
+              <span class="gift-price-value" th:text="${gift.formattedPrice}">0đ</span>
             </div>
-            <a th:href="@{/products/hop-qua-kim-phuc}"
-               href="/products/hop-qua-kim-phuc"
-               class="gift-cta-btn">
-              <span>Xem chi tiết</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="gift-product-card group">
-          <div>
-            <div class="gift-img-wrapper">
-              <img th:src="@{/images/products/gift-lam-phuc.jpg}"
-                   src="/images/products/gift-lam-phuc.jpg"
-                   alt="Hộp quà Lam Phúc 6 bánh" />
-            </div>
-            <h3 class="gift-product-title">
-              Hộp quà Lam Phúc
-            </h3>
-            <p class="gift-product-desc">
-              Hộp quà gồm sáu chiếc bánh được phối sẵn, kèm trà và bộ dao nĩa.
-            </p>
-          </div>
-          <div class="gift-bottom-row">
-            <div>
-              <span class="gift-price-label">Giá niêm yết</span>
-              <span class="gift-price-value">930.000đ</span>
-            </div>
-            <a th:href="@{/products/hop-qua-lam-phuc}"
-               href="/products/hop-qua-lam-phuc"
+            <a th:href="@{/products/{slug}(slug=${gift.slug})}"
                class="gift-cta-btn">
               <span>Xem chi tiết</span>
             </a>
           </div>
         </div>
       </div>
+      <p th:if="${#lists.isEmpty(page.giftBoxes)}" class="text-center text-sand">Hộp quà đang được cập nhật. Vui lòng quay lại sau.</p>
     </div>
   </section>
 

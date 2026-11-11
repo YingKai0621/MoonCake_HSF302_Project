@@ -65,7 +65,7 @@ class ProductCatalogControllerTest {
     @Test
     void rendersProductDetailAndRelatedProducts() throws Exception {
         CatalogProductView product = product();
-        ProductDetailPageView page = new ProductDetailPageView(product, "/products/mooncakes", "Bánh Trung Thu", List.of());
+        ProductDetailPageView page = new ProductDetailPageView(product, "/products/mooncakes", "Bánh Trung Thu", List.of(), List.of(), List.of());
         when(productQueryService.productDetailPage(product.getSlug())).thenReturn(page);
 
         mockMvc.perform(get("/products/{slug}", product.getSlug()))

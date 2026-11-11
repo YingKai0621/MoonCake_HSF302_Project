@@ -5,12 +5,8 @@ import com.se201411.project.mooncake.product.dto.MediaPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Product;
-import com.se201411.project.mooncake.entity.ProductImage;
 import com.se201411.project.mooncake.entity.ProductVideo;
 import com.se201411.project.mooncake.product.dto.AdminVideoView;
-import com.se201411.project.mooncake.product.dto.ProductImageView;
-import com.se201411.project.mooncake.product.dto.ProductVideoView;
-import com.se201411.project.mooncake.product.repository.ProductImageRepository;
 import com.se201411.project.mooncake.product.repository.ProductRepository;
 import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
 import com.se201411.project.mooncake.product.service.ProductMediaService;
@@ -30,44 +26,21 @@ public class ProductMediaServiceImpl implements ProductMediaService {
     private static final int MAX_URL_LENGTH = 1000;
     private static final int MAX_CAPTION_LENGTH = 250;
 
-    private final ProductImageRepository productImageRepository;
     private final ProductVideoRepository productVideoRepository;
     private final ProductRepository productRepository;
     private final AdminAccessService adminAccessService;
     private final ProductAdminService productAdminService;
 
     public ProductMediaServiceImpl(
-        ProductImageRepository productImageRepository,
         ProductVideoRepository productVideoRepository,
         ProductRepository productRepository,
         AdminAccessService adminAccessService,
         ProductAdminService productAdminService
     ) {
-        this.productImageRepository = productImageRepository;
         this.productVideoRepository = productVideoRepository;
         this.productRepository = productRepository;
         this.adminAccessService = adminAccessService;
         this.productAdminService = productAdminService;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductImageView> images(long productId) {
-        List<ProductImageView> views = new ArrayList<>();
-        for (ProductImage image : productImageRepository.findGalleryByProductId(productId)) {
-            views.add(ProductImageView.entityToDto(image));
-        }
-        return views;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductVideoView> videos(long productId) {
-        List<ProductVideoView> views = new ArrayList<>();
-        for (ProductVideo video : productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(productId)) {
-            views.add(ProductVideoView.entityToDto(video));
-        }
-        return views;
     }
 
     @Override

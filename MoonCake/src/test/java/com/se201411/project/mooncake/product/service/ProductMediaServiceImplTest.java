@@ -4,8 +4,6 @@ import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductVideo;
-import com.se201411.project.mooncake.product.dto.ProductVideoView;
-import com.se201411.project.mooncake.product.repository.ProductImageRepository;
 import com.se201411.project.mooncake.product.repository.ProductRepository;
 import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
 import com.se201411.project.mooncake.product.service.impl.ProductMediaServiceImpl;
@@ -27,12 +25,10 @@ import static org.mockito.Mockito.when;
 
 class ProductMediaServiceImplTest {
 
-    private final ProductImageRepository productImageRepository = mock(ProductImageRepository.class);
     private final ProductVideoRepository productVideoRepository = mock(ProductVideoRepository.class);
     private final ProductRepository productRepository = mock(ProductRepository.class);
     private final AdminAccessService adminAccessService = mock(AdminAccessService.class);
     private final ProductMediaService service = new ProductMediaServiceImpl(
-        productImageRepository,
         productVideoRepository,
         productRepository,
         adminAccessService,
@@ -57,20 +53,5 @@ class ProductMediaServiceImplTest {
         assertThatThrownBy(() -> service.addVideo(3L, "https://example.test/cake.avi", "Video"))
             .isInstanceOf(BusinessRuleViolationException.class);
         verify(productVideoRepository, never()).save(any());
-    }
-
-    @Test
-    void videosAreReturnedAsViews() {
-        ProductVideo video = new ProductVideo();
-        ReflectionTestUtils.setField(video, "id", 9L);
-        video.setVideoUrl("/images/cake.webm");
-        video.setCaption("Bánh");
-        when(productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(3L)).thenReturn(List.of(video));
-
-        List<ProductVideoView> views = service.videos(3L);
-
-        assertThat(views).hasSize(1);
-        assertThat(views.get(0).url()).isEqualTo("/images/cake.webm");
-        assertThat(views.get(0).caption()).isEqualTo("Bánh");
     }
 }

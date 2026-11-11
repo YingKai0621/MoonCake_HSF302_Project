@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.entity.ProductVideo;
+import com.se201411.project.mooncake.product.dto.ProductVideoView;
+import com.se201411.project.mooncake.product.dto.ProductImageView;
+import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
 import com.se201411.project.mooncake.entity.BoxConfigurationItem;
@@ -49,6 +53,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductVideoRepository productVideoRepository;
     private final PresetConfigurationRepository presetConfigurationRepository;
     private final PresetConfigurationItemRepository presetConfigurationItemRepository;
     private final InventoryService inventoryService;
@@ -57,6 +62,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         ProductRepository productRepository,
         ProductVariantRepository productVariantRepository,
         ProductImageRepository productImageRepository,
+        ProductVideoRepository productVideoRepository,
         PresetConfigurationRepository presetConfigurationRepository,
         PresetConfigurationItemRepository presetConfigurationItemRepository,
         InventoryService inventoryService
@@ -64,6 +70,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         this.productRepository = productRepository;
         this.productVariantRepository = productVariantRepository;
         this.productImageRepository = productImageRepository;
+        this.productVideoRepository = productVideoRepository;
         this.presetConfigurationRepository = presetConfigurationRepository;
         this.presetConfigurationItemRepository = presetConfigurationItemRepository;
         this.inventoryService = inventoryService;
@@ -116,10 +123,28 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 break;
             }
         }
+        List<ProductImageView> images = galleryImages(product.getId());
+        List<ProductVideoView> videos = galleryVideos(product.getId());
         if (product.getType() == ProductType.MOONCAKE) {
-            return new ProductDetailPageView(product, "/products/mooncakes", MOONCAKE_TITLE, related);
+            return new ProductDetailPageView(product, "/products/mooncakes", MOONCAKE_TITLE, related, images, videos);
         }
-        return new ProductDetailPageView(product, "/products/gift-boxes", GIFT_BOX_TITLE, related);
+        return new ProductDetailPageView(product, "/products/gift-boxes", GIFT_BOX_TITLE, related, images, videos);
+    }
+
+    private List<ProductImageView> galleryImages(long productId) {
+        List<ProductImageView> views = new ArrayList<>();
+        for (ProductImage image : productImageRepository.findGalleryByProductId(productId)) {
+            views.add(ProductImageView.entityToDto(image));
+        }
+        return views;
+    }
+
+    private List<ProductVideoView> galleryVideos(long productId) {
+        List<ProductVideoView> views = new ArrayList<>();
+        for (ProductVideo video : productVideoRepository.findByProductIdOrderBySortOrderAscIdAsc(productId)) {
+            views.add(ProductVideoView.entityToDto(video));
+        }
+        return views;
     }
 
     private List<Integer> distinctBoxCounts(List<CatalogProductView> products) {

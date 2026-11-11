@@ -19,7 +19,7 @@ class StorefrontPageControllerTest {
 
     @Test
     void rendersHomepageWithOnePageView() {
-        HomePageView page = new HomePageView(List.of(new PublicReviewView("An", "A", 5, "Bánh ngon")));
+        HomePageView page = new HomePageView(List.of(new PublicReviewView("An", "A", 5, "Bánh ngon")), List.of());
         when(storefrontService.homePage()).thenReturn(page);
         ExtendedModelMap model = new ExtendedModelMap();
 

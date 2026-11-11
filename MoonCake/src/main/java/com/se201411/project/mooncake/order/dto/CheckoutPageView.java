@@ -10,9 +10,13 @@ public record CheckoutPageView(
     String formattedDiscount,
     String formattedShippingFee,
     String formattedRoundingAdjustment,
-    String formattedTotal
+    String formattedTotal,
+    List<AddressOption> provinces,
+    List<AddressOption> wards
 ) {
     public CheckoutPageView {
         lines = List.copyOf(lines);
+        provinces = List.copyOf(provinces);
+        wards = List.copyOf(wards);
     }
 }

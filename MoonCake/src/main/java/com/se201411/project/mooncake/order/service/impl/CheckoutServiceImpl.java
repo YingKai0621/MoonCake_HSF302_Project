@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.service.impl;
 
 import com.se201411.project.mooncake.common.repository.EntityReferenceRepository;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
+import com.se201411.project.mooncake.common.format.MoneyFormat;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutComponentQuote;
 import com.se201411.project.mooncake.cart.dto.CheckoutLineQuote;
@@ -23,6 +24,8 @@ import com.se201411.project.mooncake.inventory.dto.InventoryDemand;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
+import com.se201411.project.mooncake.order.dto.CheckoutLineView;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.dto.OrderSuccessItemView;
@@ -119,6 +122,41 @@ public class CheckoutServiceImpl implements CheckoutService {
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(checkoutCart);
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         return new CheckoutPreparation(cart.cartId(), customer, quote);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CheckoutPageView checkoutPage(CheckoutPreparation preparation) {
+        CheckoutQuote quote = preparation.quote();
+        List<CheckoutLineView> lineViews = new ArrayList<>();
+        int totalQuantity = 0;
+        for (CheckoutLineQuote line : quote.lines()) {
+            totalQuantity = Math.addExact(totalQuantity, line.cartLine().quantity());
+            String sku = line.sku();
+            if (sku == null) {
+                sku = line.boxSku();
+            }
+            lineViews.add(new CheckoutLineView(
+                line.productName(),
+                sku,
+                line.cartLine().quantity(),
+                MoneyFormat.vnd(line.unitBasePrice()),
+                MoneyFormat.discountLabel(line.discountPercent()),
+                MoneyFormat.vnd(line.lineTotal())
+            ));
+        }
+        return new CheckoutPageView(
+            preparation.cartId(),
+            lineViews,
+            totalQuantity,
+            MoneyFormat.vnd(quote.subtotal()),
+            MoneyFormat.vnd(quote.discount()),
+            MoneyFormat.vnd(quote.shippingFee()),
+            MoneyFormat.signedVnd(quote.roundingAdjustment()),
+            MoneyFormat.vnd(quote.total()),
+            deliveryAddressService.getProvinces(),
+            deliveryAddressService.getWards()
+        );
     }
 
     @Override

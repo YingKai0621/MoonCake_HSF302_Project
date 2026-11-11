@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.order.controller;
 
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.cart.dto.CheckoutQuote;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.service.CheckoutService;
@@ -92,17 +93,23 @@ class CheckoutControllerTest {
     void rendersCheckoutWithCustomerDefaults() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(checkoutService.prepareCheckout(CUSTOMER)).thenReturn(preparation);
+        when(checkoutService.checkoutPage(preparation)).thenReturn(new CheckoutPageView(
+            9L,
+            List.of(),
+            0,
+            "0đ",
+            "0đ",
+            "0đ",
+            null,
+            "0đ",
+            List.of(),
+            List.of()
+        ));
 
         mockMvc.perform(get("/checkout"))
             .andExpect(status().isOk())
             .andExpect(view().name("checkout"))
-            .andExpect(model().attributeExists(
-                "checkout",
-                "checkoutForm",
-                "customer",
-                "provinces",
-                "wards"
-            ));
+            .andExpect(model().attributeExists("checkout", "checkoutForm"));
     }
 
     @Test

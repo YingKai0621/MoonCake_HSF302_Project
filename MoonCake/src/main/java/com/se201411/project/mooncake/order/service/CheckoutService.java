@@ -1,6 +1,7 @@
 package com.se201411.project.mooncake.order.service;
 
 import com.se201411.project.mooncake.order.dto.CheckoutForm;
+import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.order.dto.CheckoutPreparation;
 import com.se201411.project.mooncake.order.dto.CheckoutResult;
 import com.se201411.project.mooncake.order.dto.OrderSuccessView;
@@ -14,6 +15,8 @@ public interface CheckoutService {
         long cartId,
         ShopperIdentity customerIdentity
     );
+
+    CheckoutPageView checkoutPage(CheckoutPreparation preparation);
 
     CheckoutResult placeOrder(
         ShopperIdentity customerIdentity,

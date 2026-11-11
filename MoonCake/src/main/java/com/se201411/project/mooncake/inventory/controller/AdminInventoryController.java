@@ -7,7 +7,6 @@ import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.inventory.dto.BatchInfoForm;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
 import com.se201411.project.mooncake.inventory.service.PackingService;
-import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,55 +18,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.UUID;
-
 @Controller
 @RequestMapping("/admin/inventory")
 public class AdminInventoryController {
 
     private final InventoryAdminService inventory;
     private final PackingService packing;
-    private final PresetConfigurationAdminService presets;
 
-    public AdminInventoryController(
-        InventoryAdminService inventory,
-        PackingService packing,
-        PresetConfigurationAdminService presets
-    ) {
+    public AdminInventoryController(InventoryAdminService inventory, PackingService packing) {
         this.inventory = inventory;
         this.packing = packing;
-        this.presets = presets;
     }
 
     @GetMapping
-    public String inventory(@RequestParam(defaultValue = "ALL") StockFilter filter,
-                            @RequestParam(required = false) Long pack,
-                            @RequestParam(required = false) Long giftBox,
-                            @RequestParam(required = false) Long receive,
-                            @RequestParam(required = false) Long returnProduct, Model model) {
-        model.addAttribute("balances", inventory.balances(filter));
-        model.addAttribute("tabs", inventory.stockTabs(filter));
-        model.addAttribute("filter", filter);
-        model.addAttribute("presets", presets.presets());
-        model.addAttribute("allBalances", inventory.balances());
-        model.addAttribute("receiveKey", UUID.randomUUID().toString());
-        model.addAttribute("adjustKey", UUID.randomUUID().toString());
-        model.addAttribute("packKey", UUID.randomUUID().toString());
-        model.addAttribute("packVariant", pack);
-        if (giftBox != null) {
-            model.addAttribute("returnGiftBox", giftBox);
-        }
-        model.addAttribute("receiveVariant", receive);
-        if (returnProduct != null) {
-            model.addAttribute("returnProduct", returnProduct);
-        }
+    public String inventory(
+        @RequestParam(defaultValue = "ALL") StockFilter filter,
+        @RequestParam(required = false) Long pack,
+        @RequestParam(required = false) Long giftBox,
+        @RequestParam(required = false) Long receive,
+        @RequestParam(required = false) Long returnProduct,
+        Model model
+    ) {
+        model.addAttribute("page", inventory.inventoryPage(filter, receive, pack, returnProduct, giftBox));
         return "admin/inventory";
     }
 
     @GetMapping("/movements")
     public String movements(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("movements", inventory.movements(page));
-        model.addAttribute("page", Math.max(0, page));
+        model.addAttribute("pageNumber", Math.max(0, page));
         return "admin/inventory-movements";
     }
 
@@ -93,10 +72,7 @@ public class AdminInventoryController {
             }
         }
         if (error != null) {
-            if (returnProduct != null) {
-                flash.addFlashAttribute("returnProduct", returnProduct);
-            }
-            return reopen(flash, "receive-dialog", form, error);
+            return reopen(flash, "receive-dialog", form, error, "?returnProduct=", returnProduct);
         }
         if (returnProduct != null) {
             flash.addFlashAttribute("success", "Đã nhập thêm " + form.quantity() + " vào kho.");
@@ -108,12 +84,12 @@ public class AdminInventoryController {
     @PostMapping("/adjust")
     public String adjust(@Valid @ModelAttribute AdminStockForm form, BindingResult result, RedirectAttributes flash) {
         if (result.hasErrors()) {
-            return reopen(flash, "adjust-dialog", form, FormErrors.first(result));
+            return reopen(flash, "adjust-dialog", form, FormErrors.first(result), "", null);
         }
         try {
             inventory.adjust(form);
         } catch (MoonCakeException ex) {
-            return reopen(flash, "adjust-dialog", form, ex.getMessage());
+            return reopen(flash, "adjust-dialog", form, ex.getMessage(), "", null);
         }
         return done(flash);
     }
@@ -132,10 +108,7 @@ public class AdminInventoryController {
             }
         }
         if (error != null) {
-            if (returnGiftBox != null) {
-                flash.addFlashAttribute("returnGiftBox", returnGiftBox);
-            }
-            return reopen(flash, "pack-dialog", form, error);
+            return reopen(flash, "pack-dialog", form, error, "?giftBox=", returnGiftBox);
         }
         if (returnGiftBox != null) {
             flash.addFlashAttribute("success", "Đã đóng " + form.quantity() + " hộp.");
@@ -144,11 +117,21 @@ public class AdminInventoryController {
         return done(flash);
     }
 
-    private String reopen(RedirectAttributes flash, String dialogId, AdminStockForm form, String message) {
+    private String reopen(
+        RedirectAttributes flash,
+        String dialogId,
+        AdminStockForm form,
+        String message,
+        String returnParameter,
+        Long returnId
+    ) {
         flash.addFlashAttribute("dialogId", dialogId);
         flash.addFlashAttribute("dialogError", message);
         flash.addFlashAttribute("dialogForm", form);
-        return "redirect:/admin/inventory";
+        if (returnId == null) {
+            return "redirect:/admin/inventory";
+        }
+        return "redirect:/admin/inventory" + returnParameter + returnId;
     }
 
     private String done(RedirectAttributes flash) {

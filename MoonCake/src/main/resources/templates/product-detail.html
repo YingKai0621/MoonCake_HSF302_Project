@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:with="product=${page.product}">
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -52,7 +52,7 @@
     <nav aria-label="Breadcrumb" class="flex items-center space-x-2 text-xs text-sand tracking-wide uppercase">
       <a class="hover:text-gold transition-colors" th:href="@{/}" href="/">Trang chủ</a>
       <span class="text-gold/40">/</span>
-      <a class="hover:text-gold transition-colors" th:href="@{${breadcrumbCategoryUrl}}" th:text="${breadcrumbCategoryName}">Hộp quà Trung Thu</a>
+      <a class="hover:text-gold transition-colors" th:href="@{${page.categoryUrl}}" th:text="${page.categoryName}">Hộp quà Trung Thu</a>
       <span class="text-gold/40">/</span>
       <span class="text-gold font-medium truncate max-w-xs sm:max-w-md" th:text="${product.name}">Tên sản phẩm</span>
     </nav>
@@ -396,7 +396,7 @@
   </section>
 
   <section id="related-products-section"
-           th:if="${!#lists.isEmpty(relatedProducts)}"
+           th:if="${!#lists.isEmpty(page.relatedProducts)}"
            class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-20">
     <div class="text-center mb-10">
       <div class="inline-flex items-center justify-center gap-4 text-gold">
@@ -410,9 +410,9 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6"
-         th:classappend="${#lists.size(relatedProducts) == 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}">
+         th:classappend="${#lists.size(page.relatedProducts) == 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}">
       
-      <article th:each="rp : ${relatedProducts}"
+      <article th:each="rp : ${page.relatedProducts}"
                class="product-card group bg-dark-navy border border-gold/25 hover:border-gold transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between overflow-hidden rounded-none shadow-navy-card">
         
         <div class="flex flex-col flex-grow">

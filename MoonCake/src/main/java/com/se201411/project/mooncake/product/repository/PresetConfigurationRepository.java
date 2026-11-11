@@ -13,6 +13,8 @@ import java.util.Optional;
 
 public interface PresetConfigurationRepository extends JpaRepository<BoxConfiguration, Long> {
 
+    List<BoxConfiguration> findByTypeAndStatus(ConfigurationType type, ConfigurationStatus status);
+
     @Query("""
         select configuration
         from BoxConfiguration configuration

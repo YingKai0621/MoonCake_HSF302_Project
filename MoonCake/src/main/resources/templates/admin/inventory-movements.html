@@ -48,11 +48,11 @@
         <div th:if="${movements.isEmpty()}" class="empty-state">
             <p><strong>Chưa có biến động nào.</strong></p>
         </div>
-        <div class="table-pager" th:if="${page > 0 or movements.size() == 20}">
-            <span class="table-pager__status" th:text="${'Trang ' + (page + 1)}">Trang 1</span>
+        <div class="table-pager" th:if="${pageNumber > 0 or movements.size() == 20}">
+            <span class="table-pager__status" th:text="${'Trang ' + (pageNumber + 1)}">Trang 1</span>
             <div class="table-pager__pages">
-                <a th:if="${page > 0}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page - 1})}">← Mới hơn</a>
-                <a th:if="${movements.size() == 20}" class="button secondary" th:href="@{/admin/inventory/movements(page=${page + 1})}">Cũ hơn →</a>
+                <a th:if="${pageNumber > 0}" class="button secondary" th:href="@{/admin/inventory/movements(page=${pageNumber - 1})}">← Mới hơn</a>
+                <a th:if="${movements.size() == 20}" class="button secondary" th:href="@{/admin/inventory/movements(page=${pageNumber + 1})}">Cũ hơn →</a>
             </div>
         </div>
     </section>

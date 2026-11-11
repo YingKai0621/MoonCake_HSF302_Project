@@ -77,7 +77,7 @@
             <span class="material-symbols-outlined text-lg">fullscreen</span>
           </button>
 
-          <th:block th:if="${galleryImages != null and #lists.size(galleryImages) > 1}">
+          <th:block th:if="${#lists.size(page.galleryImages) > 1}">
             <button type="button"
                     class="gallery-arrow gallery-arrow--prev"
                     data-gallery-prev
@@ -91,11 +91,11 @@
               <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
             </button>
             <span class="gallery-counter" data-gallery-counter aria-live="polite"
-                  th:text="${'1 / ' + #lists.size(galleryImages)}">1 / 5</span>
+                  th:text="${'1 / ' + #lists.size(page.galleryImages)}">1 / 5</span>
           </th:block>
         </div>
         <div class="gallery-thumbs flex gap-3 py-2" aria-label="Ảnh sản phẩm">
-          <button th:each="photo : ${galleryImages}"
+          <button th:each="photo : ${page.galleryImages}"
                   type="button"
                   class="shrink-0 border border-gold/30 rounded p-1"
                   th:attr="data-gallery-src=${photo.url},data-gallery-alt=${photo.altText},data-gallery-variant=${photo.variantId}"
@@ -103,7 +103,7 @@
             <img th:src="${photo.url}" th:alt="${photo.altText}" loading="lazy" class="w-20 h-20 object-contain">
           </button>
         </div>
-        <figure th:each="video : ${galleryVideos}" class="border border-gold/30 rounded p-3">
+        <figure th:each="video : ${page.galleryVideos}" class="border border-gold/30 rounded p-3">
           <video controls preload="none" playsinline class="w-full rounded" th:src="${video.url}"></video>
           <figcaption class="text-sand mt-2" th:text="${video.caption}">Mô tả video</figcaption>
         </figure>

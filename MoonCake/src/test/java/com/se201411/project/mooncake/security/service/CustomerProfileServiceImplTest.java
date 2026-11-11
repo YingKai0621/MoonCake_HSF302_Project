@@ -1,10 +1,14 @@
 package com.se201411.project.mooncake.security.service;
 
+import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
+import com.se201411.project.mooncake.entity.Account;
 import com.se201411.project.mooncake.entity.Customer;
+import com.se201411.project.mooncake.enums.AccountStatus;
 import com.se201411.project.mooncake.security.dto.AccountPageView;
 import com.se201411.project.mooncake.security.dto.ProfileUpdateForm;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
+import com.se201411.project.mooncake.security.repository.AccountRepository;
 import com.se201411.project.mooncake.security.repository.CustomerRepository;
 import com.se201411.project.mooncake.security.service.impl.CustomerProfileServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -13,12 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +35,9 @@ class CustomerProfileServiceImplTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private AccountRepository accountRepository;
 
     @Test
     void updatesNameAndPhoneOfTheSignedInCustomer() {
@@ -84,8 +93,30 @@ class CustomerProfileServiceImplTest {
         assertThat(form.getPhone()).isEqualTo("0901234567");
     }
 
+    @Test
+    void requireActiveAccountRejectsDisabledAccount() {
+        Customer customer = customer();
+        Account account = new Account();
+        account.setStatus(AccountStatus.DISABLED);
+        customer.setAccount(account);
+        when(customerRepository.findById(5L)).thenReturn(Optional.of(customer));
+
+        CustomerProfileServiceImpl service = service();
+
+        assertThatThrownBy(() -> service.requireActiveAccount(CUSTOMER))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessage("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ.");
+    }
+
+    @Test
+    void disabledCustomerIdsWithEmptyInputReturnsEmpty() {
+        assertThat(service().disabledCustomerIds(List.of())).isEmpty();
+
+        verifyNoInteractions(customerRepository);
+    }
+
     private CustomerProfileServiceImpl service() {
-        return new CustomerProfileServiceImpl(customerRepository);
+        return new CustomerProfileServiceImpl(customerRepository, accountRepository);
     }
 
     private Customer customer() {

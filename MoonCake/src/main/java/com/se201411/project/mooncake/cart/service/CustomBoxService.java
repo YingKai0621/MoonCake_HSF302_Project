@@ -35,4 +35,6 @@ public interface CustomBoxService {
     CustomBoxFormPage createPage();
 
     CustomBoxFormPage editPage(long configurationId);
+
+    void requireStockForBoxes(long configurationId, int boxQuantity);
 }

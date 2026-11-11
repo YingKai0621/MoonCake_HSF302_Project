@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.security.controller;
 
 import com.se201411.project.mooncake.security.dto.CustomerProfile;
 import com.se201411.project.mooncake.security.dto.CustomerEmailForm;
+import com.se201411.project.mooncake.security.dto.CustomerPhoneForm;
 import com.se201411.project.mooncake.security.dto.CustomerProfileForm;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
 import com.se201411.project.mooncake.security.exception.EmailAlreadyRegisteredException;
@@ -43,6 +44,9 @@ public class CustomerProfileController {
         CustomerEmailForm emailForm = new CustomerEmailForm();
         emailForm.setEmail(profile.email());
         model.addAttribute("emailForm", emailForm);
+        CustomerPhoneForm phoneForm = new CustomerPhoneForm();
+        phoneForm.setPhone(profile.phone());
+        model.addAttribute("phoneForm", phoneForm);
         return "security/profile";
     }
 
@@ -88,6 +92,24 @@ public class CustomerProfileController {
         return "redirect:/login?emailChanged";
     }
 
+    @PostMapping("/profile/phone")
+    public String updatePhone(
+        @Valid @ModelAttribute("phoneForm") CustomerPhoneForm form,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes flash
+    ) {
+        ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
+        if (bindingResult.hasErrors()) {
+            addCurrentProfile(model, customer, null);
+            model.addAttribute("phoneForm", form);
+            return "security/profile";
+        }
+        customerProfileService.updatePhone(customer, form.getPhone());
+        flash.addFlashAttribute("successMessage", "Đã cập nhật số điện thoại.");
+        return "redirect:/profile";
+    }
+
     private void addCurrentProfile(Model model, ShopperIdentity customer, CustomerEmailForm emailForm) {
         CustomerProfile profile = customerProfileService.requireProfile(customer);
         model.addAttribute("profile", profile);
@@ -99,5 +121,8 @@ public class CustomerProfileController {
             emailForm.setEmail(profile.email());
         }
         model.addAttribute("emailForm", emailForm);
+        CustomerPhoneForm phoneForm = new CustomerPhoneForm();
+        phoneForm.setPhone(profile.phone());
+        model.addAttribute("phoneForm", phoneForm);
     }
 }

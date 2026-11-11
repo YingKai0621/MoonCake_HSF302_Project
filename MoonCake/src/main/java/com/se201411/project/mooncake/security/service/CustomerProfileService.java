@@ -11,4 +11,6 @@ public interface CustomerProfileService {
 
     void updateEmail(ShopperIdentity customerIdentity, String email);
 
+    void updatePhone(ShopperIdentity customerIdentity, String phone);
+
 }

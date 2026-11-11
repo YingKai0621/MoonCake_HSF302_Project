@@ -66,6 +66,13 @@ public class CustomerProfileServiceImpl implements CustomerProfileService {
         customer.setEmail(normalizedEmail);
     }
 
+    @Override
+    @Transactional
+    public void updatePhone(ShopperIdentity customerIdentity, String phone) {
+        Customer customer = requireCustomer(customerIdentity);
+        customer.setPhone(phone);
+    }
+
     private Customer requireCustomer(ShopperIdentity customerIdentity) {
         if (customerIdentity == null) {
             throw new ResourceNotFoundException("Không tìm thấy thông tin khách hàng");

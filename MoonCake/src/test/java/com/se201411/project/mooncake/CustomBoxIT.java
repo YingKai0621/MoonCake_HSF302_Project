@@ -65,7 +65,7 @@ class CustomBoxIT {
 
         mockMvc.perform(get("/custom-boxes").with(user(customer)))
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
+            .andExpect(view().name("cart/custom-box"))
             .andExpect(content().string(
                 org.hamcrest.Matchers.containsString("Tự chọn hộp quà")
             ));
@@ -103,7 +103,7 @@ class CustomBoxIT {
                 .param("boxQuantity", "1")
         )
             .andExpect(status().isOk())
-            .andExpect(view().name("custom-box"))
+            .andExpect(view().name("cart/custom-box"))
             .andExpect(content().string(
                 org.hamcrest.Matchers.containsString("phải chọn đúng 4 bánh")
             ));

@@ -17,11 +17,11 @@ public class StorefrontPageController {
     @GetMapping("/")
     public String homepage(Model model) {
         model.addAttribute("page", storefrontService.homePage());
-        return "homepage";
+        return "storefront/homepage";
     }
 
     @GetMapping("/business")
     public String business() {
-        return "business";
+        return "storefront/business";
     }
 }

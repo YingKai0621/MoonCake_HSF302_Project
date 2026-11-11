@@ -60,7 +60,7 @@ class CartControllerTest {
 
         mockMvc.perform(get("/cart"))
             .andExpect(status().isOk())
-            .andExpect(view().name("cart"))
+            .andExpect(view().name("cart/cart"))
             .andExpect(model().attribute("cart", cart));
     }
 

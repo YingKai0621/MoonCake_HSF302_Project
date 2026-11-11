@@ -40,7 +40,7 @@ public class CartController {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         CustomerCartView cart = customerCartService.getCurrentCart(customer);
         model.addAttribute("cart", cart);
-        return "cart";
+        return "cart/cart";
     }
 
     @GetMapping("/continue")

@@ -52,7 +52,7 @@ public class CheckoutController {
             CheckoutForm form = createDefaultForm(preparation, checkout);
             model.addAttribute("checkoutForm", form);
             model.addAttribute("checkout", checkout);
-            return "checkout";
+            return "order/checkout";
         } catch (ResourceNotFoundException exception) {
             redirectAttributes.addFlashAttribute(
                 "successMessage",
@@ -114,7 +114,7 @@ public class CheckoutController {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         OrderSuccessView order = checkoutService.requireOrder(orderCode, customer);
         model.addAttribute("order", order);
-        return "order-success";
+        return "order/order-success";
     }
 
     private String showInvalidForm(
@@ -135,7 +135,7 @@ public class CheckoutController {
                 customer
             );
             addCheckoutModel(model, preparation, form);
-            return "checkout";
+            return "order/checkout";
         } catch (MoonCakeException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
             return "redirect:/cart";

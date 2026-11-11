@@ -78,7 +78,7 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders"))
             .andExpect(status().isOk())
-            .andExpect(view().name("orders"))
+            .andExpect(view().name("order/orders"))
             .andExpect(model().attribute("orders", orders));
     }
 
@@ -113,7 +113,7 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders/MC-20261021-TEST"))
             .andExpect(status().isOk())
-            .andExpect(view().name("order-detail"))
+            .andExpect(view().name("order/order-detail"))
             .andExpect(model().attribute("order", order));
     }
 
@@ -130,7 +130,7 @@ class CustomerOrderControllerTest {
 
         mockMvc.perform(get("/orders/MC-20261021-TEST/delivery/edit"))
             .andExpect(status().isOk())
-            .andExpect(view().name("order-delivery-edit"))
+            .andExpect(view().name("order/order-delivery-edit"))
             .andExpect(model().attribute("deliveryForm", form))
             .andExpect(model().attribute("page", page));
     }

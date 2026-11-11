@@ -115,7 +115,7 @@ class CheckoutControllerTest {
 
         mockMvc.perform(get("/checkout"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeExists("checkout", "checkoutForm"));
     }
 
@@ -150,7 +150,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "26740")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "recipientPhone"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -176,7 +176,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "00004")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "wardCode"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -195,7 +195,7 @@ class CheckoutControllerTest {
                 .param("wardCode", "26740")
                 .param("streetAddress", "123 Đường Trung Thu"))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "recipientName"));
 
         verify(checkoutService, never()).placeOrder(any(), any());
@@ -215,7 +215,7 @@ class CheckoutControllerTest {
                 .param("streetAddress", "a".repeat(121))
                 .param("orderNote", "b".repeat(201)))
             .andExpect(status().isOk())
-            .andExpect(view().name("checkout"))
+            .andExpect(view().name("order/checkout"))
             .andExpect(model().attributeHasFieldErrors("checkoutForm", "streetAddress", "orderNote"));
 
         verify(checkoutService, never()).placeOrder(any(), any());

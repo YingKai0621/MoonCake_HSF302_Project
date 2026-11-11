@@ -1,8 +1,8 @@
 package com.se201411.project.mooncake.product.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.enums.ProductType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

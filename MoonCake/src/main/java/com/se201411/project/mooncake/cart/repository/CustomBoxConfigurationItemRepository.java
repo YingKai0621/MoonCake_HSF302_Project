@@ -1,8 +1,8 @@
 package com.se201411.project.mooncake.cart.repository;
 
+import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.se201411.project.mooncake.entity.BoxConfigurationItem;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

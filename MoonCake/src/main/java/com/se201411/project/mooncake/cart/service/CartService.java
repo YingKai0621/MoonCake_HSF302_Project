@@ -1,9 +1,10 @@
 package com.se201411.project.mooncake.cart.service;
 
-import java.util.Collection;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
+
+import java.util.Collection;
 
 public interface CartService {
 

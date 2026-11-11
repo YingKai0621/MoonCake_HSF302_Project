@@ -1,7 +1,7 @@
 package com.se201411.project.mooncake.security.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.se201411.project.mooncake.entity.Customer;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 

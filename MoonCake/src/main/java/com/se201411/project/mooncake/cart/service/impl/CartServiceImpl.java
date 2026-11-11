@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
-import java.util.Collection;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 

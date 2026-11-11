@@ -1,10 +1,10 @@
 package com.se201411.project.mooncake.inventory.service;
 
-import java.util.Collection;
-import java.util.Map;
-
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
+
+import java.util.Collection;
+import java.util.Map;
 
 public interface InventoryService {
 

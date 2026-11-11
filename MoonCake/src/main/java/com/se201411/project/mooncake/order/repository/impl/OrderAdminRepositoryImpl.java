@@ -102,8 +102,8 @@ public class OrderAdminRepositoryImpl implements OrderAdminRepository {
         if (status == OrderStatus.PROCESSING) {
             return "processingAt";
         }
-        if (status == OrderStatus.COMPLETED) {
-            return "completedAt";
+        if (status == OrderStatus.DELIVERED) {
+            return "deliveredAt";
         }
         throw new IllegalArgumentException("Trạng thái không có mốc thời gian riêng: " + status);
     }

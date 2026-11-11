@@ -137,4 +137,11 @@ public class FeedbackServiceImpl implements FeedbackService {
             .atZoneSameInstant(VIETNAM)
             .format(DATE_TIME);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countReviewsWaitingForApproval() {
+        adminAccessService.requireAdmin();
+        return feedbackRepository.countByPublishedFalseAndRatingIsNotNull();
+    }
 }

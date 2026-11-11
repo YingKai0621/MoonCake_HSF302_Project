@@ -33,4 +33,8 @@ public interface InventoryAdminService {
     void receive(AdminStockForm form, String batchCode, LocalDate producedOn, LocalDate expiresOn);
 
     void adjust(AdminStockForm form);
+
+    long countLowStockVariants();
+
+    long countBatchesExpiringBy(LocalDate until);
 }

@@ -1,21 +1,20 @@
-package com.se201411.project.mooncake.dashboard.repository;
+package com.se201411.project.mooncake.order.repository;
 
-import com.se201411.project.mooncake.dashboard.dto.PaidAmount;
-import com.se201411.project.mooncake.dashboard.dto.TopProductView;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.PaidAmount;
+import com.se201411.project.mooncake.order.dto.ProductSalesSummary;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
-public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
+public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Long> {
 
     List<SalesOrder> findByCreatedAtGreaterThanEqual(LocalDateTime from);
 
@@ -23,8 +22,13 @@ public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
 
     long countByStatus(OrderStatus status);
 
+    List<SalesOrder> findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(
+        BigDecimal discount,
+        OrderStatus status
+    );
+
     @Query("""
-        select new com.se201411.project.mooncake.dashboard.dto.PaidAmount(payment.amount, payment.paidAt)
+        select new com.se201411.project.mooncake.order.dto.PaidAmount(payment.amount, payment.paidAt)
         from Payment payment
         where payment.status = :paid
           and payment.paidAt >= :from
@@ -46,32 +50,7 @@ public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
     );
 
     @Query("""
-        select count(balance)
-        from InventoryBalance balance
-        where balance.availableQuantity <= balance.lowStockThreshold
-          and balance.variant.active = true
-        """)
-    long countLowStockVariants();
-
-    @Query("""
-        select count(batch)
-        from StockBatch batch
-        where batch.remainingQuantity > 0
-          and batch.expiresOn is not null
-          and batch.expiresOn <= :until
-        """)
-    long countBatchesExpiringBy(@Param("until") LocalDate until);
-
-    @Query("""
-        select count(feedback)
-        from Feedback feedback
-        where feedback.published = false
-          and feedback.rating is not null
-        """)
-    long countReviewsWaitingForApproval();
-
-    @Query("""
-        select new com.se201411.project.mooncake.dashboard.dto.TopProductView(
+        select new com.se201411.project.mooncake.order.dto.ProductSalesSummary(
             item.productNameSnapshot, sum(item.quantity), sum(item.lineTotal)
         )
         from OrderItem item
@@ -80,14 +59,9 @@ public interface DashboardRepository extends JpaRepository<SalesOrder, Long> {
         group by item.productNameSnapshot
         order by sum(item.quantity) desc
         """)
-    List<TopProductView> findTopProducts(
+    List<ProductSalesSummary> findTopProducts(
         @Param("from") LocalDateTime from,
         @Param("completed") OrderStatus completed,
         Pageable pageable
-    );
-
-    List<SalesOrder> findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(
-        BigDecimal discount,
-        OrderStatus status
     );
 }

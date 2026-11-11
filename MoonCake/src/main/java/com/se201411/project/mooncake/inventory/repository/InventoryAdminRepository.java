@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository;
 
+import java.time.LocalDate;
 import com.se201411.project.mooncake.entity.InventoryBalance;
 import com.se201411.project.mooncake.entity.StockMovement;
 import com.se201411.project.mooncake.enums.StockMovementType;
@@ -24,4 +25,8 @@ public interface InventoryAdminRepository {
 
     void movement(long variant, long admin, int delta, StockMovementType type,
                   String reason, String group, String key, LocalDateTime now);
+
+    long countLowStockVariants();
+
+    long countBatchesExpiringBy(LocalDate until);
 }

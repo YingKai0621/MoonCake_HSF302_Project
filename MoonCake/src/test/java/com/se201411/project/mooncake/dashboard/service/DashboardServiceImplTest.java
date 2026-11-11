@@ -3,12 +3,13 @@ package com.se201411.project.mooncake.dashboard.service;
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.dto.DashboardView;
 import com.se201411.project.mooncake.dashboard.dto.KpiView;
-import com.se201411.project.mooncake.dashboard.dto.PaidAmount;
-import com.se201411.project.mooncake.dashboard.repository.DashboardRepository;
 import com.se201411.project.mooncake.dashboard.service.impl.DashboardServiceImpl;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
-import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.feedback.service.FeedbackService;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
+import com.se201411.project.mooncake.order.dto.PaidAmount;
+import com.se201411.project.mooncake.order.service.OrderStatisticsService;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import org.junit.jupiter.api.Test;
 
@@ -28,22 +29,24 @@ import static org.mockito.Mockito.when;
 
 class DashboardServiceImplTest {
 
-    private final DashboardRepository repository = mock(DashboardRepository.class);
+    private final OrderStatisticsService orderStatistics = mock(OrderStatisticsService.class);
     private final DashboardService service = new DashboardServiceImpl(
-        repository,
+        orderStatistics,
+        mock(InventoryAdminService.class),
+        mock(FeedbackService.class),
         mock(AdminAccessService.class),
         Clock.fixed(Instant.parse("2026-11-09T05:00:00Z"), ZoneOffset.UTC)
     );
 
     @Test
     void dayViewComparesTodayWithYesterdayInVietnamTime() {
-        when(repository.findByCreatedAtGreaterThanEqual(any())).thenReturn(List.of(
+        when(orderStatistics.ordersCreatedSince(any())).thenReturn(List.of(
             order(OrderStatus.COMPLETED, 300_000, LocalDateTime.of(2026, 11, 9, 1, 0)),
             order(OrderStatus.PLACED, 100_000, LocalDateTime.of(2026, 11, 8, 18, 0)),
             order(OrderStatus.COMPLETED, 200_000, LocalDateTime.of(2026, 11, 8, 2, 0)),
             order(OrderStatus.CANCELLED, 999_000, LocalDateTime.of(2026, 11, 9, 2, 0))
         ));
-        when(repository.findPaidSince(eq(PaymentStatus.PAID), any())).thenReturn(List.of(
+        when(orderStatistics.paymentsPaidSince(any())).thenReturn(List.of(
             new PaidAmount(new BigDecimal("300000"), LocalDateTime.of(2026, 11, 9, 1, 0))
         ));
 
@@ -61,8 +64,8 @@ class DashboardServiceImplTest {
 
     @Test
     void quarterViewUsesEightQuarters() {
-        when(repository.findByCreatedAtGreaterThanEqual(any())).thenReturn(List.of());
-        when(repository.findPaidSince(eq(PaymentStatus.PAID), any())).thenReturn(List.of());
+        when(orderStatistics.ordersCreatedSince(any())).thenReturn(List.of());
+        when(orderStatistics.paymentsPaidSince(any())).thenReturn(List.of());
 
         DashboardView view = service.dashboard(DashboardPeriod.QUARTER);
 
@@ -71,13 +74,13 @@ class DashboardServiceImplTest {
     }
 
     @Test
-    void topProductsCountOnlyCompletedOrders() {
-        when(repository.findByCreatedAtGreaterThanEqual(any())).thenReturn(List.of());
-        when(repository.findPaidSince(eq(PaymentStatus.PAID), any())).thenReturn(List.of());
+    void topProductsAskOrderModuleForFiveCompletedProducts() {
+        when(orderStatistics.ordersCreatedSince(any())).thenReturn(List.of());
+        when(orderStatistics.paymentsPaidSince(any())).thenReturn(List.of());
 
         service.dashboard(DashboardPeriod.DAY);
 
-        verify(repository).findTopProducts(any(), eq(OrderStatus.COMPLETED), any());
+        verify(orderStatistics).topCompletedProducts(any(), eq(5));
     }
 
     private SalesOrder order(OrderStatus status, long total, LocalDateTime createdAtUtc) {

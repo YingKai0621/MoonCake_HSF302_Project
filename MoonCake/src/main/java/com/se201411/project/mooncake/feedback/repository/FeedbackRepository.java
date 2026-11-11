@@ -18,4 +18,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
     @EntityGraph(attributePaths = "customer")
     List<Feedback> findTop20ByPublishedTrueAndRatingGreaterThanEqualOrderByCreatedAtDesc(int minimumRating);
+
+    long countByPublishedFalseAndRatingIsNotNull();
 }

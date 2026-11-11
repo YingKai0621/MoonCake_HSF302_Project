@@ -87,7 +87,7 @@ class CustomBoxControllerTest {
     @Test
     void rendersBuilderForAuthenticatedCustomer() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
-        when(customBoxService.getBuilderView()).thenReturn(builder);
+        when(customBoxService.createPage()).thenReturn(new CustomBoxFormPage(builder, false, null));
 
         mockMvc.perform(get("/custom-boxes"))
             .andExpect(status().isOk())
@@ -124,7 +124,7 @@ class CustomBoxControllerTest {
     @Test
     void invalidFormDoesNotCreateConfiguration() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
-        when(customBoxService.getBuilderView()).thenReturn(builder);
+        when(customBoxService.createPage()).thenReturn(new CustomBoxFormPage(builder, false, null));
 
         mockMvc.perform(
             post("/custom-boxes")

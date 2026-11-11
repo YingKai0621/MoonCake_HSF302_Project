@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.order.controller;
 
-import com.se201411.project.mooncake.enums.PaymentMethod;
 import com.se201411.project.mooncake.order.dto.CheckoutPageView;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -49,8 +48,10 @@ public class CheckoutController {
         try {
             ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
             CheckoutPreparation preparation = checkoutService.prepareCheckout(customer);
-            CheckoutForm form = createDefaultForm(preparation);
-            addCheckoutModel(model, preparation, form);
+            CheckoutPageView checkout = checkoutService.checkoutPage(preparation);
+            CheckoutForm form = createDefaultForm(preparation, checkout);
+            model.addAttribute("checkoutForm", form);
+            model.addAttribute("checkout", checkout);
             return "checkout";
         } catch (ResourceNotFoundException exception) {
             redirectAttributes.addFlashAttribute(
@@ -141,12 +142,13 @@ public class CheckoutController {
         }
     }
 
-    private CheckoutForm createDefaultForm(CheckoutPreparation preparation) {
+    private CheckoutForm createDefaultForm(CheckoutPreparation preparation, CheckoutPageView checkout) {
         CustomerProfile customer = preparation.customer();
         CheckoutForm form = new CheckoutForm();
         form.setCartId(preparation.cartId());
         form.setRecipientName(customer.fullName());
         form.setRecipientPhone(customer.phone());
+        form.setPaymentMethod(checkout.defaultPaymentMethod());
         return form;
     }
 
@@ -155,12 +157,8 @@ public class CheckoutController {
         CheckoutPreparation preparation,
         CheckoutForm form
     ) {
-        CheckoutPageView checkout = checkoutService.checkoutPage(preparation);
-        if (!checkout.codAllowed() && form.getPaymentMethod() == PaymentMethod.COD) {
-            form.setPaymentMethod(PaymentMethod.VNPAY);
-        }
         model.addAttribute("checkoutForm", form);
-        model.addAttribute("checkout", checkout);
+        model.addAttribute("checkout", checkoutService.checkoutPage(preparation));
     }
 
     private String firstError(BindingResult bindingResult) {

@@ -162,7 +162,8 @@ public class CheckoutServiceImpl implements CheckoutService {
             MoneyFormat.vnd(quote.shippingFee()),
             MoneyFormat.signedVnd(quote.roundingAdjustment()),
             MoneyFormat.vnd(quote.total()),
-            paymentProcessorRegistry.forMethod(PaymentMethod.COD).acceptsTotal(quote.total()),
+            paymentProcessorRegistry.methodsAccepting(quote.total()),
+            paymentProcessorRegistry.defaultMethodFor(quote.total()),
             deliveryAddressService.getProvinces(),
             deliveryAddressService.getWards()
         );

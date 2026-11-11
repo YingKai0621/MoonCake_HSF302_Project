@@ -107,7 +107,8 @@ class CheckoutControllerTest {
             "0đ",
             null,
             "0đ",
-            true,
+            List.of(PaymentMethod.COD),
+            PaymentMethod.COD,
             List.of(),
             List.of()
         ));
@@ -221,7 +222,7 @@ class CheckoutControllerTest {
     }
 
     @Test
-    void largeOrderPreselectsVnpayBecauseCodIsNotAllowed() throws Exception {
+    void checkoutFormStartsWithTheDefaultMethodFromTheService() throws Exception {
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(checkoutService.prepareCheckout(CUSTOMER)).thenReturn(preparation);
         when(checkoutService.checkoutPage(preparation)).thenReturn(page(false));
@@ -232,6 +233,12 @@ class CheckoutControllerTest {
     }
 
     private CheckoutPageView page(boolean codAllowed) {
-        return new CheckoutPageView(9L, List.of(), 0, "0đ", "0đ", "0đ", null, "0đ", codAllowed, List.of(), List.of());
+        List<PaymentMethod> allowed = List.of(PaymentMethod.COD, PaymentMethod.VNPAY);
+        PaymentMethod defaultMethod = PaymentMethod.COD;
+        if (!codAllowed) {
+            allowed = List.of(PaymentMethod.VNPAY);
+            defaultMethod = PaymentMethod.VNPAY;
+        }
+        return new CheckoutPageView(9L, List.of(), 0, "0đ", "0đ", "0đ", null, "0đ", allowed, defaultMethod, List.of(), List.of());
     }
 }

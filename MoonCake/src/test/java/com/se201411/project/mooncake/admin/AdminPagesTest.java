@@ -712,7 +712,18 @@ class AdminPagesTest {
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
                 List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
                 actions,
-                new OrderFulfilmentView("10:00 09/11/2026", null, null, null, null, null, null, null),
+                new OrderFulfilmentView(
+                    "10:00 09/11/2026",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ),
                 List.of(ShippingCarrier.values()));
     }
 

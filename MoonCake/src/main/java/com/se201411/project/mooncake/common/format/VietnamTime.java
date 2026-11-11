@@ -28,4 +28,11 @@ public final class VietnamTime {
         }
         return date.format(DATE);
     }
+
+    public static String date(LocalDateTime utcTime) {
+        if (utcTime == null) {
+            return null;
+        }
+        return utcTime.atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).format(DATE);
+    }
 }

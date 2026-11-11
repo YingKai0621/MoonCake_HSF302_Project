@@ -548,6 +548,37 @@ class CustomerOrderServiceImplTest {
             .hasMessage("Không tìm thấy đơn hàng của bạn");
     }
 
+    @Test
+    void deliveredOrderShowsAutoCompleteDate() {
+        SalesOrder order = order(
+            17L,
+            "MC-DELIVERED-VIEW",
+            OrderStatus.DELIVERED,
+            LocalDateTime.of(2026, 10, 21, 4, 0),
+            620_000
+        );
+        order.setDeliveredAt(LocalDateTime.of(2026, 10, 21, 20, 0));
+        order.setSubtotalAmount(BigDecimal.valueOf(590_000));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingFee(BigDecimal.valueOf(30_000));
+        Payment payment = new Payment();
+        payment.setMethod(PaymentMethod.COD);
+        payment.setStatus(PaymentStatus.PAID);
+        when(orderRepository.findOwnedByOrderCode("MC-DELIVERED-VIEW", 7L))
+            .thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(17L)).thenReturn(List.of(payment));
+        when(itemRepository.findByOrderId(17L)).thenReturn(List.of());
+
+        CustomerOrderDetailView view = customerOrderService.requireOrder(
+            "MC-DELIVERED-VIEW",
+            CUSTOMER
+        );
+
+        assertThat(view.statusLabel()).isEqualTo("Đã giao hàng");
+        assertThat(view.receivable()).isTrue();
+        assertThat(view.autoCompleteDate()).isEqualTo("25/10/2026");
+    }
+
     private SalesOrder order(
         long id,
         String orderCode,

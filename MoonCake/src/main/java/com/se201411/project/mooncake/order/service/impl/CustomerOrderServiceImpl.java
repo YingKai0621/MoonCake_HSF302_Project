@@ -365,6 +365,9 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         if (status == OrderStatus.SHIPPING) {
             return "Đang giao hàng";
         }
+        if (status == OrderStatus.DELIVERED) {
+            return "Đã giao hàng";
+        }
         if (status == OrderStatus.COMPLETED) {
             return "Hoàn thành";
         }

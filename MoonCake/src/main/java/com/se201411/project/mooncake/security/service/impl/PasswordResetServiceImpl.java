@@ -145,7 +145,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             && account.getStatus() == AccountStatus.ACTIVE;
     }
 
-    /** Sends mail only once the token row is committed; runs immediately outside a transaction. */
     private static void afterCommit(Runnable action) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

@@ -14,7 +14,6 @@ public record CustomerOrderItemView(
     List<CustomerOrderComponentView> components
 ) {
 
-    /** Entity -> DTO. A CUSTOM line has no SKU snapshot, so it shows the box SKU instead. */
     public static CustomerOrderItemView entityToDto(OrderItem item, List<CustomerOrderComponentView> components) {
         String sku = item.getSkuSnapshot();
         if (sku == null) {

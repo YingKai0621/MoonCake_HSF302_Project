@@ -276,13 +276,7 @@ public class PricingServiceImpl implements PricingService {
         List<BoxConfigurationItem> items = configurationItemRepository
             .findByConfigurationIds(List.of(configurationId));
         List<CheckoutComponentQuote> components = new ArrayList<>();
-        components.add(new CheckoutComponentQuote(
-            boxVariant.getId(),
-            ComponentRole.BOX,
-            displayName(boxVariant),
-            1,
-            boxVariant.getUnitPrice()
-        ));
+        components.add(CheckoutComponentQuote.entityToDto(boxVariant, ComponentRole.BOX, 1));
 
         int cakeCount = 0;
         BigDecimal unitBasePrice = boxVariant.getUnitPrice();
@@ -294,13 +288,7 @@ public class PricingServiceImpl implements PricingService {
                 BigDecimal.valueOf(item.getQuantityPerBox())
             );
             unitBasePrice = unitBasePrice.add(componentTotal);
-            components.add(new CheckoutComponentQuote(
-                cake.getId(),
-                ComponentRole.CAKE,
-                displayName(cake),
-                item.getQuantityPerBox(),
-                cake.getUnitPrice()
-            ));
+            components.add(CheckoutComponentQuote.entityToDto(cake, ComponentRole.CAKE, item.getQuantityPerBox()));
         }
 
         if (cakeCount != configuration.getBox().getCapacityCakes()) {

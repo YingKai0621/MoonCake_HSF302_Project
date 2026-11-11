@@ -19,7 +19,6 @@ public record OrderSuccessView(
     String formattedTotal
 ) {
 
-    /** Entity -> DTO. The service maps the order lines and counts the cakes, then passes them in. */
     public static OrderSuccessView entityToDto(SalesOrder order, List<OrderSuccessItemView> items, int totalQuantity) {
         return new OrderSuccessView(
             order.getOrderCode(),

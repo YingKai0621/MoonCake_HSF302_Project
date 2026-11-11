@@ -14,7 +14,6 @@ public record PresetRecipeSnapshot(
     List<PresetComponentSnapshot> components
 ) {
 
-    /** Entity -> DTO. The service maps the recipe lines and passes them in. */
     public static PresetRecipeSnapshot entityToDto(
         BoxConfiguration configuration,
         long giftSetVariantId,

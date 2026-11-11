@@ -9,7 +9,6 @@ public record CustomCartComponentView(
     int quantityPerBox
 ) {
 
-    /** Entity -> DTO */
     public static CustomCartComponentView entityToDto(BoxConfigurationItem component) {
         ProductVariant cake = component.getMooncakeVariant();
         return new CustomCartComponentView(

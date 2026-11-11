@@ -9,7 +9,6 @@ public record AdminVideoView(
     String caption
 ) {
 
-    /** Entity -> DTO */
     public static AdminVideoView entityToDto(ProductVideo video) {
         return new AdminVideoView(
             video.getId(),

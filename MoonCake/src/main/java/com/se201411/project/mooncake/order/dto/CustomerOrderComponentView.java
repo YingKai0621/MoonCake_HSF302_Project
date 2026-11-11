@@ -8,7 +8,6 @@ public record CustomerOrderComponentView(
     int quantityPerSet
 ) {
 
-    /** Entity -> DTO. The service turns the component role into a Vietnamese label. */
     public static CustomerOrderComponentView entityToDto(OrderItemComponent component, String roleLabel) {
         return new CustomerOrderComponentView(
             roleLabel,

@@ -27,10 +27,6 @@ public record CustomerOrderDetailView(
     String formattedTotal
 ) {
 
-    /**
-     * Entity -> DTO. Order fields and money come from the entity; status texts, flags,
-     * the auto-cancel countdown and the mapped lines are worked out by the service.
-     */
     public static CustomerOrderDetailView entityToDto(
         SalesOrder order,
         String statusLabel,

@@ -7,9 +7,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 
-/**
- * Creates URL-safe reset tokens and the SHA-256 hash that is stored instead of the raw token.
- */
 public final class PasswordResetTokens {
 
     private static final int TOKEN_BYTES = 32;
@@ -34,7 +31,6 @@ public final class PasswordResetTokens {
         }
     }
 
-    /** Rejects obviously malformed input before it reaches the database. */
     public static boolean looksValid(String rawToken) {
         return rawToken != null && rawToken.matches("^[A-Za-z0-9_-]{43}$");
     }

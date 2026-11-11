@@ -120,10 +120,6 @@ public class CheckoutForm {
         this.orderNote = orderNote;
     }
 
-    /**
-     * DTO -> Entity: copies what the customer typed for delivery. Buyer snapshot, address,
-     * prices and status are set by the service because they come from the server.
-     */
     public void dtoToEntity(SalesOrder order) {
         order.setRecipientName(recipientName.trim());
         order.setRecipientPhone(recipientPhone);

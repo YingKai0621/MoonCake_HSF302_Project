@@ -13,7 +13,6 @@ public record RecentOrderView(
     String formattedCreatedAt
 ) {
 
-    /** Entity -> DTO. The service decides the status text/colour and formats the time. */
     public static RecentOrderView entityToDto(
         SalesOrder order,
         String statusLabel,

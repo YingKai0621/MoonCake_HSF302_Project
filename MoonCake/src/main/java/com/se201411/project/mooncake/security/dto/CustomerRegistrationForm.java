@@ -80,10 +80,6 @@ public class CustomerRegistrationForm {
         this.phone = phone;
     }
 
-    /**
-     * DTO -> Entity: copies the customer's own fields. Email, account link and role
-     * are set by the service so the form can never choose them.
-     */
     public void dtoToEntity(Customer customer) {
         customer.setFullName(fullName.trim());
         customer.setPhone(phone);

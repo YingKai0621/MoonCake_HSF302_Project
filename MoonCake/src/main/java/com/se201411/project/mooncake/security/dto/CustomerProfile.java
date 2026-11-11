@@ -9,7 +9,6 @@ public record CustomerProfile(
     String email
 ) {
 
-    /** Entity -> DTO */
     public static CustomerProfile entityToDto(Customer customer) {
         return new CustomerProfile(
             customer.getId(),

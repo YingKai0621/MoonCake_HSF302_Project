@@ -33,10 +33,6 @@ public record AdminOrderView(
     Actions actions
 ) {
 
-    /**
-     * Entity -> DTO. Order fields come from the entity; labels, times, mapped lines,
-     * payments and allowed actions are worked out by the service.
-     */
     public static AdminOrderView entityToDto(
         SalesOrder order,
         String statusLabel,
@@ -84,7 +80,6 @@ public record AdminOrderView(
         List<Component> components
     ) {
 
-        /** Entity -> DTO. The service maps the item's components and passes them in. */
         public static Item entityToDto(OrderItem item, List<Component> components) {
             return new Item(
                 item.getProductNameSnapshot(),
@@ -107,7 +102,6 @@ public record AdminOrderView(
         ComponentRole role
     ) {
 
-        /** Entity -> DTO */
         public static Component entityToDto(OrderItemComponent component) {
             return new Component(
                 component.getComponentNameSnapshot(),
@@ -125,7 +119,6 @@ public record AdminOrderView(
         String formattedPaidAt
     ) {
 
-        /** Entity -> DTO. The service asks the payment strategy for the method name and formats the paid time. */
         public static PaymentLine entityToDto(Payment payment, String methodLabel, String formattedPaidAt) {
             boolean paid = payment.getStatus() == PaymentStatus.PAID;
             String statusLabel = "Chưa thanh toán";

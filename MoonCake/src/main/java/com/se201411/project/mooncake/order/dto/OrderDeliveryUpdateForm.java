@@ -95,10 +95,6 @@ public class OrderDeliveryUpdateForm {
         this.currentShippingAddress = currentShippingAddress;
     }
 
-    /**
-     * Entity -> DTO: fills the edit form from the order. The service splits the saved
-     * address into street/ward/province afterwards.
-     */
     public static OrderDeliveryUpdateForm entityToDto(SalesOrder order) {
         OrderDeliveryUpdateForm form = new OrderDeliveryUpdateForm();
         form.setRecipientName(order.getRecipientName());

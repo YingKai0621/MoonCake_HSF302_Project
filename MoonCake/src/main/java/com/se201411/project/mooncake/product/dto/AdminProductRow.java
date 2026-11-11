@@ -16,7 +16,6 @@ public record AdminProductRow(
     String webTone
 ) {
 
-    /** Entity -> DTO. Price range, picture and web status are worked out by the service. */
     public static AdminProductRow entityToDto(
         Product product,
         String typeLabel,

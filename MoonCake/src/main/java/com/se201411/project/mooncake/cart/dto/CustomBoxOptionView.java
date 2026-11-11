@@ -17,7 +17,6 @@ public record CustomBoxOptionView(
     String imageAlt
 ) {
 
-    /** Entity -> DTO. The image comes from the catalog view, which the service looks up. */
     public static CustomBoxOptionView entityToDto(Box box, String imageUrl, String imageAlt) {
         ProductVariant variant = box.getEmptyBoxVariant();
         return new CustomBoxOptionView(

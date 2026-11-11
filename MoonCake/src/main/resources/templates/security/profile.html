@@ -79,7 +79,7 @@
 
     <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-email-title">
       <h2 id="edit-email-title" class="font-serif text-xl font-semibold mb-2">Chỉnh sửa email</h2>
-      <p class="text-sm text-sand mb-5">Email mới sẽ là tên đăng nhập của bạn. Sau khi lưu, vui lòng đăng nhập lại.</p>
+      <p class="text-sm text-sand mb-5 border-l-2 border-gold/60 pl-3">Email mới sẽ là tên đăng nhập của bạn. Sau khi lưu, vui lòng đăng nhập lại.</p>
       <form th:action="@{/profile/email}" th:object="${emailForm}" method="post" class="space-y-4">
         <label for="email" class="block text-sm text-sand">Email</label>
         <input id="email" type="email" th:field="*{email}" maxlength="254" autocomplete="email" required class="w-full border border-gold/25 bg-midnight px-4 py-3 text-ivory outline-none focus:border-gold">

@@ -40,7 +40,13 @@ import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.AdminExceptionAdvice;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.order.dto.CustomerOpenOrderView;
 import com.se201411.project.mooncake.security.config.SecurityConfig;
+import com.se201411.project.mooncake.security.controller.AdminCustomerController;
+import com.se201411.project.mooncake.security.dto.AdminCustomerDetailPageView;
+import com.se201411.project.mooncake.security.dto.AdminCustomerListPageView;
+import com.se201411.project.mooncake.security.dto.AdminCustomerRow;
+import com.se201411.project.mooncake.security.service.CustomerAdminService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +71,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -91,11 +98,13 @@ class AdminPagesTest {
     @Autowired GiftBoxAdminService giftBoxes;
     @Autowired ProductMediaService media;
     @Autowired BatchStockService batches;
+    @Autowired
+    CustomerAdminService customers;
     MockMvc mvc;
 
     @BeforeEach
     void setup() {
-        reset(catalog, presets, inventory, orders, cancellations, media);
+        reset(catalog, presets, inventory, orders, cancellations, media, customers);
         when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
         when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted")));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
@@ -196,6 +205,79 @@ class AdminPagesTest {
             mvc.perform(get(path).with(user("admin").roles("ADMIN"))).andExpect(status().isOk());
             mvc.perform(get(path).with(user("customer").roles("CUSTOMER"))).andExpect(status().isForbidden());
         }
+    }
+
+    @Test
+    void rendersCustomerListAndDetailPages() throws Exception {
+        AdminCustomerRow active = new AdminCustomerRow(
+            7L,
+            "customer@example.com",
+            "Nguyễn Văn A",
+            "0901234567",
+            "01/10/2026",
+            true,
+            12,
+            3
+        );
+        when(customers.customersPage(any(), anyInt())).thenReturn(new AdminCustomerListPageView(
+            List.of(active),
+            "customer",
+            0,
+            true
+        ));
+        when(customers.customerPage(7L)).thenReturn(new AdminCustomerDetailPageView(
+            active,
+            List.of(
+                new CustomerOpenOrderView(1L, "MC-1", "Chờ xử lý", "COD · Chưa thanh toán", "250.000đ", true),
+                new CustomerOpenOrderView(2L, "MC-2", "Đang giao", "COD · Chưa thanh toán", "300.000đ", false)
+            ),
+            1
+        ));
+
+        mvc.perform(get("/admin/customers").param("q", "customer").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("customer@example.com")))
+            .andExpect(content().string(containsString("12 đơn · 3 đã hủy")))
+            .andExpect(content().string(containsString("Đang hoạt động")))
+            .andExpect(content().string(containsString("Trang sau →")))
+            .andExpect(content().string(containsString("href=\"/admin/customers\"")));
+
+        mvc.perform(get("/admin/customers/7").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Hủy luôn các đơn chưa thanh toán đang chờ xử lý (1 đơn)")))
+            .andExpect(content().string(containsString("Khóa tài khoản")))
+            .andExpect(content().string(containsString("Xử lý thủ công")))
+            .andExpect(content().string(containsString("data-confirm-message")))
+            .andExpect(content().string(containsString("_csrf")));
+    }
+
+    @Test
+    void lockedCustomerDetailOffersOnlyUnlock() throws Exception {
+        AdminCustomerRow locked = new AdminCustomerRow(
+            7L,
+            "customer@example.com",
+            "Nguyễn Văn A",
+            "0901234567",
+            "01/10/2026",
+            false,
+            0,
+            0
+        );
+        when(customers.customerPage(7L)).thenReturn(new AdminCustomerDetailPageView(locked, List.of(), 0));
+
+        mvc.perform(get("/admin/customers/7").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Mở khóa tài khoản")))
+            .andExpect(content().string(not(containsString("Hủy luôn các đơn"))));
+    }
+
+    @Test
+    void orderListShowsLockedCustomerLabel() throws Exception {
+        when(orders.orders(any(), anyInt())).thenReturn(List.of(order(OrderStatus.PLACED, true)));
+
+        mvc.perform(get("/admin/orders").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Khách đã bị khóa")));
     }
 
     @Test
@@ -700,6 +782,10 @@ class AdminPagesTest {
     }
 
     static AdminOrderView order(OrderStatus status) {
+        return order(status, false);
+    }
+
+    static AdminOrderView order(OrderStatus status, boolean customerLocked) {
         boolean placed = status == OrderStatus.PLACED;
         boolean processing = status == OrderStatus.PROCESSING;
         boolean shipping = status == OrderStatus.SHIPPING;
@@ -715,12 +801,12 @@ class AdminPagesTest {
                 new OrderFulfilmentView("10:00 09/11/2026", null, null, null, null, null, null, null),
                 List.of(ShippingCarrier.values()),
                 5L,
-                false);
+                customerLocked);
     }
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminCustomerController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
         @Bean GiftBoxAdminService giftBoxAdminService(){return mock(GiftBoxAdminService.class);}
@@ -756,6 +842,11 @@ class AdminPagesTest {
         @Bean
         OrderCancellationService cancellations() {
             return mock(OrderCancellationService.class);
+        }
+
+        @Bean
+        CustomerAdminService customers() {
+            return mock(CustomerAdminService.class);
         }
 
         @Bean

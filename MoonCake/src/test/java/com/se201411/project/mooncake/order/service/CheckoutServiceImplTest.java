@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.service;
 
+import java.util.Map;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.cart.dto.CartLineSnapshot;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
@@ -55,6 +57,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -322,5 +325,33 @@ class CheckoutServiceImplTest {
             BigDecimal.valueOf(100_000L * cartLine.quantity()),
             components
         );
+    }
+
+    @Test
+    void checkoutPageIsRefusedWhenCartNeedsMoreThanStock() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        CheckoutCartSnapshot cart = new CheckoutCartSnapshot(
+            9L,
+            customerIdentity,
+            List.of(new CartLineSnapshot(10L, null, 500))
+        );
+        CheckoutQuote quote = new CheckoutQuote(
+            List.of(line(cart.lines().get(0), OrderItemKind.STANDARD,
+                InventorySource.STOCKED_SKU, DiscountGroup.MOONCAKE)),
+            List.of(),
+            BigDecimal.valueOf(100_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(30_000),
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(130_000)
+        );
+        when(cartService.requireCurrentActiveCart(customerIdentity)).thenReturn(cart);
+        when(pricingService.calculateCheckoutQuote(cart)).thenReturn(quote);
+        when(inventoryService.availableQuantities(List.of(10L))).thenReturn(Map.of(10L, 96));
+
+        assertThatThrownBy(() -> checkoutService.prepareCheckout(customerIdentity))
+            .isInstanceOf(InsufficientStockException.class)
+            .hasMessageContaining("Chỉ còn 96")
+            .hasMessageContaining("cần 500");
     }
 }

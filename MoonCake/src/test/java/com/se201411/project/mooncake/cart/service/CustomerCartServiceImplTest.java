@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service;
 
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
@@ -395,5 +396,73 @@ class CustomerCartServiceImplTest {
 
     private void setId(Object target, long id) {
         ReflectionTestUtils.setField(target, "id", id);
+    }
+
+    @Test
+    void addingMoreThanStockIsRejectedAndKeepsCartQuantity() {
+        Cart cart = cart(100L);
+        CartItem existingItem = item(500L, cart, variant(200L), 90);
+        when(cartRepository.findByCustomerIdAndStatusForUpdate(10L, CartStatus.ACTIVE))
+            .thenReturn(Optional.of(cart));
+        when(cartItemRepository.findVariantItem(100L, 200L))
+            .thenReturn(Optional.of(existingItem));
+        when(productQueryService.findVariantsForCart(List.of(200L)))
+            .thenReturn(List.of(cakeWithStock(96)));
+
+        assertThatThrownBy(() -> service.addVariant(CUSTOMER, 200L, 10))
+            .isInstanceOf(InsufficientStockException.class)
+            .hasMessageContaining("Chỉ còn 96");
+        assertThat(existingItem.getQuantity()).isEqualTo(90);
+    }
+
+    @Test
+    void increasingAboveStockIsRejectedButDecreasingIsAllowed() {
+        Cart cart = cart(100L);
+        CartItem item = item(500L, cart, variant(200L), 500);
+        when(cartRepository.findByCustomerIdAndStatusForUpdate(10L, CartStatus.ACTIVE))
+            .thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByIdAndCartId(500L, 100L))
+            .thenReturn(Optional.of(item));
+        when(productQueryService.findVariantsForCart(List.of(200L)))
+            .thenReturn(List.of(cakeWithStock(96)));
+
+        assertThatThrownBy(() -> service.updateItemQuantity(CUSTOMER, 500L, 501))
+            .isInstanceOf(InsufficientStockException.class);
+
+        service.updateItemQuantity(CUSTOMER, 500L, 96);
+
+        assertThat(item.getQuantity()).isEqualTo(96);
+    }
+
+    @Test
+    void lineAboveStockBlocksCheckoutButton() {
+        Cart cart = cart(100L);
+        CartItem item = item(500L, cart, variant(200L), 500);
+        when(cartRepository.findByCustomerIdAndStatus(10L, CartStatus.ACTIVE))
+            .thenReturn(Optional.of(cart));
+        when(cartItemRepository.findVariantItemsByCartId(100L)).thenReturn(List.of(item));
+        when(productQueryService.findVariantsForCart(List.of(200L)))
+            .thenReturn(List.of(cakeWithStock(96)));
+
+        CustomerCartView result = service.getCurrentCart(CUSTOMER);
+
+        assertThat(result.hasUnavailableItems()).isTrue();
+        assertThat(result.items().get(0).stockWarning()).contains("Chỉ còn 96");
+    }
+
+    private CartVariantSnapshot cakeWithStock(int stock) {
+        return new CartVariantSnapshot(
+            200L,
+            "banh-cha-bong",
+            "Bánh Chà Bông",
+            "Bánh 80g",
+            "MC-CB-80",
+            ProductType.MOONCAKE,
+            BigDecimal.valueOf(105_000),
+            "/images/cake.png",
+            "Bánh Chà Bông",
+            true,
+            stock
+        );
     }
 }

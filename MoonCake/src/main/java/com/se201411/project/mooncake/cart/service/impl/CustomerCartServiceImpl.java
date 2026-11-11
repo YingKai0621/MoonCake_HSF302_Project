@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.service.impl;
 
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.cart.dto.CartItemView;
 import com.se201411.project.mooncake.cart.dto.CustomCartComponentView;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
@@ -122,8 +123,11 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         );
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(addQuantities(item.getQuantity(), quantity));
+            int newQuantity = addQuantities(item.getQuantity(), quantity);
+            requireStock(variantId, newQuantity);
+            item.setQuantity(newQuantity);
         } else {
+            requireStock(variantId, quantity);
             CartItem item = new CartItem();
             item.setCart(cart);
             ProductVariant variantReference = productQueryService.variantReference(variantId);
@@ -152,6 +156,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
         if (item.getVariant() != null && quantity > item.getQuantity()) {
             productQueryService.requireSellableVariant(item.getVariant().getId());
+            requireStock(item.getVariant().getId(), quantity);
         }
         if (item.getConfigurationId() != null && quantity > item.getQuantity()) {
             validateCustomConfigurationSellable(item.getConfigurationId(), cart.getId());
@@ -258,7 +263,8 @@ public class CustomerCartServiceImpl implements CustomerCartService {
 
             totalQuantity = addQuantities(totalQuantity, item.getQuantity());
             subtotal = subtotal.add(lineTotal);
-            if (!variant.currentlySellable()) {
+            boolean shortOfStock = variant.stock() >= 0 && variant.stock() < item.getQuantity();
+            if (!variant.currentlySellable() || shortOfStock) {
                 hasUnavailableItems = true;
             }
         }
@@ -486,6 +492,23 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             );
         }
         return itemResult.get();
+    }
+
+    private void requireStock(long variantId, int quantity) {
+        List<CartVariantSnapshot> found = productQueryService.findVariantsForCart(List.of(variantId));
+        if (found.isEmpty()) {
+            return;
+        }
+        int stock = found.get(0).stock();
+        if (stock < 0 || quantity <= stock) {
+            return;
+        }
+        if (stock <= 0) {
+            throw new InsufficientStockException("Sản phẩm này đã hết hàng.");
+        }
+        throw new InsufficientStockException(
+            "Chỉ còn " + stock + " sản phẩm " + found.get(0).productName() + ". Vui lòng chọn tối đa " + stock + "."
+        );
     }
 
     private int addQuantities(int first, int second) {

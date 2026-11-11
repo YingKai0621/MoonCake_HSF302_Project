@@ -9,6 +9,7 @@ import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepos
 import com.se201411.project.mooncake.cart.repository.CustomBoxRepository;
 import com.se201411.project.mooncake.cart.service.impl.CustomBoxServiceImpl;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
@@ -20,6 +21,7 @@ import com.se201411.project.mooncake.enums.CartStatus;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
 import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.security.dto.ShopperIdentity;
@@ -41,6 +43,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -229,10 +232,54 @@ class CustomBoxServiceImplTest {
         return cart;
     }
 
+    @Test
+    void rejectsCustomBoxWhenCakeStockCannotCoverEveryBox() {
+        Cart cart = cart(100L);
+        when(cartRepository.findByCustomerIdAndStatusForUpdate(10L, CartStatus.ACTIVE))
+            .thenReturn(Optional.of(cart));
+        when(customBoxRepository.findSellableBoxById(20L, ProductType.EMPTY_BOX))
+            .thenReturn(Optional.of(box(20L, 4)));
+        when(productQueryService.requireSellableVariant(201L)).thenReturn(mooncake(201L));
+        when(productQueryService.findVariantsForCart(anyCollection())).thenReturn(List.of(
+            stock(520L, "Vỏ hộp", "Hộp 4", 50),
+            stock(201L, "Bánh Chà Bông Trứng Nghiền", "Bánh 80g", 0)
+        ));
+
+        SaveCustomBoxCommand command = new SaveCustomBoxCommand(
+            20L,
+            4,
+            List.of(new CustomCakeQuantity(201L, 4))
+        );
+
+        assertThatThrownBy(() -> service.createAndAddToCart(CUSTOMER, command))
+            .isInstanceOf(InsufficientStockException.class)
+            .hasMessage("Chỉ còn 0 Bánh Chà Bông Trứng Nghiền - Bánh 80g nhưng hộp tự chọn này cần 16."
+                + " Vui lòng giảm số lượng hộp hoặc chọn bánh khác.");
+        verify(configurationRepository, never()).save(any(BoxConfiguration.class));
+        verify(cartItemRepository, never()).save(any(CartItem.class));
+    }
+
+    private CartVariantSnapshot stock(long variantId, String productName, String variantName, int stock) {
+        return new CartVariantSnapshot(
+            variantId,
+            "slug",
+            productName,
+            variantName,
+            "SKU-" + variantId,
+            ProductType.MOONCAKE,
+            BigDecimal.valueOf(100_000),
+            "/images/x.png",
+            productName,
+            true,
+            stock
+        );
+    }
+
     private Box box(long id, int capacity) {
         Box box = new Box();
         ReflectionTestUtils.setField(box, "id", id);
         box.setCapacityCakes(capacity);
+        box.setEmptyBoxVariant(variant(id + 500));
         return box;
     }
 

@@ -50,7 +50,8 @@ public class SecurityConfig {
                 "/cart/**",
                 "/checkout/**",
                 "/orders/**",
-                "/custom-boxes/**"
+                "/custom-boxes/**",
+                "/account/**"
             ).hasRole("CUSTOMER")
             .anyRequest().authenticated()
         );

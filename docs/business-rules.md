@@ -1,14 +1,23 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.14 — 11/11/2026
+**Phiên bản tài liệu:** 1.15 — 11/11/2026
 
-**Trạng thái:** Trang đơn của khách cho biết ai đã hủy đơn; không đổi schema
+**Trạng thái:** Mốc thời gian và thông tin giao hàng của đơn (Flyway V18); Admin đăng nhập vào thẳng trang quản trị; chặn ngày sản xuất ở tương lai
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.15
+
+- **Mốc thời gian của đơn:** hệ thống tự ghi giờ khi đơn chuyển sang Đang xử lý (`processing_at`), Đang giao (`shipping_at`), Hoàn thành (`completed_at`) và khi bị hủy (`cancelled_at`). Trang chi tiết đơn của khách và của Admin hiển thị giờ của từng bước. Đơn trước v1.15 không có các giờ này.
+- **Thông tin giao hàng:** khi bàn giao vận chuyển (`PROCESSING → SHIPPING`), Admin bắt buộc chọn **đơn vị vận chuyển** (Giao Hàng Nhanh, Giao Hàng Tiết Kiệm, Viettel Post, Cửa hàng tự giao), nhập **mã vận đơn** (bắt buộc trừ khi cửa hàng tự giao; lưu chữ in hoa, tối đa 50 ký tự) và chọn **ngày giao dự kiến** (không trước hôm nay; mặc định hôm nay + 2 ngày). Khách thấy "Giao bởi ..., mã vận đơn ..." và "Dự kiến giao: ..." cho tới khi đơn hoàn thành. Đây là thông tin nhập tay; hệ thống không gọi API của đơn vị vận chuyển.
+- **Khách không chọn ngày nhận hàng.** Ngày giao do cửa hàng và đơn vị vận chuyển quyết định; khách có thể ghi mong muốn vào ghi chú đơn hàng.
+- **Đăng nhập:** tài khoản Admin đăng nhập xong vào thẳng `/admin/overview` (hoặc trang quản trị đang mở trước đó); khách hàng giữ hành vi cũ. Admin xem cửa hàng qua liên kết "Xem cửa hàng".
+- **Nhập kho theo lô:** ngày sản xuất không được sau hôm nay, cả khi nhập kho lẫn khi sửa thông tin lô.
+- Flyway V18 thêm 7 cột vào `SALES_ORDER` (`processing_at`, `shipping_at`, `completed_at`, `cancelled_at`, `shipping_carrier`, `tracking_code`, `estimated_delivery_date`) và ràng buộc `CK_SALES_ORDER_shipping_carrier`. Không thêm bảng.
 
 ### Thay đổi chính trong phiên bản 1.14
 
@@ -399,7 +408,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. Flyway hiện ở version 17; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. V18 thêm mốc thời gian và thông tin giao hàng vào `SALES_ORDER`. Flyway hiện ở version 18; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -514,6 +523,13 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-88 | Admin hủy đơn VNPay đã thanh toán | Câu trên kèm "Cửa hàng sẽ liên hệ để hoàn tiền cho bạn." |
 | BR-89 | Khách tự hủy đơn của mình | Hiện "Bạn đã hủy đơn hàng này." |
 | BR-90 | Đơn VNPay tự hủy do quá 15 phút | Hiện câu chung "Đơn hàng này đã bị hủy và không còn được xử lý." |
+| BR-91 | Admin bấm Nhận xử lý rồi Bàn giao vận chuyển | Trang đơn của khách hiện giờ đặt hàng, giờ bắt đầu xử lý và giờ bàn giao |
+| BR-92 | Bàn giao bằng Giao Hàng Nhanh nhưng bỏ trống mã vận đơn | Từ chối, yêu cầu nhập mã vận đơn; đơn vẫn Đang xử lý |
+| BR-93 | Bàn giao bằng Cửa hàng tự giao, không có mã | Chuyển Đang giao; khách thấy "Giao bởi Cửa hàng tự giao" và ngày dự kiến |
+| BR-94 | Chọn ngày giao dự kiến trước hôm nay | Từ chối; đơn không đổi |
+| BR-95 | Gửi yêu cầu chuyển thẳng sang SHIPPING không kèm thông tin giao hàng | Từ chối |
+| BR-96 | Admin đăng nhập | Vào thẳng trang Tổng quan quản trị |
+| BR-97 | Nhập kho hoặc sửa lô với ngày sản xuất sau hôm nay | Từ chối "Ngày sản xuất không được sau hôm nay." |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

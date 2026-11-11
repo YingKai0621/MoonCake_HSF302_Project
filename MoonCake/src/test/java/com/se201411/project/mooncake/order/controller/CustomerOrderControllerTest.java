@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.controller;
 
+import com.se201411.project.mooncake.order.dto.OrderFulfilmentView;
 import com.se201411.project.mooncake.order.dto.DeliveryEditPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -105,7 +106,8 @@ class CustomerOrderControllerTest {
             "30.000đ",
             null,
             "620.000đ",
-            null
+            null,
+            new OrderFulfilmentView("10:00 21/10/2026", null, null, null, null, null, null, null)
         );
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(customerOrderService.requireOrder("MC-20261021-TEST", CUSTOMER))

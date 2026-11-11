@@ -23,10 +23,10 @@
 
     <ol class="order-steps" th:unless="${order.status.name() == 'CANCELLED'}"
         th:with="stage=${order.status.name() == 'COMPLETED' ? 4 : order.status.name() == 'SHIPPING' ? 3 : order.status.name() == 'PROCESSING' ? 2 : 1}">
-        <li class="order-steps__step" th:classappend="${stage > 1 or stage == 4 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng</li>
-        <li class="order-steps__step" th:classappend="${stage > 2 ? 'is-done' : (stage == 2 ? 'is-current' : '')}"><span>2</span>Đang chuẩn bị</li>
-        <li class="order-steps__step" th:classappend="${stage > 3 ? 'is-done' : (stage == 3 ? 'is-current' : '')}"><span>3</span>Đang giao</li>
-        <li class="order-steps__step" th:classappend="${stage == 4 ? 'is-done' : ''}"><span>4</span>Hoàn tất</li>
+        <li class="order-steps__step" th:classappend="${stage > 1 or stage == 4 ? 'is-done' : 'is-current'}"><span>1</span>Đặt hàng<small th:text="${order.fulfilment.placedAt}"></small></li>
+        <li class="order-steps__step" th:classappend="${stage > 2 ? 'is-done' : (stage == 2 ? 'is-current' : '')}"><span>2</span>Đang chuẩn bị<small th:text="${order.fulfilment.processingAt}"></small></li>
+        <li class="order-steps__step" th:classappend="${stage > 3 ? 'is-done' : (stage == 3 ? 'is-current' : '')}"><span>3</span>Đang giao<small th:text="${order.fulfilment.shippingAt}"></small></li>
+        <li class="order-steps__step" th:classappend="${stage == 4 ? 'is-done' : ''}"><span>4</span>Hoàn tất<small th:text="${order.fulfilment.completedAt}"></small></li>
     </ol>
 
     <div class="detail-layout">
@@ -53,6 +53,15 @@
                         </details>
                     </li>
                 </ul>
+            </section>
+
+            <section th:if="${order.fulfilment.hasShipment()}">
+                <h2>Giao hàng</h2>
+                <dl class="summary-list">
+                    <div><dt>Đơn vị vận chuyển</dt><dd th:text="${order.fulfilment.carrierLabel}">Giao Hàng Nhanh</dd></div>
+                    <div th:if="${order.fulfilment.trackingCode}"><dt>Mã vận đơn</dt><dd th:text="${order.fulfilment.trackingCode}">GHN123</dd></div>
+                    <div><dt>Ngày giao dự kiến</dt><dd th:text="${order.fulfilment.estimatedDelivery}">18/09/2026</dd></div>
+                </dl>
             </section>
 
             <section>
@@ -107,8 +116,23 @@
                         <input type="hidden" name="target" value="PROCESSING">
                         <button type="submit" data-loading-text="Đang cập nhật…">Nhận xử lý đơn</button>
                     </form>
-                    <form th:if="${order.actions.canShip}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">
-                        <input type="hidden" name="target" value="SHIPPING">
+                    <form th:if="${order.actions.canShip}" th:action="@{/admin/orders/{id}/ship(id=${order.id})}" method="post" class="ship-form">
+                        <p th:if="${shipError}" class="form-alert" role="alert" th:text="${shipError}">Lỗi</p>
+                        <label>Đơn vị vận chuyển
+                            <select name="carrier" required>
+                                <option th:each="carrier : ${order.shippingCarriers}"
+                                        th:value="${carrier.name()}"
+                                        th:text="${carrier.label()}">Giao Hàng Nhanh</option>
+                            </select>
+                        </label>
+                        <label>Mã vận đơn
+                            <input type="text" name="trackingCode" maxlength="50" placeholder="Bỏ trống nếu cửa hàng tự giao">
+                        </label>
+                        <label>Ngày giao dự kiến
+                            <input type="date" name="estimatedDeliveryDate" required
+                                   th:value="${#temporals.format(#temporals.createToday().plusDays(2), 'yyyy-MM-dd')}"
+                                   th:min="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                        </label>
                         <button type="submit" data-loading-text="Đang cập nhật…">Bàn giao vận chuyển</button>
                     </form>
                     <form th:if="${order.actions.canComplete}" th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post">

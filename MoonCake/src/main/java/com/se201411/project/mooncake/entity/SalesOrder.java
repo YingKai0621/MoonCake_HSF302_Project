@@ -2,6 +2,7 @@ package com.se201411.project.mooncake.entity;
 
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.OrderType;
+import com.se201411.project.mooncake.enums.ShippingCarrier;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,7 +29,6 @@ public class SalesOrder {
     @Column(name = "order_id")
     private Long id;
 
-    @Nationalized
     @Column(name = "order_code", nullable = false, length = 40)
     private String orderCode;
 
@@ -43,29 +44,24 @@ public class SalesOrder {
     @Column(name = "order_type", nullable = false, length = 12)
     private OrderType orderType;
 
-    @Nationalized
     @Column(name = "buyer_name_snapshot", nullable = false, length = 160)
     private String buyerNameSnapshot;
 
     @Column(name = "buyer_phone_snapshot", nullable = false, length = 20)
     private String buyerPhoneSnapshot;
 
-    @Nationalized
     @Column(name = "buyer_email_snapshot", length = 254)
     private String buyerEmailSnapshot;
 
-    @Nationalized
     @Column(name = "recipient_name", nullable = false, length = 160)
     private String recipientName;
 
     @Column(name = "recipient_phone", nullable = false, length = 20)
     private String recipientPhone;
 
-    @Nationalized
     @Column(name = "shipping_address_snapshot", nullable = false, length = 500)
     private String shippingAddressSnapshot;
 
-    @Nationalized
     @Column(name = "order_note", length = 1000)
     private String orderNote;
 
@@ -93,6 +89,28 @@ public class SalesOrder {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "processing_at")
+    private LocalDateTime processingAt;
+
+    @Column(name = "shipping_at")
+    private LocalDateTime shippingAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "tracking_code", length = 50)
+    private String trackingCode;
+
+    @Column(name = "estimated_delivery_date")
+    private LocalDate estimatedDeliveryDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shipping_carrier", length = 20)
+    private ShippingCarrier shippingCarrier;
 
     public SalesOrder() {
     }
@@ -251,5 +269,61 @@ public class SalesOrder {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getProcessingAt() {
+        return processingAt;
+    }
+
+    public void setProcessingAt(LocalDateTime processingAt) {
+        this.processingAt = processingAt;
+    }
+
+    public LocalDateTime getShippingAt() {
+        return shippingAt;
+    }
+
+    public void setShippingAt(LocalDateTime shippingAt) {
+        this.shippingAt = shippingAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public void setCancelledAt(LocalDateTime cancelledAt) {
+        this.cancelledAt = cancelledAt;
+    }
+
+    public String getTrackingCode() {
+        return trackingCode;
+    }
+
+    public void setTrackingCode(String trackingCode) {
+        this.trackingCode = trackingCode;
+    }
+
+    public LocalDate getEstimatedDeliveryDate() {
+        return estimatedDeliveryDate;
+    }
+
+    public void setEstimatedDeliveryDate(LocalDate estimatedDeliveryDate) {
+        this.estimatedDeliveryDate = estimatedDeliveryDate;
+    }
+
+    public ShippingCarrier getShippingCarrier() {
+        return shippingCarrier;
+    }
+
+    public void setShippingCarrier(ShippingCarrier shippingCarrier) {
+        this.shippingCarrier = shippingCarrier;
     }
 }

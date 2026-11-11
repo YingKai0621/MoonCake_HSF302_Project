@@ -1,5 +1,10 @@
 package com.se201411.project.mooncake.order.controller;
 
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
+import com.se201411.project.mooncake.common.web.FormErrors;
+import com.se201411.project.mooncake.order.dto.ShipmentForm;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
 import com.se201411.project.mooncake.order.service.OrderCancellationService;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
@@ -51,6 +56,26 @@ public class AdminOrderController {
             orders.transition(id, target);
         }
         flash.addFlashAttribute("success", "Đã cập nhật đơn hàng.");
+        return "redirect:/admin/orders/" + id;
+    }
+
+    @PostMapping("/{id}/ship")
+    public String ship(
+        @PathVariable long id,
+        @Valid @ModelAttribute ShipmentForm form,
+        BindingResult result,
+        RedirectAttributes flash
+    ) {
+        if (result.hasErrors()) {
+            flash.addFlashAttribute("shipError", FormErrors.first(result));
+            return "redirect:/admin/orders/" + id;
+        }
+        try {
+            orders.ship(id, form);
+            flash.addFlashAttribute("success", "Đã bàn giao vận chuyển.");
+        } catch (MoonCakeException exception) {
+            flash.addFlashAttribute("shipError", exception.getMessage());
+        }
         return "redirect:/admin/orders/" + id;
     }
 

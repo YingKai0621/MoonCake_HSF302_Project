@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.order.dto.ShipmentForm;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.order.dto.AdminOrderListPageView;
 import com.se201411.project.mooncake.order.dto.AdminOrderTab;
@@ -26,4 +27,6 @@ public interface OrderManagementService {
     long countItemsWithConfigurations(Collection<Long> configurationIds);
 
     AdminOrderListPageView ordersPage(OrderStatus status, int page);
+
+    void ship(long id, ShipmentForm form);
 }

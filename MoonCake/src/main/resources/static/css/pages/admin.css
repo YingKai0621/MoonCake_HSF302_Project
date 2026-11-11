@@ -3921,3 +3921,21 @@ tr[hidden] {
   color: var(--success);
   font-weight: 600;
 }
+
+.order-steps__step small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ship-form {
+  display: grid;
+  gap: 10px;
+}
+
+.ship-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}

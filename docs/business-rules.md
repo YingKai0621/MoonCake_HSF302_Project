@@ -1,14 +1,22 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.12 — 11/11/2026
+**Phiên bản tài liệu:** 1.13 — 11/11/2026
 
-**Trạng thái:** Thêm trang Tài khoản của tôi (sửa thông tin cá nhân, đổi mật khẩu); không đổi schema
+**Trạng thái:** Admin quản lý khách hàng (xem, khóa, mở khóa tài khoản); không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.13
+
+- Admin có trang **Khách hàng** (`/admin/customers`): tìm theo email hoặc số điện thoại, xem số đơn, **khóa** và **mở khóa** tài khoản `CUSTOMER`. Dùng `ACCOUNT.status` sẵn có (`ACTIVE`/`DISABLED`).
+- Khóa có **hiệu lực ngay**: phiên đăng nhập đang mở của khách bị hết hạn; bước đặt hàng kiểm tra lại tài khoản còn `ACTIVE` trong cùng transaction.
+- Khi khóa, Admin chọn có **hủy luôn các đơn chưa thanh toán đang chờ** (`PLACED` + payment `UNPAID`) hay không; mặc định là có. Đơn đã thanh toán, đang xử lý hoặc đang giao **không bao giờ bị hủy tự động**; Admin xử lý từng đơn.
+- Đơn của khách đang bị khóa hiện nhãn **"Khách đã bị khóa"** trên trang đơn hàng của Admin.
+- Không xóa tài khoản, không sửa thông tin hộ khách, không đặt lại mật khẩu hộ, không khóa tài khoản Admin. Không lưu lý do khóa (cần migration, để phiên bản sau).
 
 ### Thay đổi chính trong phiên bản 1.12
 
@@ -362,6 +370,17 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Khách có quyền tự hủy đơn `PLACED` của chính mình; Admin không sở hữu một luồng hoàn kho riêng mà dùng chung nghiệp vụ hủy để bảo đảm idempotency và không hoàn tồn hai lần.
 - Admin **không phải online để khách đặt hàng**. Một đơn mới tự tạo trong hệ thống và được nhân viên xử lý sau.
 - Không xóa cứng sản phẩm, cấu hình, khách hàng, đơn hàng, bản ghi thanh toán, biến động kho khi chúng đã được dữ liệu lịch sử tham chiếu; sử dụng `is_active` hoặc trạng thái phù hợp.
+- **Quản lý khách hàng (v1.13).** Admin xem danh sách khách (email, họ tên, số điện thoại, ngày đăng ký, trạng thái, tổng số đơn, số đơn đã hủy), tìm theo email hoặc số điện thoại, và **khóa** (`ACTIVE → DISABLED`) hoặc **mở khóa** (`DISABLED → ACTIVE`) bằng cập nhật có điều kiện. Chỉ áp dụng cho tài khoản `CUSTOMER`; không có thao tác xóa tài khoản, sửa thông tin hộ hay đặt lại mật khẩu hộ.
+- **Hiệu lực của khóa:** khách không đăng nhập được; mọi phiên đang mở của khách bị hết hạn ngay và lần truy cập kế tiếp được đưa về `/login?disabled` với thông báo "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ." Bước đặt hàng kiểm tra lại tài khoản còn `ACTIVE` trong cùng transaction để không tạo đơn sau thời điểm khóa. Trang đăng nhập **không** nói riêng là email đã bị khóa khi người nhập chưa đăng nhập được (tránh lộ email nào đã đăng ký); câu báo lỗi chung vẫn nhắc trường hợp tài khoản bị khóa.
+- **Đơn đang mở khi khóa** (trang chi tiết khách liệt kê trước khi xác nhận):
+  - `PLACED` và payment `UNPAID` (COD chưa thu hoặc VNPay chưa trả): nếu Admin để chọn **"Hủy luôn các đơn chưa thanh toán đang chờ"** (mặc định bật), hệ thống hủy qua đúng luồng hủy của Admin: hoàn tồn đúng một lần; đơn VNPay được hỏi `querydr` trước, nếu VNPay báo đã thanh toán thì **không hủy** và chuyển sang xử lý thủ công.
+  - `PLACED` hoặc `PROCESSING` đã có payment `PAID`, hoặc `PROCESSING` COD: **không tự hủy**. Admin liên hệ khách qua số điện thoại trên đơn và quyết định giao hay hủy; hủy đơn đã trả tiền thì hoàn tiền thủ công như mục 6.3.
+  - `SHIPPING`: tiếp tục giao, xác nhận giao và thu COD như bình thường; không hủy được.
+  - `COMPLETED`, `CANCELLED`: giữ nguyên.
+- **Thứ tự khi khóa:** khóa tài khoản trong một transaction trước; sau đó hủy từng đơn đủ điều kiện, **mỗi đơn một transaction**. Một đơn hủy thất bại (VNPay báo đã trả, đơn vừa bị người khác chuyển trạng thái) không làm hủy việc khóa hay các đơn khác; kết quả báo số đơn đã hủy và danh sách mã đơn cần xử lý thủ công.
+- Tiền VNPay về sau khi khóa (khách đã mở cổng thanh toán trước đó) vẫn được ghi nhận theo IPN như mục 6.3; nếu đơn đã bị hủy thì hiển thị "Cần hoàn tiền".
+- **Mở khóa** chỉ đưa tài khoản về `ACTIVE`; không khôi phục đơn đã hủy và không ảnh hưởng luật tạm khóa đặt đơn 24 giờ của v1.11. Khóa không xóa giỏ hàng của khách.
+- Danh sách đơn và trang chi tiết đơn của Admin hiện nhãn **"Khách đã bị khóa"** cho đơn của khách đang `DISABLED`, và có liên kết sang trang chi tiết khách.
 - Doanh nghiệp có thể cung cấp thông tin trong `BUSINESS` và `SALES_ORDER.business_id`; chiết khấu số lượng **không phụ thuộc** vào có `BUSINESS` hay không.
 - Chưa có các module kế toán, nhà cung cấp, kho đa địa điểm, hóa đơn VAT, vận chuyển qua API, đổi trả sau giao hay sản xuất theo công đoạn.
 - Flyway V10–V12 đã thêm góp ý khách hàng, video sản phẩm và theo dõi tồn theo lô (`STOCK_BATCH`, `BATCH_ALLOCATION`). Quy tắc nghiệp vụ chi tiết của lô hàng do Admin owner bổ sung ở phiên bản sau; cho đến khi được chốt, tổng tồn có thể bán vẫn lấy theo `INVENTORY_BALANCE.available_quantity`.
@@ -475,6 +494,16 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-74 | Mật khẩu mới trùng mật khẩu hiện tại, hoặc xác nhận không khớp | Báo lỗi ở ô tương ứng; mật khẩu không đổi |
 | BR-75 | Đổi mật khẩu thành công khi đang có link quên mật khẩu chưa dùng | Đăng nhập được bằng mật khẩu mới, không bằng mật khẩu cũ; link cũ không dùng được nữa |
 | BR-76 | Khách chưa đăng nhập hoặc Admin mở `/account` | Khách chưa đăng nhập về trang đăng nhập; Admin bị từ chối |
+| BR-77 | Admin khóa khách đang đăng nhập | Lần bấm kế tiếp của khách về `/login?disabled` kèm thông báo khóa; không thêm giỏ hay đặt hàng được |
+| BR-78 | Khách bị khóa nhập đúng email và mật khẩu ở trang đăng nhập | Không đăng nhập được; hiện câu báo lỗi chung |
+| BR-79 | Khóa khách có 1 đơn COD `PLACED`, 1 đơn VNPay chưa trả, ô hủy được bật | Cả hai đơn bị hủy, hoàn tồn đúng một lần; kết quả báo "Đã hủy 2 đơn" |
+| BR-80 | Khóa khách có đơn VNPay `PLACED` mà `querydr` báo đã trả | Đơn không bị hủy, ghi `PAID`; nằm trong danh sách cần xử lý thủ công; tài khoản vẫn bị khóa |
+| BR-81 | Khóa khách có đơn `PROCESSING` hoặc `SHIPPING` | Đơn không bị hủy; đơn `SHIPPING` vẫn xác nhận giao và thu COD được |
+| BR-82 | Khóa khách và bỏ chọn ô hủy | Tài khoản bị khóa; mọi đơn giữ nguyên |
+| BR-83 | Khách bấm Đặt hàng đúng lúc Admin khóa | Nếu khóa đã commit thì không tạo đơn; nếu đơn tạo trước thì đơn xuất hiện trong danh sách đơn đang mở |
+| BR-84 | Mở khóa khách | Đăng nhập lại được; đơn đã hủy vẫn `CANCELLED` |
+| BR-85 | Đơn của khách bị khóa trong danh sách đơn Admin | Hiện nhãn "Khách đã bị khóa" và liên kết sang trang khách |
+| BR-86 | Người dùng `CUSTOMER` mở `/admin/customers` | Bị từ chối |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

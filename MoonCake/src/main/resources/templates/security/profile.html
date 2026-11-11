@@ -54,7 +54,7 @@
           <dt class="text-base sm:text-lg text-sand">Họ và tên</dt>
           <dd class="sm:col-span-1">
             <form th:action="@{/profile/name}" th:object="${profileForm}" method="post" class="flex w-full flex-wrap items-center gap-3" data-profile-edit-form>
-              <input id="fullName" type="text" th:field="*{fullName}" maxlength="160" autocomplete="name" required class="w-full max-w-md border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
+              <input id="fullName" type="text" th:field="*{fullName}" maxlength="40" autocomplete="name" required class="w-full max-w-md border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
               <button type="submit" class="ml-auto bg-gold text-surface text-base font-semibold px-5 py-3">Lưu</button>
               <button type="reset" class="border border-gold/40 text-base text-sand font-semibold px-5 py-3 hover:border-gold hover:text-ivory" data-profile-cancel aria-label="Hủy thay đổi họ và tên" hidden>Hủy chỉnh sửa</button>
               <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="w-full text-sm text-red-300"></p>

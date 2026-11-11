@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 public class CustomerProfileForm {
 
     @NotBlank(message = "Vui lòng nhập họ tên")
-    @Size(max = 160, message = "Họ tên tối đa 160 ký tự")
+    @Size(max = 40, message = "Họ tên không được vượt quá 40 ký tự")
     @Pattern(regexp = "^[\\p{L}\\s]+$", message = "Họ tên chỉ được chứa chữ cái và khoảng trắng")
     private String fullName;
 

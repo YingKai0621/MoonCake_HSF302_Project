@@ -1,14 +1,24 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.15 — 11/11/2026
+**Phiên bản tài liệu:** 1.16 — 12/11/2026
 
-**Trạng thái:** Mốc thời gian và thông tin giao hàng của đơn (Flyway V18); Admin đăng nhập vào thẳng trang quản trị; chặn ngày sản xuất ở tương lai
+**Trạng thái:** Xác nhận giao hàng hai phía: trạng thái Đã giao, khách xác nhận đã nhận, tự hoàn tất sau 3 ngày (Flyway V19, chờ triển khai)
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.16
+
+- Thêm trạng thái đơn **`DELIVERED` (Đã giao)** giữa `SHIPPING` và `COMPLETED`. Luồng mới: `SHIPPING → DELIVERED → COMPLETED`.
+- **Admin** bấm **"Đã giao hàng"** khi đơn vị vận chuyển báo giao xong: đơn sang `DELIVERED`, ghi `delivered_at`. Đơn COD được ghi đã thu tiền (`PAID`, `paid_at`) ngay trong cùng transaction này.
+- **Khách** bấm **"Đã nhận được hàng"** ở trang chi tiết đơn khi đơn đang `DELIVERED`: đơn sang `COMPLETED`, ghi `completed_at` và `customer_confirmed_at`.
+- Khách không bấm thì **hệ thống tự hoàn tất** đơn `DELIVERED` sau **3 ngày** kể từ `delivered_at` (`completed_at` có giá trị, `customer_confirmed_at` để trống).
+- Đơn `DELIVERED` không hủy được, không sửa thông tin nhận hàng. Khách chưa nhận được hàng thì liên hệ cửa hàng trước hạn tự hoàn tất; đổi trả và khiếu nại vẫn ngoài phạm vi MVP.
+- Doanh thu và món bán chạy trên dashboard tính cả đơn `DELIVERED` lẫn `COMPLETED`.
+- Flyway V19 mở rộng `CK_SALES_ORDER_status` thêm `DELIVERED` và thêm hai cột `delivered_at`, `customer_confirmed_at` vào `SALES_ORDER`.
 
 ### Thay đổi chính trong phiên bản 1.15
 
@@ -236,7 +246,8 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Chuyển trạng thái đơn hợp lệ trong MVP:
   - `PLACED` → `PROCESSING` hoặc `CANCELLED`.
   - `PROCESSING` → `SHIPPING` hoặc `CANCELLED`.
-  - `SHIPPING` → `COMPLETED`.
+  - `SHIPPING` → `DELIVERED` (Admin xác nhận đã giao; từ v1.16).
+  - `DELIVERED` → `COMPLETED` (khách xác nhận đã nhận, hoặc hệ thống tự hoàn tất sau 3 ngày; từ v1.16).
   - `COMPLETED` và `CANCELLED` là trạng thái kết thúc; không chuyển ngược hoặc chuyển sang trạng thái khác.
 - Khách chỉ được tự hủy đơn **của chính mình** khi trạng thái còn `PLACED` và **chưa thanh toán** (`PAYMENT.UNPAID`). Quyền sở hữu phải lấy từ principal `CUSTOMER` phía server; mã đơn hoặc `customer_id` do trình duyệt gửi không chứng minh quyền sở hữu.
 - Admin được hủy đơn khi trạng thái còn `PLACED` hoặc `PROCESSING`. Khi đơn đã sang `PROCESSING`, khách không còn nút tự hủy và phải liên hệ cửa hàng nếu cần; Admin quyết định xử lý theo trạng thái thực tế.
@@ -268,7 +279,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 ### 6.2. COD
 
 - Chỉ chuyển sang `PAID` và ghi `paid_at` **khi có xác nhận hàng đã giao và tiền COD thực sự được thu**.
-- Xác nhận giao thành công và thu COD là một thao tác nghiệp vụ nguyên tử: chuyển đơn `SHIPPING → COMPLETED`, chuyển payment `UNPAID → PAID` và ghi `paid_at` trong cùng transaction. Nếu một bước thất bại thì không cập nhật bước còn lại.
+- Xác nhận giao thành công và thu COD là một thao tác nghiệp vụ nguyên tử: chuyển đơn `SHIPPING → DELIVERED` (trước v1.16 là `SHIPPING → COMPLETED`), chuyển payment `UNPAID → PAID` và ghi `paid_at` trong cùng transaction. Nếu một bước thất bại thì không cập nhật bước còn lại.
 - Gọi lặp thao tác xác nhận giao/thu COD không được tạo payment mới, ghi đè `paid_at` hoặc thực hiện lại tác động khác; lần sau phải trả về kết quả đã xử lý hoặc bị từ chối an toàn.
 - Khi đơn COD bị hủy hợp lệ trước giao, `PAYMENT` giữ `UNPAID` và `paid_at` giữ null; `SALES_ORDER.CANCELLED` thể hiện đơn đã hủy. Không có trạng thái payment `CANCELLED` và không hoàn tiền vì chưa thu tiền.
 
@@ -530,6 +541,13 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-95 | Gửi yêu cầu chuyển thẳng sang SHIPPING không kèm thông tin giao hàng | Từ chối |
 | BR-96 | Admin đăng nhập | Vào thẳng trang Tổng quan quản trị |
 | BR-97 | Nhập kho hoặc sửa lô với ngày sản xuất sau hôm nay | Từ chối "Ngày sản xuất không được sau hôm nay." |
+| BR-98 | Admin bấm "Đã giao hàng" cho đơn COD đang giao | Đơn sang Đã giao, ghi giờ giao; thanh toán COD thành Đã thanh toán trong cùng transaction |
+| BR-99 | Khách bấm "Đã nhận được hàng" khi đơn Đã giao | Đơn sang Hoàn thành; ghi giờ hoàn thành và giờ khách xác nhận |
+| BR-100 | Khách bấm "Đã nhận được hàng" khi đơn còn Đang giao, hoặc đơn của người khác | Bị từ chối; đơn không đổi |
+| BR-101 | Đơn Đã giao quá 3 ngày, khách chưa bấm | Lần chạy job kế tiếp tự chuyển Hoàn thành; giờ khách xác nhận để trống |
+| BR-102 | Khách và job cùng hoàn tất một đơn cùng lúc | Chỉ một bên thành công (cập nhật có điều kiện); đơn hoàn thành đúng một lần |
+| BR-103 | Admin hoặc khách cố hủy đơn Đã giao | Bị từ chối |
+| BR-104 | Dashboard có đơn Đã giao trong kỳ | Doanh thu và món bán chạy tính cả đơn Đã giao |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

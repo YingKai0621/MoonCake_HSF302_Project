@@ -217,7 +217,7 @@ public class VnpayGateway {
     }
 
     public long unpaidOrderLifetimeMinutes() {
-        return env.getProperty("UNPAID_ORDER_CANCEL_MINUTES", Long.class, 30L);
+        return env.getProperty("UNPAID_ORDER_CANCEL_MINUTES", Long.class, 15L);
     }
 
     private Map<String, String> sendQuery(Map<String, String> request) {

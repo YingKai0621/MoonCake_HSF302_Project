@@ -58,3 +58,8 @@
   line-height: 1.5;
   color: var(--mc-sand);
 }
+
+.payment-option.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

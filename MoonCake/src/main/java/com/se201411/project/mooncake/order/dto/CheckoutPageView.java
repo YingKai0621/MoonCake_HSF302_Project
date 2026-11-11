@@ -11,6 +11,7 @@ public record CheckoutPageView(
     String formattedShippingFee,
     String formattedRoundingAdjustment,
     String formattedTotal,
+    boolean codAllowed,
     List<AddressOption> provinces,
     List<AddressOption> wards
 ) {

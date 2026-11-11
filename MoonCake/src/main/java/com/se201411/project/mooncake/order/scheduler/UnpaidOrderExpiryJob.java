@@ -14,8 +14,8 @@ public class UnpaidOrderExpiryJob {
     }
 
     @Scheduled(
-        initialDelayString = "${AUTO_CANCEL_CHECK_MS:300000}",
-        fixedDelayString = "${AUTO_CANCEL_CHECK_MS:300000}"
+        initialDelayString = "${AUTO_CANCEL_CHECK_MS:60000}",
+        fixedDelayString = "${AUTO_CANCEL_CHECK_MS:60000}"
     )
     public void cancelExpiredUnpaidOrders() {
         unpaidOrderExpiryService.cancelExpiredUnpaidOrders();

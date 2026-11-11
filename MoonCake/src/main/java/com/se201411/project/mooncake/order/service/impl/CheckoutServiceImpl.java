@@ -157,6 +157,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             MoneyFormat.vnd(quote.shippingFee()),
             MoneyFormat.signedVnd(quote.roundingAdjustment()),
             MoneyFormat.vnd(quote.total()),
+            paymentProcessorRegistry.forMethod(PaymentMethod.COD).acceptsTotal(quote.total()),
             deliveryAddressService.getProvinces(),
             deliveryAddressService.getWards()
         );
@@ -183,6 +184,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             customerIdentity
         );
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
+        paymentProcessor.checkCanPlace(customerIdentity.customerId(), quote.total());
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         LocalDateTime now = LocalDateTime.now(clock);
 

@@ -74,7 +74,7 @@
 
 <form th:fragment="product(f, typeLocked)" th:action="@{/admin/products}" method="post" class="product-form" data-slug-form>
     <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
-    <div th:replace="~{admin/product-forms :: productFields(${f}, ${typeLocked})}"></div>
+    <div th:replace="~{admin/fragments/product-forms :: productFields(${f}, ${typeLocked})}"></div>
     <div class="form-footer">
         <input th:if="${page.formOptions.giftBox or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
         <label class="switch-card" th:unless="${page.formOptions.giftBox or hideSaleSwitch == true}">

@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Sản phẩm')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Sản phẩm')}"></head>
 <body class="page-catalog">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main>
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
 
     <div class="page-heading page-heading--simple page-heading--with-action">
         <div>
@@ -97,8 +97,8 @@
                         <h2 th:text="${'Sửa danh mục: ' + category.name}">Sửa danh mục</h2>
                         <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
                     </div>
-                    <p th:replace="~{admin/product-forms :: alert(${'category-' + category.id})}"></p>
-                    <form th:replace="~{admin/product-forms :: category(${formTarget == 'category-' + category.id ? formValues : category})}"></form>
+                    <p th:replace="~{admin/fragments/product-forms :: alert(${'category-' + category.id})}"></p>
+                    <form th:replace="~{admin/fragments/product-forms :: category(${formTarget == 'category-' + category.id ? formValues : category})}"></form>
                 </dialog>
             </li>
         </ul>
@@ -108,8 +108,8 @@
                 <h2>Thêm danh mục</h2>
                 <button type="button" data-dialog-close aria-label="Đóng">Đóng</button>
             </div>
-            <p th:replace="~{admin/product-forms :: alert('category-new')}"></p>
-            <form th:replace="~{admin/product-forms :: category(${formTarget == 'category-new' ? formValues : null})}"></form>
+            <p th:replace="~{admin/fragments/product-forms :: alert('category-new')}"></p>
+            <form th:replace="~{admin/fragments/product-forms :: category(${formTarget == 'category-new' ? formValues : null})}"></form>
         </dialog>
         </div>
     </details>

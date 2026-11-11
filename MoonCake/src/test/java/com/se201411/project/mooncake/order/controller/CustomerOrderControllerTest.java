@@ -199,6 +199,25 @@ class CustomerOrderControllerTest {
     }
 
     @Test
+    void receivedFailureRedirectsBackWithError() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        doThrow(new BusinessRuleViolationException(
+            "Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được."
+        )).when(customerOrderService).confirmReceived(
+            "MC-20261021-TEST",
+            CUSTOMER
+        );
+
+        mockMvc.perform(post("/orders/MC-20261021-TEST/received"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/orders/MC-20261021-TEST"))
+            .andExpect(flash().attribute(
+                "errorMessage",
+                "Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được."
+            ));
+    }
+
+    @Test
     void failedCancellationShowsMessageInsteadOfErrorPage() throws Exception {
         doThrow(new BusinessRuleViolationException("Đơn đã được thanh toán qua VNPay."))
             .when(orderCancellationService).cancelCurrentCustomerOrder("MC-20261021-TEST");

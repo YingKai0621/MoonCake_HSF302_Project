@@ -63,7 +63,7 @@ Package gốc là `com.se201411.project.mooncake.security`.
 | exception | `exception/WrongCurrentPasswordException.java` | Tạo mới, kế thừa `BusinessRuleViolationException`, message cố định `"Mật khẩu hiện tại không đúng."` (theo mẫu `EmailAlreadyRegisteredException`) |
 | exception | `exception/SamePasswordException.java` | Tạo mới, kế thừa `BusinessRuleViolationException`, message cố định `"Mật khẩu mới phải khác mật khẩu hiện tại."` |
 | config | `config/SecurityConfig.java` | Sửa: thêm `"/account/**"` vào danh sách `hasRole("CUSTOMER")` |
-| template | `src/main/resources/templates/account.html` | Tạo mới |
+| template | `src/main/resources/templates/security/account.html` | Tạo mới |
 | template | `src/main/resources/templates/fragments/header.html` | Sửa: thêm 1 link |
 
 Repository đã có sẵn, **không tạo mới**: `CustomerRepository`, `AccountRepository`, `PasswordResetTokenRepository` (dùng hàm có sẵn `invalidateOpenTokens`).
@@ -142,7 +142,7 @@ Inject thêm `PasswordResetTokenRepository` qua constructor. Repository này thu
 
 - Gắn `@Controller` và `@RequestMapping("/account")`.
 - Constructor nhận `CurrentCustomerService`, `CustomerProfileService`, `AuthenticationService`.
-- Tên view: `"account"`.
+- Tên view: `"security/account"` (file `templates/security/account.html`, cùng thư mục với các trang đăng nhập).
 
 ### 6.1. `GET /account`
 1. `ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();`
@@ -157,7 +157,7 @@ Tham số: `@Valid @ModelAttribute("profileForm") ProfileUpdateForm form`, `Bind
 2. Nếu `bindingResult.hasErrors()`:
    - thêm `"page"` = `accountPage(customer)`;
    - thêm `"passwordForm"` = `new ChangePasswordForm()`;
-   - trả về `"account"`.
+   - trả về `"security/account"`.
 3. Gọi `customerProfileService.updateProfile(customer, form)`.
 4. Thêm flash `"successMessage"` = `"Đã cập nhật thông tin cá nhân."`, rồi `return "redirect:/account";`.
 
@@ -170,21 +170,21 @@ Tham số: `@Valid @ModelAttribute("passwordForm") ChangePasswordForm form`, `Bi
 3. Nếu có lỗi thì hiện lại trang:
    - thêm `"page"` = `accountPage(customer)`;
    - thêm `"profileForm"` = `profileForm(customer)`;
-   - trả về `"account"`.
+   - trả về `"security/account"`.
 4. Gọi `authenticationService.changePassword(customer, form.getCurrentPassword(), form.getNewPassword())` trong `try`, với **hai** khối `catch`:
    - `catch (WrongCurrentPasswordException exception)`: `bindingResult.rejectValue("currentPassword", "password.wrong", exception.getMessage())`, rồi hiện lại trang như bước 3.
    - `catch (SamePasswordException exception)`: `bindingResult.rejectValue("newPassword", "password.same", exception.getMessage())`, rồi hiện lại trang như bước 3.
 
-   Phần "hiện lại trang" lặp lại nhiều lần, nên tách thành hàm private `showAccountPage(Model model, ShopperIdentity customer)`. Hàm này chỉ thêm các attribute còn thiếu rồi trả về `"account"`. **Không** so sánh chuỗi message để phân biệt lỗi.
+   Phần "hiện lại trang" lặp lại nhiều lần, nên tách thành hàm private `showAccountPage(Model model, ShopperIdentity customer)`. Hàm này chỉ thêm các attribute còn thiếu rồi trả về `"security/account"`. **Không** so sánh chuỗi message để phân biệt lỗi.
 5. Thành công thì thêm flash `"successMessage"` = `"Đã đổi mật khẩu."`, rồi `return "redirect:/account";`.
 
 ---
 
 ## 7. Giao diện
 
-### 7.1. `account.html`
-- Lấy cấu trúc của `order-delivery-edit.html`: header fragment, `main`, footer fragment, các class giao diện. Gọi header bằng `header('account')`.
-- Đầu `main` có khối hiện `successMessage` và `errorMessage`, copy từ `orders.html`.
+### 7.1. `security/account.html`
+- Lấy cấu trúc của `order/order-delivery-edit.html`: header fragment, `main`, footer fragment, các class giao diện. Gọi header bằng `header('account')`.
+- Đầu `main` có khối hiện `successMessage` và `errorMessage`, copy từ `order/orders.html`.
 - Tiêu đề: **"Tài khoản của tôi"**. Dòng phụ: `Thành viên từ ${page.memberSince}`.
 - **Khối 1, "Thông tin cá nhân":**
   - Email hiển thị dạng chữ, không phải ô nhập: `${page.email}`, kèm ghi chú "Email dùng để đăng nhập, không thay đổi được".

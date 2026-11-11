@@ -76,9 +76,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-[180px_minmax(0,1fr)] gap-3 py-5 last:pb-0">
           <dt class="text-base sm:text-lg text-sand">Số điện thoại</dt>
           <dd class="sm:col-span-1">
-            <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="flex flex-wrap items-center gap-3" data-profile-edit-form>
-              <input id="phone" type="tel" th:field="*{phone}" inputmode="numeric" autocomplete="tel" maxlength="10" required class="w-full max-w-sm border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
-              <button type="submit" class="bg-gold text-surface text-base font-semibold px-5 py-3">Lưu</button>
+            <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="flex w-full flex-wrap items-center gap-3" data-profile-edit-form>
+              <input id="phone" type="tel" th:field="*{phone}" inputmode="numeric" autocomplete="tel" maxlength="10" required class="w-full max-w-md border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
+              <button type="submit" class="ml-auto bg-gold text-surface text-base font-semibold px-5 py-3">Lưu</button>
               <button type="reset" class="border border-gold/40 text-base text-sand font-semibold px-5 py-3 hover:border-gold hover:text-ivory" data-profile-cancel aria-label="Hủy thay đổi số điện thoại" hidden>Hủy chỉnh sửa</button>
               <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="w-full text-sm text-red-300"></p>
             </form>

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.controller;
 
+import com.se201411.project.mooncake.common.web.FormErrors;
 import com.se201411.project.mooncake.cart.dto.AddCartItemForm;
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.dto.UpdateCartItemForm;
@@ -129,14 +130,7 @@ public class CartController {
         BindingResult bindingResult,
         RedirectAttributes redirectAttributes
     ) {
-        String message = "Dữ liệu giỏ hàng không hợp lệ";
-        if (!bindingResult.getAllErrors().isEmpty()) {
-            String validationMessage = bindingResult.getAllErrors().getFirst().getDefaultMessage();
-            if (validationMessage != null && !validationMessage.isBlank()) {
-                message = validationMessage;
-            }
-        }
-        redirectAttributes.addFlashAttribute("errorMessage", message);
+        redirectAttributes.addFlashAttribute("errorMessage", FormErrors.first(bindingResult));
     }
 
     private String safeProductReturnUrl(String returnUrl) {

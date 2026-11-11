@@ -2,6 +2,7 @@ package com.se201411.project.mooncake;
 
 import com.se201411.project.mooncake.cart.dto.CustomerCartView;
 import com.se201411.project.mooncake.cart.service.CustomerCartService;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.Account;
 import com.se201411.project.mooncake.entity.Customer;
 import com.se201411.project.mooncake.security.dto.CustomerRegistrationForm;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("integration")
@@ -47,6 +49,7 @@ class CustomerCartIT {
         Customer customer = registerCustomer();
         ShopperIdentity identity = ShopperIdentity.forCustomer(customer.getId());
         long variantId = findVariantId("MC-KSPM-080");
+        setAvailableQuantity(variantId, 10);
         int inventoryBefore = findInventoryQuantity(variantId);
 
         customerCartService.addVariant(identity, variantId, 2);
@@ -62,6 +65,31 @@ class CustomerCartIT {
         assertThat(cart.totalQuantity()).isEqualTo(5);
         assertThat(cartLineCount).isEqualTo(1L);
         assertThat(inventoryAfter).isEqualTo(inventoryBefore);
+    }
+
+    @Test
+    void addingMoreThanAvailableStockIsRejected() {
+        Customer customer = registerCustomer();
+        ShopperIdentity identity = ShopperIdentity.forCustomer(customer.getId());
+        long variantId = findVariantId("MC-KSPM-080");
+        setAvailableQuantity(variantId, 4);
+
+        customerCartService.addVariant(identity, variantId, 3);
+
+        assertThatThrownBy(() -> customerCartService.addVariant(identity, variantId, 2))
+            .isInstanceOf(InsufficientStockException.class)
+            .hasMessageContaining("Chỉ còn 4");
+    }
+
+    private void setAvailableQuantity(long variantId, int quantity) {
+        entityManager.createNativeQuery("""
+            UPDATE dbo.INVENTORY_BALANCE
+            SET available_quantity = :quantity
+            WHERE variant_id = :variantId
+            """)
+            .setParameter("quantity", quantity)
+            .setParameter("variantId", variantId)
+            .executeUpdate();
     }
 
     private Customer registerCustomer() {

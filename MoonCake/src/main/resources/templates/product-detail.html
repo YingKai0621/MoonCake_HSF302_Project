@@ -224,6 +224,8 @@
                        name="quantity"
                        type="number"
                        min="1"
+                       th:max="${product.primaryVariant.stock > 0 ? product.primaryVariant.stock : 1}"
+                       th:attr="data-max-error=${'Chỉ còn ' + product.primaryVariant.stock + ' sản phẩm.'}"
                        value="1"
                        required
                        class="quantity-stepper__input">

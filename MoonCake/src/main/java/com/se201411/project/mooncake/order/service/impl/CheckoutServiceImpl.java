@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.cart.dto.CartSnapshot;
 import com.se201411.project.mooncake.common.format.MoneyFormat;
 import com.se201411.project.mooncake.cart.dto.CheckoutCartSnapshot;
@@ -104,6 +105,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     public CheckoutPreparation prepareCheckout(ShopperIdentity customerIdentity) {
         CheckoutCartSnapshot cart = cartService.requireCurrentActiveCart(customerIdentity);
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
+        requireStock(quote);
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         return new CheckoutPreparation(cart.cartId(), customer, quote);
     }
@@ -120,6 +122,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             cart.lines()
         );
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(checkoutCart);
+        requireStock(quote);
         CustomerProfile customer = customerProfileService.requireProfile(customerIdentity);
         return new CheckoutPreparation(cart.cartId(), customer, quote);
     }
@@ -317,6 +320,39 @@ public class CheckoutServiceImpl implements CheckoutService {
         payment.setCreatedAt(now);
         payment.setUpdatedAt(now);
         paymentRepository.save(payment);
+    }
+
+    private void requireStock(CheckoutQuote quote) {
+        List<InventoryDemand> demands = buildInventoryDemands(quote);
+        List<Long> variantIds = new ArrayList<>();
+        for (InventoryDemand demand : demands) {
+            variantIds.add(demand.variantId());
+        }
+        Map<Long, Integer> available = inventoryService.availableQuantities(variantIds);
+        for (InventoryDemand demand : demands) {
+            int left = available.getOrDefault(demand.variantId(), 0);
+            if (demand.quantity() > left) {
+                throw new InsufficientStockException(
+                    "Chỉ còn " + left + " " + demandName(quote, demand.variantId())
+                        + " nhưng giỏ hàng cần " + demand.quantity()
+                        + ". Vui lòng giảm số lượng trước khi thanh toán."
+                );
+            }
+        }
+    }
+
+    private String demandName(CheckoutQuote quote, long variantId) {
+        for (CheckoutLineQuote line : quote.lines()) {
+            if (line.cartLine().variantId() != null && line.cartLine().variantId() == variantId) {
+                return line.productName();
+            }
+            for (CheckoutComponentQuote component : line.components()) {
+                if (component.variantId() == variantId) {
+                    return component.name();
+                }
+            }
+        }
+        return "sản phẩm";
     }
 
     private List<InventoryDemand> buildInventoryDemands(CheckoutQuote quote) {

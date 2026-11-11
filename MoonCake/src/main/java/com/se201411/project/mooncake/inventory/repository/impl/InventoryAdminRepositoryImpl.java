@@ -166,4 +166,9 @@ public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
             .setParameter("until", until)
             .getSingleResult();
     }
+
+    @Override
+    public Account accountReference(long accountId) {
+        return em.getReference(Account.class, accountId);
+    }
 }

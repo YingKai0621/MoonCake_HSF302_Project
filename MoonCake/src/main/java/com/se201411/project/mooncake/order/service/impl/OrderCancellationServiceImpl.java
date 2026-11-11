@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.OrderItem;
@@ -44,6 +45,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
     private final InventoryService inventoryService;
     private final CurrentCustomerService currentCustomerService;
     private final AdminAccessService adminAccessService;
+    private final CustomerProfileService customerProfileService;
     private final Clock clock;
 
     public OrderCancellationServiceImpl(
@@ -55,6 +57,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         InventoryService inventoryService,
         CurrentCustomerService currentCustomerService,
         AdminAccessService adminAccessService,
+        CustomerProfileService customerProfileService,
         Clock clock
     ) {
         this.orderRepository = orderRepository;
@@ -65,6 +68,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         this.inventoryService = inventoryService;
         this.currentCustomerService = currentCustomerService;
         this.adminAccessService = adminAccessService;
+        this.customerProfileService = customerProfileService;
         this.clock = clock;
     }
 
@@ -87,13 +91,14 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, OrderStatus.PLACED, true);
+        long customerAccountId = customerProfileService.accountIdOf(customer.customerId());
+        cancelOrder(order, OrderStatus.PLACED, true, customerAccountId);
     }
 
     @Override
     @Transactional
     public void cancelForAdmin(long orderId) {
-        adminAccessService.requireAdmin();
+        long adminAccountId = adminAccessService.requireAdmin();
         SalesOrder order = orderRepository.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Không tìm thấy đơn hàng."
@@ -107,7 +112,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             );
         }
 
-        cancelOrder(order, currentStatus, false);
+        cancelOrder(order, currentStatus, false, adminAccountId);
     }
 
     @Override
@@ -137,7 +142,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
             return false;
         }
 
-        cancelOrder(order, OrderStatus.PLACED, false);
+        cancelOrder(order, OrderStatus.PLACED, false, null);
         return true;
     }
 
@@ -158,7 +163,8 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
     private void cancelOrder(
         SalesOrder order,
         OrderStatus expectedStatus,
-        boolean requestedByCustomer
+        boolean requestedByCustomer,
+        Long performedByAccountId
     ) {
         orderRepository.findByIdForUpdate(order.getId());
         Payment payment = requireSinglePayment(order.getId());
@@ -191,7 +197,8 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
         CancellationInventoryCommand command = new CancellationInventoryCommand(
             order,
             "CANCEL_RETURN:" + order.getId(),
-            demands
+            demands,
+            performedByAccountId
         );
         inventoryService.restoreForCancellation(command);
     }

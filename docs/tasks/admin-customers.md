@@ -116,7 +116,7 @@ order.CheckoutServiceImpl          ──►  security.CustomerProfileService  (
 
 ## 6. Service
 
-### 6.1. `CustomerProfileService` (security), thêm 5 hàm
+### 6.1. `CustomerProfileService` (security), thêm 4 hàm (hàm thứ 5 `accountIdOf` đã có sẵn)
 
 ```
 Set<Long> disabledCustomerIds(Collection<Long> customerIds);
@@ -132,7 +132,7 @@ long accountIdOf(long customerId);
 | `requireActiveAccount` | `@Transactional(readOnly = true)` | Tài khoản của khách không `ACTIVE` thì ném `BusinessRuleViolationException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ.")`. |
 | `disableAccount` | `@Transactional` | Cập nhật có điều kiện `ACTIVE → DISABLED`, chỉ cho `role = CUSTOMER`. Trả về `true` nếu đúng 1 dòng thay đổi. |
 | `enableAccount` | `@Transactional` | Ngược lại: `DISABLED → ACTIVE`. |
-| `accountIdOf` | `@Transactional(readOnly = true)` | Trả về `customer.getAccount().getId()`. Không thấy khách thì ném `ResourceNotFoundException`. |
+| `accountIdOf` | đã có sẵn (v1.14) | **Đã được thêm** khi làm tính năng "ai hủy đơn". Không viết lại, chỉ dùng. |
 
 `AccountRepository`: thêm `@Modifying @Query` cập nhật `status` theo `id`, `role` và `status` cũ, trả về `int` (số dòng đổi).
 

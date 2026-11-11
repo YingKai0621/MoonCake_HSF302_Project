@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
+import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -57,6 +59,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressService deliveryAddressService;
     private final PaymentProcessorRegistry paymentProcessorRegistry;
+    private final InventoryService inventoryService;
+    private final CustomerProfileService customerProfileService;
     private final Clock clock;
 
     public CustomerOrderServiceImpl(
@@ -66,6 +70,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         PaymentRepository paymentRepository,
         DeliveryAddressService deliveryAddressService,
         PaymentProcessorRegistry paymentProcessorRegistry,
+        InventoryService inventoryService,
+        CustomerProfileService customerProfileService,
         Clock clock
     ) {
         this.orderRepository = orderRepository;
@@ -74,6 +80,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         this.paymentRepository = paymentRepository;
         this.deliveryAddressService = deliveryAddressService;
         this.paymentProcessorRegistry = paymentProcessorRegistry;
+        this.inventoryService = inventoryService;
+        this.customerProfileService = customerProfileService;
         this.clock = clock;
     }
 
@@ -133,7 +141,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             awaitingOnlinePayment,
             autoCancelView(order, payment),
             itemViews,
-            totalQuantity
+            totalQuantity,
+            cancellationNote(order, payment, customerIdentity)
         );
     }
 
@@ -385,5 +394,23 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
             .atZone(ZoneOffset.UTC)
             .withZoneSameInstant(VIETNAM_TIME_ZONE)
             .format(DATE_TIME_FORMAT);
+    }
+
+    private String cancellationNote(SalesOrder order, Payment payment, ShopperIdentity customerIdentity) {
+        if (order.getStatus() != OrderStatus.CANCELLED) {
+            return null;
+        }
+        Long cancelledBy = inventoryService.cancelledByAccountId(order.getId());
+        if (cancelledBy == null) {
+            return "Đơn hàng này đã bị hủy và không còn được xử lý.";
+        }
+        long customerAccountId = customerProfileService.accountIdOf(customerIdentity.customerId());
+        if (cancelledBy == customerAccountId) {
+            return "Bạn đã hủy đơn hàng này.";
+        }
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            return "Đơn hàng đã được cửa hàng hủy. Cửa hàng sẽ liên hệ để hoàn tiền cho bạn.";
+        }
+        return "Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng.";
     }
 }

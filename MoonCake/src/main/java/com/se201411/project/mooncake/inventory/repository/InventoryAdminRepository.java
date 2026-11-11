@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository;
 
+import com.se201411.project.mooncake.entity.Account;
 import com.se201411.project.mooncake.entity.InventoryBalance;
 import com.se201411.project.mooncake.entity.StockMovement;
 import com.se201411.project.mooncake.enums.StockMovementType;
@@ -29,4 +30,6 @@ public interface InventoryAdminRepository {
     long countLowStockVariants();
 
     long countBatchesExpiringBy(LocalDate until);
+
+    Account accountReference(long accountId);
 }

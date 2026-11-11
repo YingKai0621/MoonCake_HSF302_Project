@@ -1,14 +1,20 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.13 — 11/11/2026
+**Phiên bản tài liệu:** 1.14 — 11/11/2026
 
-**Trạng thái:** Admin quản lý khách hàng (xem, khóa, mở khóa tài khoản); không đổi schema
+**Trạng thái:** Trang đơn của khách cho biết ai đã hủy đơn; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.14
+
+- Khi hủy đơn, dòng hoàn kho `STOCK_MOVEMENT (CANCEL_RETURN)` ghi **người thực hiện** vào cột có sẵn `performed_by_account_id`: tài khoản Admin khi Admin hủy, tài khoản khách khi khách tự hủy, để trống khi hệ thống tự hủy đơn VNPay quá hạn.
+- Trang chi tiết đơn đã hủy của khách hiển thị: "Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng." (thêm "Cửa hàng sẽ liên hệ để hoàn tiền cho bạn." nếu đơn đã thanh toán), "Bạn đã hủy đơn hàng này.", hoặc câu chung "Đơn hàng này đã bị hủy và không còn được xử lý." khi không có người thực hiện (hệ thống tự hủy, hoặc đơn hủy trước v1.14).
+- Không thêm bảng hay cột.
 
 ### Thay đổi chính trong phiên bản 1.13
 
@@ -504,6 +510,10 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-84 | Mở khóa khách | Đăng nhập lại được; đơn đã hủy vẫn `CANCELLED` |
 | BR-85 | Đơn của khách bị khóa trong danh sách đơn Admin | Hiện nhãn "Khách đã bị khóa" và liên kết sang trang khách |
 | BR-86 | Người dùng `CUSTOMER` mở `/admin/customers` | Bị từ chối |
+| BR-87 | Admin hủy đơn COD chưa thanh toán; khách mở chi tiết đơn | Hiện "Đơn hàng đã được cửa hàng hủy. Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng." |
+| BR-88 | Admin hủy đơn VNPay đã thanh toán | Câu trên kèm "Cửa hàng sẽ liên hệ để hoàn tiền cho bạn." |
+| BR-89 | Khách tự hủy đơn của mình | Hiện "Bạn đã hủy đơn hàng này." |
+| BR-90 | Đơn VNPay tự hủy do quá 15 phút | Hiện câu chung "Đơn hàng này đã bị hủy và không còn được xử lý." |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

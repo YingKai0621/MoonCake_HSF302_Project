@@ -9,7 +9,8 @@ import java.util.Set;
 public record CancellationInventoryCommand(
     SalesOrder order,
     String operationKey,
-    List<InventoryDemand> demands
+    List<InventoryDemand> demands,
+    Long performedByAccountId
 ) {
     public CancellationInventoryCommand {
         validate(order, operationKey, demands);

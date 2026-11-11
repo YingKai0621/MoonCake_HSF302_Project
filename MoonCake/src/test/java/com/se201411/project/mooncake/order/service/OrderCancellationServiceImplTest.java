@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service;
 
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
@@ -60,6 +61,7 @@ class OrderCancellationServiceImplTest {
         CurrentCustomerService.class
     );
     private final AdminAccessService adminAccessService = mock(AdminAccessService.class);
+    private final CustomerProfileService customerProfileService = mock(CustomerProfileService.class);
     private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
     private final PaymentProcessor vnpayProcessor = vnpayProcessorMock();
     private final Clock clock = Clock.fixed(
@@ -78,6 +80,7 @@ class OrderCancellationServiceImplTest {
         inventoryService,
         currentCustomerService,
         adminAccessService,
+        customerProfileService,
         clock
     );
 
@@ -102,8 +105,13 @@ class OrderCancellationServiceImplTest {
         standard.setVariant(variant(30L));
         when(itemRepository.findByOrderId(5L)).thenReturn(List.of(standard));
 
+        when(adminAccessService.requireAdmin()).thenReturn(99L);
+
         service.cancelForAdmin(5L);
 
+        ArgumentCaptor<CancellationInventoryCommand> recorded = ArgumentCaptor.forClass(CancellationInventoryCommand.class);
+        verify(inventoryService).restoreForCancellation(recorded.capture());
+        assertThat(recorded.getValue().performedByAccountId()).isEqualTo(99L);
         InOrder inOrder = inOrder(orderRepository, paymentRepository, inventoryService);
         inOrder.verify(orderRepository).findByIdForUpdate(5L);
         inOrder.verify(paymentRepository).findByOrderId(5L);

@@ -9,4 +9,6 @@ public interface CustomerProfileService {
     CustomerProfile requireProfile(ShopperIdentity customerIdentity);
 
     Customer customerReference(long customerId);
+
+    long accountIdOf(long customerId);
 }

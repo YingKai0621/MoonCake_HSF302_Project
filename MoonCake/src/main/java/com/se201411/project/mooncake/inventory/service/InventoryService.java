@@ -21,4 +21,6 @@ public interface InventoryService {
     boolean hasStockRecords(Collection<Long> variantIds);
 
     void deleteBalances(Collection<Long> variantIds);
+
+    Long cancelledByAccountId(long orderId);
 }

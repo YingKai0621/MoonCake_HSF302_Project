@@ -112,7 +112,7 @@
     <section th:if="${order.statusLabel == 'Đã hủy'}"
              class="order-cancelled mb-8">
       <p class="order-cancelled__title">Đơn hàng đã hủy</p>
-      <p class="order-cancelled__text">Đơn hàng này không còn được xử lý.</p>
+      <p class="order-cancelled__text" th:text="${order.cancellationNote}">Đơn hàng này không còn được xử lý.</p>
     </section>
 
     <section th:unless="${order.statusLabel == 'Đã hủy'}"

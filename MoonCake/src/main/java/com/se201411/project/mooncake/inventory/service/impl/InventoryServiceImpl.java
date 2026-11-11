@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -34,6 +35,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryBalanceRepository balanceRepository;
     private final StockMovementRepository movementRepository;
     private final StockBatchRepository batchRepository;
+    private final InventoryAdminRepository inventoryAdminRepository;
     private final BatchStockService batchStock;
     private final Clock clock;
 
@@ -41,12 +43,14 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryBalanceRepository balanceRepository,
         StockMovementRepository movementRepository,
         StockBatchRepository batchRepository,
+        InventoryAdminRepository inventoryAdminRepository,
         BatchStockService batchStock,
         Clock clock
     ) {
         this.balanceRepository = balanceRepository;
         this.movementRepository = movementRepository;
         this.batchRepository = batchRepository;
+        this.inventoryAdminRepository = inventoryAdminRepository;
         this.batchStock = batchStock;
         this.clock = clock;
     }
@@ -106,7 +110,8 @@ public class InventoryServiceImpl implements InventoryService {
                 demand,
                 StockMovementType.SALE,
                 -demand.quantity(),
-                command.operationKey()
+                command.operationKey(),
+                null
             );
         }
     }
@@ -131,7 +136,8 @@ public class InventoryServiceImpl implements InventoryService {
                 demand,
                 StockMovementType.CANCEL_RETURN,
                 demand.quantity(),
-                command.operationKey()
+                command.operationKey(),
+                command.performedByAccountId()
             );
         }
     }
@@ -160,6 +166,16 @@ public class InventoryServiceImpl implements InventoryService {
         balanceRepository.deleteByVariantIds(variantIds);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Long cancelledByAccountId(long orderId) {
+        List<Long> performers = movementRepository.findPerformerIds(orderId, StockMovementType.CANCEL_RETURN);
+        if (performers.isEmpty()) {
+            return null;
+        }
+        return performers.get(0);
+    }
+
     private List<InventoryDemand> sortDemands(List<InventoryDemand> demands) {
         List<InventoryDemand> sorted = new ArrayList<>(demands);
         sorted.sort(Comparator.comparingLong(InventoryDemand::variantId));
@@ -171,13 +187,17 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryDemand demand,
         StockMovementType movementType,
         int quantityDelta,
-        String operationGroupKey
+        String operationGroupKey,
+        Long performedByAccountId
     ) {
         String operationKey = operationGroupKey + ":" + demand.variantId();
         batchStock.apply(demand.variantId(), quantityDelta, operationKey, order.getId(), movementType);
         StockMovement movement = new StockMovement();
         movement.setVariant(requireBalanceRow(demand.variantId()).getVariant());
         movement.setOrder(order);
+        if (performedByAccountId != null) {
+            movement.setPerformedByAccount(inventoryAdminRepository.accountReference(performedByAccountId));
+        }
         movement.setMovementType(movementType);
         movement.setQuantityDelta(quantityDelta);
         movement.setReason(buildReason(movementType));

@@ -1,5 +1,9 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
+import com.se201411.project.mooncake.entity.Account;
+import com.se201411.project.mooncake.enums.StockMovementType;
+import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import java.util.Optional;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.entity.InventoryBalance;
@@ -42,6 +46,8 @@ class InventoryServiceImplTest {
     @Mock
     private StockBatchRepository batchRepository;
     @Mock
+    private InventoryAdminRepository inventoryAdminRepository;
+    @Mock
     private BatchStockService batchStockService;
 
     private InventoryService inventoryService;
@@ -53,6 +59,7 @@ class InventoryServiceImplTest {
             balanceRepository,
             movementRepository,
             batchRepository,
+            inventoryAdminRepository,
             batchStockService,
             clock
         );
@@ -117,5 +124,34 @@ class InventoryServiceImplTest {
         SalesOrder order = new SalesOrder();
         ReflectionTestUtils.setField(order, "id", id);
         return order;
+    }
+
+    @Test
+    void cancellationReturnRecordsWhoCancelled() {
+        ProductVariant variant = new ProductVariant();
+        InventoryBalance balance = new InventoryBalance();
+        balance.setVariant(variant);
+        Account admin = new Account();
+        when(balanceRepository.restoreAvailable(5L, 3)).thenReturn(1);
+        when(balanceRepository.findById(5L)).thenReturn(Optional.of(balance));
+        when(inventoryAdminRepository.accountReference(42L)).thenReturn(admin);
+
+        inventoryService.restoreForCancellation(new CancellationInventoryCommand(
+            savedOrder(8L),
+            "CANCEL_RETURN:8",
+            List.of(new InventoryDemand(5L, 3)),
+            42L
+        ));
+
+        ArgumentCaptor<StockMovement> movementCaptor = ArgumentCaptor.forClass(StockMovement.class);
+        verify(movementRepository).save(movementCaptor.capture());
+        assertThat(movementCaptor.getValue().getPerformedByAccount()).isSameAs(admin);
+    }
+
+    @Test
+    void cancelledByIsUnknownWhenNoPerformerWasRecorded() {
+        when(movementRepository.findPerformerIds(8L, StockMovementType.CANCEL_RETURN)).thenReturn(List.of());
+
+        assertThat(inventoryService.cancelledByAccountId(8L)).isNull();
     }
 }

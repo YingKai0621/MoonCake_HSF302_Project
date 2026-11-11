@@ -24,7 +24,8 @@ public record CustomerOrderDetailView(
     String formattedDiscount,
     String formattedShippingFee,
     String formattedRoundingAdjustment,
-    String formattedTotal
+    String formattedTotal,
+    String cancellationNote
 ) {
 
     public static CustomerOrderDetailView entityToDto(
@@ -38,7 +39,8 @@ public record CustomerOrderDetailView(
         boolean awaitingOnlinePayment,
         AutoCancelView autoCancel,
         List<CustomerOrderItemView> items,
-        int totalQuantity
+        int totalQuantity,
+        String cancellationNote
     ) {
         return new CustomerOrderDetailView(
             order.getOrderCode(),
@@ -60,7 +62,8 @@ public record CustomerOrderDetailView(
             MoneyFormat.vnd(order.getDiscountAmount()),
             MoneyFormat.vnd(order.getShippingFee()),
             MoneyFormat.signedVnd(order.getRoundingAdjustment()),
-            MoneyFormat.vnd(order.getTotalAmount())
+            MoneyFormat.vnd(order.getTotalAmount()),
+            cancellationNote
         );
     }
 

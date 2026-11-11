@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Chi tiết khách hàng')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Chi tiết khách hàng')}"></head>
 <body class="page-orders">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main th:with="customer=${page.customer}">
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/customers}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>

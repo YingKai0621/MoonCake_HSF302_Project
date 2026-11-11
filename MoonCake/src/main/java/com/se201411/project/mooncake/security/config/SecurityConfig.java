@@ -46,6 +46,7 @@ public class SecurityConfig {
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .requestMatchers(
                 "/feedback",
+                "/profile",
                 "/cart/**",
                 "/checkout/**",
                 "/orders/**",

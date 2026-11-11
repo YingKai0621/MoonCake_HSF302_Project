@@ -1,4 +1,4 @@
-package com.se201411.project.mooncake.controller;
+package com.se201411.project.mooncake.storefront.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

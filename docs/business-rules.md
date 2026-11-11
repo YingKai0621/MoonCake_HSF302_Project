@@ -1,14 +1,22 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.11 — 11/11/2026
+**Phiên bản tài liệu:** 1.12 — 11/11/2026
 
-**Trạng thái:** Chặn vượt tồn từ giỏ hàng và giới hạn giữ hàng theo phương thức thanh toán; không đổi schema
+**Trạng thái:** Thêm trang Tài khoản của tôi (sửa thông tin cá nhân, đổi mật khẩu); không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.12
+
+- Khách `CUSTOMER` đã đăng nhập có trang **Tài khoản của tôi** (`/account`): xem email, sửa **họ tên** và **số điện thoại**, **đổi mật khẩu**.
+- Email là tên đăng nhập nên **chỉ hiển thị, không sửa được**.
+- Đổi mật khẩu phải nhập đúng mật khẩu hiện tại; mật khẩu mới theo quy tắc đăng ký và phải khác mật khẩu hiện tại. Đổi xong vẫn giữ đăng nhập; các link quên mật khẩu chưa dùng bị vô hiệu.
+- Đơn đã đặt giữ nguyên snapshot người mua. Đơn đặt sau khi sửa dùng thông tin mới.
+- Không thêm bảng hay cột; chỉ cập nhật `CUSTOMER.full_name`, `CUSTOMER.phone` và `ACCOUNT.password_hash`.
 
 ### Thay đổi chính trong phiên bản 1.11
 
@@ -178,6 +186,11 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 - Mỗi yêu cầu khôi phục tạo một token ngẫu nhiên (ít nhất 256 bit) có hạn **30 phút**. Database chỉ lưu SHA-256 của token trong `PASSWORD_RESET_TOKEN`; không lưu hay ghi log token gốc ngoài đường link gửi cho khách. Tạo token mới vô hiệu hóa các token chưa dùng trước đó của cùng tài khoản; cùng một tài khoản chỉ được yêu cầu lại sau 60 giây.
 - Đặt lại mật khẩu dùng cùng quy tắc mật khẩu khi đăng ký (8–64 ký tự, tối đa 72 byte UTF-8, nhập xác nhận khớp). Token chỉ dùng được một lần: backend đánh dấu `used_at` bằng cập nhật có điều kiện `used_at IS NULL AND expires_at > now` rồi mới đổi `ACCOUNT.password_hash` trong **cùng một transaction**. Thành công chuyển khách về `/login`, không tự động đăng nhập.
 - Khi chưa cấu hình SMTP (`MAIL_HOST` trống), ứng dụng chỉ ghi đường link khôi phục vào log để phục vụ demo local; môi trường thật phải cấu hình SMTP.
+- **Tài khoản của tôi (v1.12).** Khách `CUSTOMER` đang `ACTIVE` mở `/account` để xem email và sửa thông tin của chính mình. Khách được xác định từ principal phía server; form không chứa và backend không nhận `customer_id` hay `account_id`.
+- Sửa **họ tên** và **số điện thoại** theo đúng quy tắc khi đăng ký: họ tên bắt buộc, tối đa 40 ký tự, chỉ chữ cái và khoảng trắng, loại bỏ khoảng trắng hai đầu; số điện thoại đúng 10 chữ số và bắt đầu bằng `0`. Hai trường được cập nhật cùng nhau trong một transaction.
+- **Email không sửa được** trong MVP vì là tên đăng nhập và địa chỉ nhận link khôi phục; đổi email cần xác minh email mới, nằm ngoài phạm vi.
+- **Đổi mật khẩu** yêu cầu mật khẩu hiện tại, mật khẩu mới và xác nhận. Mật khẩu mới theo quy tắc đăng ký (8–64 ký tự, tối đa 72 byte UTF-8, xác nhận khớp) và phải khác mật khẩu hiện tại. Sai mật khẩu hiện tại thì không đổi gì. Thành công thì lưu hash mới bằng `PasswordEncoder`, vô hiệu mọi `PASSWORD_RESET_TOKEN` chưa dùng của tài khoản trong cùng transaction, và khách vẫn đăng nhập.
+- Sửa thông tin không thay đổi các đơn đã đặt (snapshot giữ nguyên). Trang thanh toán của đơn mới tự điền họ tên và số điện thoại mới vào thông tin người nhận.
 - `CUSTOMER.account_id` và `CUSTOMER.email` được backend gắn với tài khoản vừa đăng ký. Trong luồng mua MVP hiện tại, mọi `CUSTOMER` được dùng làm chủ giỏ phải có `account_id`; mọi đơn thành công phải có `SALES_ORDER.customer_id`.
 - Khi khách chưa đăng nhập bấm “Thêm vào giỏ”, “Mua ngay” hoặc bắt đầu hộp CUSTOM, ứng dụng đưa khách đến `/login` cùng một return URL nội bộ an toàn. Không tạo giỏ, không lưu pending cart mutation và không tự phát lại POST trước khi xác thực; sau đăng nhập, khách quay lại trang phù hợp và xác nhận thao tác mua.
 - `CART` của luồng MVP ứng dụng thuộc về đúng một `CUSTOMER`: `customer_id` có giá trị và `guest_token IS NULL`. Một khách có tối đa một giỏ `ACTIVE` ở một thời điểm.
@@ -455,6 +468,13 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
 | BR-68 | Khách đã có 1 đơn VNPay chưa thanh toán đặt thêm đơn VNPay | Từ chối, yêu cầu thanh toán hoặc hủy đơn cũ |
 | BR-69 | Khách có 3 đơn VNPay bị hủy khi chưa thanh toán trong 24 giờ | Không mở được trang thanh toán và không đặt được đơn mới, kể cả COD; tự mở lại khi qua 24 giờ |
+| BR-70 | Khách sửa họ tên thành "  Trần Thị B  " và số điện thoại 0912345678 | Lưu "Trần Thị B" và 0912345678; đơn cũ giữ tên cũ; trang thanh toán đơn mới điền tên mới |
+| BR-71 | Khách sửa số điện thoại thành 091234 hoặc +84912345678 | Báo lỗi ở ô số điện thoại; không lưu gì |
+| BR-72 | Form sửa thông tin bị chèn thêm `customerId` của người khác | Bị bỏ qua; chỉ sửa khách đang đăng nhập |
+| BR-73 | Đổi mật khẩu với mật khẩu hiện tại sai | Báo "Mật khẩu hiện tại không đúng."; mật khẩu không đổi |
+| BR-74 | Mật khẩu mới trùng mật khẩu hiện tại, hoặc xác nhận không khớp | Báo lỗi ở ô tương ứng; mật khẩu không đổi |
+| BR-75 | Đổi mật khẩu thành công khi đang có link quên mật khẩu chưa dùng | Đăng nhập được bằng mật khẩu mới, không bằng mật khẩu cũ; link cũ không dùng được nữa |
+| BR-76 | Khách chưa đăng nhập hoặc Admin mở `/account` | Khách chưa đăng nhập về trang đăng nhập; Admin bị từ chối |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

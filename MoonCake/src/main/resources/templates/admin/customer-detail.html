@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Chi tiết khách hàng')}"></head>
+<body class="page-orders">
+<header th:replace="~{admin/layout :: nav}"></header>
+<main th:with="customer=${page.customer}">
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <a class="back-link" th:href="@{/admin/customers}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Quay lại danh sách khách hàng
+    </a>
+    <div class="order-title">
+        <h1 class="order-code" th:text="${customer.fullName}">Nguyễn Văn A</h1>
+        <span th:if="${customer.active}" class="badge badge--large badge--dot badge--success">Đang hoạt động</span>
+        <span th:unless="${customer.active}" class="badge badge--large badge--dot badge--danger">Đã khóa</span>
+    </div>
+    <p class="order-subtitle" th:text="${'Đăng ký ngày ' + customer.memberSince}">Đăng ký ngày</p>
+
+    <p th:if="${lockError}" class="form-alert" role="alert" th:text="${lockError}">Không khóa được tài khoản.</p>
+
+    <div class="detail-layout">
+        <div class="detail-main">
+            <section>
+                <h2 th:text="${'Đơn đang mở (' + #lists.size(page.openOrders) + ')'}">Đơn đang mở</h2>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Trạng thái</th>
+                            <th>Thanh toán</th>
+                            <th class="numeric">Tổng tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="order : ${page.openOrders}">
+                            <td>
+                                <a th:href="@{/admin/orders/{id}(id=${order.orderId})}" th:text="${order.orderCode}">MC-1</a>
+                            </td>
+                            <td th:text="${order.statusLabel}">Chờ xử lý</td>
+                            <td>
+                                <span th:text="${order.paymentLabel}">COD · Chưa thanh toán</span>
+                                <span th:unless="${order.cancellableOnLock}" class="muted">· Xử lý thủ công</span>
+                            </td>
+                            <td class="numeric" th:text="${order.formattedTotal}">0đ</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${page.openOrders.isEmpty()}" class="empty-state">
+                    <p><strong>Khách không có đơn nào đang mở.</strong></p>
+                </div>
+            </section>
+        </div>
+
+        <aside class="detail-side">
+            <section>
+                <h2>Thông tin khách</h2>
+                <dl class="info-list">
+                    <dt>Email</dt>
+                    <dd th:text="${customer.email}">customer@example.com</dd>
+                    <dt>Điện thoại</dt>
+                    <dd th:text="${customer.phone}">0901234567</dd>
+                    <dt>Đơn hàng</dt>
+                    <dd th:text="${customer.orderCount + ' đơn · ' + customer.cancelledCount + ' đã hủy'}">0 đơn · 0 đã hủy</dd>
+                </dl>
+            </section>
+
+            <section>
+                <h2>Tài khoản</h2>
+                <form th:if="${customer.active}"
+                      th:action="@{/admin/customers/{id}/lock(id=${customer.customerId})}"
+                      th:object="${lockForm}"
+                      th:attr="data-confirm-message=${'Khóa tài khoản của ' + customer.fullName + '? Khách sẽ bị đăng xuất ngay và không đặt hàng được nữa.'}"
+                      method="post"
+                      class="action-stack">
+                    <label class="checkbox">
+                        <input type="checkbox" th:field="*{cancelUnpaidOrders}">
+                        <span th:text="${'Hủy luôn các đơn chưa thanh toán đang chờ xử lý (' + page.cancellableCount + ' đơn)'}">Hủy luôn các đơn chưa thanh toán đang chờ xử lý (0 đơn)</span>
+                    </label>
+                    <button type="submit" class="danger">Khóa tài khoản</button>
+                </form>
+                <form th:unless="${customer.active}"
+                      th:action="@{/admin/customers/{id}/unlock(id=${customer.customerId})}"
+                      method="post"
+                      class="action-stack">
+                    <button type="submit" data-loading-text="Đang mở khóa…">Mở khóa tài khoản</button>
+                </form>
+            </section>
+        </aside>
+    </div>
+</main>
+</body>
+</html>

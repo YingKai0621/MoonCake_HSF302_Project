@@ -22,7 +22,7 @@ class CustomerProfileControllerTest {
     );
 
     @Test
-    void showsOnlyCurrentCustomersProfileFields() {
+    void showsOnlyCurrentCustomerProfileFields() {
         ShopperIdentity identity = new ShopperIdentity(7L);
         CustomerProfile profile = new CustomerProfile(
             7L,

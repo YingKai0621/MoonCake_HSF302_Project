@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -18,12 +19,16 @@ class OrderStatisticsServiceImplTest {
     private final OrderStatisticsService service = new OrderStatisticsServiceImpl(repository);
 
     @Test
-    void topProductsCountOnlyCompletedOrders() {
+    void topProductsCountDeliveredAndCompletedOrders() {
         LocalDateTime from = LocalDateTime.of(2026, 11, 1, 0, 0);
 
         service.topCompletedProducts(from, 5);
 
-        verify(repository).findTopProducts(from, OrderStatus.COMPLETED, PageRequest.of(0, 5));
+        verify(repository).findTopProducts(
+            from,
+            List.of(OrderStatus.DELIVERED, OrderStatus.COMPLETED),
+            PageRequest.of(0, 5)
+        );
     }
 
     @Test

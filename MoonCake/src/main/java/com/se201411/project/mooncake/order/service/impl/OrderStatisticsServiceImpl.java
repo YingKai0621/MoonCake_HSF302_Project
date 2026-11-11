@@ -60,6 +60,10 @@ public class OrderStatisticsServiceImpl implements OrderStatisticsService {
 
     @Override
     public List<ProductSalesSummary> topCompletedProducts(LocalDateTime from, int limit) {
-        return statistics.findTopProducts(from, OrderStatus.COMPLETED, PageRequest.of(0, limit));
+        return statistics.findTopProducts(
+            from,
+            List.of(OrderStatus.DELIVERED, OrderStatus.COMPLETED),
+            PageRequest.of(0, limit)
+        );
     }
 }

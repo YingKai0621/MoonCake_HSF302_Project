@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Long> {
@@ -55,13 +56,13 @@ public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Lon
         )
         from OrderItem item
         where item.order.createdAt >= :from
-          and item.order.status = :completed
+          and item.order.status in :statuses
         group by item.productNameSnapshot
         order by sum(item.quantity) desc
         """)
     List<ProductSalesSummary> findTopProducts(
         @Param("from") LocalDateTime from,
-        @Param("completed") OrderStatus completed,
+        @Param("statuses") Collection<OrderStatus> statuses,
         Pageable pageable
     );
 }

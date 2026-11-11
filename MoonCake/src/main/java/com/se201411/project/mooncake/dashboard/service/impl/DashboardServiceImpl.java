@@ -86,7 +86,7 @@ public class DashboardServiceImpl implements DashboardService {
                 discountedOrders[index]++;
                 discountTotal[index] += order.getDiscountAmount().longValue();
             }
-            if (order.getStatus() == OrderStatus.COMPLETED) {
+            if (countsAsRevenue(order.getStatus())) {
                 revenue[index] += total;
             }
         }
@@ -296,6 +296,10 @@ public class DashboardServiceImpl implements DashboardService {
         return utcTime.atOffset(ZoneOffset.UTC).atZoneSameInstant(VIETNAM).toLocalDate();
     }
 
+    private boolean countsAsRevenue(OrderStatus status) {
+        return status == OrderStatus.DELIVERED || status == OrderStatus.COMPLETED;
+    }
+
     private String statusLabel(OrderStatus status) {
         if (status == OrderStatus.PLACED) {
             return "Chờ xử lý";
@@ -305,6 +309,9 @@ public class DashboardServiceImpl implements DashboardService {
         }
         if (status == OrderStatus.SHIPPING) {
             return "Đang giao";
+        }
+        if (status == OrderStatus.DELIVERED) {
+            return "Đã giao";
         }
         if (status == OrderStatus.COMPLETED) {
             return "Hoàn tất";
@@ -316,7 +323,7 @@ public class DashboardServiceImpl implements DashboardService {
         if (status == OrderStatus.PLACED) {
             return "warning";
         }
-        if (status == OrderStatus.COMPLETED) {
+        if (status == OrderStatus.DELIVERED || status == OrderStatus.COMPLETED) {
             return "success";
         }
         if (status == OrderStatus.CANCELLED) {

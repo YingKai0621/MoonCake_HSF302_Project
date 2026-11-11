@@ -292,4 +292,18 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         batchStock.apply(variant, delta, key, null, type);
         repo.movement(variant, admin, delta, type, reason, group, key, LocalDateTime.now(clock));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countLowStockVariants() {
+        access.requireAdmin();
+        return repo.countLowStockVariants();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countBatchesExpiringBy(LocalDate until) {
+        access.requireAdmin();
+        return repo.countBatchesExpiringBy(until);
+    }
 }

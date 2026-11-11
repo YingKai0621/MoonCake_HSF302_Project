@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository.impl;
 
+import java.time.LocalDate;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
 import com.se201411.project.mooncake.entity.Account;
 import com.se201411.project.mooncake.entity.InventoryBalance;
@@ -138,5 +139,31 @@ public class InventoryAdminRepositoryImpl implements InventoryAdminRepository {
         movement.setCreatedAt(now);
         em.persist(movement);
         em.flush();
+    }
+
+    @Override
+    public long countLowStockVariants() {
+        String query = """
+            select count(balance)
+            from InventoryBalance balance
+            where balance.availableQuantity <= balance.lowStockThreshold
+              and balance.variant.active = true
+            """;
+        return em.createQuery(query, Long.class)
+            .getSingleResult();
+    }
+
+    @Override
+    public long countBatchesExpiringBy(LocalDate until) {
+        String query = """
+            select count(batch)
+            from StockBatch batch
+            where batch.remainingQuantity > 0
+              and batch.expiresOn is not null
+              and batch.expiresOn <= :until
+            """;
+        return em.createQuery(query, Long.class)
+            .setParameter("until", until)
+            .getSingleResult();
     }
 }

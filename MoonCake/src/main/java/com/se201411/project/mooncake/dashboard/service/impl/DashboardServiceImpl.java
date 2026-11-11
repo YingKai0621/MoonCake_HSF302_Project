@@ -5,20 +5,20 @@ import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
 import com.se201411.project.mooncake.dashboard.dto.DashboardView;
 import com.se201411.project.mooncake.dashboard.dto.DiscountSummaryView;
 import com.se201411.project.mooncake.dashboard.dto.KpiView;
-import com.se201411.project.mooncake.dashboard.dto.PaidAmount;
 import com.se201411.project.mooncake.dashboard.dto.RecentOrderView;
 import com.se201411.project.mooncake.dashboard.dto.TopProductView;
-import com.se201411.project.mooncake.dashboard.repository.DashboardRepository;
 import com.se201411.project.mooncake.dashboard.service.DashboardService;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
-import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.feedback.service.FeedbackService;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
+import com.se201411.project.mooncake.order.dto.PaidAmount;
+import com.se201411.project.mooncake.order.dto.ProductSalesSummary;
+import com.se201411.project.mooncake.order.service.OrderStatisticsService;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,16 +38,22 @@ public class DashboardServiceImpl implements DashboardService {
     private static final int TOP_PRODUCT_DAYS = 30;
     private static final int EXPIRY_WARNING_DAYS = 14;
 
-    private final DashboardRepository dashboardRepository;
+    private final OrderStatisticsService orderStatistics;
+    private final InventoryAdminService inventory;
+    private final FeedbackService feedback;
     private final AdminAccessService adminAccessService;
     private final Clock clock;
 
     public DashboardServiceImpl(
-        DashboardRepository dashboardRepository,
+        OrderStatisticsService orderStatistics,
+        InventoryAdminService inventory,
+        FeedbackService feedback,
         AdminAccessService adminAccessService,
         Clock clock
     ) {
-        this.dashboardRepository = dashboardRepository;
+        this.orderStatistics = orderStatistics;
+        this.inventory = inventory;
+        this.feedback = feedback;
         this.adminAccessService = adminAccessService;
         this.clock = clock;
     }
@@ -68,7 +74,7 @@ public class DashboardServiceImpl implements DashboardService {
         long[] discountTotal = new long[bucketCount];
 
         LocalDateTime from = toUtc(bucketStarts.get(0));
-        for (SalesOrder order : dashboardRepository.findByCreatedAtGreaterThanEqual(from)) {
+        for (SalesOrder order : orderStatistics.ordersCreatedSince(from)) {
             int index = bucketIndex(bucketStarts, period, toVietnamDate(order.getCreatedAt()));
             if (index < 0 || order.getStatus() == OrderStatus.CANCELLED) {
                 continue;
@@ -84,7 +90,7 @@ public class DashboardServiceImpl implements DashboardService {
                 revenue[index] += total;
             }
         }
-        for (PaidAmount paid : dashboardRepository.findPaidSince(PaymentStatus.PAID, from)) {
+        for (PaidAmount paid : orderStatistics.paymentsPaidSince(from)) {
             int index = bucketIndex(bucketStarts, period, toVietnamDate(paid.paidAt()));
             if (index >= 0) {
                 collected[index] += paid.amount().longValue();
@@ -129,8 +135,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private DiscountSummaryView discounts(DashboardPeriod period, long orderCount, long totalDiscount) {
         List<DiscountSummaryView.Order> recent = new ArrayList<>();
-        List<SalesOrder> orders = dashboardRepository
-            .findTop5ByDiscountAmountGreaterThanAndStatusNotOrderByCreatedAtDesc(BigDecimal.ZERO, OrderStatus.CANCELLED);
+        List<SalesOrder> orders = orderStatistics.latestDiscountedOrders();
         for (SalesOrder order : orders) {
             String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
             recent.add(DiscountSummaryView.Order.entityToDto(order, formattedCreatedAt));
@@ -162,31 +167,31 @@ public class DashboardServiceImpl implements DashboardService {
         List<DashboardTaskView> tasks = new ArrayList<>();
         tasks.add(new DashboardTaskView(
             "Đơn chờ xử lý",
-            dashboardRepository.countByStatus(OrderStatus.PLACED),
+            orderStatistics.countPlacedOrders(),
             "/admin/orders?status=PLACED",
             "warning"
         ));
         tasks.add(new DashboardTaskView(
             "Đơn đã hủy cần hoàn tiền",
-            dashboardRepository.countPaidCancelledOrders(OrderStatus.CANCELLED, PaymentStatus.PAID),
+            orderStatistics.countPaidCancelledOrders(),
             "/admin/orders?status=CANCELLED",
             "danger"
         ));
         tasks.add(new DashboardTaskView(
             "SKU sắp hết hàng",
-            dashboardRepository.countLowStockVariants(),
+            inventory.countLowStockVariants(),
             "/admin/inventory",
             "warning"
         ));
         tasks.add(new DashboardTaskView(
             "Lô sắp hết hạn (" + EXPIRY_WARNING_DAYS + " ngày)",
-            dashboardRepository.countBatchesExpiringBy(today.plusDays(EXPIRY_WARNING_DAYS)),
+            inventory.countBatchesExpiringBy(today.plusDays(EXPIRY_WARNING_DAYS)),
             "/admin/batches",
             "danger"
         ));
         tasks.add(new DashboardTaskView(
             "Đánh giá chờ duyệt",
-            dashboardRepository.countReviewsWaitingForApproval(),
+            feedback.countReviewsWaitingForApproval(),
             "/admin/feedback",
             "info"
         ));
@@ -195,7 +200,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private List<RecentOrderView> recentOrders() {
         List<RecentOrderView> views = new ArrayList<>();
-        for (SalesOrder order : dashboardRepository.findTop5ByOrderByCreatedAtDesc()) {
+        for (SalesOrder order : orderStatistics.latestOrders()) {
             String statusLabel = statusLabel(order.getStatus());
             String statusTone = statusTone(order.getStatus());
             String formattedCreatedAt = formatVietnamTime(order.getCreatedAt());
@@ -206,7 +211,11 @@ public class DashboardServiceImpl implements DashboardService {
 
     private List<TopProductView> topProducts(LocalDate today) {
         LocalDateTime from = toUtc(today.minusDays(TOP_PRODUCT_DAYS - 1L));
-        return dashboardRepository.findTopProducts(from, OrderStatus.COMPLETED, PageRequest.of(0, 5));
+        List<TopProductView> views = new ArrayList<>();
+        for (ProductSalesSummary summary : orderStatistics.topCompletedProducts(from, 5)) {
+            views.add(TopProductView.fromSummary(summary));
+        }
+        return views;
     }
 
     private KpiView kpi(String label, long current, long previous, boolean money, DashboardPeriod period) {

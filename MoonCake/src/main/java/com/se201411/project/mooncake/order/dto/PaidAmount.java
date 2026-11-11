@@ -1,4 +1,4 @@
-package com.se201411.project.mooncake.dashboard.dto;
+package com.se201411.project.mooncake.order.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

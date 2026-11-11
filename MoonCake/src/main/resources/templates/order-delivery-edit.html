@@ -33,7 +33,7 @@
   <header th:replace="~{fragments/header :: header('orders')}"></header>
 
   <main class="flex-grow max-w-[860px] w-full mx-auto px-4 sm:px-6 py-10">
-    <a th:href="@{/orders/{orderCode}(orderCode=${orderCode})}"
+    <a th:href="@{/orders/{orderCode}(orderCode=${page.orderCode})}"
        class="inline-flex items-center gap-2 text-sm text-sand hover:text-gold mb-6 transition-colors">
       <span aria-hidden="true">←</span>
       Quay lại chi tiết đơn hàng
@@ -47,7 +47,7 @@
       </p>
     </div>
 
-    <form th:action="@{/orders/{orderCode}/delivery(orderCode=${orderCode})}"
+    <form th:action="@{/orders/{orderCode}/delivery(orderCode=${page.orderCode})}"
           th:object="${deliveryForm}"
           method="post"
           class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8 space-y-6">
@@ -86,7 +86,7 @@
           <select id="provinceCode" th:field="*{provinceCode}"
                   class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
             <option value="">Chọn tỉnh/thành phố</option>
-            <option th:each="province : ${provinces}"
+            <option th:each="province : ${page.provinces}"
                     th:value="${province.code}"
                     th:text="${province.name}">Tỉnh/Thành phố</option>
           </select>
@@ -101,7 +101,7 @@
           <select id="wardCode" th:field="*{wardCode}"
                   class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
             <option value="">Chọn phường/xã/đặc khu</option>
-            <option th:each="ward : ${wards}"
+            <option th:each="ward : ${page.wards}"
                     th:value="${ward.code}"
                     th:text="${ward.name}"
                     th:attr="data-parent-code=${ward.parentCode}">Phường/Xã/Đặc khu</option>
@@ -131,7 +131,7 @@
       </div>
 
       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-gold/15 pt-6">
-        <a th:href="@{/orders/{orderCode}(orderCode=${orderCode})}"
+        <a th:href="@{/orders/{orderCode}(orderCode=${page.orderCode})}"
            class="border border-gold/30 px-6 py-3 text-center font-semibold text-sand hover:border-gold hover:text-ivory transition-colors">
           Hủy thay đổi
         </a>

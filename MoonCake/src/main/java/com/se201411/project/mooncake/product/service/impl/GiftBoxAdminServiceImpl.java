@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.product.dto.ProductFormOptions;
+import com.se201411.project.mooncake.product.dto.AdminPresetOptions;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
@@ -101,7 +103,9 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
             }
         }
         boolean canUnlock = locked && recipes.canUnlock(recipe.id());
-        return new GiftBoxPage(detail, sku, recipe, steps, current, onSale, canUnlock);
+        ProductFormOptions formOptions = products.formOptions(true);
+        AdminPresetOptions options = recipes.presetOptions();
+        return new GiftBoxPage(detail, sku, recipe, steps, current, onSale, canUnlock, formOptions, options);
     }
 
     @Override

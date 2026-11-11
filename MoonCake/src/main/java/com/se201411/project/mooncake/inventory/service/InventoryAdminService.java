@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.inventory.dto.InventoryPageView;
 import com.se201411.project.mooncake.inventory.dto.AdminInventoryView.Balance;
@@ -37,4 +38,6 @@ public interface InventoryAdminService {
     long countLowStockVariants();
 
     long countBatchesExpiringBy(LocalDate until);
+
+    MovementsPageView movementsPage(int page);
 }

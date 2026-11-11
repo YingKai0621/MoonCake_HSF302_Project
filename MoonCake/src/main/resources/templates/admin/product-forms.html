@@ -9,28 +9,28 @@
     <label class="span-2">Tên sản phẩm
         <input type="text" name="name" th:value="${f != null ? f.name : ''}" required maxlength="220" data-slug-source>
     </label>
-    <input th:if="${#lists.size(categories) == 1}" type="hidden" name="categoryId" th:value="${categories[0].id}">
-    <label th:unless="${#lists.size(categories) == 1}">Danh mục
+    <input th:if="${#lists.size(page.formOptions.categories) == 1}" type="hidden" name="categoryId" th:value="${page.formOptions.categories[0].id}">
+    <label th:unless="${#lists.size(page.formOptions.categories) == 1}">Danh mục
         <select name="categoryId" required>
             <option value="">Chọn danh mục…</option>
-            <option th:each="category : ${categories}"
+            <option th:each="category : ${page.formOptions.categories}"
                     th:value="${category.id}"
                     th:text="${category.name}"
                     th:selected="${f != null and f.categoryId == category.id}">Danh mục</option>
         </select>
     </label>
-    <input th:if="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}"
+    <input th:if="${page.formOptions.giftBox or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}"
            type="hidden" name="productType" value="GIFT_SET">
-    <label th:unless="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">Loại sản phẩm
+    <label th:unless="${page.formOptions.giftBox or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">Loại sản phẩm
         <select name="productType" required th:if="${!typeLocked}">
-            <option th:each="option : ${productTypes}"
+            <option th:each="option : ${page.formOptions.productTypes}"
                     th:value="${option.value}"
                     th:text="${option.label}"
                     th:selected="${f != null and f.productType == option.value}">Hộp quà</option>
         </select>
         <th:block th:if="${typeLocked}">
             <input type="hidden" name="productType" th:value="${f.productType}">
-            <input type="text" th:value="${detail.typeLabel}" readonly>
+            <input type="text" th:value="${page.detail.typeLabel}" readonly>
             <small class="field-hint">Đã có phiên bản nên không đổi được loại.</small>
         </th:block>
     </label>
@@ -46,7 +46,7 @@
         <textarea name="detailedDescription" rows="5" aria-label="Mô tả chi tiết"
                   th:text="${f != null ? f.detailedDescription : ''}"></textarea>
     </details>
-    <th:block th:if="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
+    <th:block th:if="${page.formOptions.giftBox or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
         <input type="hidden" name="mainIngredients" th:value="${f != null ? f.mainIngredients : ''}">
         <label>Hạn sử dụng
             <textarea name="shelfLifeInfo" maxlength="350" rows="2" placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất"
@@ -57,7 +57,7 @@
                       th:text="${f != null ? f.storageGuidance : ''}"></textarea>
         </label>
     </th:block>
-    <th:block th:unless="${giftBox == true or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
+    <th:block th:unless="${page.formOptions.giftBox or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
     <label class="span-2">Thành phần chính
         <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
     </label>
@@ -76,8 +76,8 @@
     <input type="hidden" name="id" th:if="${f != null}" th:value="${f.id}">
     <div th:replace="~{admin/product-forms :: productFields(${f}, ${typeLocked})}"></div>
     <div class="form-footer">
-        <input th:if="${giftBox == true or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
-        <label class="switch-card" th:unless="${giftBox == true or hideSaleSwitch == true}">
+        <input th:if="${page.formOptions.giftBox or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${page.formOptions.giftBox or hideSaleSwitch == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">
@@ -92,7 +92,7 @@
       th:with="editing=${f != null and f.id != null}">
     <input type="hidden" name="id" th:if="${editing}" th:value="${f.id}">
     <input type="hidden" name="productId" th:value="${productId}">
-    <div class="form-grid" th:with="cake=${detail.product.productType.name() == 'MOONCAKE'}">
+    <div class="form-grid" th:with="cake=${page.detail.product.productType.name() == 'MOONCAKE'}">
         <label>Mã SKU
             <input type="text" name="sku" th:value="${f != null ? f.sku : ''}" required maxlength="80" th:readonly="${editing}"
                    pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
@@ -109,15 +109,15 @@
             <input type="number" name="weightGrams" th:value="${f != null ? f.weightGrams : ''}" th:required="${cake}"
                    min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
         </label>
-        <input th:if="${giftBox == true}" type="hidden" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}">
-        <label class="span-2" th:unless="${giftBox == true}">Nhân bánh
+        <input th:if="${page.formOptions.giftBox}" type="hidden" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}">
+        <label class="span-2" th:unless="${page.formOptions.giftBox}">Nhân bánh
             <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
                    th:required="${cake}" placeholder="Ví dụ: Thập cẩm lạp xưởng">
         </label>
     </div>
     <div class="form-footer">
-        <input th:if="${giftBox == true or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
-        <label class="switch-card" th:unless="${giftBox == true or hideSaleSwitch == true}">
+        <input th:if="${page.formOptions.giftBox or hideSaleSwitch == true}" type="hidden" name="active" th:value="${f != null and f.active}">
+        <label class="switch-card" th:unless="${page.formOptions.giftBox or hideSaleSwitch == true}">
             <input type="hidden" name="_active" value="on">
             <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
             <span class="switch-card__text">

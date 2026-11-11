@@ -1,5 +1,13 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.enums.OrderStatus;
+import com.se201411.project.mooncake.product.dto.ProductFormOptions;
+import com.se201411.project.mooncake.product.dto.ProductEditPageView;
+import com.se201411.project.mooncake.product.dto.NewProductPageView;
+import com.se201411.project.mooncake.product.dto.MediaPageView;
+import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
+import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
+import com.se201411.project.mooncake.order.dto.AdminOrderListPageView;
 import com.se201411.project.mooncake.dashboard.controller.DashboardController;
 import com.se201411.project.mooncake.dashboard.dto.DashboardPeriod;
 import com.se201411.project.mooncake.dashboard.dto.DashboardTaskView;
@@ -85,7 +93,7 @@ class AdminPagesTest {
 
     @BeforeEach
     void setup() {
-        reset(catalog, presets, inventory, orders, cancellations);
+        reset(catalog, presets, inventory, orders, cancellations, media);
         when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
         when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted")));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
@@ -144,6 +152,34 @@ class AdminPagesTest {
         when(orders.orders(null, 0)).thenReturn(List.of(order(OrderStatus.PLACED)));
         when(orders.detail(1)).thenReturn(order(OrderStatus.PLACED));
         when(orders.statusTabs(null)).thenReturn(List.of(new AdminOrderTab(null, "Tất cả", 1, true)));
+        stubPageViews();
+    }
+
+    private void stubPageViews() {
+        when(orders.ordersPage(any(), anyInt())).thenAnswer(call -> {
+            OrderStatus status = call.getArgument(0);
+            int page = call.getArgument(1);
+            return new AdminOrderListPageView(orders.orders(status, page), orders.statusTabs(status), status, page);
+        });
+        when(inventory.movementsPage(anyInt())).thenAnswer(call -> {
+            int page = call.getArgument(0);
+            return new MovementsPageView(inventory.movements(page), page);
+        });
+        when(catalog.catalogPage(any())).thenAnswer(call -> new AdminCatalogPageView(
+            catalog.productRows(call.getArgument(0)),
+            catalog.productTabs(call.getArgument(0)),
+            catalog.categories()));
+        when(catalog.formOptions(anyBoolean())).thenAnswer(call -> formOptions(call.getArgument(0)));
+        when(catalog.newProductPage(anyBoolean())).thenAnswer(call -> new NewProductPageView(formOptions(call.getArgument(0))));
+        when(catalog.productEditPage(anyLong())).thenAnswer(call -> {
+            long id = call.getArgument(0);
+            return new ProductEditPageView(catalog.productDetail(id), formOptions(false));
+        });
+        when(media.mediaPage()).thenAnswer(call -> new MediaPageView(media.allVideos(), catalog.catalog()));
+    }
+
+    private ProductFormOptions formOptions(boolean giftBox) {
+        return new ProductFormOptions(catalog.categories(), catalog.productTypes(), giftBox);
     }
 
     @Test
@@ -501,6 +537,19 @@ class AdminPagesTest {
     }
 
     @Test
+    void newProductAndNewGiftBoxPagesRenderFromOnePageView() throws Exception {
+        mvc.perform(get("/admin/catalog/products/new").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Thêm sản phẩm")))
+            .andExpect(content().string(containsString("name=\"categoryId\"")));
+
+        mvc.perform(get("/admin/gift-boxes/new").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Thêm hộp quà")))
+            .andExpect(content().string(containsString("value=\"GIFT_SET\"")));
+    }
+
+    @Test
     void giftBoxPageShowsStepTabsCakeCardsAndInlineErrors() throws Exception {
         AdminProductDetail detail = new AdminProductDetail(
                 new ProductForm(2L, 1, ProductType.GIFT_SET, "Hộp quà Kim Phúc", "hop-qua-kim-phuc", "Mô tả", null, null, null, null, false),
@@ -523,6 +572,8 @@ class AdminPagesTest {
                 1, 1, "GIFT-KP-4", 1, 4, ConfigurationStatus.DRAFT,
                 List.of(new AdminPresetView.Component(1, "CAKE", 3, "Bánh Kim Sa · Bánh 80g")),
                 "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc 4 bánh");
+        ProductFormOptions giftBoxOptions = formOptions(true);
+        AdminPresetOptions presetOptions = presets.presetOptions();
         when(giftBoxes.page(2)).thenReturn(new GiftBoxPage(
                 detail,
                 detail.skus().get(0),
@@ -533,7 +584,9 @@ class AdminPagesTest {
                         new GiftBoxPage.Step(3, "Đóng hộp & mở bán", "sale", false)),
                 "recipe",
                 false,
-                false));
+                false,
+                giftBoxOptions,
+                presetOptions));
         mvc.perform(get("/admin/gift-boxes/2").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("data-default=\"recipe\"")))

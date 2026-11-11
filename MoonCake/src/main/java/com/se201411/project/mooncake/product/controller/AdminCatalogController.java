@@ -4,7 +4,7 @@ import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.dto.AdminPresetForm;
-import com.se201411.project.mooncake.product.dto.AdminProductDetail;
+import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
@@ -48,28 +48,23 @@ public class AdminCatalogController {
         if (type == ProductType.GIFT_SET) {
             return "redirect:/admin/gift-boxes";
         }
-        model.addAttribute("products", catalog.productRows(type));
-        model.addAttribute("tabs", catalog.productTabs(type));
-        model.addAttribute("categories", catalog.categories());
+        model.addAttribute("page", catalog.catalogPage(type));
         return "admin/catalog";
     }
 
     @GetMapping("/catalog/products/new")
     public String newProduct(Model model) {
-        model.addAttribute("categories", catalog.categoriesFor(false));
-        model.addAttribute("productTypes", catalog.productTypes());
+        model.addAttribute("page", catalog.newProductPage(false));
         return "admin/product-new";
     }
 
     @GetMapping("/catalog/products/{id}")
     public String editProduct(@PathVariable long id, Model model) {
-        AdminProductDetail detail = catalog.productDetail(id);
-        if (detail.product().productType() == ProductType.GIFT_SET) {
+        ProductEditPageView page = catalog.productEditPage(id);
+        if (page.detail().product().productType() == ProductType.GIFT_SET) {
             return "redirect:/admin/gift-boxes/" + id;
         }
-        model.addAttribute("detail", detail);
-        model.addAttribute("categories", catalog.categoriesFor(false));
-        model.addAttribute("productTypes", catalog.productTypes());
+        model.addAttribute("page", page);
         return "admin/product-edit";
     }
 

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.service;
 
+import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductVideo;
@@ -34,7 +35,8 @@ class ProductMediaServiceImplTest {
         productImageRepository,
         productVideoRepository,
         productRepository,
-        adminAccessService
+        adminAccessService,
+        mock(ProductAdminService.class)
     );
 
     @Test

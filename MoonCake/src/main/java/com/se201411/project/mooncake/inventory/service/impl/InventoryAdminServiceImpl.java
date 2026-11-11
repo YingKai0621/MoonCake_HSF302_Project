@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
 import com.se201411.project.mooncake.entity.InventoryBalance;
@@ -305,5 +306,11 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     public long countBatchesExpiringBy(LocalDate until) {
         access.requireAdmin();
         return repo.countBatchesExpiringBy(until);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MovementsPageView movementsPage(int page) {
+        return new MovementsPageView(movements(page), Math.max(0, page));
     }
 }

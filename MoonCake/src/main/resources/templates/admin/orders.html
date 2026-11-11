@@ -12,7 +12,7 @@
     </div>
 
     <nav class="tabs" aria-label="Lọc theo trạng thái" data-tabs>
-        <a th:each="tab : ${tabs}"
+        <a th:each="tab : ${page.tabs}"
            class="tabs__item"
            th:classappend="${tab.selected} ? 'is-active'"
            th:attr="aria-current=${tab.selected ? 'page' : null}"
@@ -35,7 +35,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="order : ${orders}">
+            <tr th:each="order : ${page.orders}">
                 <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.code}">MC-1</a></td>
                 <td th:text="${order.recipient}">Người nhận</td>
                 <td>
@@ -53,15 +53,15 @@
             </tr>
             </tbody>
         </table>
-        <div th:if="${orders.isEmpty()}" class="empty-state">
+        <div th:if="${page.orders.isEmpty()}" class="empty-state">
             <p><strong>Không có đơn nào ở trạng thái này.</strong></p>
             <a th:href="@{/admin/orders}">Xem tất cả đơn hàng</a>
         </div>
     </section>
 
-    <div class="pager" th:if="${page > 0 or orders.size() == 50}">
-        <a th:if="${page > 0}" class="button secondary" th:href="@{/admin/orders(page=${page - 1},status=${status})}">← Trang trước</a>
-        <a th:if="${orders.size() == 50}" class="button secondary" th:href="@{/admin/orders(page=${page + 1},status=${status})}">Trang sau →</a>
+    <div class="pager" th:if="${page.pageNumber > 0 or page.orders.size() == 50}">
+        <a th:if="${page.pageNumber > 0}" class="button secondary" th:href="@{/admin/orders(page=${page.pageNumber - 1},status=${page.status})}">← Trang trước</a>
+        <a th:if="${page.orders.size() == 50}" class="button secondary" th:href="@{/admin/orders(page=${page.pageNumber + 1},status=${page.status})}">Trang sau →</a>
     </div>
 </main>
 </body>

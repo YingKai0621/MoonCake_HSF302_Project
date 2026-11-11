@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import com.se201411.project.mooncake.order.dto.DeliveryEditPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.order.dto.AddressOption;
 import com.se201411.project.mooncake.order.dto.DeliveryAddressParts;
@@ -169,5 +170,10 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
             throw new BusinessRuleViolationException("Địa chỉ giao hàng không hợp lệ");
         }
         return option;
+    }
+
+    @Override
+    public DeliveryEditPageView deliveryEditPage(String orderCode) {
+        return new DeliveryEditPageView(orderCode, getProvinces(), getWards());
     }
 }

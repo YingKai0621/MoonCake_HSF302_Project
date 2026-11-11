@@ -9,7 +9,9 @@ public record GiftBoxPage(
     List<Step> steps,
     String currentPanel,
     boolean onSale,
-    boolean canUnlock
+    boolean canUnlock,
+    ProductFormOptions formOptions,
+    AdminPresetOptions options
 ) {
     public record Step(int number, String label, String panel, boolean done) {
     }

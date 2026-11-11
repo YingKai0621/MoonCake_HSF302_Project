@@ -42,7 +42,7 @@
     <div class="mb-8">
       <p class="text-gold text-sm font-semibold uppercase tracking-[0.16em] mb-2">Tạo quà theo ý bạn</p>
       <h1 class="font-serif text-3xl sm:text-4xl font-bold"
-          th:text="${editing ? 'Chỉnh sửa hộp quà tự chọn' : 'Hộp quà tự chọn'}">
+          th:text="${page.editing ? 'Chỉnh sửa hộp quà tự chọn' : 'Hộp quà tự chọn'}">
         Hộp quà tự chọn
       </h1>
       <p class="text-sand mt-3 max-w-2xl">
@@ -50,15 +50,15 @@
       </p>
     </div>
 
-    <section th:if="${builder.boxes.empty or builder.cakes.empty}"
+    <section th:if="${page.builder.boxes.empty or page.builder.cakes.empty}"
              class="bg-surface border border-gold/20 rounded-lg px-6 py-12 text-center">
       <h2 class="font-serif text-2xl mb-3">Chưa thể tạo hộp tự chọn</h2>
       <p class="text-sand">Hiện chưa có đủ mẫu hộp hoặc bánh đang bán.</p>
     </section>
 
-    <form th:unless="${builder.boxes.empty or builder.cakes.empty}"
+    <form th:unless="${page.builder.boxes.empty or page.builder.cakes.empty}"
           th:object="${customBoxForm}"
-          th:action="${editing} ? @{/custom-boxes/{id}(id=${configurationId})} : @{/custom-boxes}"
+          th:action="${page.editing} ? @{/custom-boxes/{id}(id=${page.configurationId})} : @{/custom-boxes}"
           method="post"
           data-custom-box-form
           class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -72,7 +72,7 @@
         <section class="bg-surface border border-gold/20 rounded-lg p-5 sm:p-6">
           <h2 class="font-serif text-2xl font-semibold mb-5">1. Chọn mẫu hộp</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label th:each="box : ${builder.boxes}"
+            <label th:each="box : ${page.builder.boxes}"
                    class="box-option-card">
               <div class="box-option-card__image-frame">
                 <img th:src="${box.imageUrl}"
@@ -110,7 +110,7 @@
              role="status"></p>
 
           <div class="space-y-3">
-            <article th:each="cake, cakeStatus : ${builder.cakes}"
+            <article th:each="cake, cakeStatus : ${page.builder.cakes}"
                      th:attr="data-cake-price=${cake.unitPrice}"
                      class="grid grid-cols-[64px_1fr_auto] sm:grid-cols-[72px_1fr_auto] gap-4 items-center border border-gold/15 bg-control/25 p-3 sm:p-4">
               <img th:src="${cake.imageUrl}"
@@ -187,9 +187,9 @@
 
           <button type="submit"
                   data-custom-submit
-                  th:attr="data-loading-text=${editing ? 'Đang lưu…' : 'Đang thêm…'}"
+                  th:attr="data-loading-text=${page.editing ? 'Đang lưu…' : 'Đang thêm…'}"
                   class="w-full bg-gold hover:bg-goldHover disabled:bg-gold/40 disabled:cursor-not-allowed text-surface font-bold py-3.5 px-4 transition-colors"
-                  th:text="${editing ? 'Lưu thay đổi' : 'Thêm vào giỏ hàng'}">
+                  th:text="${page.editing ? 'Lưu thay đổi' : 'Thêm vào giỏ hàng'}">
             Thêm vào giỏ hàng
           </button>
           <a th:href="@{/cart}" class="block text-center text-sm text-sand hover:text-gold transition-colors">

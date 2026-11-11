@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.cart.controller;
 
+import com.se201411.project.mooncake.cart.dto.CustomBoxFormPage;
 import com.se201411.project.mooncake.cart.dto.CustomBoxEditView;
 import com.se201411.project.mooncake.cart.dto.CustomBoxForm;
 import com.se201411.project.mooncake.cart.dto.CustomBoxPageView;
@@ -178,8 +179,6 @@ public class CustomBoxController {
         boolean editing,
         Long configurationId
     ) {
-        model.addAttribute("builder", builder);
-        model.addAttribute("editing", editing);
-        model.addAttribute("configurationId", configurationId);
+        model.addAttribute("page", new CustomBoxFormPage(builder, editing, configurationId));
     }
 }

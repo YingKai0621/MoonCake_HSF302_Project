@@ -3,7 +3,7 @@
 <head th:replace="~{admin/layout :: head('Sửa sản phẩm')}"></head>
 <body class="page-catalog">
 <header th:replace="~{admin/layout :: nav}"></header>
-<main th:with="product=${detail.product},hideSaleSwitch=${true}">
+<main th:with="product=${page.detail.product},hideSaleSwitch=${true}">
     <div th:replace="~{admin/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/catalog}">
@@ -12,7 +12,7 @@
     </a>
     <div class="detail-header">
         <div>
-            <span class="eyebrow" th:text="${detail.typeLabel}">Hộp quà</span>
+            <span class="eyebrow" th:text="${page.detail.typeLabel}">Hộp quà</span>
             <h1 th:text="${product.name}">Tên sản phẩm</h1>
         </div>
     </div>
@@ -20,7 +20,7 @@
     <section id="sale" class="sale-card" th:classappend="${product.active} ? 'is-on'">
         <div class="sale-card__info">
             <strong th:text="${product.active} ? 'Đang hiện trên cửa hàng' : 'Đang ẩn khỏi cửa hàng'">Đang ẩn khỏi cửa hàng</strong>
-            <span th:if="${detail.webTone != 'success'}" class="badge badge--dot" th:classappend="${'badge--' + detail.webTone}" th:text="${detail.webLabel}">Đang ẩn</span>
+            <span th:if="${page.detail.webTone != 'success'}" class="badge badge--dot" th:classappend="${'badge--' + page.detail.webTone}" th:text="${page.detail.webLabel}">Đang ẩn</span>
         </div>
         <div class="sale-card__actions">
             <a th:if="${product.active}" class="button secondary" th:href="@{/products/{slug}(slug=${product.slug})}" target="_blank" rel="noopener">Xem trên cửa hàng</a>
@@ -36,14 +36,14 @@
 
     <nav class="jump-links" aria-label="Đi tới phần">
         <a href="#info">Thông tin</a>
-        <a href="#skus" th:text="${'Phiên bản & giá (' + #lists.size(detail.skus) + ')'}">Phiên bản &amp; giá</a>
-        <a th:if="${detail.emptyBox}" href="#boxes">Mẫu hộp</a>
+        <a href="#skus" th:text="${'Phiên bản & giá (' + #lists.size(page.detail.skus) + ')'}">Phiên bản &amp; giá</a>
+        <a th:if="${page.detail.emptyBox}" href="#boxes">Mẫu hộp</a>
     </nav>
 
     <section id="info">
         <h2>Thông tin sản phẩm</h2>
         <p th:replace="~{admin/product-forms :: alert('info')}"></p>
-        <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, ${detail.typeLocked})}"></form>
+        <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, ${page.detail.typeLocked})}"></form>
     </section>
 
     <section id="skus">
@@ -55,7 +55,7 @@
 
 
         <div class="sku-list">
-            <details th:each="sku, stat : ${detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
+            <details th:each="sku, stat : ${page.detail.skus}" class="sku-card" th:id="${'sku-' + sku.form.id}"
                      th:open="${stat.index == 0 or formTarget == 'sku-' + sku.form.id}">
                 <summary class="sku-card__summary">
                     <span class="product-thumb">
@@ -99,7 +99,7 @@
                 </div>
             </details>
 
-            <details class="sku-card sku-card--new" id="sku-new" th:open="${detail.skus.isEmpty() or formTarget == 'sku-new'}">
+            <details class="sku-card sku-card--new" id="sku-new" th:open="${page.detail.skus.isEmpty() or formTarget == 'sku-new'}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__plus" aria-hidden="true">+</span>
                     <strong>Thêm phiên bản mới</strong>
@@ -112,14 +112,14 @@
         </div>
     </section>
 
-    <section id="boxes" th:if="${detail.emptyBox}">
+    <section id="boxes" th:if="${page.detail.emptyBox}">
         <div class="section-heading">
             <div>
                 <h2>Mẫu hộp</h2>
             </div>
         </div>
         <div class="sku-list">
-            <details th:each="box : ${detail.boxes}" class="sku-card" th:id="${'box-' + box.id}" th:open="${formTarget == 'box-' + box.id}">
+            <details th:each="box : ${page.detail.boxes}" class="sku-card" th:id="${'box-' + box.id}" th:open="${formTarget == 'box-' + box.id}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__title">
                         <strong th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</strong>
@@ -133,7 +133,7 @@
                     <form th:replace="~{this :: boxForm(${formTarget == 'box-' + box.id ? formValues : box})}"></form>
                 </div>
             </details>
-            <details class="sku-card sku-card--new" id="box-new" th:if="${!detail.skus.isEmpty()}" th:open="${formTarget == 'box-new'}">
+            <details class="sku-card sku-card--new" id="box-new" th:if="${!page.detail.skus.isEmpty()}" th:open="${formTarget == 'box-new'}">
                 <summary class="sku-card__summary">
                     <span class="sku-card__plus" aria-hidden="true">+</span>
                     <strong>Thêm mẫu hộp</strong>
@@ -143,19 +143,19 @@
                     <form th:replace="~{this :: boxForm(${formTarget == 'box-new' ? formValues : null})}"></form>
                 </div>
             </details>
-            <p th:if="${detail.skus.isEmpty()}" class="muted">Thêm phiên bản (SKU) cho hộp trước, sau đó tạo mẫu hộp.</p>
+            <p th:if="${page.detail.skus.isEmpty()}" class="muted">Thêm phiên bản (SKU) cho hộp trước, sau đó tạo mẫu hộp.</p>
         </div>
     </section>
 
     <div id="danger" class="delete-row">
         <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
-        <form th:if="${detail.deleteBlocker == null}"
+        <form th:if="${page.detail.deleteBlocker == null}"
               th:action="@{/admin/catalog/products/{id}/delete(id=${product.id})}"
               th:attr="data-confirm-message=${'Xóa vĩnh viễn sản phẩm “' + product.name + '” cùng mọi phiên bản và ảnh? Không thể hoàn tác.'}"
               method="post">
             <button type="submit" class="danger small-button">Xóa sản phẩm</button>
         </form>
-        <p th:if="${detail.deleteBlocker != null}" class="delete-blocker" th:text="${detail.deleteBlocker}">Không xóa được.</p>
+        <p th:if="${page.detail.deleteBlocker != null}" class="delete-blocker" th:text="${page.detail.deleteBlocker}">Không xóa được.</p>
     </div>
 
     <th:block th:if="false">
@@ -166,13 +166,13 @@
             <div class="form-grid">
                 <label th:if="${editing}">Phiên bản hộp
                     <input type="hidden" name="variantId" th:value="${f.variantId}">
-                    <th:block th:each="sku : ${detail.skus}" th:if="${sku.form.id == f.variantId}">
+                    <th:block th:each="sku : ${page.detail.skus}" th:if="${sku.form.id == f.variantId}">
                         <input type="text" th:value="${sku.form.name}" readonly>
                     </th:block>
                 </label>
                 <label th:if="${!editing}">Phiên bản hộp
                     <select name="variantId" required>
-                        <option th:each="sku : ${detail.skus}"
+                        <option th:each="sku : ${page.detail.skus}"
                                 th:value="${sku.form.id}"
                                 th:selected="${f != null and f.variantId == sku.form.id}"
                                 th:text="${sku.form.name}">Hộp</option>

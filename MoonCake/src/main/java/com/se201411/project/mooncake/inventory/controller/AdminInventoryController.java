@@ -45,8 +45,7 @@ public class AdminInventoryController {
 
     @GetMapping("/movements")
     public String movements(@RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("movements", inventory.movements(page));
-        model.addAttribute("pageNumber", Math.max(0, page));
+        model.addAttribute("page", inventory.movementsPage(page));
         return "admin/inventory-movements";
     }
 

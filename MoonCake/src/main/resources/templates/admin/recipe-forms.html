@@ -7,7 +7,7 @@
     <input type="hidden" name="giftSetVariantId" th:value="${giftSetVariantId}">
     <input type="hidden" name="id" th:if="${recipe != null}" th:value="${recipe.id}">
     <div class="pick-grid">
-        <label th:each="box : ${options.boxes}" class="pick-card">
+        <label th:each="box : ${page.options.boxes}" class="pick-card">
             <input type="radio" name="boxId" th:value="${box.id}" required
                    th:checked="${recipe != null and recipe.boxId == box.id}">
             <span class="pick-card__image">
@@ -29,7 +29,7 @@
     <input type="hidden" name="recipeId" th:value="${recipe.id}">
     <input type="hidden" name="lock" value="false" data-lock-input>
     <div class="pick-grid pick-grid--focus">
-        <th:block th:each="cake : ${options.cakes}" th:with="current=${recipe.components.?[variantId == __${cake.id}__]}">
+        <th:block th:each="cake : ${page.options.cakes}" th:with="current=${recipe.components.?[variantId == __${cake.id}__]}">
         <div th:if="${cake.selling or !current.isEmpty()}" class="pick-card pick-card--cake"
              th:classappend="${(!current.isEmpty() ? 'is-picked ' : '') + (cake.selling ? '' : 'is-unavailable')}">
             <span class="pick-card__image">

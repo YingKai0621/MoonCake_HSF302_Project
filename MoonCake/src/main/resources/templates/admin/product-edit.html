@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Sửa sản phẩm')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Sửa sản phẩm')}"></head>
 <body class="page-catalog">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main th:with="product=${page.detail.product},hideSaleSwitch=${true}">
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
 
     <a class="back-link" th:href="@{/admin/catalog}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
@@ -31,7 +31,7 @@
                         th:text="${product.active} ? 'Ẩn khỏi cửa hàng' : 'Hiện trên cửa hàng'">Hiện trên cửa hàng</button>
             </form>
         </div>
-        <p th:replace="~{admin/product-forms :: alert('sale')}"></p>
+        <p th:replace="~{admin/fragments/product-forms :: alert('sale')}"></p>
     </section>
 
     <nav class="jump-links" aria-label="Đi tới phần">
@@ -42,8 +42,8 @@
 
     <section id="info">
         <h2>Thông tin sản phẩm</h2>
-        <p th:replace="~{admin/product-forms :: alert('info')}"></p>
-        <form th:replace="~{admin/product-forms :: product(${formTarget == 'info' ? formValues : product}, ${page.detail.typeLocked})}"></form>
+        <p th:replace="~{admin/fragments/product-forms :: alert('info')}"></p>
+        <form th:replace="~{admin/fragments/product-forms :: product(${formTarget == 'info' ? formValues : product}, ${page.detail.typeLocked})}"></form>
     </section>
 
     <section id="skus">
@@ -82,10 +82,10 @@
                                     th:text="${sku.form.active} ? 'Ngừng bán phiên bản' : 'Mở bán phiên bản'">Mở bán phiên bản</button>
                         </form>
                     </div>
-                    <p th:replace="~{admin/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
-                    <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
+                    <p th:replace="~{admin/fragments/product-forms :: alert(${'sku-' + sku.form.id})}"></p>
+                    <form th:replace="~{admin/fragments/product-forms :: sku(${formTarget == 'sku-' + sku.form.id ? formValues : sku.form}, ${product.id})}"></form>
 
-                    <div th:replace="~{admin/product-forms :: imageManager(${sku}, ${product.id})}"></div>
+                    <div th:replace="~{admin/fragments/product-forms :: imageManager(${sku}, ${product.id})}"></div>
 
                     <div class="sku-delete">
                         <form th:if="${sku.deleteBlocker == null}"
@@ -105,8 +105,8 @@
                     <strong>Thêm phiên bản mới</strong>
                 </summary>
                 <div class="sku-card__body">
-                    <p th:replace="~{admin/product-forms :: alert('sku-new')}"></p>
-                    <form th:replace="~{admin/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
+                    <p th:replace="~{admin/fragments/product-forms :: alert('sku-new')}"></p>
+                    <form th:replace="~{admin/fragments/product-forms :: sku(${formTarget == 'sku-new' ? formValues : null}, ${product.id})}"></form>
                 </div>
             </details>
         </div>
@@ -129,7 +129,7 @@
                           th:text="${box.active} ? 'Đang dùng' : 'Ngừng dùng'">Đang dùng</span>
                 </summary>
                 <div class="sku-card__body">
-                    <p th:replace="~{admin/product-forms :: alert(${'box-' + box.id})}"></p>
+                    <p th:replace="~{admin/fragments/product-forms :: alert(${'box-' + box.id})}"></p>
                     <form th:replace="~{this :: boxForm(${formTarget == 'box-' + box.id ? formValues : box})}"></form>
                 </div>
             </details>
@@ -139,7 +139,7 @@
                     <strong>Thêm mẫu hộp</strong>
                 </summary>
                 <div class="sku-card__body">
-                    <p th:replace="~{admin/product-forms :: alert('box-new')}"></p>
+                    <p th:replace="~{admin/fragments/product-forms :: alert('box-new')}"></p>
                     <form th:replace="~{this :: boxForm(${formTarget == 'box-new' ? formValues : null})}"></form>
                 </div>
             </details>
@@ -148,7 +148,7 @@
     </section>
 
     <div id="danger" class="delete-row">
-        <p th:replace="~{admin/product-forms :: alert('danger')}"></p>
+        <p th:replace="~{admin/fragments/product-forms :: alert('danger')}"></p>
         <form th:if="${page.detail.deleteBlocker == null}"
               th:action="@{/admin/catalog/products/{id}/delete(id=${product.id})}"
               th:attr="data-confirm-message=${'Xóa vĩnh viễn sản phẩm “' + product.name + '” cùng mọi phiên bản và ảnh? Không thể hoàn tác.'}"

@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Đánh giá khách hàng')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Đánh giá khách hàng')}"></head>
 <body class="page-feedback">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main th:with="waiting=${feedbacks.?[!published and rating != null]},shown=${feedbacks.?[published]}">
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
     <div class="page-heading page-heading--simple">
         <span class="eyebrow">Bán hàng</span>
         <h1>Đánh giá khách hàng</h1>

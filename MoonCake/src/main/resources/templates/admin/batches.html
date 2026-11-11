@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/layout :: head('Lô hàng')}"></head>
+<head th:replace="~{admin/fragments/layout :: head('Lô hàng')}"></head>
 <body class="page-batches">
-<header th:replace="~{admin/layout :: nav}"></header>
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
 <main th:with="active=${batches.?[remainingQuantity > 0]},soon=${active.?[statusTone == 'warning']},expired=${active.?[statusTone == 'danger']},missing=${active.?[statusTone == 'muted']},used=${batches.?[remainingQuantity == 0]}">
-    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
     <div class="page-heading page-heading--simple page-heading--with-action">
         <div>
             <span class="eyebrow">Kho</span>

@@ -6,9 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 
@@ -29,9 +32,20 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        RequestCache requestCache
+        RequestCache requestCache,
+        SessionRegistry sessionRegistry
     ) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/products/**", "/favicon.ico").permitAll()
@@ -50,7 +64,8 @@ public class SecurityConfig {
                 "/cart/**",
                 "/checkout/**",
                 "/orders/**",
-                "/custom-boxes/**"
+                "/custom-boxes/**",
+                "/account/**"
             ).hasRole("CUSTOMER")
             .anyRequest().authenticated()
         );
@@ -68,6 +83,12 @@ public class SecurityConfig {
             .logoutUrl("/logout")
             .logoutSuccessUrl("/login?logout")
             .permitAll()
+        );
+
+        http.sessionManagement(session -> session
+            .maximumSessions(-1)
+            .sessionRegistry(sessionRegistry)
+            .expiredUrl("/login?disabled")
         );
 
         http.requestCache(cache -> cache.requestCache(requestCache));

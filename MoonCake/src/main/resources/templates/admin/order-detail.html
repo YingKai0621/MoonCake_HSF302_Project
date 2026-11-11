@@ -13,6 +13,7 @@
     <div class="order-title">
         <h1 class="order-code" th:text="${order.code}">MC-1</h1>
         <span class="badge badge--large badge--dot" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span>
+        <span th:if="${order.customerLocked}" class="badge badge--large badge--danger">Khách đã bị khóa</span>
     </div>
     <p class="order-subtitle" th:text="${'Đặt lúc ' + order.formattedCreatedAt}">Đặt lúc</p>
 
@@ -175,6 +176,8 @@
                         <dd th:text="${order.note}">Ghi chú</dd>
                     </th:block>
                 </dl>
+                <a th:if="${order.customerId != null}"
+                   th:href="@{/admin/customers/{id}(id=${order.customerId})}">Xem khách hàng</a>
             </section>
         </aside>
     </div>

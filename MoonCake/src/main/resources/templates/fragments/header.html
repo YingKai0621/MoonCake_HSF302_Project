@@ -68,6 +68,7 @@
             </summary>
             <div class="site-header__dropdown-menu site-header__account-menu">
               <p class="site-header__email" th:text="${currentUserEmail}">customer@example.com</p>
+              <a th:if="${customerLoggedIn}" th:href="@{/account}" href="/account">Thông tin tài khoản</a>
               <a th:if="${customerLoggedIn}" th:href="@{/orders}" href="/orders">Đơn hàng của tôi</a>
               <a th:unless="${customerLoggedIn}" th:href="@{/admin}" href="/admin">Trang quản trị</a>
               <form class="site-header__logout" th:action="@{/logout}" action="/logout" method="post">

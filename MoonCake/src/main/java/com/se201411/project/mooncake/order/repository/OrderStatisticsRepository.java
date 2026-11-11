@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.repository;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.CustomerOrderCount;
 import com.se201411.project.mooncake.order.dto.PaidAmount;
 import com.se201411.project.mooncake.order.dto.ProductSalesSummary;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +49,26 @@ public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Lon
     long countPaidCancelledOrders(
         @Param("cancelled") OrderStatus cancelled,
         @Param("paid") PaymentStatus paid
+    );
+
+    @Query("""
+        select new com.se201411.project.mooncake.order.dto.CustomerOrderCount(
+            salesOrder.customer.id,
+            count(salesOrder),
+            sum(case when salesOrder.status = :cancelled then 1 else 0 end)
+        )
+        from SalesOrder salesOrder
+        where salesOrder.customer.id in :customerIds
+        group by salesOrder.customer.id
+        """)
+    List<CustomerOrderCount> countOrdersByCustomer(
+        @Param("customerIds") Collection<Long> customerIds,
+        @Param("cancelled") OrderStatus cancelled
+    );
+
+    List<SalesOrder> findByCustomer_IdAndStatusInOrderByCreatedAtDesc(
+        long customerId,
+        Collection<OrderStatus> statuses
     );
 
     @Query("""

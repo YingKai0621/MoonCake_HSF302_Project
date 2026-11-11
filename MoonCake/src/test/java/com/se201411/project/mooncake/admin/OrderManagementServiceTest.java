@@ -20,6 +20,7 @@ import com.se201411.project.mooncake.order.service.impl.OrderManagementServiceIm
 import com.se201411.project.mooncake.order.service.impl.PaymentProcessorRegistryImpl;
 import com.se201411.project.mooncake.order.service.impl.VnpayPaymentProcessor;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
+import com.se201411.project.mooncake.security.service.CustomerProfileService;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -41,6 +42,7 @@ class OrderManagementServiceTest {
     OrderItemComponentRepository components = mock(OrderItemComponentRepository.class);
     PaymentRepository payments = mock(PaymentRepository.class);
     AdminAccessService access = mock(AdminAccessService.class);
+    CustomerProfileService customerProfileService = mock(CustomerProfileService.class);
     OrderManagementServiceImpl service = new OrderManagementServiceImpl(
         orders,
         items,
@@ -56,6 +58,7 @@ class OrderManagementServiceTest {
             )
         )),
         access,
+        customerProfileService,
         Clock.systemUTC()
     );
 

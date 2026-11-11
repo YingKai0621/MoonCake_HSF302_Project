@@ -35,7 +35,9 @@ public record AdminOrderView(
     Actions actions,
     OrderFulfilmentView fulfilment,
     String autoCompleteDate,
-    List<ShippingCarrier> shippingCarriers
+    List<ShippingCarrier> shippingCarriers,
+    Long customerId,
+    boolean customerLocked
 ) {
 
     public static AdminOrderView entityToDto(
@@ -46,8 +48,13 @@ public record AdminOrderView(
         String formattedUpdatedAt,
         List<Item> items,
         List<PaymentLine> payments,
-        Actions actions
+        Actions actions,
+        boolean customerLocked
     ) {
+        Long customerId = null;
+        if (order.getCustomer() != null) {
+            customerId = order.getCustomer().getId();
+        }
         return new AdminOrderView(
             order.getId(),
             order.getOrderCode(),
@@ -70,7 +77,9 @@ public record AdminOrderView(
             actions,
             OrderFulfilmentView.entityToDto(order),
             autoCompleteDate(order),
-            List.of(ShippingCarrier.values())
+            List.of(ShippingCarrier.values()),
+            customerId,
+            customerLocked
         );
     }
 

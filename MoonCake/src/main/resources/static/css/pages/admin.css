@@ -3948,3 +3948,21 @@ tr[hidden] {
   font-size: 13px;
   font-weight: 600;
 }
+
+.customer-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.customer-search label {
+    flex-basis: 100%;
+    font-weight: 600;
+}
+
+.customer-search input {
+    flex: 1 1 280px;
+    max-width: 420px;
+}

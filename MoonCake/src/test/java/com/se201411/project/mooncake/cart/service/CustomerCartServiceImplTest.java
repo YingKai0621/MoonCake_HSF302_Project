@@ -60,6 +60,8 @@ class CustomerCartServiceImplTest {
     private CustomBoxConfigurationItemRepository configurationItemRepository;
     @Mock
     private ProductQueryService productQueryService;
+    @Mock
+    private CustomBoxService customBoxService;
 
     private CustomerCartService service;
 
@@ -75,6 +77,7 @@ class CustomerCartServiceImplTest {
             configurationRepository,
             configurationItemRepository,
             productQueryService,
+            customBoxService,
             clock
         );
     }

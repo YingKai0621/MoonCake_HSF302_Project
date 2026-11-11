@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tài khoản của tôi | MoonCake</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#10233D',
+            surface: '#0C1626',
+            control: '#162842',
+            gold: '#EDC565',
+            goldHover: '#F5D68E',
+            ivory: '#F8F4EB',
+            sand: '#D3CABB'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+  <link rel="stylesheet" th:href="@{/css/header.css}" href="/css/header.css">
+  <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+  <link rel="stylesheet" th:href="@{/css/form-validation.css}">
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+  <header th:replace="~{fragments/header :: header('account')}"></header>
+
+  <main class="flex-grow max-w-[860px] w-full mx-auto px-4 sm:px-6 py-10">
+    <p th:if="${successMessage}"
+       role="status"
+       class="mb-4 border border-gold/30 p-4 text-gold"
+       th:text="${successMessage}"></p>
+    <p th:if="${errorMessage}"
+       role="alert"
+       class="mb-4 p-4 text-red-300"
+       th:text="${errorMessage}"></p>
+
+    <div class="mb-8">
+      <p class="text-xs uppercase tracking-[0.2em] text-gold mb-2">Tài khoản của bạn</p>
+      <h1 class="font-serif text-3xl md:text-4xl font-semibold">Tài khoản của tôi</h1>
+      <p class="mt-3 text-sand" th:text="|Thành viên từ ${page.memberSince}|">Thành viên từ 01/10/2026</p>
+    </div>
+
+    <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8 mb-8" aria-labelledby="profile-title">
+      <h2 id="profile-title" class="font-serif text-2xl font-semibold mb-6">Thông tin cá nhân</h2>
+
+      <div class="mb-6">
+        <p class="text-sm text-sand">Email</p>
+        <p class="mt-1 font-medium" th:text="${page.email}">customer@example.com</p>
+        <p class="mt-1 text-xs text-sand">Email dùng để đăng nhập, không thay đổi được</p>
+      </div>
+
+      <form th:action="@{/account/profile}"
+            th:object="${profileForm}"
+            method="post"
+            class="space-y-6">
+        <div>
+          <label for="fullName" class="block text-sm font-medium mb-2">
+            Họ tên <span class="text-gold">*</span>
+          </label>
+          <input id="fullName"
+                 type="text"
+                 th:field="*{fullName}"
+                 maxlength="40"
+                 autocomplete="name"
+                 class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+          <p th:if="${#fields.hasErrors('fullName')}"
+             th:errors="*{fullName}"
+             class="mt-2 text-sm text-red-300">Họ tên không hợp lệ</p>
+        </div>
+
+        <div>
+          <label for="phone" class="block text-sm font-medium mb-2">
+            Số điện thoại <span class="text-gold">*</span>
+          </label>
+          <input id="phone"
+                 type="tel"
+                 th:field="*{phone}"
+                 maxlength="10"
+                 inputmode="numeric"
+                 autocomplete="tel"
+                 class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+          <p th:if="${#fields.hasErrors('phone')}"
+             th:errors="*{phone}"
+             class="mt-2 text-sm text-red-300">Số điện thoại không hợp lệ</p>
+        </div>
+
+        <div class="flex justify-end border-t border-gold/15 pt-6">
+          <button type="submit"
+                  data-loading-text="Đang lưu…"
+                  class="bg-gold px-6 py-3 font-semibold text-midnight hover:bg-goldHover transition-colors">
+            Lưu thông tin
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="password-title">
+      <h2 id="password-title" class="font-serif text-2xl font-semibold mb-6">Đổi mật khẩu</h2>
+
+      <form th:action="@{/account/password}"
+            th:object="${passwordForm}"
+            method="post"
+            class="space-y-6">
+        <div>
+          <label for="currentPassword" class="block text-sm font-medium mb-2">
+            Mật khẩu hiện tại <span class="text-gold">*</span>
+          </label>
+          <input id="currentPassword"
+                 name="currentPassword"
+                 type="password"
+                 autocomplete="current-password"
+                 class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+          <p th:if="${#fields.hasErrors('currentPassword')}"
+             th:errors="*{currentPassword}"
+             class="mt-2 text-sm text-red-300">Mật khẩu hiện tại không đúng</p>
+        </div>
+
+        <div>
+          <label for="newPassword" class="block text-sm font-medium mb-2">
+            Mật khẩu mới <span class="text-gold">*</span>
+          </label>
+          <input id="newPassword"
+                 name="newPassword"
+                 type="password"
+                 minlength="8"
+                 maxlength="64"
+                 autocomplete="new-password"
+                 class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+          <p class="mt-2 text-xs text-sand">Từ 8 đến 64 ký tự.</p>
+          <p th:if="${#fields.hasErrors('newPassword')}"
+             th:errors="*{newPassword}"
+             class="mt-2 text-sm text-red-300">Mật khẩu mới không hợp lệ</p>
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium mb-2">
+            Nhập lại mật khẩu mới <span class="text-gold">*</span>
+          </label>
+          <input id="confirmPassword"
+                 name="confirmPassword"
+                 type="password"
+                 minlength="8"
+                 maxlength="64"
+                 autocomplete="new-password"
+                 class="w-full border border-gold/25 bg-control px-4 py-3 text-ivory outline-none focus:border-gold">
+          <p th:if="${#fields.hasErrors('confirmPassword')}"
+             th:errors="*{confirmPassword}"
+             class="mt-2 text-sm text-red-300">Mật khẩu xác nhận không khớp</p>
+        </div>
+
+        <div class="flex justify-end border-t border-gold/15 pt-6">
+          <button type="submit"
+                  data-loading-text="Đang đổi…"
+                  class="bg-gold px-6 py-3 font-semibold text-midnight hover:bg-goldHover transition-colors">
+            Đổi mật khẩu
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer th:replace="~{fragments/footer :: checkoutFooter}"></footer>
+  <script th:src="@{/js/main.js}" src="/js/main.js"></script>
+  <script th:src="@{/js/loading-button.js}" src="/js/loading-button.js"></script>
+  <script th:src="@{/js/form-validation.js}" defer></script>
+</body>
+</html>

@@ -286,6 +286,15 @@ class SecurityConfigTest {
         ).andExpect(status().isOk());
     }
 
+    @Test
+    void customerCannotOpenAdminCustomerPages() throws Exception {
+        mockMvc.perform(get("/admin/customers").with(user("customer").roles("CUSTOMER")))
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/admin/customers").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk());
+    }
+
     @Configuration
     @EnableWebMvc
     static class TestWebConfig {
@@ -415,6 +424,11 @@ class SecurityConfigTest {
         @PostMapping("/account/password")
         String changePassword() {
             return "password-changed";
+        }
+
+        @GetMapping("/admin/customers")
+        String adminCustomers() {
+            return "admin-customers";
         }
 
         @GetMapping("/admin/dashboard")

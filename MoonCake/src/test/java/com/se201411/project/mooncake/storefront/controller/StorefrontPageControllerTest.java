@@ -1,7 +1,8 @@
 package com.se201411.project.mooncake.storefront.controller;
 
 import com.se201411.project.mooncake.feedback.dto.PublicReviewView;
-import com.se201411.project.mooncake.feedback.service.FeedbackService;
+import com.se201411.project.mooncake.storefront.dto.HomePageView;
+import com.se201411.project.mooncake.storefront.service.StorefrontService;
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ExtendedModelMap;
 
@@ -13,17 +14,18 @@ import static org.mockito.Mockito.when;
 
 class StorefrontPageControllerTest {
 
-    private final FeedbackService feedbackService = mock(FeedbackService.class);
-    private final StorefrontPageController controller = new StorefrontPageController(feedbackService);
+    private final StorefrontService storefrontService = mock(StorefrontService.class);
+    private final StorefrontPageController controller = new StorefrontPageController(storefrontService);
 
     @Test
-    void rendersHomepageWithPublishedReviews() {
-        List<PublicReviewView> reviews = List.of(new PublicReviewView("An", "A", 5, "Bánh ngon"));
-        when(feedbackService.findPublishedReviews()).thenReturn(reviews);
+    void rendersHomepageWithOnePageView() {
+        HomePageView page = new HomePageView(List.of(new PublicReviewView("An", "A", 5, "Bánh ngon")));
+        when(storefrontService.homePage()).thenReturn(page);
         ExtendedModelMap model = new ExtendedModelMap();
 
         assertThat(controller.homepage(model)).isEqualTo("homepage");
-        assertThat(model.getAttribute("reviews")).isEqualTo(reviews);
+        assertThat(model.getAttribute("page")).isEqualTo(page);
+        assertThat(model.size()).isEqualTo(1);
     }
 
     @Test

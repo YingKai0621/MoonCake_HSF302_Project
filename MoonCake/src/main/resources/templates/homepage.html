@@ -555,7 +555,7 @@
     </div>
   </section>
 
-  <section th:unless="${#lists.isEmpty(reviews)}"
+  <section th:unless="${#lists.isEmpty(page.reviews)}"
            class="reviews-section py-16 lg:py-20 bg-midnight border-b border-gold/20"
            aria-labelledby="reviews-title">
     <div class="max-w-7xl mx-auto px-4 sm:px-8 mb-10 text-center">
@@ -565,8 +565,8 @@
       </h2>
     </div>
 
-    <ul th:if="${#lists.size(reviews) < 4}" class="reviews-flat">
-      <li th:each="review : ${reviews}" class="review-card">
+    <ul th:if="${#lists.size(page.reviews) < 4}" class="reviews-flat">
+      <li th:each="review : ${page.reviews}" class="review-card">
         <div class="review-card__header">
           <span class="review-card__avatar" th:text="${review.customerInitial}">A</span>
           <div>
@@ -581,7 +581,7 @@
       </li>
     </ul>
 
-    <div th:if="${#lists.size(reviews) >= 4}" class="reviews-wall" aria-hidden="true">
+    <div th:if="${#lists.size(page.reviews) >= 4}" class="reviews-wall" aria-hidden="true">
       <div class="reviews-wall__stage">
         <div th:each="column : ${#numbers.sequence(1, 4)}"
              class="reviews-wall__column"
@@ -589,7 +589,7 @@
              th:style="${'--column-delay: -' + (column * 11) + 's'}">
           <div class="reviews-wall__track">
             <th:block th:each="copy : ${#numbers.sequence(1, 2)}">
-              <div th:each="review : ${reviews}" class="review-card">
+              <div th:each="review : ${page.reviews}" class="review-card">
                 <div class="review-card__header">
                   <span class="review-card__avatar" th:text="${review.customerInitial}">A</span>
                   <div>
@@ -608,8 +608,8 @@
       </div>
     </div>
 
-    <ul th:if="${#lists.size(reviews) >= 4}" class="sr-only">
-      <li th:each="review : ${reviews}"
+    <ul th:if="${#lists.size(page.reviews) >= 4}" class="sr-only">
+      <li th:each="review : ${page.reviews}"
           th:text="${review.customerName + ', ' + review.rating + ' trên 5 sao: ' + review.content}">
         Khách hàng, 5 trên 5 sao: Bánh rất ngon.
       </li>

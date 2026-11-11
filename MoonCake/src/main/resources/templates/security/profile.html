@@ -69,11 +69,14 @@
     <section class="bg-surface border border-gold/20 rounded-lg p-6 sm:p-8" aria-labelledby="edit-name-title">
       <h2 id="edit-name-title" class="font-serif text-xl font-semibold mb-5">Chỉnh sửa họ tên</h2>
       <p class="text-sm text-sand mb-5">Tên này sẽ hiển thị trong thông tin hồ sơ của bạn.</p>
-      <form th:action="@{/profile/name}" th:object="${profileForm}" method="post" class="space-y-4">
+      <form th:action="@{/profile/name}" th:object="${profileForm}" method="post" class="space-y-4" data-profile-edit-form>
         <label for="fullName" class="block text-sm text-sand">Họ và tên</label>
         <input id="fullName" type="text" th:field="*{fullName}" maxlength="160" autocomplete="name" required class="w-full border border-gold/25 bg-midnight px-4 py-3 text-ivory outline-none focus:border-gold">
         <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="text-sm text-red-300"></p>
-        <button type="submit" class="bg-gold text-surface font-semibold px-5 py-3">Lưu họ tên</button>
+        <div class="flex flex-wrap gap-3">
+          <button type="submit" class="bg-gold text-surface font-semibold px-5 py-3">Lưu họ tên</button>
+          <button type="reset" class="border border-gold/40 text-sand font-semibold px-5 py-3 hover:border-gold hover:text-ivory" data-profile-cancel hidden>Hủy chỉnh sửa</button>
+        </div>
       </form>
     </section>
 
@@ -102,5 +105,6 @@
   </main>
 
   <footer th:replace="~{fragments/footer :: footer}"></footer>
+  <script th:src="@{/js/pages/profile-edit.js}" src="/js/pages/profile-edit.js" defer></script>
 </body>
 </html>

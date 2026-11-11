@@ -7,6 +7,7 @@ import com.se201411.project.mooncake.inventory.controller.AdminInventoryControll
 import com.se201411.project.mooncake.inventory.controller.BatchController;
 import com.se201411.project.mooncake.product.controller.ProductMediaController;
 import com.se201411.project.mooncake.order.controller.AdminOrderController;
+import com.se201411.project.mooncake.security.controller.AdminCustomerController;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -26,7 +27,8 @@ import java.util.List;
     AdminOrderController.class,
     AdminFeedbackController.class,
     BatchController.class,
-    ProductMediaController.class
+    ProductMediaController.class,
+    AdminCustomerController.class
 })
 public class AdminExceptionAdvice {
     @ExceptionHandler({

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Khách hàng')}"></head>
+<body class="page-orders">
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
+
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Bán hàng</span>
+        <h1>Khách hàng</h1>
+    </div>
+
+    <form th:action="@{/admin/customers}" method="get" class="customer-search" role="search">
+        <label for="customer-search">Tìm theo email hoặc số điện thoại</label>
+        <input id="customer-search"
+               type="search"
+               name="q"
+               maxlength="254"
+               th:value="${page.keyword}"
+               placeholder="tenban@example.com hoặc 0901234567">
+        <button type="submit" class="secondary">Tìm</button>
+    </form>
+
+    <section class="table-scroll">
+        <table>
+            <thead>
+            <tr>
+                <th>Email</th>
+                <th>Họ tên</th>
+                <th>Số điện thoại</th>
+                <th>Ngày đăng ký</th>
+                <th>Số đơn</th>
+                <th>Trạng thái</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="customer : ${page.rows}">
+                <td th:text="${customer.email}">customer@example.com</td>
+                <td th:text="${customer.fullName}">Nguyễn Văn A</td>
+                <td th:text="${customer.phone}">0901234567</td>
+                <td class="muted" th:text="${customer.memberSince}">01/10/2026</td>
+                <td th:text="${customer.orderCount + ' đơn · ' + customer.cancelledCount + ' đã hủy'}">0 đơn · 0 đã hủy</td>
+                <td>
+                    <span th:if="${customer.active}" class="badge badge--success">Đang hoạt động</span>
+                    <span th:unless="${customer.active}" class="badge badge--danger">Đã khóa</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/customers/{id}(id=${customer.customerId})}">Xem</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${page.rows.isEmpty()}" class="empty-state">
+            <p><strong>Không tìm thấy khách hàng nào.</strong></p>
+            <a th:href="@{/admin/customers}">Xem tất cả khách hàng</a>
+        </div>
+    </section>
+
+    <div class="pager" th:if="${page.pageNumber > 0 or page.hasNext}">
+        <a th:if="${page.pageNumber > 0}"
+           class="button secondary"
+           th:href="@{/admin/customers(page=${page.pageNumber - 1},q=${page.keyword})}">← Trang trước</a>
+        <a th:if="${page.hasNext}"
+           class="button secondary"
+           th:href="@{/admin/customers(page=${page.pageNumber + 1},q=${page.keyword})}">Trang sau →</a>
+    </div>
+</main>
+</body>
+</html>

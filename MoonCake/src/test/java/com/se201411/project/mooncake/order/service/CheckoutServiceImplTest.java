@@ -63,9 +63,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -381,5 +383,20 @@ class CheckoutServiceImplTest {
             .hasMessageContaining("chưa thể đặt đơn mới");
         verify(cartService, never()).claimForCheckout(anyLong(), any());
         verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void disabledAccountCannotPlaceOrder() {
+        ShopperIdentity customerIdentity = ShopperIdentity.forCustomer(7L);
+        doThrow(new BusinessRuleViolationException(
+            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ."
+        )).when(customerProfileService).requireActiveAccount(customerIdentity);
+
+        assertThatThrownBy(() -> checkoutService.placeOrder(customerIdentity, validForm()))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("đã bị khóa");
+        verify(cartService, never()).claimForCheckout(anyLong(), any());
+        verify(orderRepository, never()).save(any());
+        verifyNoInteractions(inventoryService);
     }
 }

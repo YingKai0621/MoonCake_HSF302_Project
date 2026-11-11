@@ -625,8 +625,23 @@ class AdminPagesTest {
     void shippingShowsOnlyDeliveryAction() throws Exception {
         when(orders.detail(1)).thenReturn(order(OrderStatus.SHIPPING));
         mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("value=\"COMPLETED\"")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("value=\"DELIVERED\"")))
+                .andExpect(content().string(containsString("Đã giao hàng")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("value=\"CANCELLED\""))));
+    }
+
+    @Test
+    void deliveredOrderShowsCustomerConfirmationNotice() throws Exception {
+        when(orders.detail(1)).thenReturn(order(OrderStatus.DELIVERED));
+
+        mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Chờ khách xác nhận")))
+            .andExpect(content().string(containsString("Tự hoàn tất ngày")))
+            .andExpect(content().string(org.hamcrest.Matchers.not(
+                containsString("value=\"CANCELLED\"")
+            )));
     }
 
     @Test
@@ -724,6 +739,7 @@ class AdminPagesTest {
                     null,
                     null
                 ),
+                status == OrderStatus.DELIVERED ? "15/11/2026" : null,
                 List.of(ShippingCarrier.values()));
     }
 

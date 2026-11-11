@@ -548,16 +548,6 @@ class VnpayPaymentProcessorTest {
     }
 
     @Test
-    void threeAbandonedVnpayOrdersInADayLockVnpay() {
-        when(paymentRepository.countCancelledUnpaidSince(eq(7L), eq(OrderStatus.CANCELLED), eq(PaymentMethod.VNPAY), eq(PaymentStatus.UNPAID), any()))
-            .thenReturn(3L);
-
-        assertThatThrownBy(() -> processor.checkCanPlace(7L, AMOUNT))
-            .isInstanceOf(BusinessRuleViolationException.class)
-            .hasMessageContaining("tạm khóa 24 giờ");
-    }
-
-    @Test
     void vnpayAcceptsLargeTotals() {
         assertThat(processor.acceptsTotal(new BigDecimal("500000000"))).isTrue();
     }

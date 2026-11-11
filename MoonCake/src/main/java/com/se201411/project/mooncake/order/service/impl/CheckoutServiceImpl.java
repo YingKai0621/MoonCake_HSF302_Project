@@ -60,6 +60,9 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class CheckoutServiceImpl implements CheckoutService {
 
+    private static final int MAX_ABANDONED_VNPAY_ORDERS = 3;
+    private static final int ORDER_LOCK_HOURS = 24;
+
     private final CartService cartService;
     private final PricingService pricingService;
     private final InventoryService inventoryService;
@@ -103,6 +106,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Override
     public CheckoutPreparation prepareCheckout(ShopperIdentity customerIdentity) {
+        requireOrderingAllowed(customerIdentity.customerId());
         CheckoutCartSnapshot cart = cartService.requireCurrentActiveCart(customerIdentity);
         CheckoutQuote quote = pricingService.calculateCheckoutQuote(cart);
         requireStock(quote);
@@ -115,6 +119,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         long cartId,
         ShopperIdentity customerIdentity
     ) {
+        requireOrderingAllowed(customerIdentity.customerId());
         CartSnapshot cart = cartService.requireActiveCart(cartId, customerIdentity);
         CheckoutCartSnapshot checkoutCart = new CheckoutCartSnapshot(
             cart.cartId(),
@@ -170,6 +175,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         CheckoutForm form
     ) {
         validateForm(form);
+        requireOrderingAllowed(customerIdentity.customerId());
         PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(
             form.getPaymentMethod()
         );
@@ -322,6 +328,23 @@ public class CheckoutServiceImpl implements CheckoutService {
         payment.setCreatedAt(now);
         payment.setUpdatedAt(now);
         paymentRepository.save(payment);
+    }
+
+    private void requireOrderingAllowed(long customerId) {
+        LocalDateTime since = LocalDateTime.now(clock).minusHours(ORDER_LOCK_HOURS);
+        long abandonedOrders = paymentRepository.countCancelledUnpaidSince(
+            customerId,
+            OrderStatus.CANCELLED,
+            PaymentMethod.VNPAY,
+            PaymentStatus.UNPAID,
+            since
+        );
+        if (abandonedOrders >= MAX_ABANDONED_VNPAY_ORDERS) {
+            throw new BusinessRuleViolationException(
+                "Bạn đã có " + abandonedOrders + " đơn VNPay bị hủy vì chưa thanh toán trong 24 giờ qua, "
+                    + "nên tạm thời chưa thể đặt đơn mới (tối đa 24 giờ). Nếu cần hỗ trợ, vui lòng liên hệ cửa hàng."
+            );
+        }
     }
 
     private void requireStock(CheckoutQuote quote) {

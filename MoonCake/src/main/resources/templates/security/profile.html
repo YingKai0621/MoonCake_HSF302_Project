@@ -77,7 +77,7 @@
           <dt class="text-base sm:text-lg text-sand">Số điện thoại</dt>
           <dd class="sm:col-span-1">
             <form th:action="@{/profile/phone}" th:object="${phoneForm}" method="post" class="flex flex-wrap items-center gap-3" data-profile-edit-form>
-              <input id="phone" type="tel" th:field="*{phone}" inputmode="numeric" autocomplete="tel" maxlength="10" required class="flex-1 min-w-56 border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
+              <input id="phone" type="tel" th:field="*{phone}" inputmode="numeric" autocomplete="tel" maxlength="10" required class="w-full max-w-sm border border-gold/25 bg-midnight px-4 py-3 text-base text-ivory outline-none focus:border-gold">
               <button type="submit" class="bg-gold text-surface text-base font-semibold px-5 py-3">Lưu</button>
               <button type="reset" class="border border-gold/40 text-base text-sand font-semibold px-5 py-3 hover:border-gold hover:text-ivory" data-profile-cancel hidden>Hủy chỉnh sửa</button>
               <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="w-full text-sm text-red-300"></p>

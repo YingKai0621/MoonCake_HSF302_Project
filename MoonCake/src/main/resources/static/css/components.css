@@ -539,3 +539,22 @@ select option {
     transition: none;
   }
 }
+
+.order-progress__time {
+  color: var(--mc-sand);
+  font-size: 12px;
+}
+
+.order-shipment {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(237, 197, 101, 0.15);
+  display: grid;
+  gap: 6px;
+  color: var(--mc-sand);
+  font-size: 14px;
+}
+
+.order-shipment strong {
+  color: #F8F4EB;
+}

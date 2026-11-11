@@ -107,4 +107,16 @@ class BatchStockServiceTest {
         batch.setRemainingQuantity(remaining);
         return batch;
     }
+
+    @Test
+    void productionDateInTheFutureIsRejected() {
+        LocalDate tomorrow = LocalDate.of(2026, 11, 10);
+
+        assertThatThrownBy(() -> service.labelReceivedBatch("RECEIVE:1", "LO-1", tomorrow, tomorrow.plusDays(30)))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessage("Ngày sản xuất không được sau hôm nay.");
+        assertThatThrownBy(() -> service.updateTraceability(1L, "LO-1", tomorrow, tomorrow.plusDays(30)))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessage("Ngày sản xuất không được sau hôm nay.");
+    }
 }

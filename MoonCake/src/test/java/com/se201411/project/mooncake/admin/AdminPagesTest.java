@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.enums.ShippingCarrier;
+import com.se201411.project.mooncake.order.dto.OrderFulfilmentView;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.product.dto.ProductFormOptions;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
@@ -628,6 +630,29 @@ class AdminPagesTest {
     }
 
     @Test
+    void processingOrderShowsShipmentFormWithCarriers() throws Exception {
+        when(orders.detail(1)).thenReturn(order(OrderStatus.PROCESSING));
+        mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/admin/orders/1/ship")))
+            .andExpect(content().string(containsString("name=\"carrier\"")))
+            .andExpect(content().string(containsString("Giao Hàng Nhanh")))
+            .andExpect(content().string(containsString("name=\"estimatedDeliveryDate\"")));
+    }
+
+    @Test
+    void shipmentWithoutCarrierReturnsToOrderWithError() throws Exception {
+        mvc.perform(post("/admin/orders/1/ship")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("estimatedDeliveryDate", "2099-01-01"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/orders/1"))
+            .andExpect(flash().attribute("shipError", "Vui lòng chọn đơn vị vận chuyển."));
+        verify(orders, never()).ship(anyLong(), any());
+    }
+
+    @Test
     void overviewRendersDashboardAndDiscountedOrders() throws Exception {
         mvc.perform(get("/admin/overview").param("period", "MONTH").with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk())
@@ -686,7 +711,9 @@ class AdminPagesTest {
                 BigDecimal.TEN, "09/11/2026 10:00", "09/11/2026 10:30",
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
                 List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
-                actions);
+                actions,
+                new OrderFulfilmentView("10:00 09/11/2026", null, null, null, null, null, null, null),
+                List.of(ShippingCarrier.values()));
     }
 
     @Configuration

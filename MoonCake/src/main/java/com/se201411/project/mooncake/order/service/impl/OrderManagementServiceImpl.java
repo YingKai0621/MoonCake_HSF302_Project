@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.order.service.impl;
 
+import java.time.LocalDate;
+import com.se201411.project.mooncake.order.dto.ShipmentForm;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.OrderItem;
 import com.se201411.project.mooncake.entity.OrderItemComponent;
@@ -110,6 +112,9 @@ public class OrderManagementServiceImpl implements OrderManagementService {
         OrderStatus source = order.getStatus();
         if (!allowed(source, target)) {
             throw new BusinessRuleViolationException("Không thể chuyển trạng thái " + source + " → " + target);
+        }
+        if (target == OrderStatus.SHIPPING) {
+            throw new BusinessRuleViolationException("Vui lòng nhập thông tin giao hàng để chuyển sang Đang giao.");
         }
 
         Payment payment = requireSinglePayment(id);
@@ -304,5 +309,42 @@ public class OrderManagementServiceImpl implements OrderManagementService {
     public AdminOrderListPageView ordersPage(OrderStatus status, int page) {
         int pageNumber = Math.max(0, page);
         return new AdminOrderListPageView(orders(status, pageNumber), statusTabs(status), status, pageNumber);
+    }
+
+    @Override
+    @Transactional
+    public void ship(long id, ShipmentForm form) {
+        access.requireAdmin();
+        SalesOrder order = orders.requireForUpdate(id);
+        if (order.getStatus() != OrderStatus.PROCESSING) {
+            throw new BusinessRuleViolationException("Chỉ bàn giao vận chuyển được đơn đang chuẩn bị.");
+        }
+        String trackingCode = normalizeTrackingCode(form);
+        LocalDate today = LocalDate.now(clock.withZone(VIETNAM));
+        if (form.estimatedDeliveryDate().isBefore(today)) {
+            throw new BusinessRuleViolationException("Ngày giao dự kiến không được trước hôm nay.");
+        }
+        Payment payment = requireSinglePayment(id);
+        PaymentProcessor paymentProcessor = paymentProcessorRegistry.forMethod(payment.getMethod());
+        paymentProcessor.checkCanFulfil(payment);
+        LocalDateTime now = LocalDateTime.now(clock);
+        int changed = orders.ship(id, form.carrier(), trackingCode, form.estimatedDeliveryDate(), now);
+        if (changed != 1) {
+            throw new BusinessRuleViolationException("Đơn vừa được xử lý bởi yêu cầu khác. Hãy tải lại.");
+        }
+    }
+
+    private String normalizeTrackingCode(ShipmentForm form) {
+        String code = "";
+        if (form.trackingCode() != null) {
+            code = form.trackingCode().trim().toUpperCase();
+        }
+        if (code.isEmpty() && form.carrier().trackingCodeRequired()) {
+            throw new BusinessRuleViolationException("Vui lòng nhập mã vận đơn của " + form.carrier().label() + ".");
+        }
+        if (code.isEmpty()) {
+            return null;
+        }
+        return code;
     }
 }

@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake;
 
+import java.time.LocalDate;
+import com.se201411.project.mooncake.order.dto.ShipmentForm;
+import com.se201411.project.mooncake.enums.ShippingCarrier;
 import com.se201411.project.mooncake.inventory.service.PackingService;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -123,6 +126,22 @@ class AdminFlowIT {
         assertThat(jdbc.queryForObject("SELECT order_status FROM dbo.SALES_ORDER WHERE order_id=?", String.class, id)).isEqualTo("COMPLETED");
         assertThat(jdbc.queryForObject("SELECT payment_status FROM dbo.PAYMENT WHERE order_id=?", String.class, id)).isEqualTo("PAID");
         assertThat(jdbc.queryForObject("SELECT paid_at FROM dbo.PAYMENT WHERE order_id=?", java.sql.Timestamp.class, id)).isNotNull();
+    }
+
+    @Test
+    void shipmentStoresCarrierTrackingCodeDateAndTime() {
+        long id = createOrder(true);
+        jdbc.update("UPDATE dbo.SALES_ORDER SET order_status='PROCESSING' WHERE order_id=?", id);
+        LocalDate expected = LocalDate.now().plusDays(3);
+
+        orders.ship(id, new ShipmentForm(ShippingCarrier.GHN, "ghn-it-1", expected));
+
+        Map<String, Object> row = jdbc.queryForMap("SELECT order_status, shipping_carrier, tracking_code, estimated_delivery_date, shipping_at FROM dbo.SALES_ORDER WHERE order_id=?", id);
+        assertThat(row.get("order_status")).isEqualTo("SHIPPING");
+        assertThat(row.get("shipping_carrier")).isEqualTo("GHN");
+        assertThat(row.get("tracking_code")).isEqualTo("GHN-IT-1");
+        assertThat(row.get("estimated_delivery_date").toString()).isEqualTo(expected.toString());
+        assertThat(row.get("shipping_at")).isNotNull();
     }
 
     @Test

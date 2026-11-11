@@ -96,7 +96,7 @@
                 </label>
                 <div class="form-grid">
                     <label>Ngày sản xuất
-                        <input type="date" name="producedOn">
+                        <input type="date" name="producedOn" th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
                     </label>
                     <label>Hạn dùng
                         <input type="date" name="expiresOn">

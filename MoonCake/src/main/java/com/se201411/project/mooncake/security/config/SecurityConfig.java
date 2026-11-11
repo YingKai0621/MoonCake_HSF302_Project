@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.security.config;
 
+import com.se201411.project.mooncake.security.auth.RoleBasedLoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -58,7 +59,7 @@ public class SecurityConfig {
             .loginPage("/login")
             .loginProcessingUrl("/login")
             .usernameParameter("email")
-            .defaultSuccessUrl("/", false)
+            .successHandler(new RoleBasedLoginSuccessHandler())
             .failureUrl("/login?error")
             .permitAll()
         );

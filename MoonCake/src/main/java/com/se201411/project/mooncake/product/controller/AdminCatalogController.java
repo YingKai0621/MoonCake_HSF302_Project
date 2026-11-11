@@ -40,7 +40,7 @@ public class AdminCatalogController {
 
     @GetMapping({"", "/"})
     public String home() {
-        return "redirect:/admin/orders";
+        return "redirect:/admin/overview";
     }
 
     @GetMapping("/catalog")

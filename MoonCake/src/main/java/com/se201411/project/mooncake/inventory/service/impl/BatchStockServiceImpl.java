@@ -1,5 +1,11 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collection;
+import com.se201411.project.mooncake.entity.InventoryBalance;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
+import com.se201411.project.mooncake.inventory.dto.VariantQuantity;
 import com.se201411.project.mooncake.common.format.VietnamTime;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
@@ -204,8 +210,8 @@ public class BatchStockServiceImpl implements BatchStockService {
             usable += batch.getRemainingQuantity();
         }
         if (usable < needed) {
-            throw new BusinessRuleViolationException(
-                "SKU #" + variantId + " chỉ còn " + usable + " sản phẩm thuộc lô có thể bán. Vui lòng đặt lại."
+            throw new InsufficientStockException(
+                "Chỉ còn " + usable + " " + variantName(variantId) + " còn hạn sử dụng. Vui lòng giảm số lượng và đặt lại."
             );
         }
 
@@ -289,5 +295,27 @@ public class BatchStockServiceImpl implements BatchStockService {
             return "Tồn đầu kỳ";
         }
         return code;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> expiredQuantities(Collection<Long> variantIds) {
+        Map<Long, Integer> result = new HashMap<>();
+        if (variantIds.isEmpty()) {
+            return result;
+        }
+        LocalDate today = VietnamTime.today(clock);
+        for (VariantQuantity expired : stockBatchRepository.sumExpiredRemaining(variantIds, today)) {
+            result.put(expired.variantId(), Math.toIntExact(expired.quantity()));
+        }
+        return result;
+    }
+
+    private String variantName(long variantId) {
+        InventoryBalance balance = inventoryBalanceRepository.findById(variantId).orElse(null);
+        if (balance == null) {
+            return "sản phẩm";
+        }
+        return balance.getVariant().getProduct().getName() + " (" + balance.getVariant().getName() + ")";
     }
 }

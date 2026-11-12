@@ -93,6 +93,22 @@ public class AdminInventoryController {
         return done(flash);
     }
 
+    @PostMapping("/expired")
+    public String writeOffExpired(
+        @RequestParam long variantId,
+        @RequestParam String operationKey,
+        RedirectAttributes flash
+    ) {
+        try {
+            inventory.writeOffExpired(variantId, operationKey);
+        } catch (MoonCakeException ex) {
+            flash.addFlashAttribute("success", ex.getMessage());
+            return "redirect:/admin/inventory";
+        }
+        flash.addFlashAttribute("success", "Đã hủy hàng hết hạn và ghi vào lịch sử kho.");
+        return "redirect:/admin/inventory";
+    }
+
     @PostMapping("/pack")
     public String pack(@Valid @ModelAttribute AdminStockForm form, BindingResult result,
                        @RequestParam(required = false) Long returnGiftBox, RedirectAttributes flash) {

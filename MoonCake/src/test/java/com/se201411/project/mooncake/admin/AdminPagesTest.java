@@ -605,6 +605,26 @@ class AdminPagesTest {
     }
 
     @Test
+    void inventoryRowWithExpiredStockOffersWriteOff() throws Exception {
+        when(inventory.inventoryPage(any(), any(), any(), any(), any())).thenReturn(new InventoryPageView(
+                StockFilter.ALL,
+                List.of(),
+                List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 9, 5, 4)),
+                List.of(),
+                "receive-key",
+                "adjust-key",
+                "pack-key",
+                null,
+                null,
+                null,
+                null));
+        mvc.perform(get("/admin/inventory").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("trong đó 4 hết hạn")))
+            .andExpect(content().string(containsString("/admin/inventory/expired")));
+    }
+
+    @Test
     void stockErrorReopensTheDialogInsteadOfErrorPage() throws Exception {
         doThrow(new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."))
             .when(inventory).adjust(any());

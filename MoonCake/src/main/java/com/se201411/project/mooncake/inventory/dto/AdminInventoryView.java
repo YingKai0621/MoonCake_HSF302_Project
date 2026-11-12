@@ -11,16 +11,21 @@ public final class AdminInventoryView {
     private AdminInventoryView() {
     }
 
-    public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
+    public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold, int expired) {
 
-        public static Balance entityToDto(InventoryBalance balance) {
+        public Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
+            this(variantId, sku, productName, name, quantity, threshold, 0);
+        }
+
+        public static Balance entityToDto(InventoryBalance balance, int expired) {
             return new Balance(
                 balance.getVariantId(),
                 balance.getVariant().getSku(),
                 balance.getVariant().getProduct().getName(),
                 balance.getVariant().getName(),
                 balance.getAvailableQuantity(),
-                balance.getLowStockThreshold()
+                balance.getLowStockThreshold(),
+                expired
             );
         }
 

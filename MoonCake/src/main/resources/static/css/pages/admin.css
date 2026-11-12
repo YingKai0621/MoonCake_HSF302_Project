@@ -3966,3 +3966,13 @@ tr[hidden] {
     flex: 1 1 280px;
     max-width: 420px;
 }
+
+.expired-note {
+  display: block;
+  font-size: 12px;
+  color: var(--danger, #b42318);
+}
+
+.inline-form {
+  display: inline;
+}

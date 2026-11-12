@@ -40,4 +40,6 @@ public interface InventoryAdminService {
     long countBatchesExpiringBy(LocalDate until);
 
     MovementsPageView movementsPage(int page);
+
+    void writeOffExpired(long variantId, String operationKey);
 }

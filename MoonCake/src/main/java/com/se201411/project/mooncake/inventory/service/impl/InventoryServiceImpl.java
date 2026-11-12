@@ -66,8 +66,11 @@ public class InventoryServiceImpl implements InventoryService {
         if (variantIds.isEmpty()) {
             return result;
         }
+        Map<Long, Integer> expired = batchStock.expiredQuantities(variantIds);
         for (InventoryBalance balance : balanceRepository.findByVariantIdIn(variantIds)) {
-            result.put(balance.getVariantId(), balance.getAvailableQuantity());
+            int expiredQuantity = expired.getOrDefault(balance.getVariantId(), 0);
+            int sellable = Math.max(0, balance.getAvailableQuantity() - expiredQuantity);
+            result.put(balance.getVariantId(), sellable);
         }
         return result;
     }

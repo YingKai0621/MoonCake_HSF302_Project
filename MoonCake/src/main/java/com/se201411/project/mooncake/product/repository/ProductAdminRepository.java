@@ -51,6 +51,8 @@ public interface ProductAdminRepository {
 
     Box box(long id);
 
+    Box boxOfVariant(long variantId);
+
     ProductImage image(long id);
 
     void save(Category value);

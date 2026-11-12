@@ -27,6 +27,7 @@ public final class AdminCatalogForms {
     public static final String PRICE_MIN_MESSAGE = "Giá bán thấp nhất là 1.000đ.";
     public static final String PRICE_MAX_MESSAGE = "Giá bán cao nhất là 100.000.000đ.";
     public static final String PRICE_DIGITS_MESSAGE = "Giá bán phải là số nguyên.";
+    public static final String CAPACITY_MESSAGE = "Sức chứa từ 1 đến 24 bánh.";
 
     private AdminCatalogForms() {
     }
@@ -157,6 +158,11 @@ public final class AdminCatalogForms {
         Integer weightGrams,
         @Size(max = 180, message = "Nhân bánh tối đa 180 ký tự.")
         String fillingLabel,
+        @Min(value = 1, message = CAPACITY_MESSAGE)
+        @Max(value = 24, message = CAPACITY_MESSAGE)
+        Integer capacityCakes,
+        @Size(max = 180, message = "Chất liệu tối đa 180 ký tự.")
+        String material,
         @Size(max = 1000, message = "Đường dẫn ảnh tối đa 1.000 ký tự.")
         @Pattern(regexp = "(?:https?://[^\\s]+|/images/[^\\s]+|/uploads/[^\\s]+)?", message = IMAGE_URL_MESSAGE)
         String imageUrl,
@@ -191,6 +197,11 @@ public final class AdminCatalogForms {
         Integer weightGrams,
         @Size(max = 180, message = "Nhân bánh tối đa 180 ký tự.")
         String fillingLabel,
+        @Min(value = 1, message = CAPACITY_MESSAGE)
+        @Max(value = 24, message = CAPACITY_MESSAGE)
+        Integer capacityCakes,
+        @Size(max = 180, message = "Chất liệu tối đa 180 ký tự.")
+        String material,
         @NotNull(message = "Vui lòng nhập giá bán.")
         @DecimalMin(value = "1000", message = PRICE_MIN_MESSAGE)
         @DecimalMax(value = "100000000", message = PRICE_MAX_MESSAGE)
@@ -200,6 +211,16 @@ public final class AdminCatalogForms {
     ) {
 
         public static VariantForm entityToDto(ProductVariant variant) {
+            return entityToDto(variant, null);
+        }
+
+        public static VariantForm entityToDto(ProductVariant variant, Box box) {
+            Integer capacityCakes = null;
+            String material = null;
+            if (box != null) {
+                capacityCakes = box.getCapacityCakes();
+                material = box.getMaterial();
+            }
             return new VariantForm(
                 variant.getId(),
                 variant.getProduct().getId(),
@@ -207,6 +228,8 @@ public final class AdminCatalogForms {
                 variant.getName(),
                 variant.getWeightGrams(),
                 variant.getFillingLabel(),
+                capacityCakes,
+                material,
                 variant.getUnitPrice(),
                 variant.isActive()
             );
@@ -243,13 +266,6 @@ public final class AdminCatalogForms {
                 box.getNotes(),
                 box.isActive()
             );
-        }
-
-        public void dtoToEntity(Box box) {
-            box.setCapacityCakes(capacityCakes);
-            box.setMaterial(material);
-            box.setNotes(notes);
-            box.setActive(active);
         }
     }
 

@@ -149,6 +149,14 @@ public class BatchStockServiceImpl implements BatchStockService {
 
     @Override
     @Transactional
+    public void updateCode(long batchId, String code) {
+        StockBatch batch = stockBatchRepository.findById(batchId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lô hàng."));
+        updateTraceability(batchId, code, batch.getProducedOn(), batch.getExpiresOn());
+    }
+
+    @Override
+    @Transactional
     public void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn) {
         boolean hasCode = code != null && !code.isBlank();
         if (hasCode && code.trim().length() > MAX_CODE_LENGTH) {

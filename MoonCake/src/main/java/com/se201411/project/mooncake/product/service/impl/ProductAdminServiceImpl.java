@@ -200,13 +200,18 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         Map<Long, Integer> stock = stockByVariant();
         Set<Long> readyGiftSets = readyGiftSets(variants);
         Map<Long, SellableBatchView> batches = inventory.nextSellableBatches(variantIds(productId));
+        Map<Long, Box> boxesByVariant = new HashMap<>();
+        for (Box box : repo.boxesOf(productId)) {
+            boxesByVariant.put(box.getEmptyBoxVariant().getId(), box);
+        }
         List<AdminProductDetail.Sku> skus = new ArrayList<>();
         for (ProductVariant variant : variants) {
             List<ImageForm> images = imagesBySku.getOrDefault(variant.getId(), List.of());
             int quantity = stock.getOrDefault(variant.getId(), 0);
             WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
+            Box box = boxesByVariant.get(variant.getId());
             skus.add(new AdminProductDetail.Sku(
-                VariantForm.entityToDto(variant),
+                VariantForm.entityToDto(variant, box),
                 coverImage(images),
                 images,
                 quantity,
@@ -218,11 +223,6 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         }
         WebStatus productStatus = productStatus(product, variants, readyGiftSets, stock);
 
-        List<BoxForm> boxes = new ArrayList<>();
-        for (Box box : repo.boxesOf(productId)) {
-            boxes.add(BoxForm.entityToDto(box));
-        }
-
         return new AdminProductDetail(
             ProductForm.entityToDto(product),
             typeLabel(product.getProductType()),
@@ -231,8 +231,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             productStatus.label(),
             productStatus.tone(),
             deleteBlocker(productId),
-            skus,
-            boxes
+            skus
         );
     }
 
@@ -336,7 +335,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public long setVariantOnSale(long variantId, boolean onSale) {
         access.requireAdmin();
-        VariantForm current = VariantForm.entityToDto(repo.variant(variantId));
+        VariantForm current = VariantForm.entityToDto(repo.variant(variantId), repo.boxOfVariant(variantId));
         saveVariant(new VariantForm(
             current.id(),
             current.productId(),
@@ -344,6 +343,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             current.name(),
             current.weightGrams(),
             current.fillingLabel(),
+            current.capacityCakes(),
+            current.material(),
             current.unitPrice(),
             onSale
         ));
@@ -442,6 +443,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             f.variantName(),
             f.weightGrams(),
             f.fillingLabel(),
+            f.capacityCakes(),
+            f.material(),
             f.unitPrice(),
             false
         );
@@ -481,6 +484,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         v.setActive(false);
         repo.save(v);
         inventory.initializeBalance(v.getId());
+        if (product.getProductType() == ProductType.EMPTY_BOX) {
+            saveBoxCapacity(v, f);
+        }
         if (f.active()) {
             inventory.requireBalance(v.getId());
             if (v.getProduct().getProductType() == ProductType.GIFT_SET) {
@@ -491,27 +497,20 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         repo.flush();
     }
 
-    @Override
-    public long saveBox(BoxForm f) {
-        access.requireAdmin();
-        validation.validate(f);
-        Box v = f.id() == null ? new Box() : repo.box(f.id());
-        if (f.id() != null) {
-            boolean variantChanged = !v.getEmptyBoxVariant().getId().equals(f.variantId());
-            boolean capacityChanged = v.getCapacityCakes() != f.capacityCakes();
-            if (variantChanged || (capacityChanged && boxInUse(f.id()))) {
-                throw new BusinessRuleViolationException("Sức chứa hộp đã được dùng nên không đổi được SKU hoặc số bánh. Hãy thêm sức chứa mới.");
-            }
+    private void saveBoxCapacity(ProductVariant variant, VariantForm f) {
+        Box box = repo.boxOfVariant(variant.getId());
+        if (box == null) {
+            box = new Box();
+            box.setEmptyBoxVariant(variant);
+        } else if (box.getCapacityCakes() != f.capacityCakes() && boxInUse(box.getId())) {
+            throw new BusinessRuleViolationException(
+                "Hộp này đã được dùng trong hộp quà hoặc hộp khách tự chọn nên không đổi được sức chứa. Hãy tạo phiên bản hộp mới."
+            );
         }
-        ProductVariant variant = repo.variant(f.variantId());
-        if (variant.getProduct().getProductType() != ProductType.EMPTY_BOX) {
-            throw new BusinessRuleViolationException("Sức chứa hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
-        }
-        v.setEmptyBoxVariant(variant);
-        f.dtoToEntity(v);
-        repo.save(v);
-        repo.flush();
-        return variant.getProduct().getId();
+        box.setCapacityCakes(f.capacityCakes());
+        box.setMaterial(f.material());
+        box.setActive(true);
+        repo.save(box);
     }
 
     @Override
@@ -605,6 +604,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         BigDecimal thousand = BigDecimal.valueOf(1000);
         if (f.unitPrice().remainder(thousand).signum() != 0) {
             throw new BusinessRuleViolationException("Giá bán phải là bội số của 1.000đ.");
+        }
+        if (product.getProductType() == ProductType.EMPTY_BOX && f.capacityCakes() == null) {
+            throw new BusinessRuleViolationException("Hộp rỗng cần nhập sức chứa (số bánh).");
         }
         if (product.getProductType() != ProductType.MOONCAKE) {
             return;

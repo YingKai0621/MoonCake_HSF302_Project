@@ -1,3 +1,14 @@
+function applyProductionDate(dialog, trigger) {
+  const wrapper = dialog.querySelector("[data-production-date]");
+  if (wrapper === null || trigger === null) {
+    return;
+  }
+  const input = wrapper.querySelector("input");
+  const needed = trigger.dataset.needsDate === "true";
+  wrapper.hidden = !needed;
+  input.disabled = !needed;
+}
+
 function openModal(trigger) {
   const dialog = document.getElementById(trigger.dataset.openModal);
   if (dialog === null) {
@@ -20,13 +31,14 @@ function openModal(trigger) {
     }
   }
   const variant = dialog.querySelector("[data-modal-variant]");
-  if (variant !== null) {
+  if (variant !== null && trigger.dataset.variantId !== undefined) {
     variant.value = trigger.dataset.variantId;
   }
   const subject = dialog.querySelector("[data-modal-subject]");
   if (subject !== null && trigger.dataset.variantLabel) {
     subject.textContent = trigger.dataset.variantLabel;
   }
+  applyProductionDate(dialog, trigger);
   dialog.showModal();
   const firstField = dialog.querySelector("input:not([type=hidden]), select");
   if (firstField !== null) {
@@ -59,6 +71,7 @@ function reopenAfterError() {
     if (trigger !== null) {
       subject.textContent = trigger.dataset.variantLabel;
     }
+    applyProductionDate(dialog, trigger);
   }
   dialog.showModal();
 }

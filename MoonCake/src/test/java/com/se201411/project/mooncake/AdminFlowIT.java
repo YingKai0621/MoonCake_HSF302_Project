@@ -168,7 +168,7 @@ class AdminFlowIT {
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
             catalog.saveProduct(new ProductForm(null, category, ProductType.MOONCAKE, key, key, "Test product", null, null, 30, null, true));
             long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT WHERE slug=?", Long.class, key);
-            catalog.saveVariant(new VariantForm(null, product, key, key, 150, "Thập cẩm", BigDecimal.valueOf(65_000), true));
+            catalog.saveVariant(new VariantForm(null, product, key, key, 150, "Thập cẩm", null, null, BigDecimal.valueOf(65_000), true));
             assertThat(quantity(sku(key))).isZero();
             status.setRollbackOnly();
         });
@@ -182,7 +182,7 @@ class AdminFlowIT {
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
             long product = catalog.createProduct(new NewProductForm(
                 category, ProductType.MOONCAKE, key, key, "Test product", null, null, 30, null, false,
-                key.toUpperCase(), key, BigDecimal.valueOf(65_000), 150, "Thập cẩm", "/images/products/test.png", null));
+                key.toUpperCase(), key, BigDecimal.valueOf(65_000), 150, "Thập cẩm", null, null, "/images/products/test.png", null));
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_IMAGE i JOIN dbo.PRODUCT_VARIANT v ON v.variant_id=i.variant_id WHERE v.product_id=?", Integer.class, product)).isEqualTo(1);
 
             catalog.deleteProduct(product);
@@ -254,7 +254,7 @@ class AdminFlowIT {
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
             catalog.saveProduct(new ProductForm(null, category, ProductType.GIFT_SET, key, key, "Test gift", null, null, 30, null, true));
             long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT WHERE slug=?", Long.class, key);
-            catalog.saveVariant(new VariantForm(null, product, key, key, null, null, BigDecimal.valueOf(450_000), false));
+            catalog.saveVariant(new VariantForm(null, product, key, key, null, null, null, null, BigDecimal.valueOf(450_000), false));
             long gift = sku(key);
             long box = jdbc.queryForObject("SELECT box_id FROM dbo.BOX WHERE empty_box_variant_id=?", Long.class, sku("BOX-KIM-PHUC-4"));
             presets.saveDraft(new AdminPresetForm(null, gift, box));

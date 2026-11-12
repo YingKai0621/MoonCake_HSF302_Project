@@ -1,14 +1,27 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.18 — 12/11/2026
+**Phiên bản tài liệu:** 1.19 — 12/11/2026
 
-**Trạng thái:** Hàng hết hạn không được bán và Admin hủy được; không đổi schema
+**Trạng thái:** Sức chứa nằm trong phiên bản hộp rỗng; nhập kho theo từng loại; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.19
+
+- **Sức chứa hộp nằm trong phiên bản hộp rỗng.** Khi tạo hộp rỗng hoặc thêm/sửa phiên bản hộp rỗng, Admin nhập **sức chứa (1–24 bánh)** và chất liệu ngay trong form phiên bản; hệ thống lưu `PRODUCT_VARIANT` và `BOX` trong **một transaction**. Không còn bước "mẫu hộp" riêng. Mỗi phiên bản hộp rỗng có đúng một sức chứa (`UQ_BOX_empty_box_variant_id`).
+- Phiên bản hộp rỗng **bắt buộc có sức chứa**; phiên bản hộp rỗng không có ô khối lượng hay nhân bánh.
+- Hộp đã được dùng trong công thức hộp quà hoặc hộp khách tự chọn thì **không đổi được sức chứa**; muốn số bánh khác thì tạo phiên bản hộp mới.
+- Chỉ còn **một công tắc "Mở bán phiên bản"**. Hộp có sức chứa luôn chọn được khi làm công thức hộp quà; khách chỉ thấy hộp ở trang tự chọn khi phiên bản đang mở bán.
+- **Nhập kho theo loại:**
+  - **Bánh:** ngày sản xuất bắt buộc ngay trên form; HSD = ngày sản xuất + thời hạn của bánh.
+  - **Hộp rỗng:** không có ngày sản xuất và HSD; vỏ hộp không hết hạn.
+  - **Hộp quà:** **không nhập trực tiếp**; chỉ vào kho bằng **Đóng hộp quà** (trừ vỏ hộp và bánh, HSD theo quy tắc đóng hộp ở v1.17). Dòng hộp quà ở trang Kho có nút "Đóng hộp" thay cho "Nhập". "Điều chỉnh" vẫn dùng để sửa sai khi kiểm kê.
+- **Sửa lô:** chỉ lô **bánh** sửa được ngày sản xuất (HSD tự tính lại). Lô hộp quà giữ ngày đóng hộp và HSD đã tính lúc đóng; lô hộp rỗng không có ngày; cả hai chỉ đổi được mã lô.
+- Đổi thời hạn sử dụng của sản phẩm chỉ áp dụng cho lô nhập sau; lô đã nhập giữ HSD cũ.
 
 ### Thay đổi chính trong phiên bản 1.18
 
@@ -187,7 +200,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 **Bốn cách mua hàng:**
 
 1. **Bánh lẻ:** mua `PRODUCT` loại `MOONCAKE` qua SKU trong `PRODUCT_VARIANT`.
-2. **Hộp rỗng:** mua `PRODUCT` loại `EMPTY_BOX` qua SKU. Hộp rỗng có thông tin sức chứa tương ứng trong `BOX`.
+2. **Hộp rỗng:** mua `PRODUCT` loại `EMPTY_BOX` qua SKU. Sức chứa của mỗi phiên bản hộp rỗng lưu trong `BOX` và được nhập cùng form phiên bản.
 3. **Hộp quà có sẵn:** mua `PRODUCT` loại `GIFT_SET` (SKU hộp đã đóng sẵn, **có tồn kho riêng**). Thành phần hộp được mô tả bằng `BOX_CONFIGURATION` loại `PRESET`.
 4. **Hộp tự chọn:** chọn `BOX` rồi chọn đủ bánh theo sức chứa để tạo `BOX_CONFIGURATION` loại `CUSTOM`. Khách có thể bắt đầu từ hộp hoặc bánh, nhưng kết quả lưu **một cấu hình**.
 

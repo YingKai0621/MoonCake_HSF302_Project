@@ -140,40 +140,21 @@ function setUpDropzones() {
   }
 }
 
-function setUpCakeOnlyFields() {
+function setUpTypeFields() {
   const typeSelect = document.querySelector('select[name="productType"]');
-  const cakeFields = document.querySelectorAll("[data-cake-only]");
-  if (typeSelect === null || cakeFields.length === 0) {
+  const fields = document.querySelectorAll("[data-only-type]");
+  if (typeSelect === null || fields.length === 0) {
     return;
   }
 
   function update() {
-    const isCake = typeSelect.value === "MOONCAKE";
-    for (let i = 0; i < cakeFields.length; i++) {
-      const wrapper = cakeFields[i];
+    for (let i = 0; i < fields.length; i++) {
+      const wrapper = fields[i];
       const input = wrapper.querySelector("input");
-      wrapper.hidden = !isCake;
-      input.required = isCake;
-      input.disabled = !isCake;
+      const shown = wrapper.dataset.onlyType === typeSelect.value;
+      wrapper.hidden = !shown;
+      input.disabled = !shown;
     }
-  }
-
-  typeSelect.addEventListener("change", update);
-  update();
-}
-
-function setUpShelfLifeField() {
-  const typeSelect = document.querySelector('select[name="productType"]');
-  const wrapper = document.querySelector("[data-shelf-life]");
-  if (typeSelect === null || wrapper === null) {
-    return;
-  }
-  const input = wrapper.querySelector("input");
-
-  function update() {
-    const isEmptyBox = typeSelect.value === "EMPTY_BOX";
-    wrapper.hidden = isEmptyBox;
-    input.disabled = isEmptyBox;
   }
 
   typeSelect.addEventListener("change", update);
@@ -245,8 +226,7 @@ function setUpAutoUploads() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  setUpCakeOnlyFields();
-  setUpShelfLifeField();
+  setUpTypeFields();
   setUpUppercaseFields();
   setUpDropzones();
   setUpAutoUploads();

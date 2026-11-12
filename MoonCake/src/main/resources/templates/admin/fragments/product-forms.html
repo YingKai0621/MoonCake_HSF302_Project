@@ -69,7 +69,7 @@
     <label class="span-2">Thành phần chính
         <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
     </label>
-    <label data-shelf-life
+    <label data-only-type="MOONCAKE"
            th:with="emptyBox=${f != null and f.productType != null and f.productType.name() == 'EMPTY_BOX'}"
            th:hidden="${emptyBox}">Thời hạn sử dụng (ngày)
         <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days-cake"
@@ -131,6 +131,14 @@
                    min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
         </label>
         <input th:if="${page.formOptions.giftBox or emptyBox}" type="hidden" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}">
+        <label th:if="${emptyBox}">Sức chứa (số bánh)
+            <input type="number" name="capacityCakes" th:value="${f != null ? f.capacityCakes : ''}" required
+                   min="1" max="24" placeholder="Ví dụ: 4" data-max-error="Sức chứa tối đa 24 bánh.">
+        </label>
+        <label class="span-2" th:if="${emptyBox}">Chất liệu
+            <input type="text" name="material" th:value="${f != null ? f.material : ''}" maxlength="180"
+                   placeholder="Ví dụ: Giấy kraft">
+        </label>
         <label class="span-2" th:unless="${page.formOptions.giftBox or emptyBox}">Nhân bánh
             <input type="text" name="fillingLabel" th:value="${f != null ? f.fillingLabel : ''}" maxlength="180"
                    th:required="${cake}" placeholder="Ví dụ: Thập cẩm lạp xưởng">

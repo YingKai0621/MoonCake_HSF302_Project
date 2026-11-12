@@ -150,6 +150,8 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
             variant.name(),
             variant.weightGrams(),
             variant.fillingLabel(),
+            variant.capacityCakes(),
+            variant.material(),
             variant.unitPrice(),
             onSale
         ));

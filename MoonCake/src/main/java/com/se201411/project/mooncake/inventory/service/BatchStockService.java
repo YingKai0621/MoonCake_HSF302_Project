@@ -18,6 +18,8 @@ public interface BatchStockService {
 
     void updateTraceability(long batchId, String code, LocalDate producedOn, LocalDate expiresOn);
 
+    void updateCode(long batchId, String code);
+
     long variantIdOf(long batchId);
 
     void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn);

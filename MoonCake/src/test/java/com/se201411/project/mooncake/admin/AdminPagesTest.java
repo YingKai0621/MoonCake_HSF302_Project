@@ -106,13 +106,13 @@ class AdminPagesTest {
     void setup() {
         reset(catalog, presets, inventory, orders, cancellations, media, customers);
         when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
-        when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted")));
+        when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted", true)));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         when(catalog.catalog()).thenReturn(new AdminCatalogView(
                 List.of(new CategoryForm(1L, "Category", "category", true)),
                 List.of(new ProductForm(1L, 1, ProductType.MOONCAKE, "Cake", "cake", "Description", null, null, null, null, true)),
-                List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true)),
+                List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, null, null, BigDecimal.TEN, true)),
                 List.of(new BoxForm(1L, 1, 4, null, null, true)),
                 List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true))));
         when(catalog.productRows(null)).thenReturn(List.of(new AdminProductRow(
@@ -129,15 +129,14 @@ class AdminPagesTest {
                 "success",
                 null,
                 List.of(new AdminProductDetail.Sku(
-                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
+                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, null, null, BigDecimal.TEN, true),
                         "/images/cake.png",
                         List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)),
                         12,
                         "Đang bán trên web",
                         "success",
                         null,
-                        null)),
-                List.of()));
+                        null))));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
                 List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false)),
                 List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true)),
@@ -334,7 +333,7 @@ class AdminPagesTest {
             .andExpect(redirectedUrl("/admin/gift-boxes/9#recipe"));
         verify(catalog).createProduct(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
-            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, null, null, "/images/products/gift.png", null));
     }
 
     @Test
@@ -421,7 +420,7 @@ class AdminPagesTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog/products/1#sku-new"))
             .andExpect(flash().attribute("formError", "Bánh lẻ cần nhập khối lượng."))
-            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)));
+            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, null, null, BigDecimal.valueOf(65_000), false)));
     }
 
     @Test
@@ -430,7 +429,7 @@ class AdminPagesTest {
                 .with(user("admin").roles("ADMIN"))
                 .flashAttr("formTarget", "sku-new")
                 .flashAttr("formError", "Bánh lẻ cần nhập khối lượng.")
-                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)))
+                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, null, null, BigDecimal.valueOf(65_000), false)))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("class=\"form-alert\"")))
             .andExpect(content().string(containsString("Bánh lẻ cần nhập khối lượng.")))
@@ -551,19 +550,11 @@ class AdminPagesTest {
             "Inactive Variant",
             null,
             null,
+            null,
+            null,
             BigDecimal.valueOf(100_000),
             false
         ));
-
-        mvc.perform(post("/admin/boxes")
-                .with(user("admin").roles("ADMIN"))
-                .with(csrf())
-                .param("productId", "1")
-                .param("variantId", "1")
-                .param("capacityCakes", "4")
-                .param("_active", "on"))
-            .andExpect(status().is3xxRedirection());
-        verify(catalog).saveBox(new BoxForm(null, 1, 4, null, null, false));
 
         mvc.perform(post("/admin/images")
                 .with(user("admin").roles("ADMIN"))
@@ -609,7 +600,7 @@ class AdminPagesTest {
         when(inventory.inventoryPage(any(), any(), any(), any(), any())).thenReturn(new InventoryPageView(
                 StockFilter.ALL,
                 List.of(),
-                List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 9, 5, 4)),
+                List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 9, 5, 4, false, true)),
                 List.of(),
                 "receive-key",
                 "adjust-key",
@@ -665,15 +656,14 @@ class AdminPagesTest {
                 "warning",
                 null,
                 List.of(new AdminProductDetail.Sku(
-                        new VariantForm(1L, 2, "GIFT-KP-4", "Hộp 4 bánh", null, null, BigDecimal.valueOf(590_000), false),
+                        new VariantForm(1L, 2, "GIFT-KP-4", "Hộp 4 bánh", null, null, null, null, BigDecimal.valueOf(590_000), false),
                         null,
                         List.of(),
                         0,
                         "Ngừng bán",
                         "muted",
                         null,
-                        null)),
-                List.of());
+                        null)));
         AdminPresetView recipe = new AdminPresetView(
                 1, 1, "GIFT-KP-4", 1, 4, ConfigurationStatus.DRAFT,
                 List.of(new AdminPresetView.Component(1, "CAKE", 3, "Bánh Kim Sa · Bánh 80g")),

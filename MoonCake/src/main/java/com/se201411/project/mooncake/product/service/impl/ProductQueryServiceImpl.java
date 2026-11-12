@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.product.service.impl;
 
-import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.entity.ProductVideo;
 import com.se201411.project.mooncake.product.dto.ProductVideoView;
 import com.se201411.project.mooncake.product.dto.ProductImageView;
@@ -127,26 +126,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         List<ProductImageView> images = galleryImages(product.getId());
         List<ProductVideoView> videos = galleryVideos(product.getId());
-        Map<Long, String> batches = currentBatchLabels(product);
         if (product.getType() == ProductType.MOONCAKE) {
-            return new ProductDetailPageView(product, "/products/mooncakes", MOONCAKE_TITLE, related, images, videos, batches);
+            return new ProductDetailPageView(product, "/products/mooncakes", MOONCAKE_TITLE, related, images, videos);
         }
-        return new ProductDetailPageView(product, "/products/gift-boxes", GIFT_BOX_TITLE, related, images, videos, batches);
-    }
-
-    private Map<Long, String> currentBatchLabels(CatalogProductView product) {
-        List<Long> variantIds = new ArrayList<>();
-        for (CatalogVariantView variant : product.getVariants()) {
-            variantIds.add(variant.id());
-        }
-        Map<Long, String> labels = new HashMap<>();
-        for (SellableBatchView batch : inventoryService.nextSellableBatches(variantIds).values()) {
-            String label = batch.label();
-            if (label != null) {
-                labels.put(batch.variantId(), label);
-            }
-        }
-        return labels;
+        return new ProductDetailPageView(product, "/products/gift-boxes", GIFT_BOX_TITLE, related, images, videos);
     }
 
     private List<ProductImageView> galleryImages(long productId) {

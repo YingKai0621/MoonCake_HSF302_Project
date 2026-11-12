@@ -51,7 +51,6 @@
         <label>Thời hạn sử dụng (ngày)
             <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days"
                    th:value="${f != null ? f.shelfLifeDays : 30}">
-            <small class="muted">Hạn của từng lô = ngày sản xuất + số ngày này. Vỏ hộp để trống.</small>
         </label>
         <datalist id="shelf-life-days">
             <option value="7"></option>
@@ -73,7 +72,6 @@
     <label>Thời hạn sử dụng (ngày)
         <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days-cake"
                th:value="${f != null ? f.shelfLifeDays : 30}">
-        <small class="muted">Hạn của từng lô = ngày sản xuất + số ngày này. Vỏ hộp để trống.</small>
     </label>
     <datalist id="shelf-life-days-cake">
         <option value="7"></option>

@@ -2,7 +2,6 @@ package com.se201411.project.mooncake.product.service;
 
 import java.util.Map;
 import java.time.LocalDate;
-import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.entity.ProductImage;
 import com.se201411.project.mooncake.product.dto.ProductDetailPageView;
 import com.se201411.project.mooncake.product.repository.ProductVideoRepository;
@@ -202,24 +201,6 @@ class ProductQueryServiceImplTest {
         assertThat(page.galleryImages()).extracting("url")
             .containsExactly("/images/cake-1.jpg", "/images/cake-2.jpg", "/images/cake-3.jpg");
         assertThat(page.galleryVideos()).isEmpty();
-    }
-
-    @Test
-    void productDetailShowsTheBatchThatWillBeSoldNext() {
-        Category category = category(1L);
-        Product cake = product(30L, category, ProductType.MOONCAKE, "banh-cha-bong");
-        ProductVariant cakeVariant = variant(501L, cake, "MC-CB-80", "Bánh 80g", 105_000);
-        when(productRepository.findActiveBySlug("banh-cha-bong")).thenReturn(Optional.of(cake));
-        when(productRepository.findActiveByType(ProductType.MOONCAKE)).thenReturn(List.of(cake));
-        when(productVariantRepository.findActiveByProductIds(any())).thenReturn(List.of(cakeVariant));
-        when(productImageRepository.findOrderedByVariantIds(any())).thenReturn(List.of());
-        when(inventoryService.nextSellableBatches(List.of(501L))).thenReturn(Map.of(
-            501L, new SellableBatchView(501L, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 1))
-        ));
-
-        ProductDetailPageView page = service.productDetailPage("banh-cha-bong");
-
-        assertThat(page.currentBatch(501L)).isEqualTo("NSX 01/09/2026 · HSD 01/10/2026");
     }
 
     private ProductImage image(ProductVariant variant, String url) {

@@ -108,9 +108,15 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     @Transactional(readOnly = true)
     public List<Balance> balances() {
         access.requireAdmin();
+        List<InventoryBalance> rows = repo.balances();
+        List<Long> variantIds = new ArrayList<>();
+        for (InventoryBalance balance : rows) {
+            variantIds.add(balance.getVariantId());
+        }
+        Map<Long, Integer> expired = batchStock.expiredQuantities(variantIds);
         List<Balance> result = new ArrayList<>();
-        for (InventoryBalance balance : repo.balances()) {
-            result.add(Balance.entityToDto(balance));
+        for (InventoryBalance balance : rows) {
+            result.add(Balance.entityToDto(balance, expired.getOrDefault(balance.getVariantId(), 0)));
         }
         return List.copyOf(result);
     }
@@ -205,6 +211,11 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     @Override
     public void receive(AdminStockForm form, String batchCode, LocalDate producedOn) {
         LocalDate expiresOn = expiryFor(form.variantId(), producedOn);
+        if (expiresOn != null && expiresOn.isBefore(VietnamTime.today(clock))) {
+            throw new BusinessRuleViolationException(
+                "Lô này đã hết hạn (HSD " + VietnamTime.date(expiresOn) + "), không nhập được."
+            );
+        }
         change(form, StockMovementType.RECEIVE);
         boolean hasCode = batchCode != null && !batchCode.isBlank();
         boolean hasInfo = hasCode || producedOn != null;
@@ -277,6 +288,16 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         long variantId = batchStock.variantIdOf(batchId);
         LocalDate expiresOn = expiryFor(variantId, producedOn);
         batchStock.updateTraceability(batchId, batchCode, producedOn, expiresOn);
+    }
+
+    @Override
+    public void writeOffExpired(long variantId, String operationKey) {
+        int expired = batchStock.expiredQuantities(List.of(variantId)).getOrDefault(variantId, 0);
+        if (expired <= 0) {
+            throw new BusinessRuleViolationException("Phiên bản này không có hàng hết hạn.");
+        }
+        AdminStockForm form = new AdminStockForm(variantId, -expired, "Hủy hàng hết hạn", operationKey);
+        change(form, StockMovementType.ADJUST);
     }
 
     private LocalDate expiryFor(long variantId, LocalDate producedOn) {

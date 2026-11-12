@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import java.util.Map;
+import java.util.Collection;
 import com.se201411.project.mooncake.enums.StockMovementType;
 import com.se201411.project.mooncake.inventory.dto.AdminBatchView;
 
@@ -19,4 +21,6 @@ public interface BatchStockService {
     long variantIdOf(long batchId);
 
     void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn);
+
+    Map<Long, Integer> expiredQuantities(Collection<Long> variantIds);
 }

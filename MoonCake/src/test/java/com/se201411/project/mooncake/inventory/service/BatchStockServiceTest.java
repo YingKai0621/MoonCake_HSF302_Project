@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.entity.BatchAllocation;
 import com.se201411.project.mooncake.entity.StockBatch;
@@ -76,7 +77,7 @@ class BatchStockServiceTest {
         when(stockBatchRepository.findSellableForUpdate(1, TODAY)).thenReturn(List.of(batch(11L, 3)));
 
         assertThatThrownBy(() -> service.apply(1, -5, "SALE", 9L, StockMovementType.SALE))
-            .isInstanceOf(BusinessRuleViolationException.class)
+            .isInstanceOf(InsufficientStockException.class)
             .hasMessageContaining("3");
         verify(stockBatchRepository, never()).changeRemaining(anyLong(), anyInt(), anyInt(), anyInt());
     }

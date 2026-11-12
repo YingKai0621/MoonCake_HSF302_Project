@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import java.util.Map;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.entity.Account;
 import com.se201411.project.mooncake.enums.StockMovementType;
@@ -153,5 +154,21 @@ class InventoryServiceImplTest {
         when(movementRepository.findPerformerIds(8L, StockMovementType.CANCEL_RETURN)).thenReturn(List.of());
 
         assertThat(inventoryService.cancelledByAccountId(8L)).isNull();
+    }
+
+    @Test
+    void expiredStockIsNotOfferedToCustomers() {
+        InventoryBalance fresh = new InventoryBalance();
+        ReflectionTestUtils.setField(fresh, "variantId", 5L);
+        fresh.setAvailableQuantity(10);
+        InventoryBalance allExpired = new InventoryBalance();
+        ReflectionTestUtils.setField(allExpired, "variantId", 6L);
+        allExpired.setAvailableQuantity(3);
+        when(balanceRepository.findByVariantIdIn(List.of(5L, 6L))).thenReturn(List.of(fresh, allExpired));
+        when(batchStockService.expiredQuantities(List.of(5L, 6L))).thenReturn(Map.of(5L, 4, 6L, 3));
+
+        Map<Long, Integer> available = inventoryService.availableQuantities(List.of(5L, 6L));
+
+        assertThat(available).containsEntry(5L, 6).containsEntry(6L, 0);
     }
 }

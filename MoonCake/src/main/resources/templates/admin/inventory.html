@@ -47,7 +47,10 @@
                     <small class="muted" th:text="${b.name}">Phiên bản</small>
                 </td>
                 <td class="code-cell"><code th:text="${b.sku}">SKU</code></td>
-                <td class="numeric stock-number" th:text="${b.quantity}">0</td>
+                <td class="numeric stock-number">
+                    <span th:text="${b.quantity}">0</span>
+                    <small th:if="${b.expired > 0}" class="expired-note" th:text="${'trong đó ' + b.expired + ' hết hạn'}">trong đó 2 hết hạn</small>
+                </td>
                 <td class="numeric muted" th:text="${b.threshold}">5</td>
                 <td>
                     <span class="badge badge--dot" th:classappend="${'badge--' + b.statusTone()}" th:text="${b.statusLabel()}">Đủ hàng</span>
@@ -59,6 +62,12 @@
                     <button type="button" class="secondary small-button"
                             data-open-modal="adjust-dialog"
                             th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name}">Điều chỉnh</button>
+                    <form th:if="${b.expired > 0}" th:action="@{/admin/inventory/expired}" method="post" class="inline-form"
+                          th:attr="data-confirm-message=${'Hủy ' + b.expired + ' ' + b.productName + ' đã hết hạn? Thao tác được ghi vào lịch sử kho.'}">
+                        <input type="hidden" name="variantId" th:value="${b.variantId}">
+                        <input type="hidden" name="operationKey" th:value="${page.adjustKey}">
+                        <button type="submit" class="danger small-button">Hủy hàng hết hạn</button>
+                    </form>
                 </td>
             </tr>
             </tbody>

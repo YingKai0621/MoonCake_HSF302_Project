@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import com.se201411.project.mooncake.order.dto.ShipmentForm;
 import com.se201411.project.mooncake.enums.ShippingCarrier;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
+import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.inventory.service.PackingService;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -41,6 +42,8 @@ class AdminFlowIT {
     PackingService packing;
     @Autowired
     InventoryAdminService inventoryAdmin;
+    @Autowired
+    InventoryService inventoryService;
     @Autowired
     EntityManager entityManager;
     @Autowired
@@ -202,6 +205,26 @@ class AdminFlowIT {
 
             LocalDate expires = jdbc.queryForObject("SELECT expires_on FROM dbo.STOCK_BATCH WHERE batch_code=?", LocalDate.class, lot);
             assertThat(expires).isEqualTo(produced.plusDays(30));
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
+    void expiredStockIsHiddenFromCustomersAndCanBeWrittenOff() {
+        tx.executeWithoutResult(status -> {
+            long variant = sku("MC-HSMC-120");
+            jdbc.update("UPDATE dbo.STOCK_BATCH SET remaining_quantity=0 WHERE variant_id=?", variant);
+            jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=5 WHERE variant_id=?", variant);
+            LocalDate today = LocalDate.now();
+            jdbc.update("INSERT INTO dbo.STOCK_BATCH(variant_id,batch_code,produced_on,expires_on,remaining_quantity) VALUES (?,?,?,?,5)",
+                variant, "IT-EXP-" + UUID.randomUUID().toString().substring(0, 8), today.minusDays(40), today.minusDays(10));
+
+            assertThat(inventoryService.availableQuantities(List.of(variant))).containsEntry(variant, 0);
+
+            inventoryAdmin.writeOffExpired(variant, UUID.randomUUID().toString());
+
+            assertThat(quantity(variant)).isZero();
+            assertThat(jdbc.queryForObject("SELECT COALESCE(SUM(remaining_quantity),0) FROM dbo.STOCK_BATCH WHERE variant_id=?", Integer.class, variant)).isZero();
             status.setRollbackOnly();
         });
     }

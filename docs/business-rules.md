@@ -1,14 +1,21 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.17 — 12/11/2026
+**Phiên bản tài liệu:** 1.18 — 12/11/2026
 
-**Trạng thái:** Thời hạn sử dụng theo ngày cho bánh và hộp quà, HSD lô tự tính (Flyway V20)
+**Trạng thái:** Hàng hết hạn không được bán và Admin hủy được; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.18
+
+- **Số lượng bán được cho khách** (trang sản phẩm, giỏ hàng, trang thanh toán) = tồn có thể bán trừ đi số còn lại trong các lô **đã quá HSD**. Khách không thấy "còn hàng" với hàng đã hết hạn; bước đặt hàng chỉ lấy từ lô còn hạn như trước.
+- **Không nhập được lô đã hết hạn:** nếu ngày sản xuất + thời hạn sử dụng trước hôm nay (giờ Việt Nam) thì báo "Lô này đã hết hạn (HSD …), không nhập được." và không đổi tồn.
+- Nếu tới bước đặt hàng mà lô còn hạn không đủ (ví dụ lô vừa hết hạn), khách nhận câu "Chỉ còn N <tên sản phẩm> còn hạn sử dụng. Vui lòng giảm số lượng và đặt lại." thay cho câu chứa mã SKU.
+- **Trang Tồn kho của Admin** hiển thị "trong đó N hết hạn" và nút **"Hủy hàng hết hạn"**: hệ thống ghi một điều chỉnh âm đúng bằng số hết hạn (lý do "Hủy hàng hết hạn", có lịch sử kho), trừ từ các lô hết hạn trước.
 
 ### Thay đổi chính trong phiên bản 1.17
 
@@ -565,6 +572,11 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-109 | Lúc 06:00 giờ Việt Nam chọn NSX là hôm nay | Được chấp nhận |
 | BR-110 | Đóng hộp quà thời hạn 20 ngày từ bánh có HSD sau 40 ngày | HSD hộp = ngày đóng hộp + 20 ngày |
 | BR-111 | Khách mở trang bánh có lô còn hàng | Thấy "Lô đang bán: NSX … · HSD …" giống trang sửa sản phẩm của Admin |
+| BR-112 | SKU có 10 cái, trong đó 4 cái thuộc lô đã hết hạn | Khách thấy còn 6; không thêm vào giỏ quá 6 |
+| BR-113 | SKU có tồn nhưng mọi lô đều hết hạn | Khách thấy "Tạm hết hàng" |
+| BR-114 | Nhập kho bánh thời hạn 30 ngày với NSX 60 ngày trước | Từ chối "Lô này đã hết hạn …"; tồn không đổi |
+| BR-115 | Admin bấm "Hủy hàng hết hạn" cho SKU có 4 cái hết hạn | Tồn giảm 4, lô hết hạn về 0, lịch sử kho ghi điều chỉnh -4 lý do "Hủy hàng hết hạn" |
+| BR-116 | Lô vừa hết hạn trong lúc khách đang ở trang thanh toán | Bước đặt hàng báo "Chỉ còn N <tên sản phẩm> còn hạn sử dụng…"; không tạo đơn |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

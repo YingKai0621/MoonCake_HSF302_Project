@@ -38,8 +38,8 @@ class AdminInventoryServiceTest {
 
     @Test
     void receiveLabelsTheNewBatchWithCodeAndDates() {
-        LocalDate produced = LocalDate.of(2026, 9, 1);
-        LocalDate expiry = LocalDate.of(2026, 10, 1);
+        LocalDate produced = LocalDate.now().minusDays(2);
+        LocalDate expiry = produced.plusDays(30);
 
         when(products.shelfLifeDays(11)).thenReturn(30);
 
@@ -138,5 +138,35 @@ class AdminInventoryServiceTest {
         service.updateBatchInfo(9L, "LO-9", produced);
 
         verify(batches).updateTraceability(9L, "LO-9", produced, produced.plusDays(45));
+    }
+
+    @Test
+    void alreadyExpiredLotCannotBeReceived() {
+        when(products.shelfLifeDays(11)).thenReturn(30);
+        LocalDate produced = LocalDate.now().minusDays(60);
+
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(11, 5, "Nhập lô cũ", key), "LO-OLD", produced))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("đã hết hạn");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void writingOffExpiredStockAdjustsByTheExpiredQuantity() {
+        when(batches.expiredQuantities(List.of(11L))).thenReturn(Map.of(11L, 4));
+
+        service.writeOffExpired(11L, key);
+
+        verify(repo).change(11, -4);
+        verify(repo).movement(eq(11L), eq(7L), eq(-4), eq(StockMovementType.ADJUST), eq("Hủy hàng hết hạn"), eq("ADJUST:" + key), eq("ADJUST:" + key + ":11"), any());
+    }
+
+    @Test
+    void writingOffWithoutExpiredStockIsRejected() {
+        when(batches.expiredQuantities(List.of(11L))).thenReturn(Map.of());
+
+        assertThatThrownBy(() -> service.writeOffExpired(11L, key))
+            .isInstanceOf(BusinessRuleViolationException.class);
+        verify(repo, never()).change(anyLong(), anyInt());
     }
 }

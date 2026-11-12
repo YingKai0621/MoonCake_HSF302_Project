@@ -59,7 +59,24 @@ function setUpCakePicker(picker) {
   const lockInput = picker.querySelector("[data-lock-input]");
   const saveLock = picker.querySelector("[data-save-lock]");
   const saveDraft = picker.querySelector("[data-save-draft]");
+  const costText = picker.querySelector("[data-cost-text]");
+  const boxPrice = Number(picker.dataset.boxPrice) || 0;
+  const giftPrice = Number(picker.dataset.giftPrice) || 0;
   let changed = false;
+
+  function money(value) {
+    return value.toLocaleString("vi-VN") + "đ";
+  }
+
+  function retailCost() {
+    let sum = boxPrice;
+    for (let i = 0; i < inputs.length; i++) {
+      const card = inputs[i].closest(".pick-card");
+      const count = Math.max(0, Number(inputs[i].value) || 0);
+      sum += count * (Number(card.dataset.price) || 0);
+    }
+    return sum;
+  }
 
   function total() {
     let sum = 0;
@@ -92,6 +109,7 @@ function setUpCakePicker(picker) {
       card.querySelector('[data-step="1"]').disabled = unavailable || sum >= capacity;
       card.querySelector('[data-step="-1"]').disabled = value <= 0;
     }
+    costText.textContent = "Giá lẻ vỏ + bánh: " + money(retailCost()) + " · Giá bán: " + money(giftPrice);
     saveLock.disabled = sum !== capacity;
     if (sum === capacity) {
       saveLock.removeAttribute("title");

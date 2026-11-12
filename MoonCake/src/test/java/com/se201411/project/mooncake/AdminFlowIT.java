@@ -8,6 +8,7 @@ import com.se201411.project.mooncake.inventory.service.InventoryService;
 import com.se201411.project.mooncake.inventory.service.PackingService;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
+import com.se201411.project.mooncake.product.service.GiftBoxAdminService;
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import com.se201411.project.mooncake.product.dto.AdminPresetForm;
@@ -52,6 +53,8 @@ class AdminFlowIT {
     ProductAdminService catalog;
     @Autowired
     PresetConfigurationAdminService presets;
+    @Autowired
+    GiftBoxAdminService giftBoxes;
     @Autowired
     PlatformTransactionManager transactionManager;
     @MockitoBean
@@ -189,6 +192,51 @@ class AdminFlowIT {
 
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT WHERE product_id=?", Integer.class, product)).isZero();
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_VARIANT WHERE sku=?", Integer.class, key.toUpperCase())).isZero();
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
+    void newGiftBoxIsCreatedHiddenWithADraftRecipeOnTheChosenBox() {
+        tx.executeWithoutResult(status -> {
+            String key = "it-gift-" + UUID.randomUUID();
+            long category = jdbc.queryForObject("SELECT TOP 1 category_id FROM dbo.CATEGORY ORDER BY category_id", Long.class);
+            long box = jdbc.queryForObject("SELECT TOP 1 box_id FROM dbo.BOX WHERE is_active = 1 ORDER BY box_id", Long.class);
+
+            long product = giftBoxes.create(new NewProductForm(
+                category, ProductType.GIFT_SET, key, key, "Hộp quà test", null, null, 30, null, true,
+                key.toUpperCase(), "Hộp quà", BigDecimal.valueOf(450_000), null, null, null, null, null, null), box);
+            entityManager.flush();
+
+            Long recipeBox = jdbc.queryForObject("""
+                    SELECT c.box_id FROM dbo.BOX_CONFIGURATION c
+                    JOIN dbo.PRODUCT_VARIANT v ON v.variant_id = c.preset_variant_id
+                    WHERE v.product_id = ? AND c.configuration_status = 'DRAFT'
+                    """, Long.class, product);
+            assertThat(recipeBox).isEqualTo(box);
+            Boolean visible = jdbc.queryForObject("SELECT is_active FROM dbo.PRODUCT WHERE product_id=?", Boolean.class, product);
+            assertThat(visible).isFalse();
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
+    void emptyBoxVariantIsSavedWithItsCapacity() {
+        tx.executeWithoutResult(status -> {
+            String key = "it-box-" + UUID.randomUUID();
+            long category = jdbc.queryForObject("SELECT TOP 1 category_id FROM dbo.CATEGORY ORDER BY category_id", Long.class);
+
+            long product = catalog.createProduct(new NewProductForm(
+                category, ProductType.EMPTY_BOX, key, key, "Vỏ hộp test", null, null, null, null, false,
+                key.toUpperCase(), "Hộp 6 bánh", BigDecimal.valueOf(40_000), null, null, 6, "Giấy kraft", null, null));
+            entityManager.flush();
+
+            Integer capacity = jdbc.queryForObject("""
+                    SELECT b.capacity_cakes FROM dbo.BOX b
+                    JOIN dbo.PRODUCT_VARIANT v ON v.variant_id = b.empty_box_variant_id
+                    WHERE v.product_id = ?
+                    """, Integer.class, product);
+            assertThat(capacity).isEqualTo(6);
             status.setRollbackOnly();
         });
     }

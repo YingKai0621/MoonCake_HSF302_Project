@@ -18,14 +18,37 @@
     <p th:replace="~{admin/fragments/product-forms :: alert('new-product')}"></p>
     <form th:action="@{/admin/catalog/products}" method="post" enctype="multipart/form-data" class="create-layout"
           th:with="values=${formTarget == 'new-product' ? formValues : null}">
-        <section class="create-layout__main">
-            <h2>Thông tin chung</h2>
-            <div th:replace="~{admin/fragments/product-forms :: productFields(${values}, false)}"></div>
-        </section>
+        <div class="create-layout__main">
+            <section>
+                <h2>Thông tin chung</h2>
+                <div th:replace="~{admin/fragments/product-forms :: productFields(${values}, false)}"></div>
+            </section>
+
+            <section th:if="${page.formOptions.giftBox}">
+                <h2>Chọn vỏ hộp</h2>
+                <div class="pick-grid" th:unless="${page.boxes.isEmpty()}">
+                    <label th:each="box : ${page.boxes}" class="pick-card">
+                        <input type="radio" name="boxId" th:value="${box.id}" required
+                               th:checked="${selectedBoxId != null and selectedBoxId == box.id}">
+                        <span class="pick-card__image">
+                            <img th:if="${box.imageUrl != null}" th:src="${box.imageUrl}" alt="" loading="lazy">
+                        </span>
+                        <span class="pick-card__text">
+                            <strong th:text="${box.label}">Vỏ hộp Kim Phúc</strong>
+                            <small th:text="${box.detail + ' / hộp · Kho: ' + box.stock + ' vỏ'}">4 bánh / hộp · Kho: 98 vỏ</small>
+                        </span>
+                    </label>
+                </div>
+                <div class="empty-state" th:if="${page.boxes.isEmpty()}">
+                    <p><strong>Chưa có hộp rỗng nào có sức chứa.</strong></p>
+                    <a class="button secondary" th:href="@{/admin/catalog/products/new}">Thêm hộp rỗng</a>
+                </div>
+            </section>
+        </div>
 
         <aside class="create-layout__side">
             <section>
-                <h2>Tạo phiên bản</h2>
+                <h2 th:text="${page.formOptions.giftBox ? 'Giá bán' : 'Tạo phiên bản'}">Tạo phiên bản</h2>
                 <div class="side-fields">
                     <input th:if="${page.formOptions.giftBox}" type="hidden" name="variantName" value="Hộp quà">
                     <label th:unless="${page.formOptions.giftBox}">Tên phiên bản
@@ -82,14 +105,16 @@
             </section>
 
             <section class="create-layout__submit">
-                <label class="switch-card">
+                <input th:if="${page.formOptions.giftBox}" type="hidden" name="active" value="false">
+                <label class="switch-card" th:unless="${page.formOptions.giftBox}">
                     <input type="hidden" name="_active" value="on">
                     <input type="checkbox" class="switch" name="active" value="true" th:checked="${values != null and values.active}">
                     <span class="switch-card__text">
                         <strong>Hiển thị trên cửa hàng ngay</strong>
                     </span>
                 </label>
-                <button type="submit" data-loading-text="Đang tạo…">Tạo sản phẩm</button>
+                <button type="submit" data-loading-text="Đang tạo…"
+                        th:text="${page.formOptions.giftBox ? 'Tạo hộp quà' : 'Tạo sản phẩm'}" th:disabled="${page.formOptions.giftBox and page.boxes.isEmpty()}">Tạo sản phẩm</button>
             </section>
         </aside>
     </form>

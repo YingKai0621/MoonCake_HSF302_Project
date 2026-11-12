@@ -822,7 +822,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     @Transactional(readOnly = true)
     public NewProductPageView newProductPage(boolean giftBox) {
-        return new NewProductPageView(formOptions(giftBox));
+        return new NewProductPageView(formOptions(giftBox), List.of());
     }
 
     @Override

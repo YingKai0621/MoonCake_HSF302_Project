@@ -244,30 +244,11 @@ public class CustomerCartServiceImpl implements CustomerCartService {
                 );
             }
 
-            BigDecimal lineTotal = variant.unitPrice()
-                .multiply(BigDecimal.valueOf(item.getQuantity()));
-            CartItemView itemView = new CartItemView(
-                item.getId(),
-                variant.variantId(),
-                variant.productSlug(),
-                variant.productName(),
-                variant.variantName(),
-                variant.sku(),
-                variant.productType(),
-                variant.imageUrl(),
-                variant.imageAlt(),
-                item.getQuantity(),
-                variant.unitPrice(),
-                formatVnd(variant.unitPrice()),
-                lineTotal,
-                formatVnd(lineTotal),
-                variant.currentlySellable(),
-                variant.stock()
-            );
+            CartItemView itemView = CartItemView.entityToDto(item, variant);
             itemViews.add(itemView);
 
             totalQuantity = addQuantities(totalQuantity, item.getQuantity());
-            subtotal = subtotal.add(lineTotal);
+            subtotal = subtotal.add(itemView.lineTotal());
             boolean shortOfStock = variant.stock() >= 0 && variant.stock() < item.getQuantity();
             if (!variant.currentlySellable() || shortOfStock) {
                 hasUnavailableItems = true;

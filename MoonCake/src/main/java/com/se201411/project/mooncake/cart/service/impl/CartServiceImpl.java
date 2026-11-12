@@ -103,20 +103,12 @@ public class CartServiceImpl implements CartService {
 
         List<CartItem> variantItems = cartItemRepository.findVariantItemsByCartId(cartId);
         for (CartItem item : variantItems) {
-            lines.add(new CartLineSnapshot(
-                item.getVariant().getId(),
-                null,
-                item.getQuantity()
-            ));
+            lines.add(CartLineSnapshot.entityToDto(item));
         }
 
         List<CartItem> customItems = cartItemRepository.findCustomItemsByCartId(cartId);
         for (CartItem item : customItems) {
-            lines.add(new CartLineSnapshot(
-                null,
-                item.getConfigurationId(),
-                item.getQuantity()
-            ));
+            lines.add(CartLineSnapshot.entityToDto(item));
         }
 
         return List.copyOf(lines);

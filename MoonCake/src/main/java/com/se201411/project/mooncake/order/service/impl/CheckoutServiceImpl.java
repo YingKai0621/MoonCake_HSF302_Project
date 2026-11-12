@@ -210,7 +210,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         ));
 
         Optional<String> paymentUrl = paymentProcessor.startPayment(order, form.getPaymentIp());
-        return new CheckoutResult(order.getOrderCode(), paymentUrl.orElse(null));
+        return CheckoutResult.entityToDto(order, paymentUrl.orElse(null));
     }
 
     @Override

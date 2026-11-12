@@ -85,6 +85,9 @@ model.addAttribute("page", ...);
 
 **ĐÚNG:** `security/dto/CustomerProfile.entityToDto(Customer)` và `security/dto/CustomerRegistrationForm.dtoToEntity(Customer)`.
 
+- `record` vẫn có `entityToDto` được (hàm `static`), ví dụ `inventory/dto/SellableBatchView.entityToDto(StockBatch)`.
+- Không cần `entityToDto` cho DTO **không tạo từ entity**: page DTO gom các DTO con (`AdminCatalogPageView`), số liệu do service tính (`KpiView`, `AutoCancelView`), lệnh gửi giữa module (`SaleInventoryCommand`), DTO đổi từ DTO khác (`CustomCakeOptionView`) và form người dùng nhập.
+
 ## 8. Thanh toán theo Strategy pattern
 
 - Mỗi phương thức là một `PaymentProcessor`: `CodPaymentProcessor`, `VnpayPaymentProcessor`.

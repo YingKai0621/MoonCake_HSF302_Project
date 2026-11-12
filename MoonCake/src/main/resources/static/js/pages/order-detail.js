@@ -1,23 +1,28 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const modal = document.getElementById('cancel-order-modal');
-  const openButton = document.querySelector('[data-open-cancel-modal]');
-  const closeButton = document.querySelector('[data-close-cancel-modal]');
-
-  if (!modal || !openButton || !closeButton) {
-    return;
+  const openButtons = document.querySelectorAll('[data-open-modal]');
+  for (let i = 0; i < openButtons.length; i++) {
+    const modal = document.getElementById(openButtons[i].dataset.openModal);
+    if (modal === null) {
+      continue;
+    }
+    openButtons[i].addEventListener('click', function () {
+      modal.showModal();
+    });
   }
 
-  openButton.addEventListener('click', function () {
-    modal.showModal();
-  });
+  const closeButtons = document.querySelectorAll('[data-close-modal]');
+  for (let i = 0; i < closeButtons.length; i++) {
+    closeButtons[i].addEventListener('click', function () {
+      closeButtons[i].closest('dialog').close();
+    });
+  }
 
-  closeButton.addEventListener('click', function () {
-    modal.close();
-  });
-
-  modal.addEventListener('click', function (event) {
-    if (event.target === modal) {
-      modal.close();
-    }
-  });
+  const modals = document.querySelectorAll('dialog');
+  for (let i = 0; i < modals.length; i++) {
+    modals[i].addEventListener('click', function (event) {
+      if (event.target === modals[i]) {
+        modals[i].close();
+      }
+    });
+  }
 });

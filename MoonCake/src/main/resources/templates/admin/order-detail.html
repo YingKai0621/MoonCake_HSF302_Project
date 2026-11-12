@@ -60,9 +60,14 @@
             <section th:if="${order.fulfilment.hasShipment()}">
                 <h2>Giao hàng</h2>
                 <dl class="summary-list">
-                    <div><dt>Đơn vị vận chuyển</dt><dd th:text="${order.fulfilment.carrierLabel}">Giao Hàng Nhanh</dd></div>
-                    <div th:if="${order.fulfilment.trackingCode}"><dt>Mã vận đơn</dt><dd th:text="${order.fulfilment.trackingCode}">GHN123</dd></div>
-                    <div><dt>Ngày giao dự kiến</dt><dd th:text="${order.fulfilment.estimatedDelivery}">18/09/2026</dd></div>
+                    <dt>Đơn vị vận chuyển</dt>
+                    <dd th:text="${order.fulfilment.carrierLabel}">Giao Hàng Nhanh</dd>
+                    <th:block th:if="${order.fulfilment.trackingCode}">
+                        <dt>Mã vận đơn</dt>
+                        <dd th:text="${order.fulfilment.trackingCode}">GHN123</dd>
+                    </th:block>
+                    <dt>Ngày giao dự kiến</dt>
+                    <dd th:text="${order.fulfilment.estimatedDelivery}">18/09/2026</dd>
                 </dl>
             </section>
 

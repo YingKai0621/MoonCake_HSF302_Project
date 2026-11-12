@@ -27,6 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -135,5 +137,18 @@ class BatchStockServiceTest {
 
         assertThatCode(() -> earlyMorning.labelReceivedBatch("RECEIVE:1", "LO-1", vietnamToday, vietnamToday.plusDays(30)))
             .doesNotThrowAnyException();
+    }
+
+    @Test
+    void packedGiftBoxTakesTheEarlierOfItsShelfLifeAndTheCakesInside() {
+        StockBatch giftBatch = batch(50, 2);
+        LocalDate packedOn = LocalDate.of(2026, 11, 9);
+        when(batchAllocationRepository.findEarliestExpiryConsumed(eq("PACK:1:"), any())).thenReturn(LocalDate.of(2026, 12, 20));
+        when(batchAllocationRepository.findBatchesCreatedBy("PACK:1:30:IN")).thenReturn(List.of(giftBatch));
+
+        service.finishPack("PACK:1", 30, packedOn, LocalDate.of(2026, 11, 29));
+
+        assertThat(giftBatch.getProducedOn()).isEqualTo(packedOn);
+        assertThat(giftBatch.getExpiresOn()).isEqualTo(LocalDate.of(2026, 11, 29));
     }
 }

@@ -138,7 +138,7 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
             product.shortDescription(),
             product.detailedDescription(),
             product.mainIngredients(),
-            product.shelfLifeInfo(),
+            product.shelfLifeDays(),
             product.storageGuidance(),
             onSale
         ));

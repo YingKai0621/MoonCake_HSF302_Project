@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.product.dto.ProductFormOptions;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.NewProductPageView;
@@ -198,6 +199,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         List<ProductVariant> variants = repo.variantsOf(productId);
         Map<Long, Integer> stock = stockByVariant();
         Set<Long> readyGiftSets = readyGiftSets(variants);
+        Map<Long, SellableBatchView> batches = inventory.nextSellableBatches(variantIds(productId));
         List<AdminProductDetail.Sku> skus = new ArrayList<>();
         for (ProductVariant variant : variants) {
             List<ImageForm> images = imagesBySku.getOrDefault(variant.getId(), List.of());
@@ -210,7 +212,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
                 quantity,
                 status.label(),
                 status.tone(),
-                variantDeleteBlocker(variant.getId())
+                variantDeleteBlocker(variant.getId()),
+                batchLabel(batches.get(variant.getId()))
             ));
         }
         WebStatus productStatus = productStatus(product, variants, readyGiftSets, stock);
@@ -300,8 +303,12 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         if (f.id() != null && v.getProductType() != f.productType() && repo.hasVariants(f.id())) {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
+        requireShelfLife(f.productType(), f.shelfLifeDays());
         v.setCategory(repo.category(f.categoryId()));
         f.dtoToEntity(v);
+        if (f.productType() == ProductType.EMPTY_BOX) {
+            v.setShelfLifeDays(null);
+        }
         repo.save(v);
         repo.flush();
         return v.getId();
@@ -320,7 +327,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             current.shortDescription(),
             current.detailedDescription(),
             current.mainIngredients(),
-            current.shelfLifeInfo(),
+            current.shelfLifeDays(),
             current.storageGuidance(),
             visible
         ));
@@ -422,7 +429,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             f.shortDescription(),
             f.detailedDescription(),
             f.mainIngredients(),
-            f.shelfLifeInfo(),
+            f.shelfLifeDays(),
             f.storageGuidance(),
             f.active()
         );
@@ -576,6 +583,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         return productId;
     }
 
+    private void requireShelfLife(ProductType type, Integer shelfLifeDays) {
+        if (type == ProductType.EMPTY_BOX) {
+            return;
+        }
+        if (shelfLifeDays == null) {
+            throw new BusinessRuleViolationException("Vui lòng nhập thời hạn sử dụng (1 đến 90 ngày).");
+        }
+    }
+
     private void checkNewSku(String sku) {
         if (!sku.matches("[A-Z0-9]+(?:[-_][A-Z0-9]+)*")) {
             throw new BusinessRuleViolationException("Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.");
@@ -651,6 +667,13 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             ids.add(variant.getId());
         }
         return ids;
+    }
+
+    private String batchLabel(SellableBatchView batch) {
+        if (batch == null) {
+            return null;
+        }
+        return batch.label();
     }
 
     private boolean boxInUse(long boxId) {

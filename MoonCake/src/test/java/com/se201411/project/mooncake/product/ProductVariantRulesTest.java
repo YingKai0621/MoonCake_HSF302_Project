@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product;
 
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import java.util.List;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -134,5 +135,15 @@ class ProductVariantRulesTest {
         ReflectionTestUtils.setField(variant, "id", id);
         variant.setProduct(repo.product(1));
         return variant;
+    }
+
+    @Test
+    void mooncakeWithoutShelfLifeIsRejected() {
+        ProductForm form = new ProductForm(null, 1, ProductType.MOONCAKE, "Bánh mới", "banh-moi", "Mô tả", null, null, null, null, true);
+
+        assertThatThrownBy(() -> service.saveProduct(form))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("thời hạn sử dụng");
+        verify(repo, never()).save(any(Product.class));
     }
 }

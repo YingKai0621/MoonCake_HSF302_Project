@@ -1,14 +1,24 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.16 — 12/11/2026
+**Phiên bản tài liệu:** 1.17 — 12/11/2026
 
-**Trạng thái:** Xác nhận giao hàng hai phía: trạng thái Đã giao, khách xác nhận đã nhận, tự hoàn tất sau 3 ngày (Flyway V19, chờ triển khai)
+**Trạng thái:** Thời hạn sử dụng theo ngày cho bánh và hộp quà, HSD lô tự tính (Flyway V20)
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.17
+
+- Mỗi sản phẩm **bánh** và **hộp quà** có **thời hạn sử dụng tính theo ngày** (1–90 ngày; chọn nhanh 7, 15, 30, 45, 60, 90). Vỏ hộp không có thời hạn. Không dùng mốc 6 hay 12 tháng vì không hợp với bánh Trung Thu.
+- **Nhập kho:** với bánh và hộp quà, **ngày sản xuất là bắt buộc** và **HSD của lô tự tính = ngày sản xuất + thời hạn**; Admin không nhập HSD tay. Sửa ngày sản xuất của lô thì HSD tự tính lại.
+- **Đóng hộp quà:** lô hộp quà có ngày sản xuất là ngày đóng hộp và HSD là **ngày sớm hơn** giữa (ngày đóng hộp + thời hạn hộp quà) và HSD sớm nhất của các bánh bỏ vào hộp.
+- Ngày sản xuất không được sau **hôm nay theo giờ Việt Nam**; ngày lọc lô còn hạn khi bán và ngày trong mã lô cũng theo giờ Việt Nam.
+- **Trang sản phẩm của khách** hiển thị "Hạn sử dụng: N ngày kể từ ngày sản xuất" và "Lô đang bán: NSX … · HSD …" của lô sẽ bán ra tiếp theo (còn hàng, chưa hết hạn, hạn gần nhất); đổi phiên bản thì đổi theo. **Trang sửa sản phẩm và trang hộp quà của Admin** hiển thị cùng thông tin lô đang bán, nên Admin và khách luôn thấy giống nhau.
+- Ô chữ "Hạn sử dụng" cũ không còn nhập trên form; dữ liệu cũ chỉ dùng khi sản phẩm chưa có số ngày. Cách bảo quản vẫn ở ô "Cách bảo quản".
+- Flyway V20 thêm cột `PRODUCT.shelf_life_days` (trống hoặc 1–90, ràng buộc `CK_PRODUCT_shelf_life_days`) và điền 30 ngày cho bánh và hộp quà hiện có.
 
 ### Thay đổi chính trong phiên bản 1.16
 
@@ -419,7 +429,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. V18 thêm mốc thời gian và thông tin giao hàng vào `SALES_ORDER`. Flyway hiện ở version 18; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. V18 thêm mốc thời gian và thông tin giao hàng vào `SALES_ORDER`. Flyway hiện ở version 20; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -548,6 +558,13 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-102 | Khách và job cùng hoàn tất một đơn cùng lúc | Chỉ một bên thành công (cập nhật có điều kiện); đơn hoàn thành đúng một lần |
 | BR-103 | Admin hoặc khách cố hủy đơn Đã giao | Bị từ chối |
 | BR-104 | Dashboard có đơn Đã giao trong kỳ | Doanh thu và món bán chạy tính cả đơn Đã giao |
+| BR-105 | Lưu sản phẩm bánh hoặc hộp quà không có thời hạn sử dụng | Từ chối, yêu cầu nhập 1–90 ngày |
+| BR-106 | Nhập kho bánh có thời hạn 30 ngày với NSX 01/09/2026 | Lô có HSD 01/10/2026 |
+| BR-107 | Nhập kho bánh không nhập ngày sản xuất | Từ chối trước khi đổi tồn |
+| BR-108 | Nhập kho vỏ hộp không có ngày sản xuất | Được; lô không có HSD |
+| BR-109 | Lúc 06:00 giờ Việt Nam chọn NSX là hôm nay | Được chấp nhận |
+| BR-110 | Đóng hộp quà thời hạn 20 ngày từ bánh có HSD sau 40 ngày | HSD hộp = ngày đóng hộp + 20 ngày |
+| BR-111 | Khách mở trang bánh có lô còn hàng | Thấy "Lô đang bán: NSX … · HSD …" giống trang sửa sản phẩm của Admin |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

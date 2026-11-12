@@ -57,6 +57,9 @@ public class Product {
     @Column(name = "shelf_life_info", length = 350)
     private String shelfLifeInfo;
 
+    @Column(name = "shelf_life_days")
+    private Integer shelfLifeDays;
+
     @Nationalized
     @Column(name = "storage_guidance", length = 600)
     private String storageGuidance;
@@ -133,6 +136,14 @@ public class Product {
 
     public void setShelfLifeInfo(String shelfLifeInfo) {
         this.shelfLifeInfo = shelfLifeInfo;
+    }
+
+    public Integer getShelfLifeDays() {
+        return shelfLifeDays;
+    }
+
+    public void setShelfLifeDays(Integer shelfLifeDays) {
+        this.shelfLifeDays = shelfLifeDays;
     }
 
     public String getStorageGuidance() {

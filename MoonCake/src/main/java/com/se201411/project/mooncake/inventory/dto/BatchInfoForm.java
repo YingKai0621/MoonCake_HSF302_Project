@@ -9,8 +9,6 @@ public record BatchInfoForm(
     @Size(max = 80, message = "Mã lô tối đa 80 ký tự.")
     String batchCode,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    LocalDate producedOn,
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    LocalDate expiresOn
+    LocalDate producedOn
 ) {
 }

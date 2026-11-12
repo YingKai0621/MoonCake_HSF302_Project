@@ -67,6 +67,7 @@
                     </span>
                     <span class="sku-card__price" th:text="${#numbers.formatDecimal(sku.form.unitPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
                     <span class="sku-card__stock" th:text="${'Kho: ' + sku.stock}">Kho: 0</span>
+                    <span class="sku-card__batch muted" th:if="${sku.currentBatch}" th:text="${'Lô đang bán: ' + sku.currentBatch}">Lô đang bán</span>
                     <span class="badge badge--dot" th:classappend="${'badge--' + sku.webTone}"
                           th:text="${sku.webLabel}">Đang bán trên web</span>
                 </summary>

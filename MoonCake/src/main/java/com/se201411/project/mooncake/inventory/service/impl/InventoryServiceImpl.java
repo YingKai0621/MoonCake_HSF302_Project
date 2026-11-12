@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.entity.StockBatch;
+import com.se201411.project.mooncake.common.format.VietnamTime;
+import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,6 +178,22 @@ public class InventoryServiceImpl implements InventoryService {
             return null;
         }
         return performers.get(0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, SellableBatchView> nextSellableBatches(Collection<Long> variantIds) {
+        Map<Long, SellableBatchView> result = new HashMap<>();
+        if (variantIds.isEmpty()) {
+            return result;
+        }
+        LocalDate today = VietnamTime.today(clock);
+        for (StockBatch batch : batchRepository.findSellableBatches(variantIds, today)) {
+            if (!result.containsKey(batch.getVariantId())) {
+                result.put(batch.getVariantId(), SellableBatchView.entityToDto(batch));
+            }
+        }
+        return result;
     }
 
     private List<InventoryDemand> sortDemands(List<InventoryDemand> demands) {

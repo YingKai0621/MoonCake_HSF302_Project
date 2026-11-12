@@ -14,8 +14,9 @@
 
 - **Số lượng bán được cho khách** (trang sản phẩm, giỏ hàng, trang thanh toán) = tồn có thể bán trừ đi số còn lại trong các lô **đã quá HSD**. Khách không thấy "còn hàng" với hàng đã hết hạn; bước đặt hàng chỉ lấy từ lô còn hạn như trước.
 - **Không nhập được lô đã hết hạn:** nếu ngày sản xuất + thời hạn sử dụng trước hôm nay (giờ Việt Nam) thì báo "Lô này đã hết hạn (HSD …), không nhập được." và không đổi tồn.
-- Nếu tới bước đặt hàng mà lô còn hạn không đủ (ví dụ lô vừa hết hạn), khách nhận câu "Chỉ còn N <tên sản phẩm> còn hạn sử dụng. Vui lòng giảm số lượng và đặt lại." thay cho câu chứa mã SKU.
+- Nếu tới bước đặt hàng mà lô còn hạn không đủ (ví dụ lô vừa hết hạn), khách nhận câu "<tên sản phẩm>: vượt quá số lượng sản phẩm trong kho…" thay cho câu chứa mã SKU.
 - **Trang Tồn kho của Admin** hiển thị "trong đó N hết hạn" và nút **"Hủy hàng hết hạn"**: hệ thống ghi một điều chỉnh âm đúng bằng số hết hạn (lý do "Hủy hàng hết hạn", có lịch sử kho), trừ từ các lô hết hạn trước.
+- Câu báo khi khách đặt vượt tồn (trang sản phẩm, giỏ, thanh toán, đặt hàng) là **"Vượt quá số lượng sản phẩm trong kho"**, không ghi số còn lại. Thao tác của Admin (điều chỉnh, đóng hộp) vẫn ghi số.
 
 ### Thay đổi chính trong phiên bản 1.17
 
@@ -70,7 +71,7 @@
 
 ### Thay đổi chính trong phiên bản 1.11
 
-- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Chỉ còn N sản phẩm"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
+- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Vượt quá số lượng sản phẩm trong kho"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
 - **Không giới hạn số lượng mỗi đơn**, để giữ nguyên các bậc chiết khấu đến 500 hộp.
 - **COD chỉ cho đơn có tổng thanh toán đến 5.000.000 VND.** Đơn lớn hơn chỉ thanh toán VNPay; trang thanh toán khóa lựa chọn COD và chọn sẵn VNPay.
 - Mỗi khách có tối đa **2 đơn COD chờ xử lý** (`PLACED`, payment `UNPAID`) và **1 đơn VNPay chưa thanh toán** cùng lúc.
@@ -524,7 +525,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-61 | Đến hạn hủy nhưng `querydr` xác nhận đã thanh toán | Ghi `PAID`; giữ đơn `PLACED` |
 | BR-62 | Đến hạn hủy nhưng không kết nối được VNPay | Không hủy; lần kiểm tra sau thử lại |
 | BR-63 | Đơn COD chưa thanh toán lâu ngày | Không bao giờ tự hủy |
-| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Chỉ còn 96 sản phẩm"; giỏ giữ 90 |
+| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Vượt quá số lượng sản phẩm trong kho"; giỏ giữ 90 |
 | BR-65 | Dòng giỏ 500 nhưng kho còn 96 | Nút thanh toán bị khóa; mở thẳng `/checkout` bị đưa về giỏ với số thiếu; giảm số lượng vẫn được |
 | BR-66 | Đơn tổng 49.343.000 VND chọn COD | Từ chối; trang thanh toán khóa COD và chọn sẵn VNPay |
 | BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
@@ -576,7 +577,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-113 | SKU có tồn nhưng mọi lô đều hết hạn | Khách thấy "Tạm hết hàng" |
 | BR-114 | Nhập kho bánh thời hạn 30 ngày với NSX 60 ngày trước | Từ chối "Lô này đã hết hạn …"; tồn không đổi |
 | BR-115 | Admin bấm "Hủy hàng hết hạn" cho SKU có 4 cái hết hạn | Tồn giảm 4, lô hết hạn về 0, lịch sử kho ghi điều chỉnh -4 lý do "Hủy hàng hết hạn" |
-| BR-116 | Lô vừa hết hạn trong lúc khách đang ở trang thanh toán | Bước đặt hàng báo "Chỉ còn N <tên sản phẩm> còn hạn sử dụng…"; không tạo đơn |
+| BR-116 | Lô vừa hết hạn trong lúc khách đang ở trang thanh toán | Bước đặt hàng báo "<tên sản phẩm>: vượt quá số lượng sản phẩm trong kho…"; không tạo đơn |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

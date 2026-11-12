@@ -360,10 +360,7 @@ public class CheckoutServiceImpl implements CheckoutService {
             int left = available.getOrDefault(demand.variantId(), 0);
             if (demand.quantity() > left) {
                 throw new InsufficientStockException(
-                    "Chỉ còn " + left + " " + demandName(quote, demand.variantId())
-                        + " nhưng giỏ hàng cần " + demand.quantity()
-                        + ". Vui lòng giảm số lượng trước khi thanh toán."
-                );
+                    demandName(quote, demand.variantId()) + ": vượt quá số lượng sản phẩm trong kho. Vui lòng giảm số lượng trước khi thanh toán.");
             }
         }
     }

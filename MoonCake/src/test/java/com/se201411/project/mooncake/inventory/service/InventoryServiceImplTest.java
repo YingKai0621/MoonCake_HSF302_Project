@@ -96,7 +96,6 @@ class InventoryServiceImplTest {
     @Test
     void insufficientStockDoesNotCreateMovement() {
         when(balanceRepository.deductAvailable(5L, 3)).thenReturn(0);
-        when(balanceRepository.available(5L)).thenReturn(2);
         Product product = new Product();
         product.setName("Bánh Chà Bông Trứng Nghiền");
         ProductVariant variant = new ProductVariant();
@@ -115,7 +114,7 @@ class InventoryServiceImplTest {
         assertThatThrownBy(() -> inventoryService.deductForSale(command))
             .isInstanceOf(InsufficientStockException.class)
             .hasMessage(
-                "Chỉ còn 2 sản phẩm Bánh Chà Bông Trứng Nghiền (SKU: MC-CBTN-080). Vui lòng điều chỉnh số lượng và đặt lại."
+                "Bánh Chà Bông Trứng Nghiền (SKU: MC-CBTN-080): vượt quá số lượng sản phẩm trong kho. Vui lòng điều chỉnh số lượng và đặt lại."
             );
 
         verify(movementRepository, never()).save(org.mockito.ArgumentMatchers.any());

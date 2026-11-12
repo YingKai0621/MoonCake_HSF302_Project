@@ -78,7 +78,7 @@ class CustomerCartIT {
 
         assertThatThrownBy(() -> customerCartService.addVariant(identity, variantId, 2))
             .isInstanceOf(InsufficientStockException.class)
-            .hasMessageContaining("Chỉ còn 4");
+            .hasMessageContaining("Vượt quá số lượng");
     }
 
     private void setAvailableQuantity(long variantId, int quantity) {

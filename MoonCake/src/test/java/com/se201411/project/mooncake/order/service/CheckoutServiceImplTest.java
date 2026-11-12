@@ -358,8 +358,7 @@ class CheckoutServiceImplTest {
 
         assertThatThrownBy(() -> checkoutService.prepareCheckout(customerIdentity))
             .isInstanceOf(InsufficientStockException.class)
-            .hasMessageContaining("Chỉ còn 96")
-            .hasMessageContaining("cần 500");
+            .hasMessageContaining("vượt quá số lượng sản phẩm trong kho");
     }
 
     @Test

@@ -78,7 +78,7 @@ class BatchStockServiceTest {
 
         assertThatThrownBy(() -> service.apply(1, -5, "SALE", 9L, StockMovementType.SALE))
             .isInstanceOf(InsufficientStockException.class)
-            .hasMessageContaining("3");
+            .hasMessageContaining("vượt quá số lượng");
         verify(stockBatchRepository, never()).changeRemaining(anyLong(), anyInt(), anyInt(), anyInt());
     }
 

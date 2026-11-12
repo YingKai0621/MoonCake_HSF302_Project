@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.common.format;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,6 +14,10 @@ public final class VietnamTime {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private VietnamTime() {
+    }
+
+    public static LocalDate today(Clock clock) {
+        return LocalDate.now(clock.withZone(VIETNAM));
     }
 
     public static String dateTime(LocalDateTime utcTime) {

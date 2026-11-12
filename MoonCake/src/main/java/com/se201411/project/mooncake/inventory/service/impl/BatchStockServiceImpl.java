@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.common.format.VietnamTime;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.BatchAllocation;
@@ -94,7 +95,7 @@ public class BatchStockServiceImpl implements BatchStockService {
     @Transactional(readOnly = true)
     public List<AdminBatchView> list() {
         adminAccessService.requireAdmin();
-        LocalDate today = LocalDate.now(clock);
+        LocalDate today = VietnamTime.today(clock);
         List<AdminBatchView> views = new ArrayList<>();
         for (StockBatch batch : stockBatchRepository.findAllByOrderByIdDesc()) {
             String codeLabel = batchCodeLabel(batch.getBatchCode());
@@ -138,7 +139,7 @@ public class BatchStockServiceImpl implements BatchStockService {
     }
 
     private void requireValidDates(LocalDate producedOn, LocalDate expiresOn) {
-        if (producedOn != null && producedOn.isAfter(LocalDate.now(clock))) {
+        if (producedOn != null && producedOn.isAfter(VietnamTime.today(clock))) {
             throw new BusinessRuleViolationException("Ngày sản xuất không được sau hôm nay.");
         }
         if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
@@ -175,7 +176,7 @@ public class BatchStockServiceImpl implements BatchStockService {
         if (type == StockMovementType.ADJUST) {
             batches = stockBatchRepository.findAllWithStockForUpdate(variantId);
         } else {
-            batches = stockBatchRepository.findSellableForUpdate(variantId, LocalDate.now(clock));
+            batches = stockBatchRepository.findSellableForUpdate(variantId, VietnamTime.today(clock));
         }
 
         long usable = 0;
@@ -258,7 +259,7 @@ public class BatchStockServiceImpl implements BatchStockService {
     }
 
     private String newBatchCode() {
-        String day = LocalDate.now(clock).format(BATCH_DAY);
+        String day = VietnamTime.today(clock).format(BATCH_DAY);
         String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase(Locale.ROOT);
         return "LO-" + day + "-" + suffix;
     }

@@ -83,7 +83,7 @@ class AccountControllerTest {
     void rendersAccountPageWithOnePageView() throws Exception {
         mockMvc.perform(get("/account"))
             .andExpect(status().isOk())
-            .andExpect(view().name("account"))
+            .andExpect(view().name("security/account"))
             .andExpect(model().attribute("page", PAGE))
             .andExpect(model().attributeExists("profileForm"))
             .andExpect(model().attributeExists("passwordForm"));
@@ -95,7 +95,7 @@ class AccountControllerTest {
                 .param("fullName", "Trần Thị B")
                 .param("phone", "091234"))
             .andExpect(status().isOk())
-            .andExpect(view().name("account"))
+            .andExpect(view().name("security/account"))
             .andExpect(model().attributeHasFieldErrors("profileForm", "phone"))
             .andExpect(model().attribute("page", PAGE))
             .andExpect(model().attributeExists("passwordForm"));
@@ -119,7 +119,7 @@ class AccountControllerTest {
     void mismatchedConfirmationShowsErrorWithoutCallingService() throws Exception {
         mockMvc.perform(passwordRequest("password123", "newPassword1", "different99"))
             .andExpect(status().isOk())
-            .andExpect(view().name("account"))
+            .andExpect(view().name("security/account"))
             .andExpect(model().attributeHasFieldErrors("passwordForm", "confirmPassword"))
             .andExpect(model().attributeExists("profileForm"));
 
@@ -134,7 +134,7 @@ class AccountControllerTest {
 
         mockMvc.perform(passwordRequest("wrong-password", "newPassword1", "newPassword1"))
             .andExpect(status().isOk())
-            .andExpect(view().name("account"))
+            .andExpect(view().name("security/account"))
             .andExpect(model().attributeHasFieldErrorCode("passwordForm", "currentPassword", "password.wrong"));
     }
 

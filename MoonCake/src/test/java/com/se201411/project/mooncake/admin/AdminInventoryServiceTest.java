@@ -92,6 +92,22 @@ class AdminInventoryServiceTest {
     }
 
     @Test
+    void adjustmentCannotAddStockSoNoUndatedCakeBatchAppears() {
+        assertThatThrownBy(() -> service.adjust(new AdminStockForm(11, -3, "Kiểm kê thừa", key)))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Nhập kho");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void adjustmentRemovesTheEnteredQuantity() {
+        service.adjust(new AdminStockForm(11, 2, "Vỡ 2 bánh", key));
+
+        verify(repo).change(11, -2);
+        verify(repo).movement(eq(11L), eq(7L), eq(-2), eq(StockMovementType.ADJUST), eq("Vỡ 2 bánh"), eq("ADJUST:" + key), eq("ADJUST:" + key + ":11"), any());
+    }
+
+    @Test
     void giftSetCannotBeReceivedDirectly() {
         when(repo.isGiftSet(30)).thenReturn(true);
 

@@ -234,7 +234,18 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
 
     @Override
     public void adjust(AdminStockForm form) {
-        change(form, StockMovementType.ADJUST);
+        if (form.quantity() <= 0) {
+            throw new BusinessRuleViolationException(
+                "Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."
+            );
+        }
+        AdminStockForm decrease = new AdminStockForm(
+            form.variantId(),
+            -form.quantity(),
+            form.reason(),
+            form.operationKey()
+        );
+        change(decrease, StockMovementType.ADJUST);
     }
 
     private void change(AdminStockForm form, StockMovementType type) {
@@ -242,9 +253,6 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         validation.validate(form);
         if (type == StockMovementType.RECEIVE && form.quantity() <= 0) {
             throw new BusinessRuleViolationException("Số lượng nhập phải lớn hơn 0.");
-        }
-        if (form.quantity() == 0) {
-            throw new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3.");
         }
         if (repo.isGiftSet(form.variantId())) {
             presets.requireReadyPreset(form.variantId());

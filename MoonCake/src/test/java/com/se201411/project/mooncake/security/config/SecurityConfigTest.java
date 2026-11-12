@@ -418,7 +418,7 @@ class SecurityConfigTest {
 
         @GetMapping("/account")
         String account() {
-            return "account";
+            return "security/account";
         }
 
         @PostMapping("/account/password")

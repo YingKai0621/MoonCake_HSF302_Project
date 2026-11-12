@@ -25,7 +25,7 @@ import java.util.Objects;
 @RequestMapping("/account")
 public class AccountController {
 
-    private static final String ACCOUNT_VIEW = "account";
+    private static final String ACCOUNT_VIEW = "security/account";
 
     private final CurrentCustomerService currentCustomerService;
     private final CustomerProfileService customerProfileService;

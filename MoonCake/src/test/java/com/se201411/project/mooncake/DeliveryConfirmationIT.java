@@ -78,7 +78,7 @@ class DeliveryConfirmationIT {
 
     @Test
     void adminDeliveryAndCustomerConfirmationCompleteCodOrder() {
-        String orderCode = "IT-DELIVERY-" + UUID.randomUUID();
+        String orderCode = "IT-DLV-" + UUID.randomUUID().toString().substring(0, 18);
         long orderId = createOrder(orderCode, "SHIPPING", null);
         jdbc.update("""
             INSERT INTO dbo.PAYMENT(order_id, payment_method, payment_status, amount)
@@ -104,7 +104,7 @@ class DeliveryConfirmationIT {
 
     @Test
     void overdueDeliveredOrderCompletesWithoutCustomerConfirmation() {
-        String orderCode = "IT-AUTO-" + UUID.randomUUID();
+        String orderCode = "IT-AUTO-" + UUID.randomUUID().toString().substring(0, 18);
         LocalDateTime deliveredAt = LocalDateTime.now().minusDays(4);
         long orderId = createOrder(orderCode, "DELIVERED", deliveredAt);
 

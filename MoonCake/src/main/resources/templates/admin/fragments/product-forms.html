@@ -69,8 +69,11 @@
     <label class="span-2">Thành phần chính
         <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
     </label>
-    <label>Thời hạn sử dụng (ngày)
+    <label data-shelf-life
+           th:with="emptyBox=${f != null and f.productType != null and f.productType.name() == 'EMPTY_BOX'}"
+           th:hidden="${emptyBox}">Thời hạn sử dụng (ngày)
         <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days-cake"
+               th:disabled="${emptyBox}"
                th:value="${f != null ? f.shelfLifeDays : 30}">
     </label>
     <datalist id="shelf-life-days-cake">

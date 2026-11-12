@@ -90,10 +90,6 @@ class SecurityConfigTest {
         mockMvc.perform(get("/orders/MC-TEST/delivery/edit"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/login"));
-
-        mockMvc.perform(get("/account"))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -115,9 +111,6 @@ class SecurityConfigTest {
                 .with(user("customer").roles("CUSTOMER")))
             .andExpect(status().isOk());
 
-        mockMvc.perform(get("/account").with(user("customer").roles("CUSTOMER")))
-            .andExpect(status().isOk());
-
         mockMvc.perform(get("/admin/dashboard").with(user("customer").roles("CUSTOMER")))
             .andExpect(status().isForbidden());
     }
@@ -134,9 +127,6 @@ class SecurityConfigTest {
             .andExpect(status().isForbidden());
 
         mockMvc.perform(get("/orders/MC-TEST").with(user("admin").roles("ADMIN")))
-            .andExpect(status().isForbidden());
-
-        mockMvc.perform(get("/account").with(user("admin").roles("ADMIN")))
             .andExpect(status().isForbidden());
     }
 
@@ -384,11 +374,6 @@ class SecurityConfigTest {
         @GetMapping("/orders/{orderCode}/delivery/edit")
         String editOrderDelivery() {
             return "order-delivery-edit";
-        }
-
-        @GetMapping("/account")
-        String account() {
-            return "account";
         }
 
         @PostMapping("/cart/items")

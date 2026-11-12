@@ -13,12 +13,6 @@ public interface CustomerProfileService {
 
     CustomerProfile requireProfile(ShopperIdentity customerIdentity);
 
-    AccountPageView accountPage(ShopperIdentity customerIdentity);
-
-    ProfileUpdateForm profileForm(ShopperIdentity customerIdentity);
-
-    void updateProfile(ShopperIdentity customerIdentity, ProfileUpdateForm form);
-
     Customer customerReference(long customerId);
 
     long accountIdOf(long customerId);

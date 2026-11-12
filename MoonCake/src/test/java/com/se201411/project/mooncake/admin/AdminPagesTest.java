@@ -6,6 +6,9 @@ import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.product.dto.ProductFormOptions;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.NewProductPageView;
+import com.se201411.project.mooncake.security.dto.AdminAccountRow;
+import com.se201411.project.mooncake.security.dto.AdminAccountsPageView;
+import com.se201411.project.mooncake.security.service.AdminAccountService;
 import com.se201411.project.mooncake.product.dto.MediaPageView;
 import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
 import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
@@ -100,11 +103,13 @@ class AdminPagesTest {
     @Autowired BatchStockService batches;
     @Autowired
     CustomerAdminService customers;
+    @Autowired
+    AdminAccountService admins;
     MockMvc mvc;
 
     @BeforeEach
     void setup() {
-        reset(catalog, presets, inventory, orders, cancellations, media, customers);
+        reset(catalog, presets, inventory, orders, cancellations, media, customers, admins);
         when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
         when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted", true)));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
@@ -637,6 +642,48 @@ class AdminPagesTest {
     }
 
     @Test
+    void superAdminSeesAdminListWithAddFormAndLockButton() throws Exception {
+        when(admins.page()).thenReturn(new AdminAccountsPageView(List.of(
+            new AdminAccountRow(1L, "boss@example.test", "01/11/2026", true, true, true),
+            new AdminAccountRow(2L, "staff@example.test", "05/11/2026", true, false, false)
+        ), true));
+
+        mvc.perform(get("/admin/admins").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Super admin")))
+            .andExpect(content().string(containsString("Thêm quản trị viên")))
+            .andExpect(content().string(containsString("/admin/admins/2/lock")))
+            .andExpect(content().string(not(containsString("/admin/admins/1/lock"))));
+    }
+
+    @Test
+    void normalAdminSeesTheListWithoutManagementActions() throws Exception {
+        when(admins.page()).thenReturn(new AdminAccountsPageView(List.of(
+            new AdminAccountRow(1L, "boss@example.test", "01/11/2026", true, true, false),
+            new AdminAccountRow(2L, "staff@example.test", "05/11/2026", true, false, true)
+        ), false));
+
+        mvc.perform(get("/admin/admins").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("staff@example.test")))
+            .andExpect(content().string(not(containsString("Thêm quản trị viên"))))
+            .andExpect(content().string(not(containsString("/lock"))));
+    }
+
+    @Test
+    void creatingAdminWithBadEmailReturnsWithErrorAndSavesNothing() throws Exception {
+        mvc.perform(post("/admin/admins")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("email", "khong-phai-email")
+                .param("password", "matkhau123"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/admins"))
+            .andExpect(flash().attributeExists("adminError"));
+        verify(admins, never()).create(any());
+    }
+
+    @Test
     void newProductAndNewGiftBoxPagesRenderFromOnePageView() throws Exception {
         mvc.perform(get("/admin/catalog/products/new").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
@@ -853,9 +900,10 @@ class AdminPagesTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminCustomerController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminCustomerController.class, com.se201411.project.mooncake.security.controller.AdminAccountController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
+        @Bean AdminAccountService adminAccountService(){return mock(AdminAccountService.class);}
         @Bean GiftBoxAdminService giftBoxAdminService(){return mock(GiftBoxAdminService.class);}
         @Bean DashboardService dashboardService(){return mock(DashboardService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}

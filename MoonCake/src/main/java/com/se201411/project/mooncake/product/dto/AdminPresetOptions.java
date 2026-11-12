@@ -29,9 +29,10 @@ public record AdminPresetOptions(List<Option> giftSets, List<Option> boxes, List
         }
 
         public static Option boxEntityToDto(Box box, String imageUrl, int stock) {
-            String label = box.getEmptyBoxVariant().getProduct().getName();
+            ProductVariant variant = box.getEmptyBoxVariant();
+            String label = variant.getProduct().getName() + " · " + variant.getName();
             String detail = box.getCapacityCakes() + " bánh";
-            BigDecimal price = box.getEmptyBoxVariant().getUnitPrice();
+            BigDecimal price = variant.getUnitPrice();
             return new Option(box.getId(), label, detail, imageUrl, stock, true, price);
         }
     }

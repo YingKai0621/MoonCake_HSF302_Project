@@ -22,7 +22,7 @@ public record CustomBoxOptionView(
         return new CustomBoxOptionView(
             box.getId(),
             variant.getId(),
-            variant.getProduct().getName(),
+            variant.getProduct().getName() + " · " + variant.getName(),
             variant.getSku(),
             box.getCapacityCakes(),
             variant.getUnitPrice(),

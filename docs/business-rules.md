@@ -12,6 +12,8 @@
 
 ### Thay đổi chính trong phiên bản 1.22
 
+- Vỏ hộp hiển thị **"Tên sản phẩm · Tên phiên bản"** ở chỗ chọn vỏ khi tạo hộp quà, tiêu đề công thức, trang khách tự chọn hộp và dòng hộp tự chọn trong giỏ, để các phiên bản cùng một mẫu hộp không bị trùng tên.
+
 - **"Điều chỉnh" kho chỉ dùng để giảm** (vỡ, mất, kiểm kê thiếu). Admin nhập **số lượng bớt đi** (lớn hơn 0); hệ thống ghi biến động `ADJUST` âm và trừ từ các lô đang có.
 - Không còn điều chỉnh tăng, vì điều chỉnh tăng tạo lô **không có ngày sản xuất và không có hạn**, khiến bánh không bao giờ bị tính là hết hạn. Hàng thêm vào kho chỉ qua **Nhập** (bánh bắt buộc ngày sản xuất) hoặc **Đóng hộp quà**. Kiểm kê thấy thừa thì dùng Nhập.
 - "Hủy hàng hết hạn" vẫn là một điều chỉnh giảm đúng bằng số hết hạn như v1.18.

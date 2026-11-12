@@ -40,6 +40,8 @@ Tồn kho **luôn bằng tổng số còn lại của các lô**. Ví dụ Bánh
 - Mỗi lần **Nhập** vẫn tạo 1 lô, nhưng **không có ngày sản xuất và không có hạn**, vì vỏ không hư.
 - Lô vỏ chỉ để đếm số lượng, không bao giờ hết hạn.
 - Mỗi phiên bản hộp rỗng có **sức chứa** (số bánh/hộp), nhập ngay trong form phiên bản.
+- **Cùng một mẫu, khác cỡ hoặc màu** → thêm **phiên bản** (ví dụ "Vỏ hộp Kim Phúc" có "4 bánh" và "6 bánh"). **Khác mẫu** → tạo **hộp rỗng mới**. Kho, đóng hộp và hộp tự chọn chạy giống nhau ở cả hai cách.
+- Mọi chỗ chọn vỏ đều hiện **"Tên hộp · Tên phiên bản"** để không nhầm.
 
 ### 🎁 Hộp quà (vỏ + bánh bên trong)
 

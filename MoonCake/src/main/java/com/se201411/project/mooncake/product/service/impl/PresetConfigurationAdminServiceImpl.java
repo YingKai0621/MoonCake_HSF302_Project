@@ -182,7 +182,8 @@ public class PresetConfigurationAdminServiceImpl implements PresetConfigurationA
     }
 
     private String boxLabel(Box box) {
-        return box.getEmptyBoxVariant().getProduct().getName();
+        ProductVariant variant = box.getEmptyBoxVariant();
+        return variant.getProduct().getName() + " · " + variant.getName();
     }
 
     @Override

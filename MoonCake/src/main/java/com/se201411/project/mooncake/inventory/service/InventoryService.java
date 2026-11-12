@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.service;
 
+import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.inventory.dto.CancellationInventoryCommand;
 import com.se201411.project.mooncake.inventory.dto.SaleInventoryCommand;
 
@@ -23,4 +24,6 @@ public interface InventoryService {
     void deleteBalances(Collection<Long> variantIds);
 
     Long cancelledByAccountId(long orderId);
+
+    Map<Long, SellableBatchView> nextSellableBatches(Collection<Long> variantIds);
 }

@@ -126,6 +126,10 @@
                     <span class="muted">Đang có trong kho</span>
                     <strong th:text="${sku.stock + ' hộp'}">0 hộp</strong>
                 </div>
+                <div class="stat-line" th:if="${sku.currentBatch}">
+                    <span class="muted">Lô đang bán</span>
+                    <strong th:text="${sku.currentBatch}">HSD</strong>
+                </div>
                 <a class="button secondary" th:href="@{/admin/inventory(pack=${sku.form.id},giftBox=${product.id})}">Đóng thêm hộp ở trang Tồn kho</a>
             </div>
             <div class="sale-card" th:classappend="${page.onSale} ? 'is-on'">

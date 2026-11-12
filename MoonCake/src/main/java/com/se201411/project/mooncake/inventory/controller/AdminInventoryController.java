@@ -65,7 +65,7 @@ public class AdminInventoryController {
             error = FormErrors.first(batchResult);
         } else {
             try {
-                inventory.receive(form, batch.batchCode(), batch.producedOn(), batch.expiresOn());
+                inventory.receive(form, batch.batchCode(), batch.producedOn());
             } catch (MoonCakeException ex) {
                 error = ex.getMessage();
             }

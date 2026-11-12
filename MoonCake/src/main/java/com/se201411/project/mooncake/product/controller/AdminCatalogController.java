@@ -313,7 +313,7 @@ public class AdminCatalogController {
             form.shortDescription(),
             form.detailedDescription(),
             form.mainIngredients(),
-            form.shelfLifeInfo(),
+            form.shelfLifeDays(),
             form.storageGuidance(),
             form.active(),
             form.sku(),

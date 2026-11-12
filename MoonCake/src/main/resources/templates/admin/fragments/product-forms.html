@@ -48,10 +48,19 @@
     </details>
     <th:block th:if="${page.formOptions.giftBox or (f != null and f.productType != null and f.productType.name() == 'GIFT_SET')}">
         <input type="hidden" name="mainIngredients" th:value="${f != null ? f.mainIngredients : ''}">
-        <label>Hạn sử dụng
-            <textarea name="shelfLifeInfo" maxlength="350" rows="2" placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất"
-                      th:text="${f != null ? f.shelfLifeInfo : ''}"></textarea>
+        <label>Thời hạn sử dụng (ngày)
+            <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days"
+                   th:value="${f != null ? f.shelfLifeDays : 30}">
+            <small class="muted">Hạn của từng lô = ngày sản xuất + số ngày này. Vỏ hộp để trống.</small>
         </label>
+        <datalist id="shelf-life-days">
+            <option value="7"></option>
+            <option value="15"></option>
+            <option value="30"></option>
+            <option value="45"></option>
+            <option value="60"></option>
+            <option value="90"></option>
+        </datalist>
         <label>Cách bảo quản
             <textarea name="storageGuidance" maxlength="600" rows="2" placeholder="Ví dụ: Nơi khô ráo, tránh nắng"
                       th:text="${f != null ? f.storageGuidance : ''}"></textarea>
@@ -61,10 +70,19 @@
     <label class="span-2">Thành phần chính
         <textarea name="mainIngredients" maxlength="700" rows="3" th:text="${f != null ? f.mainIngredients : ''}"></textarea>
     </label>
-    <label>Hạn sử dụng
-        <textarea name="shelfLifeInfo" maxlength="350" rows="2" placeholder="Ví dụ: 30 ngày kể từ ngày sản xuất"
-                  th:text="${f != null ? f.shelfLifeInfo : ''}"></textarea>
+    <label>Thời hạn sử dụng (ngày)
+        <input type="number" name="shelfLifeDays" min="1" max="90" list="shelf-life-days-cake"
+               th:value="${f != null ? f.shelfLifeDays : 30}">
+        <small class="muted">Hạn của từng lô = ngày sản xuất + số ngày này. Vỏ hộp để trống.</small>
     </label>
+    <datalist id="shelf-life-days-cake">
+        <option value="7"></option>
+        <option value="15"></option>
+        <option value="30"></option>
+        <option value="45"></option>
+        <option value="60"></option>
+        <option value="90"></option>
+    </datalist>
     <label>Cách bảo quản
         <textarea name="storageGuidance" maxlength="600" rows="2" placeholder="Ví dụ: Nơi khô ráo, tránh nắng"
                   th:text="${f != null ? f.storageGuidance : ''}"></textarea>

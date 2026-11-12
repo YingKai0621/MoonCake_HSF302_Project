@@ -135,6 +135,7 @@ class AdminPagesTest {
                         12,
                         "Đang bán trên web",
                         "success",
+                        null,
                         null)),
                 List.of()));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
@@ -650,6 +651,7 @@ class AdminPagesTest {
                         0,
                         "Ngừng bán",
                         "muted",
+                        null,
                         null)),
                 List.of());
         AdminPresetView recipe = new AdminPresetView(

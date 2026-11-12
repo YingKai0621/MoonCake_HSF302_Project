@@ -29,9 +29,9 @@ public interface InventoryAdminService {
 
     boolean hasStockOrHistory(long variantId);
 
-    void receive(AdminStockForm form);
+    void receive(AdminStockForm form, String batchCode, LocalDate producedOn);
 
-    void receive(AdminStockForm form, String batchCode, LocalDate producedOn, LocalDate expiresOn);
+    void updateBatchInfo(long batchId, String batchCode, LocalDate producedOn);
 
     void adjust(AdminStockForm form);
 

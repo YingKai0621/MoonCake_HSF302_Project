@@ -25,7 +25,8 @@ public record AdminProductDetail(
         int stock,
         String webLabel,
         String webTone,
-        String deleteBlocker
+        String deleteBlocker,
+        String currentBatch
     ) {
     }
 }

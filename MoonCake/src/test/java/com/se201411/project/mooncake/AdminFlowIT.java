@@ -3,6 +3,7 @@ package com.se201411.project.mooncake;
 import java.time.LocalDate;
 import com.se201411.project.mooncake.order.dto.ShipmentForm;
 import com.se201411.project.mooncake.enums.ShippingCarrier;
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
 import com.se201411.project.mooncake.inventory.service.PackingService;
 import com.se201411.project.mooncake.inventory.dto.AdminStockForm;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -12,6 +13,7 @@ import com.se201411.project.mooncake.product.dto.AdminPresetForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.*;
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import com.se201411.project.mooncake.enums.*;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +39,10 @@ class AdminFlowIT {
     JdbcTemplate jdbc;
     @Autowired
     PackingService packing;
+    @Autowired
+    InventoryAdminService inventoryAdmin;
+    @Autowired
+    EntityManager entityManager;
     @Autowired
     OrderManagementService orders;
     @Autowired
@@ -157,7 +163,7 @@ class AdminFlowIT {
             String key = "it-" + UUID.randomUUID();
             catalog.saveCategory(new CategoryForm(null, key, key, true));
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
-            catalog.saveProduct(new ProductForm(null, category, ProductType.MOONCAKE, key, key, "Test product", null, null, null, null, true));
+            catalog.saveProduct(new ProductForm(null, category, ProductType.MOONCAKE, key, key, "Test product", null, null, 30, null, true));
             long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT WHERE slug=?", Long.class, key);
             catalog.saveVariant(new VariantForm(null, product, key, key, 150, "Thập cẩm", BigDecimal.valueOf(65_000), true));
             assertThat(quantity(sku(key))).isZero();
@@ -172,7 +178,7 @@ class AdminFlowIT {
             catalog.saveCategory(new CategoryForm(null, key, key, true));
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
             long product = catalog.createProduct(new NewProductForm(
-                category, ProductType.MOONCAKE, key, key, "Test product", null, null, null, null, false,
+                category, ProductType.MOONCAKE, key, key, "Test product", null, null, 30, null, false,
                 key.toUpperCase(), key, BigDecimal.valueOf(65_000), 150, "Thập cẩm", "/images/products/test.png", null));
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_IMAGE i JOIN dbo.PRODUCT_VARIANT v ON v.variant_id=i.variant_id WHERE v.product_id=?", Integer.class, product)).isEqualTo(1);
 
@@ -180,6 +186,22 @@ class AdminFlowIT {
 
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT WHERE product_id=?", Integer.class, product)).isZero();
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRODUCT_VARIANT WHERE sku=?", Integer.class, key.toUpperCase())).isZero();
+            status.setRollbackOnly();
+        });
+    }
+
+    @Test
+    void receivedCakeBatchGetsExpiryFromProductShelfLife() {
+        tx.executeWithoutResult(status -> {
+            long variant = sku("MC-KSPM-080");
+            LocalDate produced = LocalDate.now().minusDays(1);
+            String lot = "IT-LOT-" + UUID.randomUUID().toString().substring(0, 8);
+
+            inventoryAdmin.receive(new AdminStockForm(variant, 3, "IT receive", UUID.randomUUID().toString()), lot, produced);
+            entityManager.flush();
+
+            LocalDate expires = jdbc.queryForObject("SELECT expires_on FROM dbo.STOCK_BATCH WHERE batch_code=?", LocalDate.class, lot);
+            assertThat(expires).isEqualTo(produced.plusDays(30));
             status.setRollbackOnly();
         });
     }
@@ -207,7 +229,7 @@ class AdminFlowIT {
             String key = "it-preset-" + UUID.randomUUID();
             catalog.saveCategory(new CategoryForm(null, key, key, true));
             long category = jdbc.queryForObject("SELECT category_id FROM dbo.CATEGORY WHERE slug=?", Long.class, key);
-            catalog.saveProduct(new ProductForm(null, category, ProductType.GIFT_SET, key, key, "Test gift", null, null, null, null, true));
+            catalog.saveProduct(new ProductForm(null, category, ProductType.GIFT_SET, key, key, "Test gift", null, null, 30, null, true));
             long product = jdbc.queryForObject("SELECT product_id FROM dbo.PRODUCT WHERE slug=?", Long.class, key);
             catalog.saveVariant(new VariantForm(null, product, key, key, null, null, BigDecimal.valueOf(450_000), false));
             long gift = sku(key);

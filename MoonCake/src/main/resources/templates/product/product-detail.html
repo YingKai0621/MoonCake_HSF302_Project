@@ -145,6 +145,7 @@
                     th:data-image-alt="${variant.imageAlt}"
                     th:data-weight="${variant.weightGrams}"
                     th:data-stock="${variant.stock}"
+                    th:data-batch="${page.currentBatch(variant.id)}"
                     th:data-filling="${variant.fillingLabel}"
                     th:data-box-count="${variant.presetRecipe == null ? null : variant.presetRecipe.capacityCakes}">
               Phiên bản sản phẩm
@@ -174,6 +175,12 @@
               <span class="quick-spec-label text-sand/80 shrink-0">Hạn sử dụng:</span>
               <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.shelfLifeInformation}">Hạn sử dụng</span>
             </div>
+            <div class="flex items-baseline justify-between gap-4" data-batch-row
+                 th:hidden="${page.currentBatch(product.primaryVariant.id) == null}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Lô đang bán:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" data-batch-label
+                    th:text="${page.currentBatch(product.primaryVariant.id)}">NSX · HSD</span>
+            </div>
           </th:block>
 
           <th:block th:if="${product.category == 'gift-boxes'}">
@@ -196,6 +203,12 @@
             <div class="flex items-baseline justify-between gap-4" th:if="${product.shelfLifeInformation != null and !#strings.isEmpty(product.shelfLifeInformation)}">
               <span class="quick-spec-label text-sand/80 shrink-0">Hạn sử dụng:</span>
               <span class="quick-spec-value text-ivory font-medium text-right" th:text="${product.shelfLifeInformation}">Hạn sử dụng</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4" data-batch-row
+                 th:hidden="${page.currentBatch(product.primaryVariant.id) == null}">
+              <span class="quick-spec-label text-sand/80 shrink-0">Lô đang bán:</span>
+              <span class="quick-spec-value text-ivory font-medium text-right" data-batch-label
+                    th:text="${page.currentBatch(product.primaryVariant.id)}">NSX · HSD</span>
             </div>
           </th:block>
         </div>

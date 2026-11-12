@@ -500,12 +500,12 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             boolean variantChanged = !v.getEmptyBoxVariant().getId().equals(f.variantId());
             boolean capacityChanged = v.getCapacityCakes() != f.capacityCakes();
             if (variantChanged || (capacityChanged && boxInUse(f.id()))) {
-                throw new BusinessRuleViolationException("Mẫu hộp đã được dùng nên không đổi được SKU hoặc sức chứa. Hãy tạo mẫu mới.");
+                throw new BusinessRuleViolationException("Sức chứa hộp đã được dùng nên không đổi được SKU hoặc số bánh. Hãy thêm sức chứa mới.");
             }
         }
         ProductVariant variant = repo.variant(f.variantId());
         if (variant.getProduct().getProductType() != ProductType.EMPTY_BOX) {
-            throw new BusinessRuleViolationException("Mẫu hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
+            throw new BusinessRuleViolationException("Sức chứa hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
         }
         v.setEmptyBoxVariant(variant);
         f.dtoToEntity(v);

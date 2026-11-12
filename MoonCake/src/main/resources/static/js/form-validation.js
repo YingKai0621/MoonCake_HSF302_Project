@@ -43,6 +43,10 @@ function errorMessage(field) {
 }
 
 function errorAnchor(field) {
+  const stepper = field.closest("[data-quantity-stepper]");
+  if (stepper !== null) {
+    return stepper.parentElement;
+  }
   const label = field.closest("label");
   if (label === null) {
     return field;

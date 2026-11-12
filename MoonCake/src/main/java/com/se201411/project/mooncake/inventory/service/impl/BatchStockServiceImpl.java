@@ -209,9 +209,14 @@ public class BatchStockServiceImpl implements BatchStockService {
         for (StockBatch batch : batches) {
             usable += batch.getRemainingQuantity();
         }
+        if (usable < needed && type == StockMovementType.SALE) {
+            throw new InsufficientStockException(
+                variantName(variantId) + ": vượt quá số lượng sản phẩm trong kho. Vui lòng giảm số lượng và đặt lại."
+            );
+        }
         if (usable < needed) {
             throw new InsufficientStockException(
-                "Chỉ còn " + usable + " " + variantName(variantId) + " còn hạn sử dụng. Vui lòng giảm số lượng và đặt lại."
+                "Chỉ còn " + usable + " " + variantName(variantId) + " còn hạn sử dụng."
             );
         }
 

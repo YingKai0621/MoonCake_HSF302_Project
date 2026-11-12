@@ -512,7 +512,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             throw new InsufficientStockException("Sản phẩm này đã hết hàng.");
         }
         throw new InsufficientStockException(
-            "Chỉ còn " + stock + " sản phẩm " + found.get(0).productName() + ". Vui lòng chọn tối đa " + stock + "."
+            "Vượt quá số lượng sản phẩm trong kho. Vui lòng giảm số lượng."
         );
     }
 

@@ -31,7 +31,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
@@ -104,11 +103,9 @@ public class InventoryServiceImpl implements InventoryService {
                 demand.quantity()
             );
             if (updatedRows != 1) {
-                Integer available = balanceRepository.available(demand.variantId());
-                int left = Objects.requireNonNullElse(available, 0);
                 String product = describeVariant(demand.variantId());
                 throw new InsufficientStockException(
-                    "Chỉ còn " + left + " sản phẩm " + product + ". Vui lòng điều chỉnh số lượng và đặt lại."
+                    product + ": vượt quá số lượng sản phẩm trong kho. Vui lòng điều chỉnh số lượng và đặt lại."
                 );
             }
 

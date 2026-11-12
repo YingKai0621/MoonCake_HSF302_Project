@@ -78,7 +78,7 @@ public record CartItemView(
             return "Sản phẩm này vừa hết hàng. Hãy xóa khỏi giỏ để đặt các món khác.";
         }
         if (stock < quantity) {
-            return "Chỉ còn " + stock + " sản phẩm. Hãy giảm số lượng để đặt hàng.";
+            return "Vượt quá số lượng sản phẩm trong kho. Hãy giảm số lượng để đặt hàng.";
         }
         return null;
     }

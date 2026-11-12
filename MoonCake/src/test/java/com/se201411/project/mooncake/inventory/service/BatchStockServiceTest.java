@@ -141,15 +141,15 @@ class BatchStockServiceTest {
     }
 
     @Test
-    void packedGiftBoxTakesTheEarlierOfItsShelfLifeAndTheCakesInside() {
+    void packedGiftBoxExpiresWithTheEarliestCakeInside() {
         StockBatch giftBatch = batch(50, 2);
         LocalDate packedOn = LocalDate.of(2026, 11, 9);
-        when(batchAllocationRepository.findEarliestExpiryConsumed(eq("PACK:1:"), any())).thenReturn(LocalDate.of(2026, 12, 20));
+        when(batchAllocationRepository.findEarliestExpiryConsumed(eq("PACK:1:"), any())).thenReturn(LocalDate.of(2026, 11, 25));
         when(batchAllocationRepository.findBatchesCreatedBy("PACK:1:30:IN")).thenReturn(List.of(giftBatch));
 
-        service.finishPack("PACK:1", 30, packedOn, LocalDate.of(2026, 11, 29));
+        service.finishPack("PACK:1", 30, packedOn);
 
         assertThat(giftBatch.getProducedOn()).isEqualTo(packedOn);
-        assertThat(giftBatch.getExpiresOn()).isEqualTo(LocalDate.of(2026, 11, 29));
+        assertThat(giftBatch.getExpiresOn()).isEqualTo(LocalDate.of(2026, 11, 25));
     }
 }

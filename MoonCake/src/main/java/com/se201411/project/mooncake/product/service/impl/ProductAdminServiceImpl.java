@@ -305,7 +305,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         requireShelfLife(f.productType(), f.shelfLifeDays());
         v.setCategory(repo.category(f.categoryId()));
         f.dtoToEntity(v);
-        if (f.productType() == ProductType.EMPTY_BOX) {
+        if (f.productType() != ProductType.MOONCAKE) {
             v.setShelfLifeDays(null);
         }
         repo.save(v);
@@ -364,6 +364,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         copy.setDetailedDescription(source.getDetailedDescription());
         copy.setMainIngredients(source.getMainIngredients());
         copy.setShelfLifeInfo(source.getShelfLifeInfo());
+        copy.setShelfLifeDays(source.getShelfLifeDays());
         copy.setStorageGuidance(source.getStorageGuidance());
         copy.setActive(false);
         repo.save(copy);
@@ -583,7 +584,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     }
 
     private void requireShelfLife(ProductType type, Integer shelfLifeDays) {
-        if (type == ProductType.EMPTY_BOX) {
+        if (type != ProductType.MOONCAKE) {
             return;
         }
         if (shelfLifeDays == null) {

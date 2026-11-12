@@ -154,14 +154,13 @@ class AdminInventoryServiceTest {
     }
 
     @Test
-    void packedGiftBoxExpiryIsCappedByItsOwnShelfLife() {
+    void packingLabelsTheGiftBatchWithTheVietnamPackDate() {
         when(presets.requireReadyPreset(30)).thenReturn(new PresetRecipeSnapshot(1, 30, 10, 4, ConfigurationStatus.READY,
                 List.of(new PresetComponentSnapshot(20, 4))));
-        when(products.shelfLifeDays(30)).thenReturn(20);
 
         service.pack(new AdminStockForm(30, 1, "Pack", key));
 
-        verify(batches).finishPack(eq("PACK:" + key), eq(30L), any(LocalDate.class), any(LocalDate.class));
+        verify(batches).finishPack(eq("PACK:" + key), eq(30L), any(LocalDate.class));
     }
 
     @Test

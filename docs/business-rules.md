@@ -1,14 +1,21 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.20 — 12/11/2026
+**Phiên bản tài liệu:** 1.21 — 12/11/2026
 
-**Trạng thái:** Tạo hộp quà chọn vỏ hộp có sẵn ngay từ đầu; không đổi schema
+**Trạng thái:** Hạn hộp quà theo bánh bên trong; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.21
+
+- **Hộp quà không còn thời hạn sử dụng riêng.** Chỉ **bánh** có "Thời hạn sử dụng (ngày)" (bắt buộc, 1–90). Form tạo/sửa hộp quà không có ô này; lưu hộp quà thì `shelf_life_days` để trống (dữ liệu cũ của hộp quà không còn được dùng).
+- **Đóng hộp quà:** lô hộp quà có ngày sản xuất là ngày đóng hộp (giờ Việt Nam) và **HSD = HSD sớm nhất của các bánh dùng để đóng** (bánh được lấy từ lô sắp hết hạn trước). Thay cho quy tắc "ngày sớm hơn" ở v1.17.
+- Trang sản phẩm của khách ghi "Hạn sử dụng: Theo hạn của bánh trong hộp" cho hộp quà; bánh vẫn ghi "N ngày kể từ ngày sản xuất".
+- Nhân bản sản phẩm giữ nguyên thời hạn sử dụng của bánh.
 
 ### Thay đổi chính trong phiên bản 1.20
 
@@ -26,7 +33,7 @@
 - **Nhập kho theo loại:**
   - **Bánh:** ngày sản xuất bắt buộc ngay trên form; HSD = ngày sản xuất + thời hạn của bánh.
   - **Hộp rỗng:** không có ngày sản xuất và HSD; vỏ hộp không hết hạn.
-  - **Hộp quà:** **không nhập trực tiếp**; chỉ vào kho bằng **Đóng hộp quà** (trừ vỏ hộp và bánh, HSD theo quy tắc đóng hộp ở v1.17). Dòng hộp quà ở trang Kho có nút "Đóng hộp" thay cho "Nhập". "Điều chỉnh" vẫn dùng để sửa sai khi kiểm kê.
+  - **Hộp quà:** **không nhập trực tiếp**; chỉ vào kho bằng **Đóng hộp quà** (trừ vỏ hộp và bánh, HSD theo bánh bên trong, xem v1.21). Dòng hộp quà ở trang Kho có nút "Đóng hộp" thay cho "Nhập". "Điều chỉnh" vẫn dùng để sửa sai khi kiểm kê.
 - **Sửa lô:** chỉ lô **bánh** sửa được ngày sản xuất (HSD tự tính lại). Lô hộp quà giữ ngày đóng hộp và HSD đã tính lúc đóng; lô hộp rỗng không có ngày; cả hai chỉ đổi được mã lô.
 - Đổi thời hạn sử dụng của sản phẩm chỉ áp dụng cho lô nhập sau; lô đã nhập giữ HSD cũ.
 

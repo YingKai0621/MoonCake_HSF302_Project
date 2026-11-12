@@ -274,6 +274,9 @@ public final class CatalogProductView {
     }
 
     private static String shelfLifeText(Product product) {
+        if (product.getProductType() == ProductType.GIFT_SET) {
+            return "Theo hạn của bánh trong hộp";
+        }
         if (product.getShelfLifeDays() == null) {
             return product.getShelfLifeInfo();
         }

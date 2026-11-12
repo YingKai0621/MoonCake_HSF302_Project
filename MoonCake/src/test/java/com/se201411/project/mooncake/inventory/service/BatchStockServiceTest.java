@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -118,5 +119,21 @@ class BatchStockServiceTest {
         assertThatThrownBy(() -> service.updateTraceability(1L, "LO-1", tomorrow, tomorrow.plusDays(30)))
             .isInstanceOf(BusinessRuleViolationException.class)
             .hasMessage("Ngày sản xuất không được sau hôm nay.");
+    }
+
+    @Test
+    void todayInVietnamIsAcceptedBeforeSevenInTheMorning() {
+        BatchStockService earlyMorning = new BatchStockServiceImpl(
+            stockBatchRepository,
+            batchAllocationRepository,
+            inventoryBalanceRepository,
+            mock(AdminAccessService.class),
+            Clock.fixed(Instant.parse("2026-11-08T23:00:00Z"), ZoneOffset.UTC)
+        );
+        LocalDate vietnamToday = LocalDate.of(2026, 11, 9);
+        when(batchAllocationRepository.findBatchesCreatedBy("RECEIVE:1")).thenReturn(List.of());
+
+        assertThatCode(() -> earlyMorning.labelReceivedBatch("RECEIVE:1", "LO-1", vietnamToday, vietnamToday.plusDays(30)))
+            .doesNotThrowAnyException();
     }
 }

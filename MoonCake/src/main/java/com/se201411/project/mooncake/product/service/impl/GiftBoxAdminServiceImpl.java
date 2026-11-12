@@ -6,13 +6,16 @@ import com.se201411.project.mooncake.common.exception.BusinessRuleViolationExcep
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.NewProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
+import com.se201411.project.mooncake.product.dto.AdminPresetForm;
 import com.se201411.project.mooncake.product.dto.AdminPresetView;
 import com.se201411.project.mooncake.product.dto.AdminProductDetail;
 import com.se201411.project.mooncake.product.dto.AdminProductRow;
 import com.se201411.project.mooncake.product.dto.GiftBoxPage;
 import com.se201411.project.mooncake.product.dto.GiftBoxRow;
+import com.se201411.project.mooncake.product.dto.NewProductPageView;
 import com.se201411.project.mooncake.product.service.GiftBoxAdminService;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
 import com.se201411.project.mooncake.product.service.ProductAdminService;
@@ -106,6 +109,31 @@ public class GiftBoxAdminServiceImpl implements GiftBoxAdminService {
         ProductFormOptions formOptions = products.formOptions(true);
         AdminPresetOptions options = recipes.presetOptions();
         return new GiftBoxPage(detail, sku, recipe, steps, current, onSale, canUnlock, formOptions, options);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NewProductPageView newPage() {
+        ProductFormOptions formOptions = products.formOptions(true);
+        List<AdminPresetOptions.Option> boxes = recipes.presetOptions().boxes();
+        return new NewProductPageView(formOptions, boxes);
+    }
+
+    @Override
+    public long create(NewProductForm form, Long boxId) {
+        if (form.productType() != ProductType.GIFT_SET) {
+            throw new BusinessRuleViolationException("Trang này chỉ tạo hộp quà.");
+        }
+        if (boxId == null) {
+            throw new BusinessRuleViolationException("Vui lòng chọn vỏ hộp cho hộp quà.");
+        }
+        long productId = products.createProduct(form);
+        if (form.active()) {
+            products.setProductVisible(productId, false);
+        }
+        long giftVariantId = products.productDetail(productId).skus().get(0).form().id();
+        recipes.saveDraft(new AdminPresetForm(null, giftVariantId, boxId));
+        return productId;
     }
 
     @Override

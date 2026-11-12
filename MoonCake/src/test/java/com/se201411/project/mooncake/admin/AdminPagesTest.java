@@ -138,9 +138,9 @@ class AdminPagesTest {
                         null,
                         null))));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
-                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false)),
-                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true)),
-                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png", 120, true))));
+                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false, BigDecimal.valueOf(590_000))),
+                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true, BigDecimal.valueOf(40_000))),
+                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png", 120, true, BigDecimal.valueOf(65_000)))));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")), "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc · 4 bánh"),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of(), "Hộp quà Lam Phúc · Hộp 6 bánh", "Vỏ hộp Lam Phúc · 6 bánh")));
@@ -181,7 +181,8 @@ class AdminPagesTest {
             catalog.productTabs(call.getArgument(0)),
             catalog.categories()));
         when(catalog.formOptions(anyBoolean())).thenAnswer(call -> formOptions(call.getArgument(0)));
-        when(catalog.newProductPage(anyBoolean())).thenAnswer(call -> new NewProductPageView(formOptions(call.getArgument(0))));
+        when(catalog.newProductPage(anyBoolean())).thenAnswer(call -> new NewProductPageView(formOptions(call.getArgument(0)), List.of()));
+        doAnswer(call -> new NewProductPageView(formOptions(true), presets.presetOptions().boxes())).when(giftBoxes).newPage();
         when(catalog.productEditPage(anyLong())).thenAnswer(call -> {
             long id = call.getArgument(0);
             return new ProductEditPageView(catalog.productDetail(id), formOptions(false));
@@ -314,8 +315,8 @@ class AdminPagesTest {
     }
 
     @Test
-    void creatingProductWithPriceAndImageRedirectsToEditPage() throws Exception {
-        when(catalog.createProduct(any())).thenReturn(9L);
+    void creatingGiftBoxWithBoxPriceAndImageGoesToCakeStep() throws Exception {
+        when(giftBoxes.create(any(), any())).thenReturn(9L);
         mvc.perform(post("/admin/catalog/products")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
@@ -328,12 +329,14 @@ class AdminPagesTest {
                 .param("variantName", "Hộp 4 bánh")
                 .param("unitPrice", "450000")
                 .param("sku", "GIFT-NEW")
+                .param("boxId", "1")
                 .param("imageUrl", "/images/products/gift.png"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/gift-boxes/9#recipe"));
-        verify(catalog).createProduct(new NewProductForm(
+        verify(giftBoxes).create(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
-            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, null, null, "/images/products/gift.png", null));
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, null, null, "/images/products/gift.png", null), 1L);
+        verify(catalog, never()).createProduct(any());
     }
 
     @Test
@@ -356,6 +359,7 @@ class AdminPagesTest {
             .andExpect(flash().attribute("formError", "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/."))
             .andExpect(flash().attributeExists("formValues"));
         verify(catalog, never()).createProduct(any());
+        verify(giftBoxes, never()).create(any(), any());
     }
 
     @Test
@@ -642,7 +646,11 @@ class AdminPagesTest {
         mvc.perform(get("/admin/gift-boxes/new").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("Thêm hộp quà")))
-            .andExpect(content().string(containsString("value=\"GIFT_SET\"")));
+            .andExpect(content().string(containsString("value=\"GIFT_SET\"")))
+            .andExpect(content().string(containsString("Chọn vỏ hộp")))
+            .andExpect(content().string(containsString("name=\"boxId\"")))
+            .andExpect(content().string(containsString("Tạo hộp quà")))
+            .andExpect(content().string(not(containsString("Hiển thị trên cửa hàng ngay"))));
     }
 
     @Test

@@ -1,14 +1,21 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.19 — 12/11/2026
+**Phiên bản tài liệu:** 1.20 — 12/11/2026
 
-**Trạng thái:** Sức chứa nằm trong phiên bản hộp rỗng; nhập kho theo từng loại; không đổi schema
+**Trạng thái:** Tạo hộp quà chọn vỏ hộp có sẵn ngay từ đầu; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.20
+
+- **Thêm hộp quà bắt buộc chọn vỏ hộp ngay trên trang tạo**, từ danh sách hộp rỗng **đã có sức chứa** (ảnh, tên, số bánh/hộp, số vỏ trong kho). Admin không phải tạo hộp rỗng mới. Nếu chưa có hộp rỗng nào dùng được, trang hiện nút "Thêm hộp rỗng" và không cho tạo.
+- Bấm "Tạo hộp quà": hệ thống tạo sản phẩm, SKU hộp quà và **công thức nháp gắn vỏ đã chọn trong một transaction**, rồi chuyển sang bước chọn bánh. Công thức còn nháp thì vẫn đổi được vỏ.
+- Hộp quà mới **luôn ẩn** cho tới bước "Đóng hộp & mở bán"; trang tạo không còn công tắc "Hiển thị trên cửa hàng ngay". Thẻ bên phải ghi "Giá bán" (hộp quà chỉ có một SKU ngầm).
+- Ở bước chọn bánh, thanh dưới cùng hiện **"Giá lẻ vỏ + bánh"** (giá vỏ + giá lẻ từng bánh × số lượng, cập nhật khi đổi số bánh) cạnh **giá bán** để Admin đối chiếu. Đây chỉ là số tham khảo, không đổi giá bán.
 
 ### Thay đổi chính trong phiên bản 1.19
 

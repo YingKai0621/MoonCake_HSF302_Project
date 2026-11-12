@@ -1,6 +1,9 @@
 package com.se201411.project.mooncake.cart.dto;
 
+import com.se201411.project.mooncake.common.format.MoneyFormat;
+import com.se201411.project.mooncake.entity.CartItem;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -67,6 +70,28 @@ public record CartItemView(
             0,
             List.of(),
             stock
+        );
+    }
+
+    public static CartItemView entityToDto(CartItem item, CartVariantSnapshot variant) {
+        BigDecimal lineTotal = variant.unitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+        return new CartItemView(
+            item.getId(),
+            variant.variantId(),
+            variant.productSlug(),
+            variant.productName(),
+            variant.variantName(),
+            variant.sku(),
+            variant.productType(),
+            variant.imageUrl(),
+            variant.imageAlt(),
+            item.getQuantity(),
+            variant.unitPrice(),
+            MoneyFormat.vnd(variant.unitPrice()),
+            lineTotal,
+            MoneyFormat.vnd(lineTotal),
+            variant.currentlySellable(),
+            variant.stock()
         );
     }
 

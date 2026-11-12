@@ -1,6 +1,15 @@
 package com.se201411.project.mooncake.cart.dto;
 
+import com.se201411.project.mooncake.entity.CartItem;
+
 public record CartLineSnapshot(Long variantId, Long configurationId, int quantity) {
+
+    public static CartLineSnapshot entityToDto(CartItem item) {
+        if (item.getConfigurationId() != null) {
+            return new CartLineSnapshot(null, item.getConfigurationId(), item.getQuantity());
+        }
+        return new CartLineSnapshot(item.getVariant().getId(), null, item.getQuantity());
+    }
 
     public CartLineSnapshot {
         if ((variantId == null) == (configurationId == null)) {

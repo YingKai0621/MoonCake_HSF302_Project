@@ -155,12 +155,7 @@ public class CustomBoxServiceImpl implements CustomBoxService {
             throw new ResourceNotFoundException("Không tìm thấy hộp tự chọn trong giỏ hàng");
         }
 
-        return new CustomBoxEditView(
-            configurationId,
-            configuration.getBox().getId(),
-            cartItem.get().getQuantity(),
-            quantities
-        );
+        return CustomBoxEditView.entityToDto(configuration, cartItem.get(), quantities);
     }
 
     @Override

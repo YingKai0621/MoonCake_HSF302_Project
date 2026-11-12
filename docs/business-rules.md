@@ -1,14 +1,23 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.23 — 12/11/2026
+**Phiên bản tài liệu:** 1.24 — 12/11/2026
 
-**Trạng thái:** Không đóng hộp quà bằng bánh chưa có hạn; không đổi schema
+**Trạng thái:** Quản lý tài khoản quản trị viên; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.24
+
+- **Super admin** là tài khoản `ADMIN` có `account_id` nhỏ nhất, thường chính là admin đầu tiên tạo bằng chế độ khởi tạo (`bootstrap-admin`). Không cần cột hay cấu hình mới.
+- Trang **Quản trị viên** (`/admin/admins`): mọi admin xem được danh sách (email, ngày tạo, vai trò, trạng thái); **chỉ super admin** được:
+  - **thêm quản trị viên** bằng email và mật khẩu ban đầu (8–64 ký tự). Email đã có tài khoản, kể cả của khách, bị từ chối; không bao giờ đổi quyền tài khoản khách thành admin.
+  - **khóa / mở khóa** quản trị viên khác. Khóa thì người đó bị đăng xuất và không đăng nhập được nữa.
+- Không ai khóa được **super admin**, và không ai tự khóa chính mình, nên hệ thống luôn còn ít nhất một admin hoạt động. Không xóa tài khoản admin, để giữ lịch sử "ai làm gì" trong kho và đơn hàng.
+- Chưa có bắt buộc đổi mật khẩu lần đầu và chưa chia quyền chi tiết (cần migration, để phiên bản sau).
 
 ### Thay đổi chính trong phiên bản 1.23
 

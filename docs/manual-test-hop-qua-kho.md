@@ -84,3 +84,14 @@ Bước nào khác kết quả mong đợi: chụp màn hình, ghi số bước.
 | 38 | Chọn đủ bánh, thêm vào giỏ | Dòng giỏ ghi tên vỏ đủ cả phiên bản |
 | 39 | Đặt hàng | Kho trừ **1 vỏ + từng bánh** |
 | 40 | Ngừng bán phiên bản hộp rỗng đó | Khách không thấy nữa. Admin **vẫn chọn được** khi tạo hộp quà |
+
+## 9. Quản trị viên
+
+| # | Làm | Kết quả mong đợi |
+|---|---|---|
+| 41 | Đăng nhập **super admin**, mở **Quản trị viên** | Thấy form "Thêm quản trị viên"; dòng của mình có nhãn **Super admin** và "(bạn)", không có nút Khóa |
+| 42 | Thêm admin với email của một khách | Bị từ chối "Email này đã có tài khoản…" |
+| 43 | Thêm admin với email mới, mật khẩu 8 ký tự trở lên | Thêm được, trạng thái "Đang hoạt động" |
+| 44 | Đăng nhập bằng admin mới (trình duyệt khác) | Vào được trang quản trị. Trang Quản trị viên **không** có form thêm và nút Khóa |
+| 45 | Super admin bấm **Khóa** admin mới | Admin mới bị đăng xuất, đăng nhập lại báo bị khóa |
+| 46 | Super admin bấm **Mở khóa** | Admin mới đăng nhập lại được |

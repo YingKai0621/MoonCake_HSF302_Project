@@ -1,14 +1,20 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.21 — 12/11/2026
+**Phiên bản tài liệu:** 1.22 — 12/11/2026
 
-**Trạng thái:** Hạn hộp quà theo bánh bên trong; không đổi schema
+**Trạng thái:** Điều chỉnh kho chỉ được giảm; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.22
+
+- **"Điều chỉnh" kho chỉ dùng để giảm** (vỡ, mất, kiểm kê thiếu). Admin nhập **số lượng bớt đi** (lớn hơn 0); hệ thống ghi biến động `ADJUST` âm và trừ từ các lô đang có.
+- Không còn điều chỉnh tăng, vì điều chỉnh tăng tạo lô **không có ngày sản xuất và không có hạn**, khiến bánh không bao giờ bị tính là hết hạn. Hàng thêm vào kho chỉ qua **Nhập** (bánh bắt buộc ngày sản xuất) hoặc **Đóng hộp quà**. Kiểm kê thấy thừa thì dùng Nhập.
+- "Hủy hàng hết hạn" vẫn là một điều chỉnh giảm đúng bằng số hết hạn như v1.18.
 
 ### Thay đổi chính trong phiên bản 1.21
 

@@ -1,6 +1,6 @@
 # Tồn kho và lô hàng — giải thích đơn giản
 
-Tài liệu cho cả nhóm nắm cách kho hoạt động. Quy tắc chi tiết nằm ở `business-rules.md` (v1.19–v1.21).
+Tài liệu cho cả nhóm nắm cách kho hoạt động. Quy tắc chi tiết nằm ở `business-rules.md` (v1.19–v1.22).
 
 ## 1. Tồn kho và lô hàng khác nhau thế nào?
 
@@ -84,7 +84,19 @@ Công thức hộp "Kim Phúc" gồm 1 vỏ 4 bánh, 2 bánh Kim Sa và 2 bánh 
 |---|---|---|
 | **Nhập** (bánh, vỏ) | Nhận hàng từ xưởng | Tạo 1 lô mới |
 | **Đóng hộp** (hộp quà) | Ráp vỏ + bánh thành hộp quà | Tạo 1 lô hộp quà, trừ lô vỏ và bánh |
-| **Điều chỉnh** | Kiểm kê thấy lệch, bị vỡ hay mất | Giảm: trừ từ các lô đang có. Tăng: tạo 1 lô không có ngày |
+| **Điều chỉnh** | Hàng bị vỡ, mất, kiểm kê thấy thiếu | **Chỉ giảm**: trừ từ các lô đang có |
 | **Hủy hàng hết hạn** | Bỏ số đã quá hạn | Trừ đúng số hết hạn khỏi các lô hết hạn |
 
 Mỗi thao tác đều có một dòng trong **Lịch sử kho**: ai làm, làm gì, lúc nào.
+
+### Vì sao "Điều chỉnh" chỉ được giảm?
+
+Mọi hàng **thêm vào** kho đều phải có nguồn gốc rõ ràng:
+
+- Bánh và vỏ thêm vào bằng **Nhập**. Bánh bắt buộc có ngày sản xuất, nên luôn có hạn sử dụng.
+- Hộp quà thêm vào bằng **Đóng hộp**, hạn lấy theo bánh bên trong.
+
+Nếu "Điều chỉnh" cho tăng, hệ thống sẽ tạo ra một lô bánh **không có ngày, không có hạn**. Lô đó không bao giờ bị tính là hết hạn và có thể bị bán mãi. Vì vậy:
+
+- **Kiểm kê thấy thiếu, vỡ, mất** → dùng **Điều chỉnh**, nhập số lượng bớt đi (ví dụ 2).
+- **Kiểm kê thấy thừa, hoặc có thêm hàng** → dùng **Nhập** (bánh nhập kèm ngày sản xuất).

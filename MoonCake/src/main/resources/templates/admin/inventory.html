@@ -125,19 +125,19 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
             <div class="modal__body">
-                <h2>Điều chỉnh kho</h2>
+                <h2>Điều chỉnh giảm</h2>
                 <p class="modal__subject" data-modal-subject></p>
                 <p class="modal__error" role="alert" th:if="${dialogId == 'adjust-dialog'}" th:text="${dialogError}">Lỗi</p>
                 <input type="hidden" name="variantId" data-modal-variant
                        th:value="${dialogId == 'adjust-dialog' ? dialogForm.variantId : ''}">
                 <input type="hidden" name="operationKey" th:value="${page.adjustKey}">
-                <label>Số tăng hoặc giảm
-                    <input type="number" name="quantity" required min="-100000" max="100000" placeholder="Ví dụ: -2"
-                           data-not-zero="Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."
+                <label>Số lượng bớt đi
+                    <input type="number" name="quantity" required min="1" max="100000" placeholder="Ví dụ: 2"
+                           data-min-error="Số lượng bớt đi phải lớn hơn 0."
                            th:value="${dialogId == 'adjust-dialog' ? dialogForm.quantity : ''}">
                 </label>
                 <label>Lý do
-                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Kiểm kê thiếu 2 bánh"
+                    <input type="text" name="reason" required maxlength="500" placeholder="Ví dụ: Vỡ 2 bánh khi kiểm kê"
                            th:value="${dialogId == 'adjust-dialog' ? dialogForm.reason : ''}">
                 </label>
             </div>

@@ -621,7 +621,7 @@ class AdminPagesTest {
 
     @Test
     void stockErrorReopensTheDialogInsteadOfErrorPage() throws Exception {
-        doThrow(new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."))
+        doThrow(new BusinessRuleViolationException("Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."))
             .when(inventory).adjust(any());
         mvc.perform(post("/admin/inventory/adjust")
                 .with(user("admin").roles("ADMIN"))
@@ -633,7 +633,7 @@ class AdminPagesTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/inventory"))
             .andExpect(flash().attribute("dialogId", "adjust-dialog"))
-            .andExpect(flash().attribute("dialogError", "Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."));
+            .andExpect(flash().attribute("dialogError", "Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."));
     }
 
     @Test

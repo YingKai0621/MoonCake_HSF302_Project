@@ -311,7 +311,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
                 item.getId(),
                 configuration.getId(),
                 "Hộp quà tự chọn",
-                boxVariant.getProduct().getName(),
+                boxVariant.getProduct().getName() + " · " + boxVariant.getName(),
                 boxVariant.getSku(),
                 boxSnapshot.imageUrl(),
                 boxSnapshot.imageAlt(),

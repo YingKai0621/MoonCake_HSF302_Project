@@ -37,7 +37,6 @@
     <nav class="jump-links" aria-label="Đi tới phần">
         <a href="#info">Thông tin</a>
         <a href="#skus" th:text="${'Phiên bản & giá (' + #lists.size(page.detail.skus) + ')'}">Phiên bản &amp; giá</a>
-        <a th:if="${page.detail.emptyBox}" href="#boxes">Sức chứa hộp</a>
     </nav>
 
     <section id="info">
@@ -64,6 +63,7 @@
                     <span class="sku-card__title">
                         <strong th:text="${sku.form.name}">Hộp 4 bánh</strong>
                         <code th:text="${sku.form.sku}">SKU</code>
+                        <small class="muted" th:if="${sku.form.capacityCakes != null}" th:text="${sku.form.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</small>
                     </span>
                     <span class="sku-card__price" th:text="${#numbers.formatDecimal(sku.form.unitPrice, 0, 'POINT', 0, 'COMMA') + 'đ'}">0đ</span>
                     <span class="sku-card__stock" th:text="${'Kho: ' + sku.stock}">Kho: 0</span>
@@ -113,41 +113,6 @@
         </div>
     </section>
 
-    <section id="boxes" th:if="${page.detail.emptyBox}">
-        <div class="section-heading">
-            <div>
-                <h2>Sức chứa hộp</h2>
-            </div>
-        </div>
-        <div class="sku-list">
-            <details th:each="box : ${page.detail.boxes}" class="sku-card" th:id="${'box-' + box.id}" th:open="${formTarget == 'box-' + box.id}">
-                <summary class="sku-card__summary">
-                    <span class="sku-card__title">
-                        <strong th:text="${box.capacityCakes + ' bánh / hộp'}">4 bánh / hộp</strong>
-                        <small class="muted" th:text="${box.material}">Chất liệu</small>
-                    </span>
-                    <span class="badge" th:classappend="${box.active} ? 'badge--success' : 'badge--muted'"
-                          th:text="${box.active} ? 'Đang dùng' : 'Ngừng dùng'">Đang dùng</span>
-                </summary>
-                <div class="sku-card__body">
-                    <p th:replace="~{admin/fragments/product-forms :: alert(${'box-' + box.id})}"></p>
-                    <form th:replace="~{this :: boxForm(${formTarget == 'box-' + box.id ? formValues : box})}"></form>
-                </div>
-            </details>
-            <details class="sku-card sku-card--new" id="box-new" th:if="${!page.detail.skus.isEmpty()}" th:open="${formTarget == 'box-new'}">
-                <summary class="sku-card__summary">
-                    <span class="sku-card__plus" aria-hidden="true">+</span>
-                    <strong>Thêm sức chứa hộp</strong>
-                </summary>
-                <div class="sku-card__body">
-                    <p th:replace="~{admin/fragments/product-forms :: alert('box-new')}"></p>
-                    <form th:replace="~{this :: boxForm(${formTarget == 'box-new' ? formValues : null})}"></form>
-                </div>
-            </details>
-            <p th:if="${page.detail.skus.isEmpty()}" class="muted">Thêm phiên bản (SKU) cho hộp trước, sau đó thêm sức chứa hộp.</p>
-        </div>
-    </section>
-
     <div id="danger" class="delete-row">
         <p th:replace="~{admin/fragments/product-forms :: alert('danger')}"></p>
         <form th:if="${page.detail.deleteBlocker == null}"
@@ -158,50 +123,6 @@
         </form>
         <p th:if="${page.detail.deleteBlocker != null}" class="delete-blocker" th:text="${page.detail.deleteBlocker}">Không xóa được.</p>
     </div>
-
-    <th:block th:if="false">
-        <form th:fragment="boxForm(f)" th:action="@{/admin/boxes}" method="post" class="product-form"
-              th:with="editing=${f != null and f.id != null}">
-            <input type="hidden" name="productId" th:value="${product.id}">
-            <input type="hidden" name="id" th:if="${editing}" th:value="${f.id}">
-            <div class="form-grid">
-                <label th:if="${editing}">Phiên bản hộp
-                    <input type="hidden" name="variantId" th:value="${f.variantId}">
-                    <th:block th:each="sku : ${page.detail.skus}" th:if="${sku.form.id == f.variantId}">
-                        <input type="text" th:value="${sku.form.name}" readonly>
-                    </th:block>
-                </label>
-                <label th:if="${!editing}">Phiên bản hộp
-                    <select name="variantId" required>
-                        <option th:each="sku : ${page.detail.skus}"
-                                th:value="${sku.form.id}"
-                                th:selected="${f != null and f.variantId == sku.form.id}"
-                                th:text="${sku.form.name}">Hộp</option>
-                    </select>
-                </label>
-                <label>Sức chứa (số bánh)
-                    <input type="number" name="capacityCakes" th:value="${f != null ? f.capacityCakes : ''}" required min="1" max="24" data-max-error="Sức chứa tối đa 24 bánh.">
-                </label>
-                <label>Chất liệu
-                    <input type="text" name="material" th:value="${f != null ? f.material : ''}" maxlength="180"
-                           placeholder="Ví dụ: Giấy kraft">
-                </label>
-                <label>Ghi chú
-                    <input type="text" name="notes" th:value="${f != null ? f.notes : ''}" maxlength="500">
-                </label>
-            </div>
-            <div class="form-footer">
-                <label class="switch-card">
-                    <input type="hidden" name="_active" value="on">
-                    <input type="checkbox" class="switch" name="active" value="true" th:checked="${f != null and f.active}">
-                    <span class="switch-card__text">
-                        <strong>Đang dùng sức chứa này</strong>
-                    </span>
-                </label>
-                <button type="submit" data-loading-text="Đang lưu…">Lưu sức chứa hộp</button>
-            </div>
-        </form>
-    </th:block>
 </main>
 <script th:src="@{/js/pages/admin-product.js}" defer></script>
 <script th:src="@{/js/pages/admin-modal.js}" defer></script>

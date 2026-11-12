@@ -210,7 +210,14 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
 
     @Override
     public void receive(AdminStockForm form, String batchCode, LocalDate producedOn) {
-        LocalDate expiresOn = expiryFor(form.variantId(), producedOn);
+        if (repo.isGiftSet(form.variantId())) {
+            throw new BusinessRuleViolationException("Hộp quà chỉ vào kho bằng thao tác Đóng hộp quà.");
+        }
+        LocalDate batchProducedOn = producedOn;
+        if (productQueryService.shelfLifeDays(form.variantId()) == null) {
+            batchProducedOn = null;
+        }
+        LocalDate expiresOn = expiryFor(form.variantId(), batchProducedOn);
         if (expiresOn != null && expiresOn.isBefore(VietnamTime.today(clock))) {
             throw new BusinessRuleViolationException(
                 "Lô này đã hết hạn (HSD " + VietnamTime.date(expiresOn) + "), không nhập được."
@@ -218,10 +225,10 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         }
         change(form, StockMovementType.RECEIVE);
         boolean hasCode = batchCode != null && !batchCode.isBlank();
-        boolean hasInfo = hasCode || producedOn != null;
+        boolean hasInfo = hasCode || batchProducedOn != null;
         if (hasInfo) {
             String key = StockMovementType.RECEIVE + ":" + form.operationKey() + ":" + form.variantId();
-            batchStock.labelReceivedBatch(key, batchCode, producedOn, expiresOn);
+            batchStock.labelReceivedBatch(key, batchCode, batchProducedOn, expiresOn);
         }
     }
 
@@ -286,8 +293,19 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     @Override
     public void updateBatchInfo(long batchId, String batchCode, LocalDate producedOn) {
         long variantId = batchStock.variantIdOf(batchId);
+        if (!producedOnEditable(variantId)) {
+            batchStock.updateCode(batchId, batchCode);
+            return;
+        }
         LocalDate expiresOn = expiryFor(variantId, producedOn);
         batchStock.updateTraceability(batchId, batchCode, producedOn, expiresOn);
+    }
+
+    private boolean producedOnEditable(long variantId) {
+        if (repo.isGiftSet(variantId)) {
+            return false;
+        }
+        return productQueryService.shelfLifeDays(variantId) != null;
     }
 
     @Override

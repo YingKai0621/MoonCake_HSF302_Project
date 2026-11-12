@@ -92,11 +92,46 @@ class AdminInventoryServiceTest {
     }
 
     @Test
-    void giftSetReceiveRequiresReadyRecipe() {
+    void giftSetCannotBeReceivedDirectly() {
         when(repo.isGiftSet(30)).thenReturn(true);
-        doThrow(new BusinessRuleViolationException("Draft")).when(presets).requireReadyPreset(30);
-        assertThatThrownBy(() -> service.receive(new AdminStockForm(30, 1, "Receive", key), null, null)).isInstanceOf(BusinessRuleViolationException.class);
+
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(30, 1, "Receive", key), null, LocalDate.now()))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Đóng hộp quà");
         verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void emptyBoxReceiveIgnoresProductionDate() {
+        when(products.shelfLifeDays(12)).thenReturn(null);
+
+        service.receive(new AdminStockForm(12, 5, "Nhập vỏ hộp", key), "LO-HOP", LocalDate.now().minusDays(3));
+
+        verify(repo).change(12, 5);
+        verify(batches).labelReceivedBatch("RECEIVE:" + key + ":12", "LO-HOP", null, null);
+    }
+
+    @Test
+    void editingPackedGiftBatchOnlyChangesTheCode() {
+        when(batches.variantIdOf(9L)).thenReturn(30L);
+        when(repo.isGiftSet(30)).thenReturn(true);
+        when(products.shelfLifeDays(30)).thenReturn(20);
+
+        service.updateBatchInfo(9L, "LO-QUA", LocalDate.of(2026, 9, 1));
+
+        verify(batches).updateCode(9L, "LO-QUA");
+        verify(batches, never()).updateTraceability(anyLong(), anyString(), any(), any());
+    }
+
+    @Test
+    void editingEmptyBoxBatchOnlyChangesTheCode() {
+        when(batches.variantIdOf(9L)).thenReturn(12L);
+        when(products.shelfLifeDays(12)).thenReturn(null);
+
+        service.updateBatchInfo(9L, "LO-HOP", LocalDate.of(2026, 9, 1));
+
+        verify(batches).updateCode(9L, "LO-HOP");
+        verify(batches, never()).updateTraceability(anyLong(), anyString(), any(), any());
     }
 
     @Test

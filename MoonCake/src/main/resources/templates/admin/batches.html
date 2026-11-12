@@ -77,9 +77,9 @@
                                 <label>Mã lô
                                     <input type="text" name="batchCode" th:value="${batch.batchCode}" required maxlength="80">
                                 </label>
-                                <div class="form-grid">
+                                <div class="form-grid" th:if="${batch.producedOnEditable}">
                                     <label>Ngày sản xuất
-                                        <input type="date" name="producedOn" th:value="${batch.producedOn}" th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                                        <input type="date" name="producedOn" th:value="${batch.producedOn}" required th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
                                     </label>
                                 </div>
                             </div>

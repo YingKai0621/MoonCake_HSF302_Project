@@ -5,7 +5,6 @@ import com.se201411.project.mooncake.product.service.PresetConfigurationAdminSer
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.dto.AdminPresetForm;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
-import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
@@ -195,21 +194,6 @@ public class AdminCatalogController {
         return savedProduct(flash, form.productId(), "#" + target);
     }
 
-    @PostMapping("/boxes")
-    public String box(@Valid @ModelAttribute BoxForm form, BindingResult result,
-                      @RequestParam long productId, RedirectAttributes flash) {
-        String target = form.id() == null ? "box-new" : "box-" + form.id();
-        if (result.hasErrors()) {
-            return failed(flash, productPage(productId), target, form, FormErrors.first(result));
-        }
-        try {
-            catalog.saveBox(form);
-        } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, productPage(productId), target, form, message(ex));
-        }
-        return savedProduct(flash, productId, "#boxes");
-    }
-
     @PostMapping("/images")
     public String image(@Valid @ModelAttribute ImageForm form, BindingResult result,
                         @RequestParam long productId, RedirectAttributes flash) {
@@ -321,6 +305,8 @@ public class AdminCatalogController {
             form.unitPrice(),
             form.weightGrams(),
             form.fillingLabel(),
+            form.capacityCakes(),
+            form.material(),
             form.imageUrl(),
             null
         );

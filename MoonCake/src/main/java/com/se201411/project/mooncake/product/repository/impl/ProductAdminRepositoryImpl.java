@@ -220,6 +220,18 @@ public class ProductAdminRepositoryImpl implements ProductAdminRepository {
     }
 
     @Override
+    public Box boxOfVariant(long variantId) {
+        List<Box> found = em.createQuery(
+                "from Box b where b.emptyBoxVariant.id = :variantId", Box.class)
+            .setParameter("variantId", variantId)
+            .getResultList();
+        if (found.isEmpty()) {
+            return null;
+        }
+        return found.get(0);
+    }
+
+    @Override
     public ProductImage image(long id) {
         return require(ProductImage.class, id);
     }

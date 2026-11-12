@@ -52,13 +52,21 @@
                                pattern="[A-Za-z0-9]+([\-_][A-Za-z0-9]+)*" data-uppercase data-error="Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.">
                     </label>
                     </details>
-                    <label data-cake-only hidden>Khối lượng (g)
-                        <input type="number" name="weightGrams" placeholder="Ví dụ: 150"
+                    <label data-only-type="MOONCAKE" hidden>Khối lượng (g)
+                        <input type="number" name="weightGrams" placeholder="Ví dụ: 150" required disabled
                                th:value="${values != null ? values.weightGrams : ''}" min="1" max="5000" data-max-error="Khối lượng tối đa 5.000g.">
                     </label>
-                    <label data-cake-only hidden>Nhân bánh
-                        <input type="text" name="fillingLabel" maxlength="180" placeholder="Ví dụ: Thập cẩm lạp xưởng"
+                    <label data-only-type="MOONCAKE" hidden>Nhân bánh
+                        <input type="text" name="fillingLabel" maxlength="180" placeholder="Ví dụ: Thập cẩm lạp xưởng" required disabled
                                th:value="${values != null ? values.fillingLabel : ''}">
+                    </label>
+                    <label data-only-type="EMPTY_BOX" hidden>Sức chứa (số bánh)
+                        <input type="number" name="capacityCakes" placeholder="Ví dụ: 4" required disabled
+                               th:value="${values != null ? values.capacityCakes : ''}" min="1" max="24" data-max-error="Sức chứa tối đa 24 bánh.">
+                    </label>
+                    <label data-only-type="EMPTY_BOX" hidden>Chất liệu
+                        <input type="text" name="material" maxlength="180" placeholder="Ví dụ: Giấy kraft" disabled
+                               th:value="${values != null ? values.material : ''}">
                     </label>
                 </div>
             </section>

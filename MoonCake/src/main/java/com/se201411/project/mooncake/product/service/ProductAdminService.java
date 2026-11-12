@@ -5,7 +5,6 @@ import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.NewProductPageView;
 import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
 import com.se201411.project.mooncake.enums.ProductType;
-import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
@@ -49,7 +48,6 @@ public interface ProductAdminService {
 
     void saveVariant(VariantForm form);
 
-    long saveBox(BoxForm form);
 
     long saveImage(ImageForm form);
 

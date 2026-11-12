@@ -56,9 +56,12 @@
                     <span class="badge badge--dot" th:classappend="${'badge--' + b.statusTone()}" th:text="${b.statusLabel()}">Đủ hàng</span>
                 </td>
                 <td class="actions-cell">
-                    <button type="button" class="secondary small-button"
+                    <button th:unless="${b.giftSet}" type="button" class="secondary small-button"
                             data-open-modal="receive-dialog"
-                            th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name}">Nhập</button>
+                            th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name},data-needs-date=${b.needsProductionDate}">Nhập</button>
+                    <button th:if="${b.giftSet}" type="button" class="secondary small-button"
+                            data-open-modal="pack-dialog"
+                            th:attr="data-variant-id=${b.variantId}">Đóng hộp</button>
                     <button type="button" class="secondary small-button"
                             data-open-modal="adjust-dialog"
                             th:attr="data-variant-id=${b.variantId},data-variant-label=${b.productName + ' · ' + b.name}">Điều chỉnh</button>
@@ -104,8 +107,8 @@
                     <input type="text" name="batchCode" maxlength="80" placeholder="Để trống thì hệ thống tự đặt">
                 </label>
                 <div class="form-grid">
-                    <label>Ngày sản xuất
-                        <input type="date" name="producedOn" th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                    <label data-production-date>Ngày sản xuất
+                        <input type="date" name="producedOn" required th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
                     </label>
                 </div>
             </div>
@@ -156,7 +159,7 @@
                 <input type="hidden" name="operationKey" th:value="${page.packKey}">
                 <input th:if="${page.returnGiftBox != null}" type="hidden" name="returnGiftBox" th:value="${page.returnGiftBox}">
                 <label>Hộp quà
-                    <select name="variantId" required>
+                    <select name="variantId" required data-modal-variant>
                         <option value="">Chọn hộp quà…</option>
                         <option th:each="b : ${page.packableGiftBoxes}"
                                 th:value="${b.variantId}"

@@ -162,6 +162,24 @@ function setUpCakeOnlyFields() {
   update();
 }
 
+function setUpShelfLifeField() {
+  const typeSelect = document.querySelector('select[name="productType"]');
+  const wrapper = document.querySelector("[data-shelf-life]");
+  if (typeSelect === null || wrapper === null) {
+    return;
+  }
+  const input = wrapper.querySelector("input");
+
+  function update() {
+    const isEmptyBox = typeSelect.value === "EMPTY_BOX";
+    wrapper.hidden = isEmptyBox;
+    input.disabled = isEmptyBox;
+  }
+
+  typeSelect.addEventListener("change", update);
+  update();
+}
+
 function setUpUppercaseFields() {
   const fields = document.querySelectorAll("[data-uppercase]");
   for (let i = 0; i < fields.length; i++) {
@@ -228,6 +246,7 @@ function setUpAutoUploads() {
 
 document.addEventListener("DOMContentLoaded", function () {
   setUpCakeOnlyFields();
+  setUpShelfLifeField();
   setUpUppercaseFields();
   setUpDropzones();
   setUpAutoUploads();

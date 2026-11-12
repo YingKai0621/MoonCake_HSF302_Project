@@ -1,6 +1,6 @@
 # Tồn kho và lô hàng — giải thích đơn giản
 
-Tài liệu cho cả nhóm nắm cách kho hoạt động. Quy tắc chi tiết nằm ở `business-rules.md` (v1.19–v1.22).
+Tài liệu cho cả nhóm nắm cách kho hoạt động. Quy tắc chi tiết nằm ở `business-rules.md` (v1.19–v1.23).
 
 ## 1. Tồn kho và lô hàng khác nhau thế nào?
 
@@ -68,6 +68,7 @@ Công thức hộp "Kim Phúc" gồm 1 vỏ 4 bánh, 2 bánh Kim Sa và 2 bánh 
 
 - Bánh và vỏ được **chuyển** vào hộp quà, không mất đi đâu cả.
 - Bánh lấy từ lô sắp hết hạn trước, và chỉ lấy bánh còn hạn.
+- **Bánh phải có hạn dùng.** Nếu phải lấy bánh từ lô chưa có hạn (lô cũ không có ngày), hệ thống không cho đóng. Vào trang Lô hàng, tab "Chưa có hạn dùng", nhập ngày sản xuất cho lô bánh đó rồi đóng lại.
 - Không đủ bánh hoặc vỏ thì không đóng được, kho không đổi gì.
 
 ## 4. Khách mua thì trừ cái gì?

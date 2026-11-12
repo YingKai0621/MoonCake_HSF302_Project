@@ -54,6 +54,7 @@ Bước nào khác kết quả mong đợi: chụp màn hình, ghi số bước.
 | 24 | Đóng **2 hộp** | Vỏ −2, mỗi bánh −(số/hộp × 2), hộp quà +2. Lịch sử kho có các dòng "Đóng hộp" cùng một lần |
 | 25 | Xem lô hộp quà vừa tạo | NSX = **hôm nay**. HSD = **HSD sớm nhất** của các lô bánh vừa bị trừ |
 | 26 | Đóng nhiều hơn số bánh/vỏ đang có | Báo lỗi, kho không đổi gì |
+| 26b | Đóng hộp khi bánh chỉ còn ở lô "Chưa có hạn dùng" | Báo "<bánh> còn lô chưa có hạn dùng…", kho không đổi. Nhập ngày cho lô đó rồi đóng lại thì được |
 
 ## 6. Mở bán, bán, hủy
 

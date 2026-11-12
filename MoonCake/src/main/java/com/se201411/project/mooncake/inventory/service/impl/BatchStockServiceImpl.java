@@ -87,6 +87,15 @@ public class BatchStockServiceImpl implements BatchStockService {
     @Override
     @Transactional
     public void finishPack(String operationGroup, long variantId, LocalDate packedOn) {
+        List<String> undatedCakes = batchAllocationRepository.findUndatedConsumed(
+            operationGroup + ":",
+            ProductType.MOONCAKE
+        );
+        if (!undatedCakes.isEmpty()) {
+            throw new BusinessRuleViolationException(
+                undatedCakes.get(0) + " còn lô chưa có hạn dùng. Hãy nhập ngày sản xuất cho lô đó ở trang Lô hàng trước khi đóng hộp."
+            );
+        }
         LocalDate expiresOn = batchAllocationRepository.findEarliestExpiryConsumed(
             operationGroup + ":",
             ProductType.MOONCAKE

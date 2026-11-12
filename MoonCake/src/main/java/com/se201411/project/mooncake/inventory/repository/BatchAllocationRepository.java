@@ -42,6 +42,20 @@ public interface BatchAllocationRepository extends JpaRepository<BatchAllocation
     );
 
     @Query("""
+        select distinct concat(source.variant.product.name, ' · ', source.variant.name)
+        from BatchAllocation allocation
+        join allocation.batch source
+        where locate(:prefix, allocation.operationKey) = 1
+          and allocation.quantityDelta < 0
+          and source.variant.product.productType = :productType
+          and source.expiresOn is null
+        """)
+    List<String> findUndatedConsumed(
+        @Param("prefix") String prefix,
+        @Param("productType") ProductType productType
+    );
+
+    @Query("""
         select allocation.batch
         from BatchAllocation allocation
         where allocation.operationKey = :operationKey

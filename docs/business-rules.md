@@ -1,14 +1,19 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.22 — 12/11/2026
+**Phiên bản tài liệu:** 1.23 — 12/11/2026
 
-**Trạng thái:** Điều chỉnh kho chỉ được giảm; không đổi schema
+**Trạng thái:** Không đóng hộp quà bằng bánh chưa có hạn; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.23
+
+- **Không đóng hộp quà bằng bánh nằm ở lô chưa có hạn dùng** (lô cũ không có ngày sản xuất). Nếu lần đóng phải lấy bánh từ lô như vậy, hệ thống từ chối cả lần đóng, kho và lịch sử không đổi, và báo "<bánh> còn lô chưa có hạn dùng. Hãy nhập ngày sản xuất cho lô đó ở trang Lô hàng trước khi đóng hộp." Nhờ vậy mọi lô hộp quà đều có HSD.
+- Cách xử lý: ở trang Lô hàng, tab "Chưa có hạn dùng", nhập ngày sản xuất cho lô bánh; HSD tự tính. Lô vỏ hộp không có hạn là bình thường.
 
 ### Thay đổi chính trong phiên bản 1.22
 

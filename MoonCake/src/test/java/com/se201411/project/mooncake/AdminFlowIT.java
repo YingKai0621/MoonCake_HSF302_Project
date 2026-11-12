@@ -91,7 +91,7 @@ class AdminFlowIT {
         tx.executeWithoutResult(status -> {
             long gift = sku("GIFT-KIM-PHUC-4");
             long box = sku("BOX-KIM-PHUC-4");
-            jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=100 WHERE variant_id IN (SELECT mooncake_variant_id FROM dbo.BOX_CONFIGURATION_ITEM)");
+            giveCakesDatedStock(100);
             jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=10 WHERE variant_id=?", box);
             int before = quantity(gift);
             String key = UUID.randomUUID().toString();
@@ -101,6 +101,37 @@ class AdminFlowIT {
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.STOCK_MOVEMENT WHERE operation_group_key=?", Integer.class, "PACK:" + key)).isEqualTo(6);
             status.setRollbackOnly();
         });
+    }
+
+    @Test
+    void packingWithUndatedCakeStockIsRefusedAndChangesNothing() {
+        long gift = sku("GIFT-KIM-PHUC-4");
+        int before = quantity(gift);
+        String key = UUID.randomUUID().toString();
+        assertThatThrownBy(() -> tx.executeWithoutResult(status -> {
+            jdbc.update("UPDATE dbo.STOCK_BATCH SET produced_on=NULL, expires_on=NULL WHERE variant_id IN (SELECT mooncake_variant_id FROM dbo.BOX_CONFIGURATION_ITEM)");
+            jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=available_quantity+100 WHERE variant_id IN (SELECT mooncake_variant_id FROM dbo.BOX_CONFIGURATION_ITEM)");
+            jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=10 WHERE variant_id=?", sku("BOX-KIM-PHUC-4"));
+            packing.pack(new AdminStockForm(gift, 1, "IT undated", key));
+        })).hasMessageContaining("còn lô chưa có hạn dùng");
+        assertThat(quantity(gift)).isEqualTo(before);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.STOCK_MOVEMENT WHERE operation_group_key=?", Integer.class, "PACK:" + key)).isZero();
+    }
+
+    private void giveCakesDatedStock(int quantity) {
+        LocalDate produced = LocalDate.now().minusDays(1);
+        LocalDate expires = produced.plusDays(30);
+        String cakes = "SELECT DISTINCT mooncake_variant_id FROM dbo.BOX_CONFIGURATION_ITEM";
+        jdbc.update("UPDATE dbo.STOCK_BATCH SET produced_on=?, expires_on=? WHERE expires_on IS NULL AND variant_id IN (" + cakes + ")",
+            produced, expires);
+        jdbc.update("""
+                INSERT INTO dbo.STOCK_BATCH(variant_id, batch_code, produced_on, expires_on, remaining_quantity)
+                SELECT cake.mooncake_variant_id, CONCAT('IT-PACK-', cake.mooncake_variant_id, '-', ?), ?, ?,
+                       ? - COALESCE((SELECT SUM(b.remaining_quantity) FROM dbo.STOCK_BATCH b WHERE b.variant_id = cake.mooncake_variant_id), 0)
+                FROM (SELECT DISTINCT mooncake_variant_id FROM dbo.BOX_CONFIGURATION_ITEM) cake
+                WHERE ? > COALESCE((SELECT SUM(b.remaining_quantity) FROM dbo.STOCK_BATCH b WHERE b.variant_id = cake.mooncake_variant_id), 0)
+                """, UUID.randomUUID().toString().substring(0, 8), produced, expires, quantity, quantity);
+        jdbc.update("UPDATE dbo.INVENTORY_BALANCE SET available_quantity=? WHERE variant_id IN (" + cakes + ")", quantity);
     }
 
     @Test

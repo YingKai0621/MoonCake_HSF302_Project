@@ -152,4 +152,16 @@ class BatchStockServiceTest {
         assertThat(giftBatch.getProducedOn()).isEqualTo(packedOn);
         assertThat(giftBatch.getExpiresOn()).isEqualTo(LocalDate.of(2026, 11, 25));
     }
+
+    @Test
+    void packingWithAnUndatedCakeBatchIsRefused() {
+        StockBatch giftBatch = batch(50, 2);
+        when(batchAllocationRepository.findUndatedConsumed(eq("PACK:1:"), any())).thenReturn(List.of("Kim Sa · Bánh 80g"));
+        when(batchAllocationRepository.findBatchesCreatedBy("PACK:1:30:IN")).thenReturn(List.of(giftBatch));
+
+        assertThatThrownBy(() -> service.finishPack("PACK:1", 30, LocalDate.of(2026, 11, 9)))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Kim Sa · Bánh 80g còn lô chưa có hạn dùng");
+        assertThat(giftBatch.getExpiresOn()).isNull();
+    }
 }

@@ -158,13 +158,6 @@ function initVariantSelector() {
     if (button) {
       button.disabled = soldOut;
     }
-    const batchRow = document.querySelector('[data-batch-row]');
-    const batchLabel = document.querySelector('[data-batch-label]');
-    if (batchRow && batchLabel) {
-      const batch = option.dataset.batch || '';
-      batchLabel.textContent = batch;
-      batchRow.hidden = batch === '';
-    }
     const quantity = document.getElementById('cartQuantity');
     if (quantity) {
       quantity.max = String(Math.max(stock, 1));

@@ -57,6 +57,12 @@
            role="alert">
         Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị vô hiệu hóa.
       </div>
+      <div th:if="${param.disabled}"
+           class="flash-message auth-message auth-message--error"
+           data-flash-message
+           role="alert">
+        Tài khoản của bạn đã bị khóa. Vui lòng liên hệ cửa hàng để được hỗ trợ.
+      </div>
       <div th:if="${param.logout}"
            class="flash-message auth-message auth-message--success"
            data-flash-message

@@ -3,6 +3,7 @@ package com.se201411.project.mooncake.order.repository;
 import com.se201411.project.mooncake.entity.SalesOrder;
 import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.order.dto.CustomerOrderCount;
 import com.se201411.project.mooncake.order.dto.PaidAmount;
 import com.se201411.project.mooncake.order.dto.ProductSalesSummary;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Long> {
@@ -50,18 +52,38 @@ public interface OrderStatisticsRepository extends JpaRepository<SalesOrder, Lon
     );
 
     @Query("""
+        select new com.se201411.project.mooncake.order.dto.CustomerOrderCount(
+            salesOrder.customer.id,
+            count(salesOrder),
+            sum(case when salesOrder.status = :cancelled then 1 else 0 end)
+        )
+        from SalesOrder salesOrder
+        where salesOrder.customer.id in :customerIds
+        group by salesOrder.customer.id
+        """)
+    List<CustomerOrderCount> countOrdersByCustomer(
+        @Param("customerIds") Collection<Long> customerIds,
+        @Param("cancelled") OrderStatus cancelled
+    );
+
+    List<SalesOrder> findByCustomer_IdAndStatusInOrderByCreatedAtDesc(
+        long customerId,
+        Collection<OrderStatus> statuses
+    );
+
+    @Query("""
         select new com.se201411.project.mooncake.order.dto.ProductSalesSummary(
             item.productNameSnapshot, sum(item.quantity), sum(item.lineTotal)
         )
         from OrderItem item
         where item.order.createdAt >= :from
-          and item.order.status = :completed
+          and item.order.status in :statuses
         group by item.productNameSnapshot
         order by sum(item.quantity) desc
         """)
     List<ProductSalesSummary> findTopProducts(
         @Param("from") LocalDateTime from,
-        @Param("completed") OrderStatus completed,
+        @Param("statuses") Collection<OrderStatus> statuses,
         Pageable pageable
     );
 }

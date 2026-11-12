@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.product.service.impl;
 
+import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.product.dto.ProductFormOptions;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.NewProductPageView;
@@ -198,27 +199,29 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         List<ProductVariant> variants = repo.variantsOf(productId);
         Map<Long, Integer> stock = stockByVariant();
         Set<Long> readyGiftSets = readyGiftSets(variants);
+        Map<Long, SellableBatchView> batches = inventory.nextSellableBatches(variantIds(productId));
+        Map<Long, Box> boxesByVariant = new HashMap<>();
+        for (Box box : repo.boxesOf(productId)) {
+            boxesByVariant.put(box.getEmptyBoxVariant().getId(), box);
+        }
         List<AdminProductDetail.Sku> skus = new ArrayList<>();
         for (ProductVariant variant : variants) {
             List<ImageForm> images = imagesBySku.getOrDefault(variant.getId(), List.of());
             int quantity = stock.getOrDefault(variant.getId(), 0);
             WebStatus status = skuStatus(product, variant, readyGiftSets, quantity);
+            Box box = boxesByVariant.get(variant.getId());
             skus.add(new AdminProductDetail.Sku(
-                VariantForm.entityToDto(variant),
+                VariantForm.entityToDto(variant, box),
                 coverImage(images),
                 images,
                 quantity,
                 status.label(),
                 status.tone(),
-                variantDeleteBlocker(variant.getId())
+                variantDeleteBlocker(variant.getId()),
+                batchLabel(batches.get(variant.getId()))
             ));
         }
         WebStatus productStatus = productStatus(product, variants, readyGiftSets, stock);
-
-        List<BoxForm> boxes = new ArrayList<>();
-        for (Box box : repo.boxesOf(productId)) {
-            boxes.add(BoxForm.entityToDto(box));
-        }
 
         return new AdminProductDetail(
             ProductForm.entityToDto(product),
@@ -228,8 +231,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             productStatus.label(),
             productStatus.tone(),
             deleteBlocker(productId),
-            skus,
-            boxes
+            skus
         );
     }
 
@@ -300,8 +302,12 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         if (f.id() != null && v.getProductType() != f.productType() && repo.hasVariants(f.id())) {
             throw new BusinessRuleViolationException("Sản phẩm đã có SKU nên không đổi được loại.");
         }
+        requireShelfLife(f.productType(), f.shelfLifeDays());
         v.setCategory(repo.category(f.categoryId()));
         f.dtoToEntity(v);
+        if (f.productType() != ProductType.MOONCAKE) {
+            v.setShelfLifeDays(null);
+        }
         repo.save(v);
         repo.flush();
         return v.getId();
@@ -320,7 +326,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             current.shortDescription(),
             current.detailedDescription(),
             current.mainIngredients(),
-            current.shelfLifeInfo(),
+            current.shelfLifeDays(),
             current.storageGuidance(),
             visible
         ));
@@ -329,7 +335,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     public long setVariantOnSale(long variantId, boolean onSale) {
         access.requireAdmin();
-        VariantForm current = VariantForm.entityToDto(repo.variant(variantId));
+        VariantForm current = VariantForm.entityToDto(repo.variant(variantId), repo.boxOfVariant(variantId));
         saveVariant(new VariantForm(
             current.id(),
             current.productId(),
@@ -337,6 +343,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             current.name(),
             current.weightGrams(),
             current.fillingLabel(),
+            current.capacityCakes(),
+            current.material(),
             current.unitPrice(),
             onSale
         ));
@@ -356,6 +364,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         copy.setDetailedDescription(source.getDetailedDescription());
         copy.setMainIngredients(source.getMainIngredients());
         copy.setShelfLifeInfo(source.getShelfLifeInfo());
+        copy.setShelfLifeDays(source.getShelfLifeDays());
         copy.setStorageGuidance(source.getStorageGuidance());
         copy.setActive(false);
         repo.save(copy);
@@ -422,7 +431,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             f.shortDescription(),
             f.detailedDescription(),
             f.mainIngredients(),
-            f.shelfLifeInfo(),
+            f.shelfLifeDays(),
             f.storageGuidance(),
             f.active()
         );
@@ -435,6 +444,8 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             f.variantName(),
             f.weightGrams(),
             f.fillingLabel(),
+            f.capacityCakes(),
+            f.material(),
             f.unitPrice(),
             false
         );
@@ -474,6 +485,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         v.setActive(false);
         repo.save(v);
         inventory.initializeBalance(v.getId());
+        if (product.getProductType() == ProductType.EMPTY_BOX) {
+            saveBoxCapacity(v, f);
+        }
         if (f.active()) {
             inventory.requireBalance(v.getId());
             if (v.getProduct().getProductType() == ProductType.GIFT_SET) {
@@ -484,27 +498,20 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         repo.flush();
     }
 
-    @Override
-    public long saveBox(BoxForm f) {
-        access.requireAdmin();
-        validation.validate(f);
-        Box v = f.id() == null ? new Box() : repo.box(f.id());
-        if (f.id() != null) {
-            boolean variantChanged = !v.getEmptyBoxVariant().getId().equals(f.variantId());
-            boolean capacityChanged = v.getCapacityCakes() != f.capacityCakes();
-            if (variantChanged || (capacityChanged && boxInUse(f.id()))) {
-                throw new BusinessRuleViolationException("Mẫu hộp đã được dùng nên không đổi được SKU hoặc sức chứa. Hãy tạo mẫu mới.");
-            }
+    private void saveBoxCapacity(ProductVariant variant, VariantForm f) {
+        Box box = repo.boxOfVariant(variant.getId());
+        if (box == null) {
+            box = new Box();
+            box.setEmptyBoxVariant(variant);
+        } else if (box.getCapacityCakes() != f.capacityCakes() && boxInUse(box.getId())) {
+            throw new BusinessRuleViolationException(
+                "Hộp này đã được dùng trong hộp quà hoặc hộp khách tự chọn nên không đổi được sức chứa. Hãy tạo phiên bản hộp mới."
+            );
         }
-        ProductVariant variant = repo.variant(f.variantId());
-        if (variant.getProduct().getProductType() != ProductType.EMPTY_BOX) {
-            throw new BusinessRuleViolationException("Mẫu hộp phải gắn với SKU của sản phẩm loại hộp rỗng.");
-        }
-        v.setEmptyBoxVariant(variant);
-        f.dtoToEntity(v);
-        repo.save(v);
-        repo.flush();
-        return variant.getProduct().getId();
+        box.setCapacityCakes(f.capacityCakes());
+        box.setMaterial(f.material());
+        box.setActive(true);
+        repo.save(box);
     }
 
     @Override
@@ -576,6 +583,15 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         return productId;
     }
 
+    private void requireShelfLife(ProductType type, Integer shelfLifeDays) {
+        if (type != ProductType.MOONCAKE) {
+            return;
+        }
+        if (shelfLifeDays == null) {
+            throw new BusinessRuleViolationException("Vui lòng nhập thời hạn sử dụng (1 đến 90 ngày).");
+        }
+    }
+
     private void checkNewSku(String sku) {
         if (!sku.matches("[A-Z0-9]+(?:[-_][A-Z0-9]+)*")) {
             throw new BusinessRuleViolationException("Mã SKU chỉ dùng chữ không dấu, số và dấu gạch ngang, ví dụ: GIFT-4-TRANG.");
@@ -589,6 +605,9 @@ public class ProductAdminServiceImpl implements ProductAdminService {
         BigDecimal thousand = BigDecimal.valueOf(1000);
         if (f.unitPrice().remainder(thousand).signum() != 0) {
             throw new BusinessRuleViolationException("Giá bán phải là bội số của 1.000đ.");
+        }
+        if (product.getProductType() == ProductType.EMPTY_BOX && f.capacityCakes() == null) {
+            throw new BusinessRuleViolationException("Hộp rỗng cần nhập sức chứa (số bánh).");
         }
         if (product.getProductType() != ProductType.MOONCAKE) {
             return;
@@ -651,6 +670,13 @@ public class ProductAdminServiceImpl implements ProductAdminService {
             ids.add(variant.getId());
         }
         return ids;
+    }
+
+    private String batchLabel(SellableBatchView batch) {
+        if (batch == null) {
+            return null;
+        }
+        return batch.label();
     }
 
     private boolean boxInUse(long boxId) {
@@ -797,7 +823,7 @@ public class ProductAdminServiceImpl implements ProductAdminService {
     @Override
     @Transactional(readOnly = true)
     public NewProductPageView newProductPage(boolean giftBox) {
-        return new NewProductPageView(formOptions(giftBox));
+        return new NewProductPageView(formOptions(giftBox), List.of());
     }
 
     @Override

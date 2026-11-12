@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -488,5 +489,14 @@ public class ProductQueryServiceImpl implements ProductQueryService {
     @Override
     public ProductVariant variantReference(long variantId) {
         return productVariantRepository.getReferenceById(variantId);
+    }
+
+    @Override
+    public Integer shelfLifeDays(long variantId) {
+        Optional<ProductVariant> variant = productVariantRepository.findById(variantId);
+        if (variant.isEmpty()) {
+            return null;
+        }
+        return variant.get().getProduct().getShelfLifeDays();
     }
 }

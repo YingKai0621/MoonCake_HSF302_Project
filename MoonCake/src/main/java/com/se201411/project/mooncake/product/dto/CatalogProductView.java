@@ -267,9 +267,19 @@ public final class CatalogProductView {
             product.getShortDescription(),
             product.getDetailedDescription(),
             product.getMainIngredients(),
-            product.getShelfLifeInfo(),
+            shelfLifeText(product),
             product.getStorageGuidance(),
             variants
         );
+    }
+
+    private static String shelfLifeText(Product product) {
+        if (product.getProductType() == ProductType.GIFT_SET) {
+            return "Theo hạn của bánh trong hộp";
+        }
+        if (product.getShelfLifeDays() == null) {
+            return product.getShelfLifeInfo();
+        }
+        return product.getShelfLifeDays() + " ngày kể từ ngày sản xuất";
     }
 }

@@ -118,7 +118,8 @@
     <section th:unless="${order.statusLabel == 'Đã hủy'}"
              class="order-progress mb-8"
              aria-label="Tiến trình đơn hàng"
-             th:with="stage=${order.statusLabel == 'Hoàn thành' ? 4
+             th:with="stage=${order.statusLabel == 'Hoàn thành' ? 5
+                           : order.statusLabel == 'Đã giao hàng' ? 4
                            : order.statusLabel == 'Đang giao hàng' ? 3
                            : order.statusLabel == 'Đang xử lý' ? 2
                            : 1},
@@ -149,8 +150,14 @@
           <span class="order-progress__time" th:text="${order.fulfilment.shippingAt}"></span>
         </li>
         <li class="order-progress__step"
-            th:classappend="${stage == 4} ? 'is-done'">
-          <span class="order-progress__marker" th:text="${stage == 4 ? '✓' : ''}"></span>
+            th:classappend="${stage > 4} ? 'is-done' : (${stage == 4} ? 'is-current' : '')">
+          <span class="order-progress__marker" th:text="${stage > 4 ? '✓' : ''}"></span>
+          <span class="order-progress__label">Đã giao</span>
+          <span class="order-progress__time" th:text="${order.fulfilment.deliveredAt}"></span>
+        </li>
+        <li class="order-progress__step"
+            th:classappend="${stage == 5} ? 'is-done'">
+          <span class="order-progress__marker" th:text="${stage == 5 ? '✓' : ''}"></span>
           <span class="order-progress__label">Hoàn thành</span>
           <span class="order-progress__time" th:text="${order.fulfilment.completedAt}"></span>
         </li>
@@ -166,6 +173,32 @@
           <strong th:text="${order.fulfilment.estimatedDelivery}">18/09/2026</strong>
         </p>
       </div>
+    </section>
+
+    <section th:if="${order.receivable}"
+             class="mb-8 border border-gold/30 bg-surface p-6">
+      <form th:action="@{/orders/{orderCode}/received(orderCode=${order.orderCode})}"
+            method="post"
+            onsubmit="return confirm('Bạn đã nhận đủ hàng của đơn này?');">
+        <button type="submit"
+                data-loading-text="Đang xác nhận…"
+                class="bg-gold px-6 py-3 font-semibold text-midnight hover:bg-goldHover transition-colors">
+          Đã nhận được hàng
+        </button>
+      </form>
+      <p class="mt-3 text-sm text-sand">
+        Chưa nhận được hàng? Vui lòng liên hệ cửa hàng trước
+        <strong th:text="${order.autoCompleteDate}">24/10/2026</strong>.
+        Sau ngày này đơn sẽ tự hoàn tất.
+      </p>
+    </section>
+
+    <section th:if="${order.statusLabel == 'Hoàn thành'}" class="mb-8 text-sm text-sand">
+      <p th:if="${order.fulfilment.customerConfirmedAt}"
+         th:text="${'Bạn đã xác nhận nhận hàng lúc ' + order.fulfilment.customerConfirmedAt}"></p>
+      <p th:unless="${order.fulfilment.customerConfirmedAt}">
+        Đơn tự hoàn tất sau 3 ngày kể từ khi giao
+      </p>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

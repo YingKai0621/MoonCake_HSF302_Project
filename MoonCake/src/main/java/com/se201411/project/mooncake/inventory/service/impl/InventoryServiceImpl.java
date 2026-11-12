@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.entity.StockBatch;
+import com.se201411.project.mooncake.common.format.VietnamTime;
+import com.se201411.project.mooncake.inventory.dto.SellableBatchView;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
 import com.se201411.project.mooncake.inventory.repository.StockBatchRepository;
 import com.se201411.project.mooncake.common.exception.InsufficientStockException;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +31,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
@@ -62,8 +65,11 @@ public class InventoryServiceImpl implements InventoryService {
         if (variantIds.isEmpty()) {
             return result;
         }
+        Map<Long, Integer> expired = batchStock.expiredQuantities(variantIds);
         for (InventoryBalance balance : balanceRepository.findByVariantIdIn(variantIds)) {
-            result.put(balance.getVariantId(), balance.getAvailableQuantity());
+            int expiredQuantity = expired.getOrDefault(balance.getVariantId(), 0);
+            int sellable = Math.max(0, balance.getAvailableQuantity() - expiredQuantity);
+            result.put(balance.getVariantId(), sellable);
         }
         return result;
     }
@@ -97,11 +103,9 @@ public class InventoryServiceImpl implements InventoryService {
                 demand.quantity()
             );
             if (updatedRows != 1) {
-                Integer available = balanceRepository.available(demand.variantId());
-                int left = Objects.requireNonNullElse(available, 0);
                 String product = describeVariant(demand.variantId());
                 throw new InsufficientStockException(
-                    "Chỉ còn " + left + " sản phẩm " + product + ". Vui lòng điều chỉnh số lượng và đặt lại."
+                    product + ": vượt quá số lượng sản phẩm trong kho. Vui lòng điều chỉnh số lượng và đặt lại."
                 );
             }
 
@@ -174,6 +178,22 @@ public class InventoryServiceImpl implements InventoryService {
             return null;
         }
         return performers.get(0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, SellableBatchView> nextSellableBatches(Collection<Long> variantIds) {
+        Map<Long, SellableBatchView> result = new HashMap<>();
+        if (variantIds.isEmpty()) {
+            return result;
+        }
+        LocalDate today = VietnamTime.today(clock);
+        for (StockBatch batch : batchRepository.findSellableBatches(variantIds, today)) {
+            if (!result.containsKey(batch.getVariantId())) {
+                result.put(batch.getVariantId(), SellableBatchView.entityToDto(batch));
+            }
+        }
+        return result;
     }
 
     private List<InventoryDemand> sortDemands(List<InventoryDemand> demands) {

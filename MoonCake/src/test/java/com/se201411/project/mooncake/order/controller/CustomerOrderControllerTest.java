@@ -90,6 +90,8 @@ class CustomerOrderControllerTest {
             "Đã tiếp nhận",
             true,
             true,
+            false,
+            null,
             "21/10/2026 10:00",
             "Người nhận",
             "0901234567",
@@ -107,7 +109,18 @@ class CustomerOrderControllerTest {
             null,
             "620.000đ",
             null,
-            new OrderFulfilmentView("10:00 21/10/2026", null, null, null, null, null, null, null)
+            new OrderFulfilmentView(
+                "10:00 21/10/2026",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            )
         );
         when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
         when(customerOrderService.requireOrder("MC-20261021-TEST", CUSTOMER))
@@ -165,6 +178,43 @@ class CustomerOrderControllerTest {
             org.mockito.ArgumentMatchers.any(OrderDeliveryUpdateForm.class),
             org.mockito.ArgumentMatchers.eq(CUSTOMER)
         );
+    }
+
+    @Test
+    void receivedRedirectsBackWithMessage() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+
+        mockMvc.perform(post("/orders/MC-20261021-TEST/received"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/orders/MC-20261021-TEST"))
+            .andExpect(flash().attribute(
+                "successMessage",
+                "Cảm ơn bạn đã xác nhận nhận hàng."
+            ));
+
+        verify(customerOrderService).confirmReceived(
+            "MC-20261021-TEST",
+            CUSTOMER
+        );
+    }
+
+    @Test
+    void receivedFailureRedirectsBackWithError() throws Exception {
+        when(currentCustomerService.requireCurrentCustomer()).thenReturn(CUSTOMER);
+        doThrow(new BusinessRuleViolationException(
+            "Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được."
+        )).when(customerOrderService).confirmReceived(
+            "MC-20261021-TEST",
+            CUSTOMER
+        );
+
+        mockMvc.perform(post("/orders/MC-20261021-TEST/received"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/orders/MC-20261021-TEST"))
+            .andExpect(flash().attribute(
+                "errorMessage",
+                "Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được."
+            ));
     }
 
     @Test

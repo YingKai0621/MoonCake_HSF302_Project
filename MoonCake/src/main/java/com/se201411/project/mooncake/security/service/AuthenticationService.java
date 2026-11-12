@@ -7,9 +7,5 @@ public interface AuthenticationService {
 
     void registerCustomer(CustomerRegistrationForm form);
 
-    void changePassword(
-        ShopperIdentity customerIdentity,
-        String currentPassword,
-        String newPassword
-    );
+    void changePassword(ShopperIdentity customerIdentity, String currentPassword, String newPassword);
 }

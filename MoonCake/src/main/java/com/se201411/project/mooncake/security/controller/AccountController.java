@@ -42,7 +42,7 @@ public class AccountController {
     }
 
     @GetMapping
-    public String account(Model model) {
+    public String accountPage(Model model) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
         return showAccountPage(model, customer);
     }
@@ -58,11 +58,9 @@ public class AccountController {
         if (bindingResult.hasErrors()) {
             return showAccountPage(model, customer);
         }
+
         customerProfileService.updateProfile(customer, form);
-        redirectAttributes.addFlashAttribute(
-            "successMessage",
-            "Đã cập nhật thông tin cá nhân."
-        );
+        redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin cá nhân.");
         return "redirect:/account";
     }
 
@@ -74,39 +72,6 @@ public class AccountController {
         RedirectAttributes redirectAttributes
     ) {
         ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
-        validatePasswordForm(form, bindingResult);
-        if (bindingResult.hasErrors()) {
-            return showAccountPage(model, customer);
-        }
-        try {
-            authenticationService.changePassword(
-                customer,
-                form.getCurrentPassword(),
-                form.getNewPassword()
-            );
-        } catch (WrongCurrentPasswordException exception) {
-            bindingResult.rejectValue(
-                "currentPassword",
-                "password.wrong",
-                exception.getMessage()
-            );
-            return showAccountPage(model, customer);
-        } catch (SamePasswordException exception) {
-            bindingResult.rejectValue(
-                "newPassword",
-                "password.same",
-                exception.getMessage()
-            );
-            return showAccountPage(model, customer);
-        }
-        redirectAttributes.addFlashAttribute("successMessage", "Đã đổi mật khẩu.");
-        return "redirect:/account";
-    }
-
-    private void validatePasswordForm(
-        ChangePasswordForm form,
-        BindingResult bindingResult
-    ) {
         if (!Objects.equals(form.getNewPassword(), form.getConfirmPassword())) {
             bindingResult.rejectValue(
                 "confirmPassword",
@@ -121,12 +86,26 @@ public class AccountController {
                 "Mật khẩu chứa ký tự đặc biệt quá dài, vui lòng rút ngắn"
             );
         }
+        if (bindingResult.hasErrors()) {
+            return showAccountPage(model, customer);
+        }
+
+        try {
+            authenticationService.changePassword(customer, form.getCurrentPassword(), form.getNewPassword());
+        } catch (WrongCurrentPasswordException exception) {
+            bindingResult.rejectValue("currentPassword", "password.wrong", exception.getMessage());
+            return showAccountPage(model, customer);
+        } catch (SamePasswordException exception) {
+            bindingResult.rejectValue("newPassword", "password.same", exception.getMessage());
+            return showAccountPage(model, customer);
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Đã đổi mật khẩu.");
+        return "redirect:/account";
     }
 
     private String showAccountPage(Model model, ShopperIdentity customer) {
-        if (!model.containsAttribute("page")) {
-            model.addAttribute("page", customerProfileService.accountPage(customer));
-        }
+        model.addAttribute("page", customerProfileService.accountPage(customer));
         if (!model.containsAttribute("profileForm")) {
             model.addAttribute("profileForm", customerProfileService.profileForm(customer));
         }

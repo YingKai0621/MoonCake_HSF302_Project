@@ -25,12 +25,14 @@
 </form>
 
 <form th:fragment="cakePicker(recipe, productId)" th:action="@{/admin/gift-boxes/{id}/cakes(id=${productId})}" method="post"
-      class="cake-picker" th:attr="data-capacity=${recipe.capacity}" data-cake-picker>
+      class="cake-picker" data-cake-picker
+      th:with="box=${page.options.boxes.?[id == __${recipe.boxId}__]}"
+      th:attr="data-capacity=${recipe.capacity},data-box-price=${box.isEmpty() ? 0 : box[0].price},data-gift-price=${page.sku.form.unitPrice}">
     <input type="hidden" name="recipeId" th:value="${recipe.id}">
     <input type="hidden" name="lock" value="false" data-lock-input>
     <div class="pick-grid pick-grid--focus">
         <th:block th:each="cake : ${page.options.cakes}" th:with="current=${recipe.components.?[variantId == __${cake.id}__]}">
-        <div th:if="${cake.selling or !current.isEmpty()}" class="pick-card pick-card--cake"
+        <div th:if="${cake.selling or !current.isEmpty()}" class="pick-card pick-card--cake" th:attr="data-price=${cake.price}"
              th:classappend="${(!current.isEmpty() ? 'is-picked ' : '') + (cake.selling ? '' : 'is-unavailable')}">
             <span class="pick-card__image">
                 <img th:if="${cake.imageUrl != null}" th:src="${cake.imageUrl}" alt="" loading="lazy">
@@ -60,6 +62,7 @@
             <span class="fill-meter__text" data-fill-text>0/4 bánh</span>
         </span>
         <span class="picker-bar__hint" data-fill-hint></span>
+        <span class="picker-bar__hint" data-cost-text></span>
         <span class="picker-bar__actions">
             <button type="submit" class="secondary" data-save-draft>Lưu lại, làm tiếp sau</button>
             <button type="submit" data-save-lock

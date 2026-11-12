@@ -43,47 +43,37 @@ class AccountIT {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void updatesProfileAndPasswordInMoonCakeTestDatabase() {
-        Customer customer = registerCustomer();
+    void customerUpdatesProfileAndChangesPassword() {
+        String email = "account-" + UUID.randomUUID() + "@example.com";
+        authenticationService.registerCustomer(registrationForm(email));
+        Account account = accountRepository.findByEmail(email).orElseThrow();
+        Customer customer = customerRepository.findByAccount_Id(account.getId()).orElseThrow();
         ShopperIdentity identity = ShopperIdentity.forCustomer(customer.getId());
+
         ProfileUpdateForm profileForm = new ProfileUpdateForm();
-        profileForm.setFullName("Trần Thị Kiểm Thử");
+        profileForm.setFullName("  Trần Thị B  ");
         profileForm.setPhone("0912345678");
-
         customerProfileService.updateProfile(identity, profileForm);
-        authenticationService.changePassword(
-            identity,
-            "password123",
-            "newPassword123"
-        );
 
-        Customer updatedCustomer = customerRepository.findById(customer.getId()).orElseThrow();
-        Account updatedAccount = accountRepository.findById(
-            updatedCustomer.getAccount().getId()
-        ).orElseThrow();
-        assertThat(updatedCustomer.getFullName()).isEqualTo("Trần Thị Kiểm Thử");
-        assertThat(updatedCustomer.getPhone()).isEqualTo("0912345678");
-        assertThat(passwordEncoder.matches(
-            "newPassword123",
-            updatedAccount.getPasswordHash()
-        )).isTrue();
-        assertThat(passwordEncoder.matches(
-            "password123",
-            updatedAccount.getPasswordHash()
-        )).isFalse();
+        Customer updated = customerRepository.findById(customer.getId()).orElseThrow();
+        assertThat(updated.getFullName()).isEqualTo("Trần Thị B");
+        assertThat(updated.getPhone()).isEqualTo("0912345678");
+        assertThat(updated.getEmail()).isEqualTo(email);
+
+        authenticationService.changePassword(identity, "password123", "brandNew456");
+
+        Account changed = accountRepository.findById(account.getId()).orElseThrow();
+        assertThat(passwordEncoder.matches("brandNew456", changed.getPasswordHash())).isTrue();
+        assertThat(passwordEncoder.matches("password123", changed.getPasswordHash())).isFalse();
     }
 
-    private Customer registerCustomer() {
-        String email = "account-" + UUID.randomUUID() + "@example.com";
+    private CustomerRegistrationForm registrationForm(String email) {
         CustomerRegistrationForm form = new CustomerRegistrationForm();
         form.setEmail(email);
         form.setPassword("password123");
         form.setConfirmPassword("password123");
-        form.setFullName("Khách kiểm thử tài khoản");
+        form.setFullName("Nguyễn Văn A");
         form.setPhone("0901234567");
-        authenticationService.registerCustomer(form);
-
-        Account account = accountRepository.findByEmail(email).orElseThrow();
-        return customerRepository.findByAccount_Id(account.getId()).orElseThrow();
+        return form;
     }
 }

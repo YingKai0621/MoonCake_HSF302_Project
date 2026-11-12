@@ -79,34 +79,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     @Transactional
-    public void changePassword(
-        ShopperIdentity customerIdentity,
-        String currentPassword,
-        String newPassword
-    ) {
-        Customer customer = requireCustomer(customerIdentity);
+    public void changePassword(ShopperIdentity customerIdentity, String currentPassword, String newPassword) {
+        Customer customer = customerRepository.findById(customerIdentity.customerId())
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin khách hàng"));
         Account account = customer.getAccount();
+
         if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
             throw new WrongCurrentPasswordException();
         }
         if (passwordEncoder.matches(newPassword, account.getPasswordHash())) {
             throw new SamePasswordException();
         }
+
         account.setPasswordHash(passwordEncoder.encode(newPassword));
         accountRepository.save(account);
-        passwordResetTokenRepository.invalidateOpenTokens(
-            account.getId(),
-            LocalDateTime.now(clock)
-        );
-    }
-
-    private Customer requireCustomer(ShopperIdentity customerIdentity) {
-        if (customerIdentity == null) {
-            throw new ResourceNotFoundException("Không tìm thấy thông tin khách hàng");
-        }
-        return customerRepository.findById(customerIdentity.customerId())
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Không tìm thấy thông tin khách hàng"
-            ));
+        passwordResetTokenRepository.invalidateOpenTokens(account.getId(), LocalDateTime.now(clock));
     }
 }

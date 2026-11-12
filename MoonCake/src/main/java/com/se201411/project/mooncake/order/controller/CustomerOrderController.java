@@ -91,6 +91,24 @@ public class CustomerOrderController {
         return "redirect:/orders/" + orderCode;
     }
 
+    @PostMapping("/orders/{orderCode}/received")
+    public String confirmReceived(
+        @PathVariable String orderCode,
+        RedirectAttributes redirectAttributes
+    ) {
+        ShopperIdentity customer = currentCustomerService.requireCurrentCustomer();
+        try {
+            customerOrderService.confirmReceived(orderCode, customer);
+            redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Cảm ơn bạn đã xác nhận nhận hàng."
+            );
+        } catch (MoonCakeException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/orders/" + orderCode;
+    }
+
     @GetMapping("/orders/{orderCode}/delivery/edit")
     public String editDeliveryInformation(
         @PathVariable String orderCode,

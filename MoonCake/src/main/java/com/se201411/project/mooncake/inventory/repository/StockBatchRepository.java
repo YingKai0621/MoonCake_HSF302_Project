@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.repository;
 
+import com.se201411.project.mooncake.inventory.dto.VariantQuantity;
 import com.se201411.project.mooncake.entity.StockBatch;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -91,4 +92,35 @@ public interface StockBatchRepository extends JpaRepository<StockBatch, Long> {
 
     @Query("select count(batch) from StockBatch batch where batch.variantId in :variantIds")
     long countByVariantIds(@Param("variantIds") Collection<Long> variantIds);
+
+    @Query("""
+        select batch
+        from StockBatch batch
+        where batch.variantId in :variantIds
+          and batch.remainingQuantity > 0
+          and (batch.expiresOn is null or batch.expiresOn >= :today)
+        order by batch.variantId,
+            case when batch.expiresOn is null then 1 else 0 end,
+            batch.expiresOn,
+            batch.id
+        """)
+    List<StockBatch> findSellableBatches(
+        @Param("variantIds") Collection<Long> variantIds,
+        @Param("today") LocalDate today
+    );
+
+    @Query("""
+        select new com.se201411.project.mooncake.inventory.dto.VariantQuantity(
+            batch.variantId, sum(batch.remainingQuantity)
+        )
+        from StockBatch batch
+        where batch.variantId in :variantIds
+          and batch.remainingQuantity > 0
+          and batch.expiresOn < :today
+        group by batch.variantId
+        """)
+    List<VariantQuantity> sumExpiredRemaining(
+        @Param("variantIds") Collection<Long> variantIds,
+        @Param("today") LocalDate today
+    );
 }

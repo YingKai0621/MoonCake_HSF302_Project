@@ -15,6 +15,7 @@ import com.se201411.project.mooncake.cart.repository.CustomBoxRepository;
 import com.se201411.project.mooncake.cart.service.CustomBoxService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.BoxConfiguration;
@@ -26,6 +27,7 @@ import com.se201411.project.mooncake.enums.CartStatus;
 import com.se201411.project.mooncake.enums.ConfigurationStatus;
 import com.se201411.project.mooncake.enums.ConfigurationType;
 import com.se201411.project.mooncake.enums.ProductType;
+import com.se201411.project.mooncake.product.dto.CartVariantSnapshot;
 import com.se201411.project.mooncake.product.dto.CatalogProductView;
 import com.se201411.project.mooncake.product.dto.CatalogVariantView;
 import com.se201411.project.mooncake.product.dto.SellableVariantSnapshot;
@@ -172,6 +174,7 @@ public class CustomBoxServiceImpl implements CustomBoxService {
 
         Cart cart = requireActiveCart(customerIdentity.customerId(), true);
         ValidatedCustomBox validated = validateCustomBox(command);
+        requireComponentStock(validated.box(), validated.cakeQuantities(), command.boxQuantity());
         LocalDateTime currentTime = now();
 
         BoxConfiguration configuration = new BoxConfiguration();
@@ -215,6 +218,7 @@ public class CustomBoxServiceImpl implements CustomBoxService {
             configurationId
         );
         ValidatedCustomBox validated = validateCustomBox(command);
+        requireComponentStock(validated.box(), validated.cakeQuantities(), command.boxQuantity());
 
         Optional<CartItem> cartItemResult = cartItemRepository.findConfigurationItem(
             cart.getId(),
@@ -358,6 +362,51 @@ public class CustomBoxServiceImpl implements CustomBoxService {
         requirePositiveId(command.boxId(), "Mẫu hộp không hợp lệ");
         if (command.boxQuantity() <= 0) {
             throw new BusinessRuleViolationException("Số lượng hộp phải lớn hơn 0");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void requireStockForBoxes(long configurationId, int boxQuantity) {
+        BoxConfiguration configuration = configurationRepository.findById(configurationId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hộp tự chọn"));
+        Map<Long, Integer> cakeQuantities = new LinkedHashMap<>();
+        for (BoxConfigurationItem item : configurationItemRepository.findByConfigurationIds(List.of(configurationId))) {
+            cakeQuantities.put(item.getMooncakeVariant().getId(), item.getQuantityPerBox());
+        }
+        requireComponentStock(configuration.getBox(), cakeQuantities, boxQuantity);
+    }
+
+    private void requireComponentStock(Box box, Map<Long, Integer> cakeQuantities, int boxQuantity) {
+        Map<Long, Integer> demand = new LinkedHashMap<>();
+        demand.put(box.getEmptyBoxVariant().getId(), boxQuantity);
+        for (Map.Entry<Long, Integer> entry : cakeQuantities.entrySet()) {
+            int needed = multiplyQuantities(entry.getValue(), boxQuantity);
+            int alreadyNeeded = demand.getOrDefault(entry.getKey(), 0);
+            demand.put(entry.getKey(), addQuantities(alreadyNeeded, needed));
+        }
+
+        for (CartVariantSnapshot variant : productQueryService.findVariantsForCart(demand.keySet())) {
+            int needed = demand.get(variant.variantId());
+            int stock = variant.stock();
+            if (stock < 0 || needed <= stock) {
+                continue;
+            }
+            String name = variant.productName() + " - " + variant.variantName();
+            if (stock == 0) {
+                throw new InsufficientStockException(name + " đã hết hàng. Vui lòng chọn bánh khác.");
+            }
+            throw new InsufficientStockException(
+                name + " không còn đủ hàng cho số lượng hộp này. Vui lòng giảm số lượng hộp hoặc chọn bánh khác."
+            );
+        }
+    }
+
+    private int multiplyQuantities(int first, int second) {
+        try {
+            return Math.multiplyExact(first, second);
+        } catch (ArithmeticException exception) {
+            throw new BusinessRuleViolationException("Số lượng bánh quá lớn");
         }
     }
 

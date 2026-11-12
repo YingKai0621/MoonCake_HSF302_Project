@@ -1,8 +1,10 @@
 package com.se201411.project.mooncake.inventory.dto;
 
 import com.se201411.project.mooncake.entity.InventoryBalance;
+import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.entity.StockMovement;
+import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.enums.StockMovementType;
 
 import java.time.LocalDateTime;
@@ -11,16 +13,27 @@ public final class AdminInventoryView {
     private AdminInventoryView() {
     }
 
-    public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
+    public record Balance(long variantId, String sku, String productName, String name, int quantity, int threshold,
+                          int expired, boolean giftSet, boolean needsProductionDate) {
 
-        public static Balance entityToDto(InventoryBalance balance) {
+        public Balance(long variantId, String sku, String productName, String name, int quantity, int threshold) {
+            this(variantId, sku, productName, name, quantity, threshold, 0, false, true);
+        }
+
+        public static Balance entityToDto(InventoryBalance balance, int expired) {
+            Product product = balance.getVariant().getProduct();
+            boolean giftSet = product.getProductType() == ProductType.GIFT_SET;
+            boolean needsProductionDate = !giftSet && product.getShelfLifeDays() != null;
             return new Balance(
                 balance.getVariantId(),
                 balance.getVariant().getSku(),
-                balance.getVariant().getProduct().getName(),
+                product.getName(),
                 balance.getVariant().getName(),
                 balance.getAvailableQuantity(),
-                balance.getLowStockThreshold()
+                balance.getLowStockThreshold(),
+                expired,
+                giftSet,
+                needsProductionDate
             );
         }
 

@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.inventory.controller;
 
+import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
 import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.common.web.FormErrors;
 import com.se201411.project.mooncake.inventory.dto.BatchInfoForm;
@@ -18,9 +19,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class BatchController {
 
     private final BatchStockService batchStockService;
+    private final InventoryAdminService inventoryAdminService;
 
-    public BatchController(BatchStockService batchStockService) {
+    public BatchController(BatchStockService batchStockService, InventoryAdminService inventoryAdminService) {
         this.batchStockService = batchStockService;
+        this.inventoryAdminService = inventoryAdminService;
     }
 
     @GetMapping("/admin/batches")
@@ -40,7 +43,7 @@ public class BatchController {
             return reopen(flash, id, FormErrors.first(result));
         }
         try {
-            batchStockService.updateTraceability(id, form.batchCode(), form.producedOn(), form.expiresOn());
+            inventoryAdminService.updateBatchInfo(id, form.batchCode(), form.producedOn());
         } catch (MoonCakeException ex) {
             return reopen(flash, id, ex.getMessage());
         }

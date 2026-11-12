@@ -60,6 +60,8 @@ class CustomerCartServiceImplTest {
     private CustomBoxConfigurationItemRepository configurationItemRepository;
     @Mock
     private ProductQueryService productQueryService;
+    @Mock
+    private CustomBoxService customBoxService;
 
     private CustomerCartService service;
 
@@ -75,6 +77,7 @@ class CustomerCartServiceImplTest {
             configurationRepository,
             configurationItemRepository,
             productQueryService,
+            customBoxService,
             clock
         );
     }
@@ -411,7 +414,7 @@ class CustomerCartServiceImplTest {
 
         assertThatThrownBy(() -> service.addVariant(CUSTOMER, 200L, 10))
             .isInstanceOf(InsufficientStockException.class)
-            .hasMessageContaining("Chỉ còn 96");
+            .hasMessageContaining("Vượt quá số lượng");
         assertThat(existingItem.getQuantity()).isEqualTo(90);
     }
 
@@ -447,7 +450,7 @@ class CustomerCartServiceImplTest {
         CustomerCartView result = service.getCurrentCart(CUSTOMER);
 
         assertThat(result.hasUnavailableItems()).isTrue();
-        assertThat(result.items().get(0).stockWarning()).contains("Chỉ còn 96");
+        assertThat(result.items().get(0).stockWarning()).contains("Vượt quá số lượng");
     }
 
     private CartVariantSnapshot cakeWithStock(int stock) {

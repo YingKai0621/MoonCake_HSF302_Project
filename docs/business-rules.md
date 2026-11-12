@@ -1,14 +1,81 @@
 # MoonCake MVP — Business Rules
 
 **Dự án:** HSF302 — MoonCake
-**Phiên bản tài liệu:** 1.16 — 12/11/2026
+**Phiên bản tài liệu:** 1.24 — 12/11/2026
 
-**Trạng thái:** Xác nhận giao hàng hai phía: trạng thái Đã giao, khách xác nhận đã nhận, tự hoàn tất sau 3 ngày (Flyway V19, chờ triển khai)
+**Trạng thái:** Quản lý tài khoản quản trị viên; không đổi schema
 
 **Database:** Microsoft SQL Server 2019+
 **Nguồn đối chiếu:** `MoonCake_Logical_V5 (1).drawio`, `MoonCake_Physical_ERD_SQLServer.drawio`, `MoonCake_Physical_Schema_SQLServer.sql`, `MoonCake_Physical_ERD_Design_Notes.md`.
 
 > **Đọc trước khi triển khai:** File này mô tả **quy tắc nghiệp vụ**; Physical SQL/ERD mô tả **cấu trúc dữ liệu**. Nếu tài liệu, SQL và source code hiện tại mâu thuẫn, **báo cáo và hỏi người phụ trách**, không tự thay đổi nghiệp vụ, thêm bảng hoặc sửa migration đã áp dụng. Physical SQL đã được chuyển thành Flyway V1 và kiểm thử trên SQL Server 2019; từ thời điểm migration được chia sẻ, không sửa V1 mà tạo migration mới.
+
+### Thay đổi chính trong phiên bản 1.24
+
+- **Super admin** là tài khoản `ADMIN` có `account_id` nhỏ nhất, thường chính là admin đầu tiên tạo bằng chế độ khởi tạo (`bootstrap-admin`). Không cần cột hay cấu hình mới.
+- Trang **Quản trị viên** (`/admin/admins`): mọi admin xem được danh sách (email, ngày tạo, vai trò, trạng thái); **chỉ super admin** được:
+  - **thêm quản trị viên** bằng email và mật khẩu ban đầu (8–64 ký tự). Email đã có tài khoản, kể cả của khách, bị từ chối; không bao giờ đổi quyền tài khoản khách thành admin.
+  - **khóa / mở khóa** quản trị viên khác. Khóa thì người đó bị đăng xuất và không đăng nhập được nữa.
+- Không ai khóa được **super admin**, và không ai tự khóa chính mình, nên hệ thống luôn còn ít nhất một admin hoạt động. Không xóa tài khoản admin, để giữ lịch sử "ai làm gì" trong kho và đơn hàng.
+- Chưa có bắt buộc đổi mật khẩu lần đầu và chưa chia quyền chi tiết (cần migration, để phiên bản sau).
+
+### Thay đổi chính trong phiên bản 1.23
+
+- **Không đóng hộp quà bằng bánh nằm ở lô chưa có hạn dùng** (lô cũ không có ngày sản xuất). Nếu lần đóng phải lấy bánh từ lô như vậy, hệ thống từ chối cả lần đóng, kho và lịch sử không đổi, và báo "<bánh> còn lô chưa có hạn dùng. Hãy nhập ngày sản xuất cho lô đó ở trang Lô hàng trước khi đóng hộp." Nhờ vậy mọi lô hộp quà đều có HSD.
+- Cách xử lý: ở trang Lô hàng, tab "Chưa có hạn dùng", nhập ngày sản xuất cho lô bánh; HSD tự tính. Lô vỏ hộp không có hạn là bình thường.
+
+### Thay đổi chính trong phiên bản 1.22
+
+- Vỏ hộp hiển thị **"Tên sản phẩm · Tên phiên bản"** ở chỗ chọn vỏ khi tạo hộp quà, tiêu đề công thức, trang khách tự chọn hộp và dòng hộp tự chọn trong giỏ, để các phiên bản cùng một mẫu hộp không bị trùng tên.
+
+- **"Điều chỉnh" kho chỉ dùng để giảm** (vỡ, mất, kiểm kê thiếu). Admin nhập **số lượng bớt đi** (lớn hơn 0); hệ thống ghi biến động `ADJUST` âm và trừ từ các lô đang có.
+- Không còn điều chỉnh tăng, vì điều chỉnh tăng tạo lô **không có ngày sản xuất và không có hạn**, khiến bánh không bao giờ bị tính là hết hạn. Hàng thêm vào kho chỉ qua **Nhập** (bánh bắt buộc ngày sản xuất) hoặc **Đóng hộp quà**. Kiểm kê thấy thừa thì dùng Nhập.
+- "Hủy hàng hết hạn" vẫn là một điều chỉnh giảm đúng bằng số hết hạn như v1.18.
+
+### Thay đổi chính trong phiên bản 1.21
+
+- **Hộp quà không còn thời hạn sử dụng riêng.** Chỉ **bánh** có "Thời hạn sử dụng (ngày)" (bắt buộc, 1–90). Form tạo/sửa hộp quà không có ô này; lưu hộp quà thì `shelf_life_days` để trống (dữ liệu cũ của hộp quà không còn được dùng).
+- **Đóng hộp quà:** lô hộp quà có ngày sản xuất là ngày đóng hộp (giờ Việt Nam) và **HSD = HSD sớm nhất của các bánh dùng để đóng** (bánh được lấy từ lô sắp hết hạn trước). Thay cho quy tắc "ngày sớm hơn" ở v1.17.
+- Trang sản phẩm của khách ghi "Hạn sử dụng: Theo hạn của bánh trong hộp" cho hộp quà; bánh vẫn ghi "N ngày kể từ ngày sản xuất".
+- Nhân bản sản phẩm giữ nguyên thời hạn sử dụng của bánh.
+
+### Thay đổi chính trong phiên bản 1.20
+
+- **Thêm hộp quà bắt buộc chọn vỏ hộp ngay trên trang tạo**, từ danh sách hộp rỗng **đã có sức chứa** (ảnh, tên, số bánh/hộp, số vỏ trong kho). Admin không phải tạo hộp rỗng mới. Nếu chưa có hộp rỗng nào dùng được, trang hiện nút "Thêm hộp rỗng" và không cho tạo.
+- Bấm "Tạo hộp quà": hệ thống tạo sản phẩm, SKU hộp quà và **công thức nháp gắn vỏ đã chọn trong một transaction**, rồi chuyển sang bước chọn bánh. Công thức còn nháp thì vẫn đổi được vỏ.
+- Hộp quà mới **luôn ẩn** cho tới bước "Đóng hộp & mở bán"; trang tạo không còn công tắc "Hiển thị trên cửa hàng ngay". Thẻ bên phải ghi "Giá bán" (hộp quà chỉ có một SKU ngầm).
+- Ở bước chọn bánh, thanh dưới cùng hiện **"Giá lẻ vỏ + bánh"** (giá vỏ + giá lẻ từng bánh × số lượng, cập nhật khi đổi số bánh) cạnh **giá bán** để Admin đối chiếu. Đây chỉ là số tham khảo, không đổi giá bán.
+
+### Thay đổi chính trong phiên bản 1.19
+
+- **Sức chứa hộp nằm trong phiên bản hộp rỗng.** Khi tạo hộp rỗng hoặc thêm/sửa phiên bản hộp rỗng, Admin nhập **sức chứa (1–24 bánh)** và chất liệu ngay trong form phiên bản; hệ thống lưu `PRODUCT_VARIANT` và `BOX` trong **một transaction**. Không còn bước "mẫu hộp" riêng. Mỗi phiên bản hộp rỗng có đúng một sức chứa (`UQ_BOX_empty_box_variant_id`).
+- Phiên bản hộp rỗng **bắt buộc có sức chứa**; phiên bản hộp rỗng không có ô khối lượng hay nhân bánh.
+- Hộp đã được dùng trong công thức hộp quà hoặc hộp khách tự chọn thì **không đổi được sức chứa**; muốn số bánh khác thì tạo phiên bản hộp mới.
+- Chỉ còn **một công tắc "Mở bán phiên bản"**. Hộp có sức chứa luôn chọn được khi làm công thức hộp quà; khách chỉ thấy hộp ở trang tự chọn khi phiên bản đang mở bán.
+- **Nhập kho theo loại:**
+  - **Bánh:** ngày sản xuất bắt buộc ngay trên form; HSD = ngày sản xuất + thời hạn của bánh.
+  - **Hộp rỗng:** không có ngày sản xuất và HSD; vỏ hộp không hết hạn.
+  - **Hộp quà:** **không nhập trực tiếp**; chỉ vào kho bằng **Đóng hộp quà** (trừ vỏ hộp và bánh, HSD theo bánh bên trong, xem v1.21). Dòng hộp quà ở trang Kho có nút "Đóng hộp" thay cho "Nhập". "Điều chỉnh" vẫn dùng để sửa sai khi kiểm kê.
+- **Sửa lô:** chỉ lô **bánh** sửa được ngày sản xuất (HSD tự tính lại). Lô hộp quà giữ ngày đóng hộp và HSD đã tính lúc đóng; lô hộp rỗng không có ngày; cả hai chỉ đổi được mã lô.
+- Đổi thời hạn sử dụng của sản phẩm chỉ áp dụng cho lô nhập sau; lô đã nhập giữ HSD cũ.
+
+### Thay đổi chính trong phiên bản 1.18
+
+- **Số lượng bán được cho khách** (trang sản phẩm, giỏ hàng, trang thanh toán) = tồn có thể bán trừ đi số còn lại trong các lô **đã quá HSD**. Khách không thấy "còn hàng" với hàng đã hết hạn; bước đặt hàng chỉ lấy từ lô còn hạn như trước.
+- **Không nhập được lô đã hết hạn:** nếu ngày sản xuất + thời hạn sử dụng trước hôm nay (giờ Việt Nam) thì báo "Lô này đã hết hạn (HSD …), không nhập được." và không đổi tồn.
+- Nếu tới bước đặt hàng mà lô còn hạn không đủ (ví dụ lô vừa hết hạn), khách nhận câu "<tên sản phẩm>: vượt quá số lượng sản phẩm trong kho…" thay cho câu chứa mã SKU.
+- **Trang Tồn kho của Admin** hiển thị "trong đó N hết hạn" và nút **"Hủy hàng hết hạn"**: hệ thống ghi một điều chỉnh âm đúng bằng số hết hạn (lý do "Hủy hàng hết hạn", có lịch sử kho), trừ từ các lô hết hạn trước.
+- Câu báo khi khách đặt vượt tồn (trang sản phẩm, giỏ, thanh toán, đặt hàng) là **"Vượt quá số lượng sản phẩm trong kho"**, không ghi số còn lại. Thao tác của Admin (điều chỉnh, đóng hộp) vẫn ghi số.
+
+### Thay đổi chính trong phiên bản 1.17
+
+- Mỗi sản phẩm **bánh** và **hộp quà** có **thời hạn sử dụng tính theo ngày** (1–90 ngày; chọn nhanh 7, 15, 30, 45, 60, 90). Vỏ hộp không có thời hạn. Không dùng mốc 6 hay 12 tháng vì không hợp với bánh Trung Thu.
+- **Nhập kho:** với bánh và hộp quà, **ngày sản xuất là bắt buộc** và **HSD của lô tự tính = ngày sản xuất + thời hạn**; Admin không nhập HSD tay. Sửa ngày sản xuất của lô thì HSD tự tính lại.
+- **Đóng hộp quà:** lô hộp quà có ngày sản xuất là ngày đóng hộp và HSD là **ngày sớm hơn** giữa (ngày đóng hộp + thời hạn hộp quà) và HSD sớm nhất của các bánh bỏ vào hộp.
+- Ngày sản xuất không được sau **hôm nay theo giờ Việt Nam**; ngày lọc lô còn hạn khi bán và ngày trong mã lô cũng theo giờ Việt Nam.
+- **Trang sản phẩm của khách** hiển thị "Hạn sử dụng: N ngày kể từ ngày sản xuất" và "Lô đang bán: NSX … · HSD …" của lô sẽ bán ra tiếp theo (còn hàng, chưa hết hạn, hạn gần nhất); đổi phiên bản thì đổi theo. **Trang sửa sản phẩm và trang hộp quà của Admin** hiển thị cùng thông tin lô đang bán, nên Admin và khách luôn thấy giống nhau.
+- Ô chữ "Hạn sử dụng" cũ không còn nhập trên form; dữ liệu cũ chỉ dùng khi sản phẩm chưa có số ngày. Cách bảo quản vẫn ở ô "Cách bảo quản".
+- Flyway V20 thêm cột `PRODUCT.shelf_life_days` (trống hoặc 1–90, ràng buộc `CK_PRODUCT_shelf_life_days`) và điền 30 ngày cho bánh và hộp quà hiện có.
 
 ### Thay đổi chính trong phiên bản 1.16
 
@@ -53,7 +120,7 @@
 
 ### Thay đổi chính trong phiên bản 1.11
 
-- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Chỉ còn N sản phẩm"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
+- **Không cho vượt tồn từ sớm.** Thêm vào giỏ hoặc tăng số lượng vượt số còn bán bị từ chối với thông báo "Vượt quá số lượng sản phẩm trong kho"; giảm số lượng luôn được phép. Dòng giỏ vượt tồn khóa nút thanh toán. Trang thanh toán kiểm tra lại tổng nhu cầu theo SKU (cả bánh trong hộp CUSTOM) và đưa khách về giỏ nếu thiếu. Bước đặt hàng vẫn trừ kho có điều kiện như cũ.
 - **Không giới hạn số lượng mỗi đơn**, để giữ nguyên các bậc chiết khấu đến 500 hộp.
 - **COD chỉ cho đơn có tổng thanh toán đến 5.000.000 VND.** Đơn lớn hơn chỉ thanh toán VNPay; trang thanh toán khóa lựa chọn COD và chọn sẵn VNPay.
 - Mỗi khách có tối đa **2 đơn COD chờ xử lý** (`PLACED`, payment `UNPAID`) và **1 đơn VNPay chưa thanh toán** cùng lúc.
@@ -169,7 +236,7 @@ MVP hỗ trợ bán bánh Trung Thu trên web (Spring Boot MVC + Thymeleaf), đ�
 **Bốn cách mua hàng:**
 
 1. **Bánh lẻ:** mua `PRODUCT` loại `MOONCAKE` qua SKU trong `PRODUCT_VARIANT`.
-2. **Hộp rỗng:** mua `PRODUCT` loại `EMPTY_BOX` qua SKU. Hộp rỗng có thông tin sức chứa tương ứng trong `BOX`.
+2. **Hộp rỗng:** mua `PRODUCT` loại `EMPTY_BOX` qua SKU. Sức chứa của mỗi phiên bản hộp rỗng lưu trong `BOX` và được nhập cùng form phiên bản.
 3. **Hộp quà có sẵn:** mua `PRODUCT` loại `GIFT_SET` (SKU hộp đã đóng sẵn, **có tồn kho riêng**). Thành phần hộp được mô tả bằng `BOX_CONFIGURATION` loại `PRESET`.
 4. **Hộp tự chọn:** chọn `BOX` rồi chọn đủ bánh theo sức chứa để tạo `BOX_CONFIGURATION` loại `CUSTOM`. Khách có thể bắt đầu từ hộp hoặc bánh, nhưng kết quả lưu **một cấu hình**.
 
@@ -419,7 +486,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 - Ràng buộc được một hàng bằng `CHECK`: ví dụ `quantity > 0`, giá không âm, trạng thái hợp lệ, đúng **một** trong hai FK mua hàng.
 - V1 đã có hai filtered unique index để một giỏ không có hai dòng cùng đích mua: duy nhất `(cart_id, variant_id)` khi `variant_id IS NOT NULL`, và duy nhất `(cart_id, configuration_id)` khi `configuration_id IS NOT NULL`.
 - Dùng Flyway quản lý migration, **không chạy tay nguyên Physical Schema rồi chạy lại migration** trên cùng database. Database trống cần được tạo trước bằng công cụ/quy trình cấu hình.
-- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. V18 thêm mốc thời gian và thông tin giao hàng vào `SALES_ORDER`. Flyway hiện ở version 18; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
+- SQL tham chiếu và Flyway V1/V2 đã được đối chiếu, chạy thử trên SQL Server 2019; V3 bổ sung catalog demo, V4 mở bán hai SKU vỏ hộp demo cho CUSTOM, V5 cập nhật dữ liệu tier `GIFT_BOX`, V6 seed ảnh catalog nội bộ, V7 cập nhật ảnh vỏ hộp CUSTOM, V8 thêm snapshot chênh lệch làm tròn COD, V9 thêm `VNPAY_ATTEMPT` và phương thức `VNPAY`, V10 thêm `FEEDBACK`, V11 thêm `PRODUCT_VIDEO`, V12 thêm `STOCK_BATCH` và `BATCH_ALLOCATION`, V13 thêm số sao và trạng thái hiển thị cho `FEEDBACK`, V14 seed thêm 4 ảnh minh họa (mặt trên, góc nghiêng, mặt cắt, cận cảnh nhân) cho 10 loại bánh, V15 thêm 3 ảnh cho mỗi loại Chà Bông Trứng Nghiền và Lạp Xưởng Gà Quay Xốt XO, V16 thêm 3 ảnh minh họa cho mỗi hộp quà Kim Phúc và Lam Phúc; các bản này chỉ là dữ liệu. V17 thêm `PASSWORD_RESET_TOKEN` cho chức năng quên mật khẩu. V18 thêm mốc thời gian và thông tin giao hàng vào `SALES_ORDER`. Flyway hiện ở version 20; schema có 25 bảng. Physical ERD/DDL tham chiếu chưa được cập nhật cho V9–V17. Không sửa checksum migration đã chia sẻ; mọi thay đổi tiếp theo phải qua migration mới.
 
 ### Spring Boot Service (triển khai ở các bước sau, không cố nhét vào `CHECK`)
 
@@ -507,7 +574,7 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-61 | Đến hạn hủy nhưng `querydr` xác nhận đã thanh toán | Ghi `PAID`; giữ đơn `PLACED` |
 | BR-62 | Đến hạn hủy nhưng không kết nối được VNPay | Không hủy; lần kiểm tra sau thử lại |
 | BR-63 | Đơn COD chưa thanh toán lâu ngày | Không bao giờ tự hủy |
-| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Chỉ còn 96 sản phẩm"; giỏ giữ 90 |
+| BR-64 | Giỏ có 90 bánh, kho còn 96, khách thêm 10 | Từ chối "Vượt quá số lượng sản phẩm trong kho"; giỏ giữ 90 |
 | BR-65 | Dòng giỏ 500 nhưng kho còn 96 | Nút thanh toán bị khóa; mở thẳng `/checkout` bị đưa về giỏ với số thiếu; giảm số lượng vẫn được |
 | BR-66 | Đơn tổng 49.343.000 VND chọn COD | Từ chối; trang thanh toán khóa COD và chọn sẵn VNPay |
 | BR-67 | Khách đã có 2 đơn COD chờ xử lý đặt thêm đơn COD | Từ chối, yêu cầu chờ xử lý hoặc hủy bớt |
@@ -548,6 +615,18 @@ Chiết khấu **tự động, áp dụng cho mọi khách hàng đã đăng nh�
 | BR-102 | Khách và job cùng hoàn tất một đơn cùng lúc | Chỉ một bên thành công (cập nhật có điều kiện); đơn hoàn thành đúng một lần |
 | BR-103 | Admin hoặc khách cố hủy đơn Đã giao | Bị từ chối |
 | BR-104 | Dashboard có đơn Đã giao trong kỳ | Doanh thu và món bán chạy tính cả đơn Đã giao |
+| BR-105 | Lưu sản phẩm bánh hoặc hộp quà không có thời hạn sử dụng | Từ chối, yêu cầu nhập 1–90 ngày |
+| BR-106 | Nhập kho bánh có thời hạn 30 ngày với NSX 01/09/2026 | Lô có HSD 01/10/2026 |
+| BR-107 | Nhập kho bánh không nhập ngày sản xuất | Từ chối trước khi đổi tồn |
+| BR-108 | Nhập kho vỏ hộp không có ngày sản xuất | Được; lô không có HSD |
+| BR-109 | Lúc 06:00 giờ Việt Nam chọn NSX là hôm nay | Được chấp nhận |
+| BR-110 | Đóng hộp quà thời hạn 20 ngày từ bánh có HSD sau 40 ngày | HSD hộp = ngày đóng hộp + 20 ngày |
+| BR-111 | Khách mở trang bánh có lô còn hàng | Thấy "Lô đang bán: NSX … · HSD …" giống trang sửa sản phẩm của Admin |
+| BR-112 | SKU có 10 cái, trong đó 4 cái thuộc lô đã hết hạn | Khách thấy còn 6; không thêm vào giỏ quá 6 |
+| BR-113 | SKU có tồn nhưng mọi lô đều hết hạn | Khách thấy "Tạm hết hàng" |
+| BR-114 | Nhập kho bánh thời hạn 30 ngày với NSX 60 ngày trước | Từ chối "Lô này đã hết hạn …"; tồn không đổi |
+| BR-115 | Admin bấm "Hủy hàng hết hạn" cho SKU có 4 cái hết hạn | Tồn giảm 4, lô hết hạn về 0, lịch sử kho ghi điều chỉnh -4 lý do "Hủy hàng hết hạn" |
+| BR-116 | Lô vừa hết hạn trong lúc khách đang ở trang thanh toán | Bước đặt hàng báo "<tên sản phẩm>: vượt quá số lượng sản phẩm trong kho…"; không tạo đơn |
 
 ## 13. Hồ sơ xác minh V1/V2 và checklist cho migration tiếp theo
 

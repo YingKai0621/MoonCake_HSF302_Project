@@ -1,7 +1,7 @@
 function errorMessage(field) {
   const state = field.validity;
   if (state.valueMissing) {
-    if (field.tagName === "SELECT") {
+    if (field.tagName === "SELECT" || field.type === "radio") {
       return "Vui lòng chọn một mục.";
     }
     if (field.type === "file") {
@@ -43,6 +43,16 @@ function errorMessage(field) {
 }
 
 function errorAnchor(field) {
+  if (field.type === "radio") {
+    const group = field.closest(".pick-grid");
+    if (group !== null) {
+      return group;
+    }
+  }
+  const stepper = field.closest("[data-quantity-stepper]");
+  if (stepper !== null) {
+    return stepper.parentElement;
+  }
   const label = field.closest("label");
   if (label === null) {
     return field;
@@ -57,11 +67,18 @@ function errorAnchor(field) {
   return null;
 }
 
+function errorId(field) {
+  if (field.type === "radio") {
+    return field.name + "-group-error";
+  }
+  return field.id + "-error";
+}
+
 function findError(field) {
-  if (field.id === "") {
+  if (field.type !== "radio" && field.id === "") {
     return null;
   }
-  return document.getElementById(field.id + "-error");
+  return document.getElementById(errorId(field));
 }
 
 let errorCounter = 0;
@@ -75,7 +92,7 @@ function showFieldError(field) {
   if (error === null) {
     error = document.createElement("p");
     error.className = "field-error";
-    error.id = field.id + "-error";
+    error.id = errorId(field);
     error.setAttribute("role", "alert");
     const anchor = errorAnchor(field);
     if (anchor === null) {
@@ -94,8 +111,14 @@ function clearFieldError(field) {
   if (error !== null) {
     error.remove();
   }
-  field.removeAttribute("aria-invalid");
-  field.removeAttribute("aria-describedby");
+  let fields = [field];
+  if (field.type === "radio" && field.form !== null) {
+    fields = field.form.querySelectorAll('input[type="radio"][name="' + field.name + '"]');
+  }
+  for (let i = 0; i < fields.length; i++) {
+    fields[i].removeAttribute("aria-invalid");
+    fields[i].removeAttribute("aria-describedby");
+  }
 }
 
 function applyCustomRules(field) {

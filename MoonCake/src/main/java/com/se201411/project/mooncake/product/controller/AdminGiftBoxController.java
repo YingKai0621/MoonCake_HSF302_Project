@@ -4,7 +4,6 @@ import com.se201411.project.mooncake.common.exception.MoonCakeException;
 import com.se201411.project.mooncake.product.dto.RecipeCakesForm;
 import com.se201411.project.mooncake.product.service.GiftBoxAdminService;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
-import com.se201411.project.mooncake.product.service.ProductAdminService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,13 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/gift-boxes")
 public class AdminGiftBoxController {
     private final GiftBoxAdminService giftBoxes;
-    private final ProductAdminService catalog;
     private final PresetConfigurationAdminService recipes;
 
-    public AdminGiftBoxController(GiftBoxAdminService giftBoxes, ProductAdminService catalog,
-                                  PresetConfigurationAdminService recipes) {
+    public AdminGiftBoxController(GiftBoxAdminService giftBoxes, PresetConfigurationAdminService recipes) {
         this.giftBoxes = giftBoxes;
-        this.catalog = catalog;
         this.recipes = recipes;
     }
 
@@ -38,7 +34,7 @@ public class AdminGiftBoxController {
 
     @GetMapping("/new")
     public String newGiftBox(Model model) {
-        model.addAttribute("page", catalog.newProductPage(true));
+        model.addAttribute("page", giftBoxes.newPage());
         return "admin/product-new";
     }
 

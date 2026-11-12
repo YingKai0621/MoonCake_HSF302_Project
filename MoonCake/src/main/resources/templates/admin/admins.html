@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Quản trị viên')}"></head>
+<body class="page-orders">
+<header th:replace="~{admin/fragments/layout :: nav}"></header>
+<main>
+    <div th:replace="~{admin/fragments/layout :: flash}"></div>
+
+    <div class="page-heading page-heading--simple">
+        <span class="eyebrow">Bán hàng</span>
+        <h1>Quản trị viên</h1>
+    </div>
+
+    <p th:if="${adminError}" class="form-alert" role="alert" th:text="${adminError}">Không lưu được.</p>
+
+    <section th:if="${page.canManage}">
+        <h2>Thêm quản trị viên</h2>
+        <form th:action="@{/admin/admins}" method="post" class="product-form" th:object="${adminForm}">
+            <div class="form-grid">
+                <label>Email
+                    <input type="email" th:field="*{email}" required maxlength="254" placeholder="ten@example.com">
+                </label>
+                <label>Mật khẩu ban đầu
+                    <input type="password" name="password" required minlength="8" maxlength="64" autocomplete="new-password">
+                </label>
+            </div>
+            <div class="form-footer">
+                <button type="submit" data-loading-text="Đang thêm…">Thêm quản trị viên</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="table-scroll">
+        <table>
+            <thead>
+            <tr>
+                <th>Email</th>
+                <th>Ngày tạo</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th th:if="${page.canManage}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="admin : ${page.rows}">
+                <td>
+                    <span th:text="${admin.email}">admin@example.com</span>
+                    <small th:if="${admin.currentUser}" class="muted">(bạn)</small>
+                </td>
+                <td class="muted" th:text="${admin.createdOn}">01/10/2026</td>
+                <td>
+                    <span th:if="${admin.superAdmin}" class="badge badge--success">Super admin</span>
+                    <span th:unless="${admin.superAdmin}" class="badge badge--muted">Quản trị viên</span>
+                </td>
+                <td>
+                    <span th:if="${admin.active}" class="badge badge--success">Đang hoạt động</span>
+                    <span th:unless="${admin.active}" class="badge badge--danger">Đã khóa</span>
+                </td>
+                <td th:if="${page.canManage}" class="actions-cell">
+                    <form th:if="${admin.lockable() and admin.active}"
+                          th:action="@{/admin/admins/{id}/lock(id=${admin.accountId})}" method="post" class="inline-form"
+                          th:attr="data-confirm-message=${'Khóa tài khoản quản trị ' + admin.email + '? Người này sẽ bị đăng xuất và không đăng nhập được nữa.'}">
+                        <button type="submit" class="danger small-button">Khóa</button>
+                    </form>
+                    <form th:if="${admin.lockable() and !admin.active}"
+                          th:action="@{/admin/admins/{id}/unlock(id=${admin.accountId})}" method="post" class="inline-form">
+                        <button type="submit" class="secondary small-button">Mở khóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -9,6 +9,7 @@ import com.se201411.project.mooncake.enums.ComponentRole;
 import com.se201411.project.mooncake.enums.OrderStatus;
 
 import com.se201411.project.mooncake.enums.PaymentStatus;
+import com.se201411.project.mooncake.common.format.VietnamTime;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -33,7 +34,10 @@ public record AdminOrderView(
     List<PaymentLine> payments,
     Actions actions,
     OrderFulfilmentView fulfilment,
-    List<ShippingCarrier> shippingCarriers
+    String autoCompleteDate,
+    List<ShippingCarrier> shippingCarriers,
+    Long customerId,
+    boolean customerLocked
 ) {
 
     public static AdminOrderView entityToDto(
@@ -44,8 +48,13 @@ public record AdminOrderView(
         String formattedUpdatedAt,
         List<Item> items,
         List<PaymentLine> payments,
-        Actions actions
+        Actions actions,
+        boolean customerLocked
     ) {
+        Long customerId = null;
+        if (order.getCustomer() != null) {
+            customerId = order.getCustomer().getId();
+        }
         return new AdminOrderView(
             order.getId(),
             order.getOrderCode(),
@@ -67,8 +76,18 @@ public record AdminOrderView(
             payments,
             actions,
             OrderFulfilmentView.entityToDto(order),
-            List.of(ShippingCarrier.values())
+            autoCompleteDate(order),
+            List.of(ShippingCarrier.values()),
+            customerId,
+            customerLocked
         );
+    }
+
+    private static String autoCompleteDate(SalesOrder order) {
+        if (order.getDeliveredAt() == null) {
+            return null;
+        }
+        return VietnamTime.date(order.getDeliveredAt().plusDays(3));
     }
 
     public AdminOrderView {
@@ -143,7 +162,7 @@ public record AdminOrderView(
     public record Actions(
         boolean canStartProcessing,
         boolean canShip,
-        boolean canComplete,
+        boolean canMarkDelivered,
         boolean canCancel,
         boolean canCheckPayment,
         boolean needsRefund,

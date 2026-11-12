@@ -22,7 +22,7 @@ class StockDisplayTest {
     @Test
     void cartLineWarnsWhenStockIsGoneOrTooLow() {
         assertThat(cartLine(2, 0).stockWarning()).contains("hết hàng");
-        assertThat(cartLine(5, 2).stockWarning()).contains("Chỉ còn 2");
+        assertThat(cartLine(5, 2).stockWarning()).contains("Vượt quá số lượng");
         assertThat(cartLine(2, 10).stockWarning()).isNull();
     }
 

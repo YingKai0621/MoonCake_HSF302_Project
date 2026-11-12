@@ -1,6 +1,5 @@
 package com.se201411.project.mooncake.product.dto;
 
-import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.VariantForm;
@@ -15,8 +14,7 @@ public record AdminProductDetail(
     String webLabel,
     String webTone,
     String deleteBlocker,
-    List<Sku> skus,
-    List<BoxForm> boxes
+    List<Sku> skus
 ) {
     public record Sku(
         VariantForm form,
@@ -25,7 +23,8 @@ public record AdminProductDetail(
         int stock,
         String webLabel,
         String webTone,
-        String deleteBlocker
+        String deleteBlocker,
+        String currentBatch
     ) {
     }
 }

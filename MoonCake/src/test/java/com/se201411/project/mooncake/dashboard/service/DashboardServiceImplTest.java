@@ -41,7 +41,7 @@ class DashboardServiceImplTest {
     @Test
     void dayViewComparesTodayWithYesterdayInVietnamTime() {
         when(orderStatistics.ordersCreatedSince(any())).thenReturn(List.of(
-            order(OrderStatus.COMPLETED, 300_000, LocalDateTime.of(2026, 11, 9, 1, 0)),
+            order(OrderStatus.DELIVERED, 300_000, LocalDateTime.of(2026, 11, 9, 1, 0)),
             order(OrderStatus.PLACED, 100_000, LocalDateTime.of(2026, 11, 8, 18, 0)),
             order(OrderStatus.COMPLETED, 200_000, LocalDateTime.of(2026, 11, 8, 2, 0)),
             order(OrderStatus.CANCELLED, 999_000, LocalDateTime.of(2026, 11, 9, 2, 0))

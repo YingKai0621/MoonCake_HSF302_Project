@@ -1,5 +1,8 @@
 package com.se201411.project.mooncake.product;
 
+import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
+import com.se201411.project.mooncake.product.dto.CatalogProductView;
+import com.se201411.project.mooncake.product.dto.CatalogVariantView;
 import java.util.List;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -7,6 +10,7 @@ import com.se201411.project.mooncake.cart.service.CustomBoxService;
 import com.se201411.project.mooncake.cart.service.CartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
+import com.se201411.project.mooncake.entity.Box;
 import com.se201411.project.mooncake.entity.Product;
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.inventory.service.InventoryAdminService;
@@ -20,12 +24,15 @@ import com.se201411.project.mooncake.product.service.impl.ProductAdminServiceImp
 import com.se201411.project.mooncake.security.service.AdminAccessService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -56,11 +63,66 @@ class ProductVariantRulesTest {
         ReflectionTestUtils.setField(cake, "id", 1L);
         cake.setProductType(ProductType.MOONCAKE);
         when(repo.product(1)).thenReturn(cake);
+        Product emptyBox = new Product();
+        ReflectionTestUtils.setField(emptyBox, "id", 2L);
+        emptyBox.setProductType(ProductType.EMPTY_BOX);
+        when(repo.product(2)).thenReturn(emptyBox);
+        doAnswer(call -> {
+            ProductVariant saved = call.getArgument(0);
+            if (saved.getId() == null) {
+                ReflectionTestUtils.setField(saved, "id", 50L);
+            }
+            return null;
+        }).when(repo).save(any(ProductVariant.class));
+    }
+
+    @Test
+    void emptyBoxVariantWithoutCapacityIsRejected() {
+        VariantForm form = new VariantForm(null, 2, "BOX-NEW", "Hộp 4 bánh", null, null, null, null, BigDecimal.valueOf(30_000), false);
+
+        assertThatThrownBy(() -> service.saveVariant(form))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("sức chứa");
+        verify(repo, never()).save(any(ProductVariant.class));
+    }
+
+    @Test
+    void emptyBoxVariantSavesItsCapacityInTheSameStep() {
+        VariantForm form = new VariantForm(null, 2, "BOX-NEW", "Hộp 4 bánh", null, null, 4, "Giấy kraft", BigDecimal.valueOf(30_000), false);
+
+        service.saveVariant(form);
+
+        ArgumentCaptor<Box> box = ArgumentCaptor.forClass(Box.class);
+        verify(repo).save(box.capture());
+        assertThat(box.getValue().getCapacityCakes()).isEqualTo(4);
+        assertThat(box.getValue().getMaterial()).isEqualTo("Giấy kraft");
+        assertThat(box.getValue().isActive()).isTrue();
+        assertThat(box.getValue().getEmptyBoxVariant().getId()).isEqualTo(50L);
+    }
+
+    @Test
+    void capacityOfBoxAlreadyUsedCannotChange() {
+        ProductVariant variant = new ProductVariant();
+        ReflectionTestUtils.setField(variant, "id", 51L);
+        variant.setProduct(repo.product(2));
+        variant.setSku("BOX-OLD");
+        when(repo.variant(51L)).thenReturn(variant);
+        Box box = new Box();
+        ReflectionTestUtils.setField(box, "id", 7L);
+        box.setCapacityCakes(4);
+        when(repo.boxOfVariant(51L)).thenReturn(box);
+        when(repo.presetUsesBox(7L)).thenReturn(true);
+        VariantForm form = new VariantForm(51L, 2, "BOX-OLD", "Hộp 6 bánh", null, null, 6, null, BigDecimal.valueOf(30_000), false);
+
+        assertThatThrownBy(() -> service.saveVariant(form))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("không đổi được sức chứa");
+        assertThat(box.getCapacityCakes()).isEqualTo(4);
     }
 
     @Test
     void cakeWithoutWeightIsRejected() {
-        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, "Thập cẩm", BigDecimal.valueOf(65_000), false);
+        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, "Thập cẩm", null, null, BigDecimal.valueOf(65_000), false);
 
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -70,7 +132,7 @@ class ProductVariantRulesTest {
 
     @Test
     void cakeWithoutFillingIsRejected() {
-        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", 150, " ", BigDecimal.valueOf(65_000), false);
+        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", 150, " ", null, null, BigDecimal.valueOf(65_000), false);
 
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -79,7 +141,7 @@ class ProductVariantRulesTest {
 
     @Test
     void priceMustBeWholeThousands() {
-        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", 150, "Thập cẩm", BigDecimal.valueOf(65_500), false);
+        VariantForm form = new VariantForm(null, 1, "MC-NEW", "Bánh 150g", 150, "Thập cẩm", null, null, BigDecimal.valueOf(65_500), false);
 
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -89,7 +151,7 @@ class ProductVariantRulesTest {
     @Test
     void duplicateSkuIsRejectedWithClearMessage() {
         when(repo.skuExists("MC-KSPM-080")).thenReturn(true);
-        VariantForm form = new VariantForm(null, 1, "mc-kspm-080", "Bánh 80g", 80, "Kim sa", BigDecimal.valueOf(65_000), false);
+        VariantForm form = new VariantForm(null, 1, "mc-kspm-080", "Bánh 80g", 80, "Kim sa", null, null, BigDecimal.valueOf(65_000), false);
 
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -98,7 +160,7 @@ class ProductVariantRulesTest {
 
     @Test
     void skuWithSpacesOrAccentsIsRejected() {
-        VariantForm form = new VariantForm(null, 1, "bánh mới", "Bánh 150g", 150, "Thập cẩm", BigDecimal.valueOf(65_000), false);
+        VariantForm form = new VariantForm(null, 1, "bánh mới", "Bánh 150g", 150, "Thập cẩm", null, null, BigDecimal.valueOf(65_000), false);
 
         assertThatThrownBy(() -> service.saveVariant(form))
             .isInstanceOf(BusinessRuleViolationException.class)
@@ -134,5 +196,49 @@ class ProductVariantRulesTest {
         ReflectionTestUtils.setField(variant, "id", id);
         variant.setProduct(repo.product(1));
         return variant;
+    }
+
+    @Test
+    void mooncakeWithoutShelfLifeIsRejected() {
+        ProductForm form = new ProductForm(null, 1, ProductType.MOONCAKE, "Bánh mới", "banh-moi", "Mô tả", null, null, null, null, true);
+
+        assertThatThrownBy(() -> service.saveProduct(form))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("thời hạn sử dụng");
+        verify(repo, never()).save(any(Product.class));
+    }
+
+    @Test
+    void giftBoxNeedsNoShelfLifeAndKeepsNone() {
+        ProductForm form = new ProductForm(null, 1, ProductType.GIFT_SET, "Hộp quà", "hop-qua", "Mô tả", null, null, 30, null, false);
+        doAnswer(call -> {
+            Product saved = call.getArgument(0);
+            ReflectionTestUtils.setField(saved, "id", 8L);
+            return null;
+        }).when(repo).save(any(Product.class));
+
+        service.saveProduct(form);
+
+        ArgumentCaptor<Product> saved = ArgumentCaptor.forClass(Product.class);
+        verify(repo).save(saved.capture());
+        assertThat(saved.getValue().getShelfLifeDays()).isNull();
+    }
+
+    @Test
+    void customerSeesGiftBoxExpiryFollowsTheCakes() {
+        Product gift = new Product();
+        ReflectionTestUtils.setField(gift, "id", 8L);
+        gift.setProductType(ProductType.GIFT_SET);
+        gift.setSlug("hop-qua");
+        gift.setName("Hộp quà");
+        gift.setShortDescription("Mô tả");
+        gift.setShelfLifeDays(30);
+
+        CatalogVariantView variant = new CatalogVariantView(1L, "GIFT", "Hộp quà", null, null, BigDecimal.valueOf(450_000),
+            "450.000đ", "/images/gift.png", "Hộp quà", null, 3);
+
+        CatalogProductView view = CatalogProductView.entityToDto(gift, List.of(variant));
+
+        assertThat(view.getShelfLifeInformation()).isEqualTo("Theo hạn của bánh trong hộp");
     }
 }

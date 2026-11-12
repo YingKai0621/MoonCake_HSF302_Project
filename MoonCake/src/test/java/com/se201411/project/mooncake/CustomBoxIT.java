@@ -130,6 +130,15 @@ class CustomBoxIT {
             FROM dbo.PRODUCT_VARIANT
             WHERE sku = N'MC-HSMC-120'
             """);
+        jdbcTemplate.update("""
+            UPDATE dbo.INVENTORY_BALANCE
+            SET available_quantity = 50,
+                stock_version = stock_version + 1,
+                updated_at = SYSUTCDATETIME()
+            WHERE variant_id IN (?, ?, (
+                SELECT empty_box_variant_id FROM dbo.BOX WHERE box_id = ?
+            ))
+            """, firstCakeId, secondCakeId, boxId);
 
         Integer inventoryBefore = jdbcTemplate.queryForObject("""
             SELECT SUM(balance.available_quantity)

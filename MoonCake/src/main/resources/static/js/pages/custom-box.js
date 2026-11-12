@@ -10,8 +10,23 @@ function initializeCustomBoxBuilder() {
 
   for (let index = 0; index < boxInputs.length; index += 1) {
     boxInputs[index].addEventListener('change', function () {
+      resetBoxQuantity(form);
       updateCustomBoxSummary(form);
     });
+  }
+
+  const boxQuantityInput = form.querySelector('[data-box-quantity]');
+  if (boxQuantityInput) {
+    boxQuantityInput.addEventListener('input', function () {
+      updateCustomBoxSummary(form);
+    });
+    const boxQuantityStepper = boxQuantityInput.closest('[data-quantity-stepper]');
+    const boxQuantityButtons = boxQuantityStepper.querySelectorAll('[data-quantity-action]');
+    for (let index = 0; index < boxQuantityButtons.length; index += 1) {
+      boxQuantityButtons[index].addEventListener('click', function () {
+        updateCustomBoxSummary(form);
+      });
+    }
   }
 
   const stepperButtons = form.querySelectorAll('[data-custom-cake-stepper] button');
@@ -29,19 +44,24 @@ function updateCustomBoxSummary(form) {
   const selectedCountElement = form.querySelector('[data-selected-count]');
   const requiredCountElement = form.querySelector('[data-required-count]');
   const capacitySummary = form.querySelector('[data-capacity-summary]');
+  const boxPriceSummary = form.querySelector('[data-box-price-summary]');
+  const cakePriceSummary = form.querySelector('[data-cake-price-summary]');
   const priceSummary = form.querySelector('[data-unit-price-summary]');
+  const totalSummary = form.querySelector('[data-total-price-summary]');
+  const boxQuantityInput = form.querySelector('[data-box-quantity]');
   const submitButton = form.querySelector('[data-custom-submit]');
   const capacityWarning = form.querySelector('[data-capacity-warning]');
 
   let capacity = 0;
-  let unitPrice = 0;
+  let boxPrice = 0;
   if (selectedBox) {
     capacity = Number(selectedBox.getAttribute('data-box-capacity'));
-    unitPrice = Number(selectedBox.getAttribute('data-box-price'));
+    boxPrice = Number(selectedBox.getAttribute('data-box-price'));
   }
 
   const cakeInputs = form.querySelectorAll('[data-cake-quantity]');
   let selectedCount = 0;
+  let cakePrice = 0;
   for (let index = 0; index < cakeInputs.length; index += 1) {
     const input = cakeInputs[index];
     const quantity = readNonNegativeNumber(input.value);
@@ -49,15 +69,23 @@ function updateCustomBoxSummary(form) {
 
     const cakeRow = input.closest('[data-cake-price]');
     if (cakeRow) {
-      const cakePrice = Number(cakeRow.getAttribute('data-cake-price'));
-      unitPrice += cakePrice * quantity;
+      const pricePerCake = Number(cakeRow.getAttribute('data-cake-price'));
+      cakePrice += pricePerCake * quantity;
     }
   }
 
   selectedCountElement.textContent = String(selectedCount);
   requiredCountElement.textContent = String(capacity);
   capacitySummary.textContent = capacity + ' bánh';
+  const unitPrice = boxPrice + cakePrice;
+  let boxQuantity = 1;
+  if (boxQuantityInput) {
+    boxQuantity = readNonNegativeNumber(boxQuantityInput.value);
+  }
+  boxPriceSummary.textContent = formatVnd(boxPrice);
+  cakePriceSummary.textContent = formatVnd(cakePrice);
   priceSummary.textContent = formatVnd(unitPrice);
+  totalSummary.textContent = formatVnd(unitPrice * boxQuantity);
   submitButton.disabled = capacity <= 0 || selectedCount !== capacity;
   updateCustomCakeButtons(form, selectedCount, capacity);
   updateCapacityWarning(
@@ -66,6 +94,15 @@ function updateCustomBoxSummary(form) {
     selectedCount,
     capacity
   );
+}
+
+function resetBoxQuantity(form) {
+  const boxQuantityInput = form.querySelector('[data-box-quantity]');
+  if (!boxQuantityInput) {
+    return;
+  }
+  boxQuantityInput.value = '1';
+  boxQuantityInput.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function updateCustomCakeButtons(form, selectedCount, capacity) {

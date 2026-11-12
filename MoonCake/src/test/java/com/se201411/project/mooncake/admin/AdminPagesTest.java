@@ -6,6 +6,9 @@ import com.se201411.project.mooncake.enums.OrderStatus;
 import com.se201411.project.mooncake.product.dto.ProductFormOptions;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
 import com.se201411.project.mooncake.product.dto.NewProductPageView;
+import com.se201411.project.mooncake.security.dto.AdminAccountRow;
+import com.se201411.project.mooncake.security.dto.AdminAccountsPageView;
+import com.se201411.project.mooncake.security.service.AdminAccountService;
 import com.se201411.project.mooncake.product.dto.MediaPageView;
 import com.se201411.project.mooncake.product.dto.AdminCatalogPageView;
 import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
@@ -40,7 +43,13 @@ import com.se201411.project.mooncake.order.dto.AdminOrderView;
 import com.se201411.project.mooncake.enums.*;
 import com.se201411.project.mooncake.common.exception.AdminExceptionAdvice;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
+import com.se201411.project.mooncake.order.dto.CustomerOpenOrderView;
 import com.se201411.project.mooncake.security.config.SecurityConfig;
+import com.se201411.project.mooncake.security.controller.AdminCustomerController;
+import com.se201411.project.mooncake.security.dto.AdminCustomerDetailPageView;
+import com.se201411.project.mooncake.security.dto.AdminCustomerListPageView;
+import com.se201411.project.mooncake.security.dto.AdminCustomerRow;
+import com.se201411.project.mooncake.security.service.CustomerAdminService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +74,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -91,19 +101,23 @@ class AdminPagesTest {
     @Autowired GiftBoxAdminService giftBoxes;
     @Autowired ProductMediaService media;
     @Autowired BatchStockService batches;
+    @Autowired
+    CustomerAdminService customers;
+    @Autowired
+    AdminAccountService admins;
     MockMvc mvc;
 
     @BeforeEach
     void setup() {
-        reset(catalog, presets, inventory, orders, cancellations, media);
+        reset(catalog, presets, inventory, orders, cancellations, media, customers, admins);
         when(dashboards.dashboard(any())).thenReturn(sampleDashboard());
-        when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted")));
+        when(batches.list()).thenReturn(List.of(new AdminBatchView(1L, "SKU", "Bánh Kim Sa · Bánh 80g", "LOT", null, null, 3, "Chưa có hạn dùng", "muted", true)));
         when(media.allVideos()).thenReturn(List.of(new AdminVideoView(1L, "Cake", "https://example.test/cake.mp4", "Video")));
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         when(catalog.catalog()).thenReturn(new AdminCatalogView(
                 List.of(new CategoryForm(1L, "Category", "category", true)),
                 List.of(new ProductForm(1L, 1, ProductType.MOONCAKE, "Cake", "cake", "Description", null, null, null, null, true)),
-                List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true)),
+                List.of(new VariantForm(1L, 1, "SKU", "Cake", 100, null, null, null, BigDecimal.TEN, true)),
                 List.of(new BoxForm(1L, 1, 4, null, null, true)),
                 List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true))));
         when(catalog.productRows(null)).thenReturn(List.of(new AdminProductRow(
@@ -120,18 +134,18 @@ class AdminPagesTest {
                 "success",
                 null,
                 List.of(new AdminProductDetail.Sku(
-                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, BigDecimal.TEN, true),
+                        new VariantForm(1L, 1, "SKU", "Cake", 100, null, null, null, BigDecimal.TEN, true),
                         "/images/cake.png",
                         List.of(new ImageForm(1L, 1, "/images/cake.png", "Cake", 0, true)),
                         12,
                         "Đang bán trên web",
                         "success",
-                        null)),
-                List.of()));
+                        null,
+                        null))));
         when(presets.presetOptions()).thenReturn(new AdminPresetOptions(
-                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false)),
-                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true)),
-                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png", 120, true))));
+                List.of(new AdminPresetOptions.Option(5, "Hộp quà mới · Hộp 4 bánh", null, null, 0, false, BigDecimal.valueOf(590_000))),
+                List.of(new AdminPresetOptions.Option(1, "Vỏ hộp Kim Phúc 4 bánh", "4 bánh", "/images/box.png", 10, true, BigDecimal.valueOf(40_000))),
+                List.of(new AdminPresetOptions.Option(1, "Bánh Kim Sa", "Bánh 80g", "/images/cake.png", 120, true, BigDecimal.valueOf(65_000)))));
         when(presets.presets()).thenReturn(List.of(
                 new AdminPresetView(1, 1, "GIFT", 1, 4, ConfigurationStatus.DRAFT, List.of(new AdminPresetView.Component(1, "CAKE", 4, "Bánh Kim Sa · 80g")), "Hộp quà Kim Phúc · Hộp 4 bánh", "Vỏ hộp Kim Phúc · 4 bánh"),
                 new AdminPresetView(2, 2, "GIFT-READY", 1, 4, ConfigurationStatus.READY, List.of(), "Hộp quà Lam Phúc · Hộp 6 bánh", "Vỏ hộp Lam Phúc · 6 bánh")));
@@ -172,7 +186,8 @@ class AdminPagesTest {
             catalog.productTabs(call.getArgument(0)),
             catalog.categories()));
         when(catalog.formOptions(anyBoolean())).thenAnswer(call -> formOptions(call.getArgument(0)));
-        when(catalog.newProductPage(anyBoolean())).thenAnswer(call -> new NewProductPageView(formOptions(call.getArgument(0))));
+        when(catalog.newProductPage(anyBoolean())).thenAnswer(call -> new NewProductPageView(formOptions(call.getArgument(0)), List.of()));
+        doAnswer(call -> new NewProductPageView(formOptions(true), presets.presetOptions().boxes())).when(giftBoxes).newPage();
         when(catalog.productEditPage(anyLong())).thenAnswer(call -> {
             long id = call.getArgument(0);
             return new ProductEditPageView(catalog.productDetail(id), formOptions(false));
@@ -196,6 +211,79 @@ class AdminPagesTest {
             mvc.perform(get(path).with(user("admin").roles("ADMIN"))).andExpect(status().isOk());
             mvc.perform(get(path).with(user("customer").roles("CUSTOMER"))).andExpect(status().isForbidden());
         }
+    }
+
+    @Test
+    void rendersCustomerListAndDetailPages() throws Exception {
+        AdminCustomerRow active = new AdminCustomerRow(
+            7L,
+            "customer@example.com",
+            "Nguyễn Văn A",
+            "0901234567",
+            "01/10/2026",
+            true,
+            12,
+            3
+        );
+        when(customers.customersPage(any(), anyInt())).thenReturn(new AdminCustomerListPageView(
+            List.of(active),
+            "customer",
+            0,
+            true
+        ));
+        when(customers.customerPage(7L)).thenReturn(new AdminCustomerDetailPageView(
+            active,
+            List.of(
+                new CustomerOpenOrderView(1L, "MC-1", "Chờ xử lý", "COD · Chưa thanh toán", "250.000đ", true),
+                new CustomerOpenOrderView(2L, "MC-2", "Đang giao", "COD · Chưa thanh toán", "300.000đ", false)
+            ),
+            1
+        ));
+
+        mvc.perform(get("/admin/customers").param("q", "customer").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("customer@example.com")))
+            .andExpect(content().string(containsString("12 đơn · 3 đã hủy")))
+            .andExpect(content().string(containsString("Đang hoạt động")))
+            .andExpect(content().string(containsString("Trang sau →")))
+            .andExpect(content().string(containsString("href=\"/admin/customers\"")));
+
+        mvc.perform(get("/admin/customers/7").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Hủy luôn các đơn chưa thanh toán đang chờ xử lý (1 đơn)")))
+            .andExpect(content().string(containsString("Khóa tài khoản")))
+            .andExpect(content().string(containsString("Xử lý thủ công")))
+            .andExpect(content().string(containsString("data-confirm-message")))
+            .andExpect(content().string(containsString("_csrf")));
+    }
+
+    @Test
+    void lockedCustomerDetailOffersOnlyUnlock() throws Exception {
+        AdminCustomerRow locked = new AdminCustomerRow(
+            7L,
+            "customer@example.com",
+            "Nguyễn Văn A",
+            "0901234567",
+            "01/10/2026",
+            false,
+            0,
+            0
+        );
+        when(customers.customerPage(7L)).thenReturn(new AdminCustomerDetailPageView(locked, List.of(), 0));
+
+        mvc.perform(get("/admin/customers/7").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Mở khóa tài khoản")))
+            .andExpect(content().string(not(containsString("Hủy luôn các đơn"))));
+    }
+
+    @Test
+    void orderListShowsLockedCustomerLabel() throws Exception {
+        when(orders.orders(any(), anyInt())).thenReturn(List.of(order(OrderStatus.PLACED, true)));
+
+        mvc.perform(get("/admin/orders").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Khách đã bị khóa")));
     }
 
     @Test
@@ -232,8 +320,8 @@ class AdminPagesTest {
     }
 
     @Test
-    void creatingProductWithPriceAndImageRedirectsToEditPage() throws Exception {
-        when(catalog.createProduct(any())).thenReturn(9L);
+    void creatingGiftBoxWithBoxPriceAndImageGoesToCakeStep() throws Exception {
+        when(giftBoxes.create(any(), any())).thenReturn(9L);
         mvc.perform(post("/admin/catalog/products")
                 .with(user("admin").roles("ADMIN"))
                 .with(csrf())
@@ -246,12 +334,14 @@ class AdminPagesTest {
                 .param("variantName", "Hộp 4 bánh")
                 .param("unitPrice", "450000")
                 .param("sku", "GIFT-NEW")
+                .param("boxId", "1")
                 .param("imageUrl", "/images/products/gift.png"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/gift-boxes/9#recipe"));
-        verify(catalog).createProduct(new NewProductForm(
+        verify(giftBoxes).create(new NewProductForm(
             1, ProductType.GIFT_SET, "Hộp quà mới", "hop-qua-moi", "Mô tả", null, null, null, null, false,
-            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, "/images/products/gift.png", null));
+            "GIFT-NEW", "Hộp 4 bánh", BigDecimal.valueOf(450_000), null, null, null, null, "/images/products/gift.png", null), 1L);
+        verify(catalog, never()).createProduct(any());
     }
 
     @Test
@@ -274,6 +364,7 @@ class AdminPagesTest {
             .andExpect(flash().attribute("formError", "Đường dẫn ảnh phải bắt đầu bằng https://, /images/ hoặc /uploads/."))
             .andExpect(flash().attributeExists("formValues"));
         verify(catalog, never()).createProduct(any());
+        verify(giftBoxes, never()).create(any(), any());
     }
 
     @Test
@@ -338,7 +429,7 @@ class AdminPagesTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/catalog/products/1#sku-new"))
             .andExpect(flash().attribute("formError", "Bánh lẻ cần nhập khối lượng."))
-            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)));
+            .andExpect(flash().attribute("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, null, null, BigDecimal.valueOf(65_000), false)));
     }
 
     @Test
@@ -347,7 +438,7 @@ class AdminPagesTest {
                 .with(user("admin").roles("ADMIN"))
                 .flashAttr("formTarget", "sku-new")
                 .flashAttr("formError", "Bánh lẻ cần nhập khối lượng.")
-                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, BigDecimal.valueOf(65_000), false)))
+                .flashAttr("formValues", new VariantForm(null, 1, "MC-NEW", "Bánh 150g", null, null, null, null, BigDecimal.valueOf(65_000), false)))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("class=\"form-alert\"")))
             .andExpect(content().string(containsString("Bánh lẻ cần nhập khối lượng.")))
@@ -468,19 +559,11 @@ class AdminPagesTest {
             "Inactive Variant",
             null,
             null,
+            null,
+            null,
             BigDecimal.valueOf(100_000),
             false
         ));
-
-        mvc.perform(post("/admin/boxes")
-                .with(user("admin").roles("ADMIN"))
-                .with(csrf())
-                .param("productId", "1")
-                .param("variantId", "1")
-                .param("capacityCakes", "4")
-                .param("_active", "on"))
-            .andExpect(status().is3xxRedirection());
-        verify(catalog).saveBox(new BoxForm(null, 1, 4, null, null, false));
 
         mvc.perform(post("/admin/images")
                 .with(user("admin").roles("ADMIN"))
@@ -522,8 +605,28 @@ class AdminPagesTest {
     }
 
     @Test
+    void inventoryRowWithExpiredStockOffersWriteOff() throws Exception {
+        when(inventory.inventoryPage(any(), any(), any(), any(), any())).thenReturn(new InventoryPageView(
+                StockFilter.ALL,
+                List.of(),
+                List.of(new Balance(1, "SKU", "Cake", "Cake 80g", 9, 5, 4, false, true)),
+                List.of(),
+                "receive-key",
+                "adjust-key",
+                "pack-key",
+                null,
+                null,
+                null,
+                null));
+        mvc.perform(get("/admin/inventory").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("trong đó 4 hết hạn")))
+            .andExpect(content().string(containsString("/admin/inventory/expired")));
+    }
+
+    @Test
     void stockErrorReopensTheDialogInsteadOfErrorPage() throws Exception {
-        doThrow(new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."))
+        doThrow(new BusinessRuleViolationException("Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."))
             .when(inventory).adjust(any());
         mvc.perform(post("/admin/inventory/adjust")
                 .with(user("admin").roles("ADMIN"))
@@ -535,7 +638,49 @@ class AdminPagesTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/admin/inventory"))
             .andExpect(flash().attribute("dialogId", "adjust-dialog"))
-            .andExpect(flash().attribute("dialogError", "Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3."));
+            .andExpect(flash().attribute("dialogError", "Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."));
+    }
+
+    @Test
+    void superAdminSeesAdminListWithAddFormAndLockButton() throws Exception {
+        when(admins.page()).thenReturn(new AdminAccountsPageView(List.of(
+            new AdminAccountRow(1L, "boss@example.test", "01/11/2026", true, true, true),
+            new AdminAccountRow(2L, "staff@example.test", "05/11/2026", true, false, false)
+        ), true));
+
+        mvc.perform(get("/admin/admins").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Super admin")))
+            .andExpect(content().string(containsString("Thêm quản trị viên")))
+            .andExpect(content().string(containsString("/admin/admins/2/lock")))
+            .andExpect(content().string(not(containsString("/admin/admins/1/lock"))));
+    }
+
+    @Test
+    void normalAdminSeesTheListWithoutManagementActions() throws Exception {
+        when(admins.page()).thenReturn(new AdminAccountsPageView(List.of(
+            new AdminAccountRow(1L, "boss@example.test", "01/11/2026", true, true, false),
+            new AdminAccountRow(2L, "staff@example.test", "05/11/2026", true, false, true)
+        ), false));
+
+        mvc.perform(get("/admin/admins").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("staff@example.test")))
+            .andExpect(content().string(not(containsString("Thêm quản trị viên"))))
+            .andExpect(content().string(not(containsString("/lock"))));
+    }
+
+    @Test
+    void creatingAdminWithBadEmailReturnsWithErrorAndSavesNothing() throws Exception {
+        mvc.perform(post("/admin/admins")
+                .with(user("admin").roles("ADMIN"))
+                .with(csrf())
+                .param("email", "khong-phai-email")
+                .param("password", "matkhau123"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/admins"))
+            .andExpect(flash().attributeExists("adminError"));
+        verify(admins, never()).create(any());
     }
 
     @Test
@@ -548,7 +693,11 @@ class AdminPagesTest {
         mvc.perform(get("/admin/gift-boxes/new").with(user("admin").roles("ADMIN")))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("Thêm hộp quà")))
-            .andExpect(content().string(containsString("value=\"GIFT_SET\"")));
+            .andExpect(content().string(containsString("value=\"GIFT_SET\"")))
+            .andExpect(content().string(containsString("Chọn vỏ hộp")))
+            .andExpect(content().string(containsString("name=\"boxId\"")))
+            .andExpect(content().string(containsString("Tạo hộp quà")))
+            .andExpect(content().string(not(containsString("Hiển thị trên cửa hàng ngay"))));
     }
 
     @Test
@@ -562,14 +711,14 @@ class AdminPagesTest {
                 "warning",
                 null,
                 List.of(new AdminProductDetail.Sku(
-                        new VariantForm(1L, 2, "GIFT-KP-4", "Hộp 4 bánh", null, null, BigDecimal.valueOf(590_000), false),
+                        new VariantForm(1L, 2, "GIFT-KP-4", "Hộp 4 bánh", null, null, null, null, BigDecimal.valueOf(590_000), false),
                         null,
                         List.of(),
                         0,
                         "Ngừng bán",
                         "muted",
-                        null)),
-                List.of());
+                        null,
+                        null)));
         AdminPresetView recipe = new AdminPresetView(
                 1, 1, "GIFT-KP-4", 1, 4, ConfigurationStatus.DRAFT,
                 List.of(new AdminPresetView.Component(1, "CAKE", 3, "Bánh Kim Sa · Bánh 80g")),
@@ -625,8 +774,23 @@ class AdminPagesTest {
     void shippingShowsOnlyDeliveryAction() throws Exception {
         when(orders.detail(1)).thenReturn(order(OrderStatus.SHIPPING));
         mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("value=\"COMPLETED\"")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("value=\"DELIVERED\"")))
+                .andExpect(content().string(containsString("Đã giao hàng")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("value=\"CANCELLED\""))));
+    }
+
+    @Test
+    void deliveredOrderShowsCustomerConfirmationNotice() throws Exception {
+        when(orders.detail(1)).thenReturn(order(OrderStatus.DELIVERED));
+
+        mvc.perform(get("/admin/orders/1").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Chờ khách xác nhận")))
+            .andExpect(content().string(containsString("Tự hoàn tất ngày")))
+            .andExpect(content().string(org.hamcrest.Matchers.not(
+                containsString("value=\"CANCELLED\"")
+            )));
     }
 
     @Test
@@ -700,6 +864,10 @@ class AdminPagesTest {
     }
 
     static AdminOrderView order(OrderStatus status) {
+        return order(status, false);
+    }
+
+    static AdminOrderView order(OrderStatus status, boolean customerLocked) {
         boolean placed = status == OrderStatus.PLACED;
         boolean processing = status == OrderStatus.PROCESSING;
         boolean shipping = status == OrderStatus.SHIPPING;
@@ -712,15 +880,30 @@ class AdminPagesTest {
                 List.of(new AdminOrderView.Item("Cake", "SKU", 1, BigDecimal.TEN, BigDecimal.TEN, List.of(new AdminOrderView.Component("Cake", 1, ComponentRole.CAKE)))),
                 List.of(new AdminOrderView.PaymentLine("COD", "Chưa thanh toán", false, BigDecimal.TEN, null)),
                 actions,
-                new OrderFulfilmentView("10:00 09/11/2026", null, null, null, null, null, null, null),
-                List.of(ShippingCarrier.values()));
+                new OrderFulfilmentView(
+                    "10:00 09/11/2026",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                ),
+                status == OrderStatus.DELIVERED ? "15/11/2026" : null,
+                List.of(ShippingCarrier.values()),
+                5L,
+                customerLocked);
     }
 
     @Configuration
     @EnableWebMvc
-    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminExceptionAdvice.class})
+    @Import({AdminCatalogController.class, com.se201411.project.mooncake.product.controller.AdminGiftBoxController.class, AdminInventoryController.class, AdminOrderController.class, DashboardController.class, com.se201411.project.mooncake.product.controller.ProductMediaController.class, com.se201411.project.mooncake.inventory.controller.BatchController.class, AdminFeedbackController.class, AdminCustomerController.class, com.se201411.project.mooncake.security.controller.AdminAccountController.class, AdminExceptionAdvice.class})
     static class Config {
         @Bean FeedbackService feedbackService(){return mock(FeedbackService.class);}
+        @Bean AdminAccountService adminAccountService(){return mock(AdminAccountService.class);}
         @Bean GiftBoxAdminService giftBoxAdminService(){return mock(GiftBoxAdminService.class);}
         @Bean DashboardService dashboardService(){return mock(DashboardService.class);}
         @Bean ProductMediaService media(){return mock(ProductMediaService.class);}
@@ -754,6 +937,11 @@ class AdminPagesTest {
         @Bean
         OrderCancellationService cancellations() {
             return mock(OrderCancellationService.class);
+        }
+
+        @Bean
+        CustomerAdminService customers() {
+            return mock(CustomerAdminService.class);
         }
 
         @Bean

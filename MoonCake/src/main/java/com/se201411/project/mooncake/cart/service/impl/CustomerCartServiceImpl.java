@@ -8,6 +8,7 @@ import com.se201411.project.mooncake.cart.repository.CartItemRepository;
 import com.se201411.project.mooncake.cart.repository.CartRepository;
 import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationItemRepository;
 import com.se201411.project.mooncake.cart.repository.CustomBoxConfigurationRepository;
+import com.se201411.project.mooncake.cart.service.CustomBoxService;
 import com.se201411.project.mooncake.cart.service.CustomerCartService;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ConcurrentOperationException;
@@ -48,6 +49,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
     private final CustomBoxConfigurationRepository configurationRepository;
     private final CustomBoxConfigurationItemRepository configurationItemRepository;
     private final ProductQueryService productQueryService;
+    private final CustomBoxService customBoxService;
     private final Clock clock;
 
     public CustomerCartServiceImpl(
@@ -56,6 +58,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         CustomBoxConfigurationRepository configurationRepository,
         CustomBoxConfigurationItemRepository configurationItemRepository,
         ProductQueryService productQueryService,
+        CustomBoxService customBoxService,
         Clock clock
     ) {
         this.cartRepository = cartRepository;
@@ -63,6 +66,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         this.configurationRepository = configurationRepository;
         this.configurationItemRepository = configurationItemRepository;
         this.productQueryService = productQueryService;
+        this.customBoxService = customBoxService;
         this.clock = clock;
     }
 
@@ -160,6 +164,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
         }
         if (item.getConfigurationId() != null && quantity > item.getQuantity()) {
             validateCustomConfigurationSellable(item.getConfigurationId(), cart.getId());
+            customBoxService.requireStockForBoxes(item.getConfigurationId(), quantity);
         }
 
         item.setQuantity(quantity);
@@ -306,7 +311,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
                 item.getId(),
                 configuration.getId(),
                 "Hộp quà tự chọn",
-                boxVariant.getProduct().getName(),
+                boxVariant.getProduct().getName() + " · " + boxVariant.getName(),
                 boxVariant.getSku(),
                 boxSnapshot.imageUrl(),
                 boxSnapshot.imageAlt(),
@@ -507,7 +512,7 @@ public class CustomerCartServiceImpl implements CustomerCartService {
             throw new InsufficientStockException("Sản phẩm này đã hết hàng.");
         }
         throw new InsufficientStockException(
-            "Chỉ còn " + stock + " sản phẩm " + found.get(0).productName() + ". Vui lòng chọn tối đa " + stock + "."
+            "Vượt quá số lượng sản phẩm trong kho. Vui lòng giảm số lượng."
         );
     }
 

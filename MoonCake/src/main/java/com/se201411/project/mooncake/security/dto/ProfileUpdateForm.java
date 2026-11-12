@@ -22,6 +22,18 @@ public class ProfileUpdateForm {
     )
     private String phone;
 
+    public static ProfileUpdateForm entityToDto(Customer customer) {
+        ProfileUpdateForm form = new ProfileUpdateForm();
+        form.setFullName(customer.getFullName());
+        form.setPhone(customer.getPhone());
+        return form;
+    }
+
+    public void dtoToEntity(Customer customer) {
+        customer.setFullName(fullName.trim());
+        customer.setPhone(phone);
+    }
+
     public String getFullName() {
         return fullName;
     }
@@ -36,17 +48,5 @@ public class ProfileUpdateForm {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public static ProfileUpdateForm entityToDto(Customer customer) {
-        ProfileUpdateForm form = new ProfileUpdateForm();
-        form.setFullName(customer.getFullName());
-        form.setPhone(customer.getPhone());
-        return form;
-    }
-
-    public void dtoToEntity(Customer customer) {
-        customer.setFullName(fullName.trim());
-        customer.setPhone(phone);
     }
 }

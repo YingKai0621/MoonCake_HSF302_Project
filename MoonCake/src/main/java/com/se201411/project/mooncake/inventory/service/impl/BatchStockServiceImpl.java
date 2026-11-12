@@ -1,5 +1,12 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collection;
+import com.se201411.project.mooncake.entity.InventoryBalance;
+import com.se201411.project.mooncake.common.exception.InsufficientStockException;
+import com.se201411.project.mooncake.inventory.dto.VariantQuantity;
+import com.se201411.project.mooncake.common.format.VietnamTime;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.exception.ResourceNotFoundException;
 import com.se201411.project.mooncake.entity.BatchAllocation;
@@ -79,22 +86,40 @@ public class BatchStockServiceImpl implements BatchStockService {
 
     @Override
     @Transactional
-    public void finishPack(String operationGroup, long variantId) {
-        LocalDate earliestExpiry = batchAllocationRepository.findEarliestExpiryConsumed(
+    public void finishPack(String operationGroup, long variantId, LocalDate packedOn) {
+        List<String> undatedCakes = batchAllocationRepository.findUndatedConsumed(
+            operationGroup + ":",
+            ProductType.MOONCAKE
+        );
+        if (!undatedCakes.isEmpty()) {
+            throw new BusinessRuleViolationException(
+                undatedCakes.get(0) + " còn lô chưa có hạn dùng. Hãy nhập ngày sản xuất cho lô đó ở trang Lô hàng trước khi đóng hộp."
+            );
+        }
+        LocalDate expiresOn = batchAllocationRepository.findEarliestExpiryConsumed(
             operationGroup + ":",
             ProductType.MOONCAKE
         );
         String outputKey = operationGroup + ":" + variantId + ":IN";
         for (StockBatch batch : batchAllocationRepository.findBatchesCreatedBy(outputKey)) {
-            batch.setExpiresOn(earliestExpiry);
+            batch.setProducedOn(packedOn);
+            batch.setExpiresOn(expiresOn);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long variantIdOf(long batchId) {
+        StockBatch batch = stockBatchRepository.findById(batchId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lô hàng."));
+        return batch.getVariantId();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AdminBatchView> list() {
         adminAccessService.requireAdmin();
-        LocalDate today = LocalDate.now(clock);
+        LocalDate today = VietnamTime.today(clock);
         List<AdminBatchView> views = new ArrayList<>();
         for (StockBatch batch : stockBatchRepository.findAllByOrderByIdDesc()) {
             String codeLabel = batchCodeLabel(batch.getBatchCode());
@@ -122,6 +147,14 @@ public class BatchStockServiceImpl implements BatchStockService {
 
     @Override
     @Transactional
+    public void updateCode(long batchId, String code) {
+        StockBatch batch = stockBatchRepository.findById(batchId)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lô hàng."));
+        updateTraceability(batchId, code, batch.getProducedOn(), batch.getExpiresOn());
+    }
+
+    @Override
+    @Transactional
     public void labelReceivedBatch(String operationKey, String code, LocalDate producedOn, LocalDate expiresOn) {
         boolean hasCode = code != null && !code.isBlank();
         if (hasCode && code.trim().length() > MAX_CODE_LENGTH) {
@@ -138,7 +171,7 @@ public class BatchStockServiceImpl implements BatchStockService {
     }
 
     private void requireValidDates(LocalDate producedOn, LocalDate expiresOn) {
-        if (producedOn != null && producedOn.isAfter(LocalDate.now(clock))) {
+        if (producedOn != null && producedOn.isAfter(VietnamTime.today(clock))) {
             throw new BusinessRuleViolationException("Ngày sản xuất không được sau hôm nay.");
         }
         if (producedOn != null && expiresOn != null && expiresOn.isBefore(producedOn)) {
@@ -175,16 +208,21 @@ public class BatchStockServiceImpl implements BatchStockService {
         if (type == StockMovementType.ADJUST) {
             batches = stockBatchRepository.findAllWithStockForUpdate(variantId);
         } else {
-            batches = stockBatchRepository.findSellableForUpdate(variantId, LocalDate.now(clock));
+            batches = stockBatchRepository.findSellableForUpdate(variantId, VietnamTime.today(clock));
         }
 
         long usable = 0;
         for (StockBatch batch : batches) {
             usable += batch.getRemainingQuantity();
         }
+        if (usable < needed && type == StockMovementType.SALE) {
+            throw new InsufficientStockException(
+                variantName(variantId) + ": vượt quá số lượng sản phẩm trong kho. Vui lòng giảm số lượng và đặt lại."
+            );
+        }
         if (usable < needed) {
-            throw new BusinessRuleViolationException(
-                "SKU #" + variantId + " chỉ còn " + usable + " sản phẩm thuộc lô có thể bán. Vui lòng đặt lại."
+            throw new InsufficientStockException(
+                "Chỉ còn " + usable + " " + variantName(variantId) + " còn hạn sử dụng."
             );
         }
 
@@ -258,7 +296,7 @@ public class BatchStockServiceImpl implements BatchStockService {
     }
 
     private String newBatchCode() {
-        String day = LocalDate.now(clock).format(BATCH_DAY);
+        String day = VietnamTime.today(clock).format(BATCH_DAY);
         String suffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase(Locale.ROOT);
         return "LO-" + day + "-" + suffix;
     }
@@ -268,5 +306,27 @@ public class BatchStockServiceImpl implements BatchStockService {
             return "Tồn đầu kỳ";
         }
         return code;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> expiredQuantities(Collection<Long> variantIds) {
+        Map<Long, Integer> result = new HashMap<>();
+        if (variantIds.isEmpty()) {
+            return result;
+        }
+        LocalDate today = VietnamTime.today(clock);
+        for (VariantQuantity expired : stockBatchRepository.sumExpiredRemaining(variantIds, today)) {
+            result.put(expired.variantId(), Math.toIntExact(expired.quantity()));
+        }
+        return result;
+    }
+
+    private String variantName(long variantId) {
+        InventoryBalance balance = inventoryBalanceRepository.findById(variantId).orElse(null);
+        if (balance == null) {
+            return "sản phẩm";
+        }
+        return balance.getVariant().getProduct().getName() + " (" + balance.getVariant().getName() + ")";
     }
 }

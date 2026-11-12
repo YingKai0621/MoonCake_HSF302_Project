@@ -1,5 +1,6 @@
 package com.se201411.project.mooncake.admin;
 
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.inventory.service.BatchStockService;
 import com.se201411.project.mooncake.inventory.service.impl.InventoryAdminServiceImpl;
 import com.se201411.project.mooncake.inventory.repository.InventoryAdminRepository;
@@ -24,21 +25,25 @@ class AdminInventoryServiceTest {
     AdminAccessService access = mock(AdminAccessService.class);
     AdminFormValidation validation = mock(AdminFormValidation.class);
     BatchStockService batches = mock(BatchStockService.class);
-    InventoryAdminServiceImpl service = new InventoryAdminServiceImpl(repo, presets, access, validation, batches, Clock.systemUTC());
+    ProductQueryService products = mock(ProductQueryService.class);
+    InventoryAdminServiceImpl service = new InventoryAdminServiceImpl(repo, presets, access, validation, batches, products, Clock.systemUTC());
     String key = UUID.randomUUID().toString();
 
     @BeforeEach
     void setup() {
         when(access.requireAdmin()).thenReturn(7L);
         when(repo.change(anyLong(), anyInt())).thenReturn(1);
+        when(products.shelfLifeDays(anyLong())).thenReturn(null);
     }
 
     @Test
     void receiveLabelsTheNewBatchWithCodeAndDates() {
-        LocalDate produced = LocalDate.of(2026, 9, 1);
-        LocalDate expiry = LocalDate.of(2026, 10, 1);
+        LocalDate produced = LocalDate.now().minusDays(2);
+        LocalDate expiry = produced.plusDays(30);
 
-        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), "LO-0901", produced, expiry);
+        when(products.shelfLifeDays(11)).thenReturn(30);
+
+        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), "LO-0901", produced);
 
         verify(repo).change(11, 20);
         verify(batches).labelReceivedBatch("RECEIVE:" + key + ":11", "LO-0901", produced, expiry);
@@ -46,7 +51,7 @@ class AdminInventoryServiceTest {
 
     @Test
     void receiveWithoutBatchInfoKeepsTheAutomaticBatch() {
-        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), " ", null, null);
+        service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), " ", null);
 
         verify(batches, never()).labelReceivedBatch(anyString(), any(), any(), any());
     }
@@ -66,7 +71,7 @@ class AdminInventoryServiceTest {
     @Test
     void repeatedOperationStopsBeforeStockChange() {
         when(repo.operationExists("RECEIVE:" + key)).thenReturn(true);
-        assertThatThrownBy(() -> service.receive(new AdminStockForm(1, 2, "Receive", key))).isInstanceOf(BusinessRuleViolationException.class);
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(1, 2, "Receive", key), null, null)).isInstanceOf(BusinessRuleViolationException.class);
         verify(repo, never()).change(anyLong(), anyInt());
     }
 
@@ -81,16 +86,137 @@ class AdminInventoryServiceTest {
 
     @Test
     void receiveRejectsNegativeAndAdjustmentRejectsZero() {
-        assertThatThrownBy(() -> service.receive(new AdminStockForm(1, -1, "Bad", key))).isInstanceOf(BusinessRuleViolationException.class);
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(1, -1, "Bad", key), null, null)).isInstanceOf(BusinessRuleViolationException.class);
         assertThatThrownBy(() -> service.adjust(new AdminStockForm(1, 0, "Bad", key))).isInstanceOf(BusinessRuleViolationException.class);
         verify(repo, never()).change(anyLong(), anyInt());
     }
 
     @Test
-    void giftSetReceiveRequiresReadyRecipe() {
+    void adjustmentCannotAddStockSoNoUndatedCakeBatchAppears() {
+        assertThatThrownBy(() -> service.adjust(new AdminStockForm(11, -3, "Kiểm kê thừa", key)))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Nhập kho");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void adjustmentRemovesTheEnteredQuantity() {
+        service.adjust(new AdminStockForm(11, 2, "Vỡ 2 bánh", key));
+
+        verify(repo).change(11, -2);
+        verify(repo).movement(eq(11L), eq(7L), eq(-2), eq(StockMovementType.ADJUST), eq("Vỡ 2 bánh"), eq("ADJUST:" + key), eq("ADJUST:" + key + ":11"), any());
+    }
+
+    @Test
+    void giftSetCannotBeReceivedDirectly() {
         when(repo.isGiftSet(30)).thenReturn(true);
-        doThrow(new BusinessRuleViolationException("Draft")).when(presets).requireReadyPreset(30);
-        assertThatThrownBy(() -> service.receive(new AdminStockForm(30, 1, "Receive", key))).isInstanceOf(BusinessRuleViolationException.class);
+
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(30, 1, "Receive", key), null, LocalDate.now()))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("Đóng hộp quà");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void emptyBoxReceiveIgnoresProductionDate() {
+        when(products.shelfLifeDays(12)).thenReturn(null);
+
+        service.receive(new AdminStockForm(12, 5, "Nhập vỏ hộp", key), "LO-HOP", LocalDate.now().minusDays(3));
+
+        verify(repo).change(12, 5);
+        verify(batches).labelReceivedBatch("RECEIVE:" + key + ":12", "LO-HOP", null, null);
+    }
+
+    @Test
+    void editingPackedGiftBatchOnlyChangesTheCode() {
+        when(batches.variantIdOf(9L)).thenReturn(30L);
+        when(repo.isGiftSet(30)).thenReturn(true);
+        when(products.shelfLifeDays(30)).thenReturn(20);
+
+        service.updateBatchInfo(9L, "LO-QUA", LocalDate.of(2026, 9, 1));
+
+        verify(batches).updateCode(9L, "LO-QUA");
+        verify(batches, never()).updateTraceability(anyLong(), anyString(), any(), any());
+    }
+
+    @Test
+    void editingEmptyBoxBatchOnlyChangesTheCode() {
+        when(batches.variantIdOf(9L)).thenReturn(12L);
+        when(products.shelfLifeDays(12)).thenReturn(null);
+
+        service.updateBatchInfo(9L, "LO-HOP", LocalDate.of(2026, 9, 1));
+
+        verify(batches).updateCode(9L, "LO-HOP");
+        verify(batches, never()).updateTraceability(anyLong(), anyString(), any(), any());
+    }
+
+    @Test
+    void cakeWithoutProductionDateIsRejectedBeforeStockChanges() {
+        when(products.shelfLifeDays(11)).thenReturn(30);
+
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(11, 20, "Nhập xưởng", key), "LO-1", null))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessage("Vui lòng nhập ngày sản xuất.");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void emptyBoxNeedsNoProductionDate() {
+        when(products.shelfLifeDays(12)).thenReturn(null);
+
+        service.receive(new AdminStockForm(12, 5, "Nhập vỏ hộp", key), null, null);
+
+        verify(repo).change(12, 5);
+    }
+
+    @Test
+    void packingLabelsTheGiftBatchWithTheVietnamPackDate() {
+        when(presets.requireReadyPreset(30)).thenReturn(new PresetRecipeSnapshot(1, 30, 10, 4, ConfigurationStatus.READY,
+                List.of(new PresetComponentSnapshot(20, 4))));
+
+        service.pack(new AdminStockForm(30, 1, "Pack", key));
+
+        verify(batches).finishPack(eq("PACK:" + key), eq(30L), any(LocalDate.class));
+    }
+
+    @Test
+    void editingBatchRecomputesExpiryFromProductionDate() {
+        when(batches.variantIdOf(9L)).thenReturn(11L);
+        when(products.shelfLifeDays(11)).thenReturn(45);
+        LocalDate produced = LocalDate.of(2026, 9, 1);
+
+        service.updateBatchInfo(9L, "LO-9", produced);
+
+        verify(batches).updateTraceability(9L, "LO-9", produced, produced.plusDays(45));
+    }
+
+    @Test
+    void alreadyExpiredLotCannotBeReceived() {
+        when(products.shelfLifeDays(11)).thenReturn(30);
+        LocalDate produced = LocalDate.now().minusDays(60);
+
+        assertThatThrownBy(() -> service.receive(new AdminStockForm(11, 5, "Nhập lô cũ", key), "LO-OLD", produced))
+            .isInstanceOf(BusinessRuleViolationException.class)
+            .hasMessageContaining("đã hết hạn");
+        verify(repo, never()).change(anyLong(), anyInt());
+    }
+
+    @Test
+    void writingOffExpiredStockAdjustsByTheExpiredQuantity() {
+        when(batches.expiredQuantities(List.of(11L))).thenReturn(Map.of(11L, 4));
+
+        service.writeOffExpired(11L, key);
+
+        verify(repo).change(11, -4);
+        verify(repo).movement(eq(11L), eq(7L), eq(-4), eq(StockMovementType.ADJUST), eq("Hủy hàng hết hạn"), eq("ADJUST:" + key), eq("ADJUST:" + key + ":11"), any());
+    }
+
+    @Test
+    void writingOffWithoutExpiredStockIsRejected() {
+        when(batches.expiredQuantities(List.of(11L))).thenReturn(Map.of());
+
+        assertThatThrownBy(() -> service.writeOffExpired(11L, key))
+            .isInstanceOf(BusinessRuleViolationException.class);
         verify(repo, never()).change(anyLong(), anyInt());
     }
 }

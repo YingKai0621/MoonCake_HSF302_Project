@@ -2,10 +2,10 @@ package com.se201411.project.mooncake.product.controller;
 
 import com.se201411.project.mooncake.enums.ProductType;
 import com.se201411.project.mooncake.product.service.PresetConfigurationAdminService;
+import com.se201411.project.mooncake.product.service.GiftBoxAdminService;
 import com.se201411.project.mooncake.product.service.ProductAdminService;
 import com.se201411.project.mooncake.product.dto.AdminPresetForm;
 import com.se201411.project.mooncake.product.dto.ProductEditPageView;
-import com.se201411.project.mooncake.product.dto.AdminCatalogForms.BoxForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.CategoryForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageForm;
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ImageUploadForm;
@@ -32,10 +32,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminCatalogController {
     private final ProductAdminService catalog;
     private final PresetConfigurationAdminService presets;
+    private final GiftBoxAdminService giftBoxes;
 
-    public AdminCatalogController(ProductAdminService catalog, PresetConfigurationAdminService presets) {
+    public AdminCatalogController(ProductAdminService catalog, PresetConfigurationAdminService presets,
+                                  GiftBoxAdminService giftBoxes) {
         this.catalog = catalog;
         this.presets = presets;
+        this.giftBoxes = giftBoxes;
     }
 
     @GetMapping({"", "/"})
@@ -159,21 +162,28 @@ public class AdminCatalogController {
     }
 
     @PostMapping("/catalog/products")
-    public String createProduct(@Valid @ModelAttribute NewProductForm form, BindingResult result, RedirectAttributes flash) {
+    public String createProduct(@Valid @ModelAttribute NewProductForm form, BindingResult result,
+                                @RequestParam(required = false) Long boxId, RedirectAttributes flash) {
+        boolean giftBox = form.productType() == ProductType.GIFT_SET;
         String newPage = "/admin/catalog/products/new";
-        if (form.productType() == ProductType.GIFT_SET) {
+        if (giftBox) {
             newPage = "/admin/gift-boxes/new";
+            flash.addFlashAttribute("selectedBoxId", boxId);
         }
         if (result.hasErrors()) {
             return failed(flash, newPage, "new-product", withoutFile(form), FormErrors.first(result));
         }
         long productId;
         try {
-            productId = catalog.createProduct(form);
+            if (giftBox) {
+                productId = giftBoxes.create(form, boxId);
+            } else {
+                productId = catalog.createProduct(form);
+            }
         } catch (MoonCakeException | DataAccessException ex) {
             return failed(flash, newPage, "new-product", withoutFile(form), message(ex));
         }
-        if (form.productType() == ProductType.GIFT_SET) {
+        if (giftBox) {
             flash.addFlashAttribute("success", "Đã tạo hộp quà. Bước tiếp theo: chọn bánh cho hộp.");
             return "redirect:/admin/gift-boxes/" + productId + "#recipe";
         }
@@ -193,21 +203,6 @@ public class AdminCatalogController {
             return failed(flash, productPage(form.productId()), target, form, message(ex));
         }
         return savedProduct(flash, form.productId(), "#" + target);
-    }
-
-    @PostMapping("/boxes")
-    public String box(@Valid @ModelAttribute BoxForm form, BindingResult result,
-                      @RequestParam long productId, RedirectAttributes flash) {
-        String target = form.id() == null ? "box-new" : "box-" + form.id();
-        if (result.hasErrors()) {
-            return failed(flash, productPage(productId), target, form, FormErrors.first(result));
-        }
-        try {
-            catalog.saveBox(form);
-        } catch (MoonCakeException | DataAccessException ex) {
-            return failed(flash, productPage(productId), target, form, message(ex));
-        }
-        return savedProduct(flash, productId, "#boxes");
     }
 
     @PostMapping("/images")
@@ -313,7 +308,7 @@ public class AdminCatalogController {
             form.shortDescription(),
             form.detailedDescription(),
             form.mainIngredients(),
-            form.shelfLifeInfo(),
+            form.shelfLifeDays(),
             form.storageGuidance(),
             form.active(),
             form.sku(),
@@ -321,6 +316,8 @@ public class AdminCatalogController {
             form.unitPrice(),
             form.weightGrams(),
             form.fillingLabel(),
+            form.capacityCakes(),
+            form.material(),
             form.imageUrl(),
             null
         );

@@ -1,5 +1,7 @@
 package com.se201411.project.mooncake.inventory.service.impl;
 
+import com.se201411.project.mooncake.common.format.VietnamTime;
+import com.se201411.project.mooncake.product.service.ProductQueryService;
 import com.se201411.project.mooncake.inventory.dto.MovementsPageView;
 import com.se201411.project.mooncake.common.exception.BusinessRuleViolationException;
 import com.se201411.project.mooncake.common.validation.AdminFormValidation;
@@ -49,6 +51,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     private final AdminAccessService access;
     private final AdminFormValidation validation;
     private final BatchStockService batchStock;
+    private final ProductQueryService productQueryService;
     private final Clock clock;
 
     public InventoryAdminServiceImpl(
@@ -57,6 +60,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         AdminAccessService access,
         AdminFormValidation validation,
         BatchStockService batchStock,
+        ProductQueryService productQueryService,
         Clock clock
     ) {
         this.repo = repo;
@@ -64,6 +68,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         this.access = access;
         this.validation = validation;
         this.batchStock = batchStock;
+        this.productQueryService = productQueryService;
         this.clock = clock;
     }
 
@@ -103,9 +108,15 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     @Transactional(readOnly = true)
     public List<Balance> balances() {
         access.requireAdmin();
+        List<InventoryBalance> rows = repo.balances();
+        List<Long> variantIds = new ArrayList<>();
+        for (InventoryBalance balance : rows) {
+            variantIds.add(balance.getVariantId());
+        }
+        Map<Long, Integer> expired = batchStock.expiredQuantities(variantIds);
         List<Balance> result = new ArrayList<>();
-        for (InventoryBalance balance : repo.balances()) {
-            result.add(Balance.entityToDto(balance));
+        for (InventoryBalance balance : rows) {
+            result.add(Balance.entityToDto(balance, expired.getOrDefault(balance.getVariantId(), 0)));
         }
         return List.copyOf(result);
     }
@@ -198,24 +209,43 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
     }
 
     @Override
-    public void receive(AdminStockForm form) {
-        change(form, StockMovementType.RECEIVE);
-    }
-
-    @Override
-    public void receive(AdminStockForm form, String batchCode, LocalDate producedOn, LocalDate expiresOn) {
+    public void receive(AdminStockForm form, String batchCode, LocalDate producedOn) {
+        if (repo.isGiftSet(form.variantId())) {
+            throw new BusinessRuleViolationException("Hộp quà chỉ vào kho bằng thao tác Đóng hộp quà.");
+        }
+        LocalDate batchProducedOn = producedOn;
+        if (productQueryService.shelfLifeDays(form.variantId()) == null) {
+            batchProducedOn = null;
+        }
+        LocalDate expiresOn = expiryFor(form.variantId(), batchProducedOn);
+        if (expiresOn != null && expiresOn.isBefore(VietnamTime.today(clock))) {
+            throw new BusinessRuleViolationException(
+                "Lô này đã hết hạn (HSD " + VietnamTime.date(expiresOn) + "), không nhập được."
+            );
+        }
         change(form, StockMovementType.RECEIVE);
         boolean hasCode = batchCode != null && !batchCode.isBlank();
-        boolean hasInfo = hasCode || producedOn != null || expiresOn != null;
+        boolean hasInfo = hasCode || batchProducedOn != null;
         if (hasInfo) {
             String key = StockMovementType.RECEIVE + ":" + form.operationKey() + ":" + form.variantId();
-            batchStock.labelReceivedBatch(key, batchCode, producedOn, expiresOn);
+            batchStock.labelReceivedBatch(key, batchCode, batchProducedOn, expiresOn);
         }
     }
 
     @Override
     public void adjust(AdminStockForm form) {
-        change(form, StockMovementType.ADJUST);
+        if (form.quantity() <= 0) {
+            throw new BusinessRuleViolationException(
+                "Số lượng bớt đi phải lớn hơn 0. Muốn thêm hàng hãy dùng Nhập kho."
+            );
+        }
+        AdminStockForm decrease = new AdminStockForm(
+            form.variantId(),
+            -form.quantity(),
+            form.reason(),
+            form.operationKey()
+        );
+        change(decrease, StockMovementType.ADJUST);
     }
 
     private void change(AdminStockForm form, StockMovementType type) {
@@ -223,9 +253,6 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
         validation.validate(form);
         if (type == StockMovementType.RECEIVE && form.quantity() <= 0) {
             throw new BusinessRuleViolationException("Số lượng nhập phải lớn hơn 0.");
-        }
-        if (form.quantity() == 0) {
-            throw new BusinessRuleViolationException("Số điều chỉnh phải khác 0, ví dụ -2 hoặc 3.");
         }
         if (repo.isGiftSet(form.variantId())) {
             presets.requireReadyPreset(form.variantId());
@@ -266,7 +293,47 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
             String key = group + ":" + entry.getKey() + ":" + direction;
             apply(entry.getKey(), admin, entry.getValue(), StockMovementType.PACK, form.reason(), group, key);
         }
-        batchStock.finishPack(group, form.variantId());
+        LocalDate packedOn = VietnamTime.today(clock);
+        batchStock.finishPack(group, form.variantId(), packedOn);
+    }
+
+    @Override
+    public void updateBatchInfo(long batchId, String batchCode, LocalDate producedOn) {
+        long variantId = batchStock.variantIdOf(batchId);
+        if (!producedOnEditable(variantId)) {
+            batchStock.updateCode(batchId, batchCode);
+            return;
+        }
+        LocalDate expiresOn = expiryFor(variantId, producedOn);
+        batchStock.updateTraceability(batchId, batchCode, producedOn, expiresOn);
+    }
+
+    private boolean producedOnEditable(long variantId) {
+        if (repo.isGiftSet(variantId)) {
+            return false;
+        }
+        return productQueryService.shelfLifeDays(variantId) != null;
+    }
+
+    @Override
+    public void writeOffExpired(long variantId, String operationKey) {
+        int expired = batchStock.expiredQuantities(List.of(variantId)).getOrDefault(variantId, 0);
+        if (expired <= 0) {
+            throw new BusinessRuleViolationException("Phiên bản này không có hàng hết hạn.");
+        }
+        AdminStockForm form = new AdminStockForm(variantId, -expired, "Hủy hàng hết hạn", operationKey);
+        change(form, StockMovementType.ADJUST);
+    }
+
+    private LocalDate expiryFor(long variantId, LocalDate producedOn) {
+        Integer shelfLifeDays = productQueryService.shelfLifeDays(variantId);
+        if (shelfLifeDays == null) {
+            return null;
+        }
+        if (producedOn == null) {
+            throw new BusinessRuleViolationException("Vui lòng nhập ngày sản xuất.");
+        }
+        return producedOn.plusDays(shelfLifeDays);
     }
 
     private void requireNew(String group) {

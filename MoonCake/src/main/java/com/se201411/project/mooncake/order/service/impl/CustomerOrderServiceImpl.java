@@ -207,6 +207,30 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
 
     @Override
     @Transactional
+    public void confirmReceived(
+        String orderCode,
+        ShopperIdentity customerIdentity
+    ) {
+        requireIdentity(customerIdentity);
+        SalesOrder order = requireOwnedOrder(
+            orderCode,
+            customerIdentity.customerId()
+        );
+        int changed = orderRepository.confirmReceived(
+            order.getId(),
+            OrderStatus.DELIVERED,
+            OrderStatus.COMPLETED,
+            LocalDateTime.now(clock)
+        );
+        if (changed != 1) {
+            throw new BusinessRuleViolationException(
+                "Đơn chưa ở trạng thái Đã giao nên chưa xác nhận được."
+            );
+        }
+    }
+
+    @Override
+    @Transactional
     public String startOnlinePayment(
         String orderCode,
         ShopperIdentity customerIdentity,
@@ -340,6 +364,9 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         }
         if (status == OrderStatus.SHIPPING) {
             return "Đang giao hàng";
+        }
+        if (status == OrderStatus.DELIVERED) {
+            return "Đã giao hàng";
         }
         if (status == OrderStatus.COMPLETED) {
             return "Hoàn thành";

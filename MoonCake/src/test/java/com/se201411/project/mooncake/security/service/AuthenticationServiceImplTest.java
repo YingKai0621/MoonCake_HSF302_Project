@@ -43,6 +43,9 @@ class AuthenticationServiceImplTest {
         ZoneOffset.UTC
     );
 
+    private static final ShopperIdentity CUSTOMER = ShopperIdentity.forCustomer(5L);
+    private static final Long ACCOUNT_ID = 9L;
+
     @Mock
     private AccountRepository accountRepository;
 
@@ -119,55 +122,61 @@ class AuthenticationServiceImplTest {
 
     @Test
     void wrongCurrentPasswordIsRejectedAndHashUnchanged() {
-        Customer customer = customerWithPassword("old-hash");
-        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
+        Account account = signedInCustomerAccount();
         when(passwordEncoder.matches("wrong-password", "old-hash")).thenReturn(false);
 
-        assertThatThrownBy(() -> service().changePassword(
-            ShopperIdentity.forCustomer(7L),
-            "wrong-password",
-            "newPassword123"
-        )).isInstanceOf(WrongCurrentPasswordException.class);
+        AuthenticationServiceImpl service = service();
 
-        assertThat(customer.getAccount().getPasswordHash()).isEqualTo("old-hash");
+        assertThatThrownBy(() -> service.changePassword(CUSTOMER, "wrong-password", "newPassword1"))
+            .isInstanceOf(WrongCurrentPasswordException.class)
+            .hasMessage("Mật khẩu hiện tại không đúng.");
+
+        assertThat(account.getPasswordHash()).isEqualTo("old-hash");
         verify(accountRepository, never()).save(any(Account.class));
+        verify(passwordResetTokenRepository, never()).invalidateOpenTokens(any(), any());
     }
 
     @Test
     void newPasswordEqualToCurrentIsRejected() {
-        Customer customer = customerWithPassword("old-hash");
-        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
-        when(passwordEncoder.matches("currentPassword", "old-hash")).thenReturn(true);
+        Account account = signedInCustomerAccount();
+        when(passwordEncoder.matches("password123", "old-hash")).thenReturn(true);
 
-        assertThatThrownBy(() -> service().changePassword(
-            ShopperIdentity.forCustomer(7L),
-            "currentPassword",
-            "currentPassword"
-        )).isInstanceOf(SamePasswordException.class);
+        AuthenticationServiceImpl service = service();
 
+        assertThatThrownBy(() -> service.changePassword(CUSTOMER, "password123", "password123"))
+            .isInstanceOf(SamePasswordException.class)
+            .hasMessage("Mật khẩu mới phải khác mật khẩu hiện tại.");
+
+        assertThat(account.getPasswordHash()).isEqualTo("old-hash");
         verify(accountRepository, never()).save(any(Account.class));
     }
 
     @Test
     void changePasswordStoresNewHashAndInvalidatesResetTokens() {
-        Customer customer = customerWithPassword("old-hash");
-        when(customerRepository.findById(7L)).thenReturn(Optional.of(customer));
-        when(passwordEncoder.matches("currentPassword", "old-hash")).thenReturn(true);
-        when(passwordEncoder.matches("newPassword123", "old-hash")).thenReturn(false);
-        when(passwordEncoder.encode("newPassword123")).thenReturn("new-hash");
+        Account account = signedInCustomerAccount();
+        when(passwordEncoder.matches("password123", "old-hash")).thenReturn(true);
+        when(passwordEncoder.matches("newPassword1", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("newPassword1")).thenReturn("new-hash");
 
-        service().changePassword(
-            ShopperIdentity.forCustomer(7L),
-            "currentPassword",
-            "newPassword123"
-        );
+        AuthenticationServiceImpl service = service();
+        service.changePassword(CUSTOMER, "password123", "newPassword1");
 
-        assertThat(customer.getAccount().getPasswordHash()).isEqualTo("new-hash");
-        verify(accountRepository).save(customer.getAccount());
+        assertThat(account.getPasswordHash()).isEqualTo("new-hash");
+        verify(accountRepository).save(account);
         verify(passwordResetTokenRepository).invalidateOpenTokens(
-            15L,
+            ACCOUNT_ID,
             LocalDateTime.of(2026, 10, 21, 10, 0)
         );
+    }
+
+    private Account signedInCustomerAccount() {
+        Account account = new Account();
+        ReflectionTestUtils.setField(account, "id", ACCOUNT_ID);
+        account.setPasswordHash("old-hash");
+        Customer customer = new Customer();
+        customer.setAccount(account);
+        when(customerRepository.findById(CUSTOMER.customerId())).thenReturn(Optional.of(customer));
+        return account;
     }
 
     private AuthenticationServiceImpl service() {
@@ -178,15 +187,6 @@ class AuthenticationServiceImplTest {
             passwordEncoder,
             FIXED_CLOCK
         );
-    }
-
-    private Customer customerWithPassword(String passwordHash) {
-        Account account = new Account();
-        ReflectionTestUtils.setField(account, "id", 15L);
-        account.setPasswordHash(passwordHash);
-        Customer customer = new Customer();
-        customer.setAccount(account);
-        return customer;
     }
 
     private CustomerRegistrationForm validForm() {

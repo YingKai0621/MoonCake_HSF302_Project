@@ -28,4 +28,6 @@ public interface ProductQueryService {
     ProductDetailPageView productDetailPage(String slug);
 
     ProductVariant variantReference(long variantId);
+
+    Integer shelfLifeDays(long variantId);
 }

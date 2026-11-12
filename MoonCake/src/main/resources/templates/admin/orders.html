@@ -41,6 +41,7 @@
                 <td>
                     <span class="badge" th:classappend="${'badge--' + order.statusTone}" th:text="${order.statusLabel}">Chờ xử lý</span>
                     <span th:if="${order.actions.needsRefund}" class="badge badge--danger">Cần hoàn tiền</span>
+                    <span th:if="${order.customerLocked}" class="badge badge--danger">Khách đã bị khóa</span>
                 </td>
                 <td>
                     <th:block th:each="payment : ${order.payments}">

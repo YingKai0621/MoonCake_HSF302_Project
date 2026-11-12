@@ -12,7 +12,7 @@ public interface BatchStockService {
 
     void apply(long variantId, int delta, String operationKey, Long orderId, StockMovementType type);
 
-    void finishPack(String operationGroup, long variantId, LocalDate packedOn, LocalDate shelfLifeLimit);
+    void finishPack(String operationGroup, long variantId, LocalDate packedOn);
 
     List<AdminBatchView> list();
 

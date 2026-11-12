@@ -286,8 +286,7 @@ public class InventoryAdminServiceImpl implements InventoryAdminService, Packing
             apply(entry.getKey(), admin, entry.getValue(), StockMovementType.PACK, form.reason(), group, key);
         }
         LocalDate packedOn = VietnamTime.today(clock);
-        LocalDate shelfLifeLimit = expiryFor(form.variantId(), packedOn);
-        batchStock.finishPack(group, form.variantId(), packedOn, shelfLifeLimit);
+        batchStock.finishPack(group, form.variantId(), packedOn);
     }
 
     @Override

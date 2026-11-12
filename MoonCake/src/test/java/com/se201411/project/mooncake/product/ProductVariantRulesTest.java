@@ -1,6 +1,8 @@
 package com.se201411.project.mooncake.product;
 
 import com.se201411.project.mooncake.product.dto.AdminCatalogForms.ProductForm;
+import com.se201411.project.mooncake.product.dto.CatalogProductView;
+import com.se201411.project.mooncake.product.dto.CatalogVariantView;
 import java.util.List;
 import com.se201411.project.mooncake.entity.ProductVariant;
 import com.se201411.project.mooncake.order.service.OrderManagementService;
@@ -204,5 +206,39 @@ class ProductVariantRulesTest {
             .isInstanceOf(BusinessRuleViolationException.class)
             .hasMessageContaining("thời hạn sử dụng");
         verify(repo, never()).save(any(Product.class));
+    }
+
+    @Test
+    void giftBoxNeedsNoShelfLifeAndKeepsNone() {
+        ProductForm form = new ProductForm(null, 1, ProductType.GIFT_SET, "Hộp quà", "hop-qua", "Mô tả", null, null, 30, null, false);
+        doAnswer(call -> {
+            Product saved = call.getArgument(0);
+            ReflectionTestUtils.setField(saved, "id", 8L);
+            return null;
+        }).when(repo).save(any(Product.class));
+
+        service.saveProduct(form);
+
+        ArgumentCaptor<Product> saved = ArgumentCaptor.forClass(Product.class);
+        verify(repo).save(saved.capture());
+        assertThat(saved.getValue().getShelfLifeDays()).isNull();
+    }
+
+    @Test
+    void customerSeesGiftBoxExpiryFollowsTheCakes() {
+        Product gift = new Product();
+        ReflectionTestUtils.setField(gift, "id", 8L);
+        gift.setProductType(ProductType.GIFT_SET);
+        gift.setSlug("hop-qua");
+        gift.setName("Hộp quà");
+        gift.setShortDescription("Mô tả");
+        gift.setShelfLifeDays(30);
+
+        CatalogVariantView variant = new CatalogVariantView(1L, "GIFT", "Hộp quà", null, null, BigDecimal.valueOf(450_000),
+            "450.000đ", "/images/gift.png", "Hộp quà", null, 3);
+
+        CatalogProductView view = CatalogProductView.entityToDto(gift, List.of(variant));
+
+        assertThat(view.getShelfLifeInformation()).isEqualTo("Theo hạn của bánh trong hộp");
     }
 }

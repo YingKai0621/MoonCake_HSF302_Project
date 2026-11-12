@@ -86,12 +86,11 @@ public class BatchStockServiceImpl implements BatchStockService {
 
     @Override
     @Transactional
-    public void finishPack(String operationGroup, long variantId, LocalDate packedOn, LocalDate shelfLifeLimit) {
-        LocalDate earliestExpiry = batchAllocationRepository.findEarliestExpiryConsumed(
+    public void finishPack(String operationGroup, long variantId, LocalDate packedOn) {
+        LocalDate expiresOn = batchAllocationRepository.findEarliestExpiryConsumed(
             operationGroup + ":",
             ProductType.MOONCAKE
         );
-        LocalDate expiresOn = earlierOf(earliestExpiry, shelfLifeLimit);
         String outputKey = operationGroup + ":" + variantId + ":IN";
         for (StockBatch batch : batchAllocationRepository.findBatchesCreatedBy(outputKey)) {
             batch.setProducedOn(packedOn);
@@ -105,16 +104,6 @@ public class BatchStockServiceImpl implements BatchStockService {
         StockBatch batch = stockBatchRepository.findById(batchId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lô hàng."));
         return batch.getVariantId();
-    }
-
-    private LocalDate earlierOf(LocalDate first, LocalDate second) {
-        if (first == null) {
-            return second;
-        }
-        if (second == null || first.isBefore(second)) {
-            return first;
-        }
-        return second;
     }
 
     @Override

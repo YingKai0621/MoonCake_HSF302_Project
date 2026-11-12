@@ -1,63 +1,54 @@
-# Seed dữ liệu demo đầy đủ
+# Dữ liệu demo cho buổi thuyết trình
 
-Script: [`../MoonCake/scripts/seed-local-demo-full.sql`](../MoonCake/scripts/seed-local-demo-full.sql).
+Dùng **sản phẩm thật có sẵn** (V3: 12 bánh, 2 vỏ hộp, 2 hộp quà, ảnh thật). Dữ liệu được tạo bằng **chính các service của app**, nên đơn hàng, giá, lô và hạn sử dụng đúng luật như khi bấm trên web.
 
-## Cách chạy trong IntelliJ / SSMS
+Bộ seed: [`../MoonCake/src/test/java/com/se201411/project/mooncake/demo/DemoDataSeeder.java`](../MoonCake/src/test/java/com/se201411/project/mooncake/demo/DemoDataSeeder.java). Nó **không chạy** cùng `mvn test` thông thường, và chỉ chạy được trên database `MoonCakeDemoDB` còn trống đơn hàng.
 
-1. Khởi động ứng dụng thành công để Flyway chạy hết V1–V4.
-2. Đăng ký một tài khoản **Customer** trên website. Tài khoản Admin không dùng làm người mua.
-3. Mở Query Console của Data Source SQL Server, chọn database local `MoonCakeDB` (hoặc `MoonCakeTestDB` khi kiểm thử riêng).
-4. Mở script và sửa dòng `@CustomerEmail` thành email tài khoản vừa đăng ký.
-5. Chọn chế độ **Auto-commit**, chạy **toàn bộ file trong một lần**, không chạy từng đoạn. Script tự quản lý transaction.
-6. Kết quả cuối gồm bảng tồn kho và 12 đơn hàng. Refresh trang web để xem dữ liệu.
+## Cách dựng lại từ đầu
 
-Không đưa script vào thư mục Flyway migration và không chèn vào V4. Đây là dữ liệu demo local, không phải dữ liệu triển khai chung. Script không tạo database hoặc tài khoản và không cần mật khẩu trong file SQL.
+1. Tạo database trống `MoonCakeDemoDB` trên SQL Server local (không đụng `MoonCakeDB`).
+2. Build app: `./mvnw -DskipTests package`.
+3. Chạy app một lần ở chế độ khởi tạo để Flyway tạo bảng và tạo super admin. Đặt các biến môi trường trước khi chạy:
+   - `DB_NAME=MoonCakeDemoDB`
+   - `BOOTSTRAP_ADMIN_EMAIL=admin.demo@example.test`
+   - `BOOTSTRAP_ADMIN_PASSWORD=MoonCake@2026`
+   - `SERVER_PORT=0`
 
-## Dữ liệu được tạo
+   Lệnh: `java -jar target/MoonCake-0.0.1-SNAPSHOT.jar --spring.profiles.active=bootstrap-admin` (app tự tắt sau khi tạo admin).
+4. Chạy bộ seed với `DB_NAME=MoonCakeDemoDB`: `./mvnw test -Dtest=DemoDataSeeder -Dsurefire.failIfNoSpecifiedTests=false`.
+5. Chạy app bình thường với `DB_NAME=MoonCakeDemoDB` (ví dụ đổi dòng `DB_NAME` trong `.env`). Muốn quay lại dữ liệu cũ thì đổi lại `MoonCakeDB`.
+
+Biến môi trường của hệ điều hành được ưu tiên hơn `.env`, nên có thể đặt `DB_NAME` khi chạy mà không sửa `.env`.
+
+## Tài khoản demo (mật khẩu chung `MoonCake@2026`)
+
+| Tài khoản | Vai trò |
+|---|---|
+| `admin.demo@example.test` | Super admin (thêm/khóa quản trị viên) |
+| `nhanvien.demo@example.test` | Quản trị viên thường |
+| `khach.demo@example.test` | Khách chính để demo mua hàng |
+| `tran.binh@example.test`, `le.chi@example.test`, `pham.dung@example.test` | Khách có sẵn đơn hàng và đánh giá |
+
+## Dữ liệu có sẵn
 
 | Nhóm | Nội dung |
 |---|---|
-| Danh mục | 3 danh mục DEMO |
-| Bánh | 8 SKU, thông tin thực phẩm lấy từ các sản phẩm V3; giá demo 65.000–99.000 đồng |
-| Hộp rỗng | 3 SKU chứa 4, 6, 8 bánh; giá demo 45.000–85.000 đồng |
-| PRESET | 2 công thức READY đủ bánh; 1 DRAFT chưa đủ bánh, chưa mở bán |
-| Kho | Nhập linh kiện; đóng 160 hộp 4 bánh và 100 hộp 6 bánh; xuất bán, hoàn khi hủy |
-| Doanh nghiệp | 2 bản ghi giả lập, email `example.test` |
-| Đơn hàng | 12 đơn `DEMO-ORDER-01` đến `DEMO-ORDER-12`, mỗi đơn có COD và giỏ CHECKED_OUT |
-| Customer | Tất cả đơn thuộc Customer đã chọn, có thể xem lịch sử sau khi đăng nhập |
+| Bánh dùng trong hộp quà | Mỗi loại 2 lô có hạn (NSX 12 ngày trước và 2 ngày trước) |
+| Chà bông trứng nghiền | Có lô **sắp hết hạn** (còn 5 ngày) |
+| Thập cẩm gà quay | Có 6 cái trong lô **đã hết hạn** → demo "Hủy hàng hết hạn" |
+| Lưu sa than tre | Còn 4 cái → nhãn "Chỉ còn" |
+| Cua bát bửu | Hết hàng |
+| Vỏ hộp Kim Phúc 4 bánh, Lam Phúc 6 bánh | Có sức chứa, đủ tồn (vỏ không có hạn) |
+| Hộp quà Kim Phúc, Lam Phúc | Đã đóng sẵn, đang bán; lô hộp quà có HSD theo bánh sớm nhất. Còn đủ bánh và vỏ để **đóng thêm** khi demo |
+| Đơn hàng | 10 đơn COD rải trong 7 ngày: hoàn tất, đang giao, đã giao chờ khách xác nhận, đang chuẩn bị, chờ xử lý, khách hủy, admin hủy |
+| Đánh giá | 2 đánh giá đã hiện trên trang chủ, 1 đánh giá chờ duyệt |
 
-Ảnh là logo minh họa. Giá, người nhận, địa chỉ và doanh nghiệp là dữ liệu giả lập, không dùng để giao hàng. Script không tự bịa thành phần hoặc hạn sử dụng bánh.
+## Gợi ý khi demo
 
-## Các tình huống để thử
+- `khach.demo` có 1 đơn hoàn tất và 1 đơn đang giao, nên còn đặt thêm được **1 đơn COD** (giới hạn 2 đơn COD đang mở). Muốn đặt nhiều đơn hơn thì dùng tài khoản khách khác hoặc chuyển trạng thái đơn trước.
+- Hủy đơn mẫu được: hàng trả về đúng lô đã bán ra.
+- Thanh toán VNPay chỉ demo được khi `.env` bật VNPay Sandbox; dữ liệu mẫu không có đơn VNPay.
 
-| Dữ liệu | Cách kiểm tra |
-|---|---|
-| Đơn 01–03: PLACED | Nhận xử lý hoặc hủy; hủy phải hoàn kho đúng một lần |
-| Đơn 04–06: PROCESSING | Chuyển SHIPPING hoặc hủy |
-| Đơn 07–08: SHIPPING | Hoàn tất giao hàng và thu COD; không hủy sau khi giao vận |
-| Đơn 09–10: COMPLETED | COD đã PAID, xem tổng tiền và snapshot |
-| Đơn 11–12: CANCELLED | COD UNPAID, đã có CANCEL_RETURN; không hoàn kho lần hai |
-| Đơn 03, 05, 08, 10 | Số lượng 50/100: kiểm tra bậc chiết khấu và phí giao hàng |
-| Đơn 02, 04, 05, 09, 12 | CUSTOM: trừ tồn hộp rỗng và từng loại bánh |
-| DEMO-GIFT-04/06 | PRESET: bán trừ tồn thành phẩm; đóng hộp trừ linh kiện |
-| DEMO-GIFT-08 | DRAFT: sửa công thức, bổ sung đủ 8 bánh rồi READY trước khi đóng hộp |
-| DEMO-CAKE-06 | Sản phẩm/variant inactive |
-| DEMO-CAKE-07 | Tồn 3, dưới ngưỡng cảnh báo 10 |
-| DEMO-CAKE-08 | Tồn 0 |
+## Script SQL cũ
 
-Các trang Admin: `/admin/catalog`, `/admin/presets`, `/admin/inventory`, `/admin/orders`. Dùng tài khoản Admin hiện có để truy cập.
-
-Chiết khấu lấy từ các tier đang active và có hiệu lực tại ngày giả lập của đơn; nếu bạn đã sửa tier V2, kết quả sẽ theo dữ liệu hiện tại. Phí giao hàng 30.000 đồng, hoặc 150.000 đồng khi tổng số hộp quà từ 50. Bánh bên trong hộp không được cộng vào nhóm bánh lẻ.
-
-## Chạy lại và xử lý lỗi
-
-- Seed chạy trong một transaction; lỗi sẽ rollback toàn bộ dữ liệu của lần chạy đó.
-- Danh mục `demo-seed-v1` đánh dấu seed thành công. Chạy lại sẽ bỏ qua, không nạp thêm hàng hoặc tạo đơn trùng, kể cả khi đã thao tác trên đơn demo.
-- Không xóa riêng danh mục đánh dấu để ép chạy lại. Muốn một bộ sạch, dùng database local mới, chạy migrations, đăng ký Customer rồi seed.
-- Script chỉ thêm SKU `DEMO-`; không tăng tồn hoặc chỉnh sửa SKU hiện có. Không cần chạy script `seed-local-demo-inventory.sql` cho bộ dữ liệu này.
-- Lỗi `Register an active CUSTOMER...`: kiểm tra email và trạng thái tài khoản, sau đó chạy lại toàn file.
-- Lỗi `Reserved DEMO identifiers...`: có dữ liệu trùng tiền tố từ nguồn khác; kiểm tra trước, không xóa lịch sử đơn tùy tiện.
-
-## Kiểm chứng
-
-Đã kiểm tra cú pháp bằng SQL Server `SET PARSEONLY ON`, không thực thi seed vào database. Khi chạy thật, script kiểm tra tổng tiền đơn/thanh toán, sức chứa công thức READY và đối chiếu tồn kho với tổng lịch sử biến động trước khi commit. Chưa xác minh toàn bộ luồng giao diện trên bộ seed này.
+`MoonCake/scripts/seed-local-demo-full.sql` và `seed-local-demo-inventory.sql` là bộ cũ: tạo sản phẩm "DEMO-" và ghi tồn kho không có lô, nên sinh lô bánh không có hạn. **Không dùng cho buổi thuyết trình.**
